@@ -15,7 +15,7 @@
   /* 顶部用户区 */
   .home-header { background: linear-gradient(160deg, #1a6b3c 0%, #2d9e5f 60%, #4caf7d 100%); padding: 20px 20px 30px; }
   .user-row { display: flex; align-items: center; gap: 12px; }
-  .avatar { width: 52px; height: 52px; border-radius: 50%; background: rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 22px; color: white; font-weight: 700; border: 2px solid rgba(255,255,255,0.5); flex-shrink: 0; }
+  .avatar { width: 52px; height: 52px; border-radius: 50%; background: rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 22px; color: white; font-weight: 700; border: 2px solid rgba(255,255,255,0.5); flex-shrink: 0; cursor: pointer; }
   .user-info { flex: 1; }
   .user-name { color: white; font-size: 16px; font-weight: 600; }
   .user-company { color: rgba(255,255,255,0.8); font-size: 12px; margin-top: 2px; }
@@ -40,7 +40,7 @@
   .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
   .section-title { font-size: 15px; font-weight: 600; color: #1a1a1a; }
   .section-more { font-size: 12px; color: #2d9e5f; cursor: pointer; }
-  .grid-4 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
   .grid-card { background: white; border-radius: 14px; padding: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
   .grid-card-label { font-size: 11px; color: #999; margin-bottom: 6px; }
   .grid-card-value { font-size: 20px; font-weight: 700; }
@@ -52,7 +52,7 @@
   /* 学习统计横向 */
   .learn-stats { background: white; border-radius: 14px; margin: 16px 16px 0; padding: 14px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
   .learn-stats-row { display: flex; justify-content: space-around; }
-  .learn-stat-item { text-align: center; }
+  .learn-stat-item { text-align: center; cursor: pointer; }
   .learn-stat-value { font-size: 18px; font-weight: 700; color: #2d9e5f; }
   .learn-stat-label { font-size: 11px; color: #999; margin-top: 2px; }
 
@@ -71,23 +71,6 @@
   .edit-mode .edit-hint { display: block; }
   .edit-done-btn { width: 100%; height: 36px; background: #2d9e5f; color: white; border: none; border-radius: 10px; font-size: 13px; margin-top: 10px; cursor: pointer; display: none; }
   .edit-mode .edit-done-btn { display: block; }
-
-  /* 待办事项 */
-  .todo-section { background: white; margin: 16px 16px 0; border-radius: 16px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-  .todo-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f5f5f5; cursor: pointer; overflow: hidden; position: relative; }
-  .todo-item:last-child { border-bottom: none; }
-  .todo-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .todo-dot.high { background: #f44336; }
-  .todo-dot.mid { background: #ff9800; }
-  .todo-dot.low { background: #9e9e9e; }
-  .todo-content { flex: 1; }
-  .todo-title { font-size: 13px; color: #1a1a1a; }
-  .todo-title.high { color: #c62828; font-weight: 500; }
-  .todo-deadline { font-size: 11px; color: #999; margin-top: 2px; }
-  .todo-swipe-btn { position: absolute; right: -70px; top: 0; bottom: 0; width: 70px; background: #2d9e5f; color: white; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: right 0.2s; border-radius: 0 8px 8px 0; }
-  .todo-item.swiped .todo-swipe-btn { right: 0; }
-  .todo-item.swiped .todo-content, .todo-item.swiped .todo-dot { transform: translateX(-70px); transition: transform 0.2s; }
-  .todo-view-all { text-align: center; margin-top: 10px; font-size: 13px; color: #2d9e5f; cursor: pointer; padding: 6px; }
 
   /* 通知公告 */
   .notice-section { background: white; margin: 16px 16px 0; border-radius: 16px; padding: 14px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
@@ -124,16 +107,19 @@
   /* 通知详情弹窗 */
   .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: none; align-items: flex-end; }
   .modal-overlay.show { display: flex; }
-  .modal-sheet { background: white; border-radius: 20px 20px 0 0; width: 100%; max-height: 70%; overflow-y: auto; padding: 20px; }
-  .modal-title { font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px; }
-  .modal-meta { font-size: 12px; color: #999; margin-bottom: 16px; }
-  .modal-content { font-size: 14px; color: #333; line-height: 1.7; }
+  .modal-sheet { background: white; border-radius: 20px 20px 0 0; width: 100%; max-height: 75%; overflow-y: auto; padding: 20px; }
+  .modal-title { font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px; line-height: 1.5; }
+  .modal-meta { font-size: 12px; color: #999; margin-bottom: 16px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .modal-tag { font-size: 11px; padding: 2px 8px; border-radius: 4px; background: #e8f5e9; color: #2d9e5f; }
+  .modal-tag.important { background: #ffebee; color: #c62828; }
+  .modal-tag.top { background: #fff8e1; color: #f57f17; }
+  .modal-content { font-size: 14px; color: #333; line-height: 1.8; }
   .modal-close { float: right; width: 28px; height: 28px; background: #f5f5f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; color: #666; }
 </style>
 </head>
 <body>
 <div class="phone-frame">
-  <div class="demo-bar">📱 原型演示 - 功能二：小程序首页</div>
+  <div class="demo-bar">📱 原型演示 - 功能二：小程序首页 | <a href="index.html" style="color:#7a6200">返回导航</a></div>
 
   <div class="scroll-area" id="scroll-area">
     <!-- 刷新提示 -->
@@ -142,7 +128,7 @@
     <!-- 顶部用户区 -->
     <div class="home-header">
       <div class="user-row">
-        <div class="avatar">张</div>
+        <div class="avatar" onclick="goToPage('06-个人中心.html')">张</div>
         <div class="user-info">
           <div class="user-name">张大农</div>
           <div class="user-company">蓬溪县兴旺养殖场</div>
@@ -190,10 +176,6 @@
           <div class="grid-card-label">本月入栏量</div>
           <div class="grid-card-value orange">180<span style="font-size:12px;color:#999;margin-left:2px">头</span></div>
         </div>
-        <div class="grid-card">
-          <div class="grid-card-label">待处理事项</div>
-          <div class="grid-card-value red">3<span style="font-size:12px;color:#999;margin-left:2px">项</span></div>
-        </div>
       </div>
     </div>
 
@@ -201,21 +183,22 @@
     <div class="learn-stats">
       <div class="section-header" style="margin-bottom:12px">
         <div class="section-title">学习统计</div>
+        <div class="section-more" onclick="goToPage('04-知识课堂.html')">查看详情</div>
       </div>
       <div class="learn-stats-row">
-        <div class="learn-stat-item">
+        <div class="learn-stat-item" onclick="goToPage('04-知识课堂.html')">
           <div class="learn-stat-value">28</div>
           <div class="learn-stat-label">累计学习天数</div>
         </div>
-        <div class="learn-stat-item">
+        <div class="learn-stat-item" onclick="goToPage('04-知识课堂.html')">
           <div class="learn-stat-value">1,240</div>
           <div class="learn-stat-label">累计时长(分)</div>
         </div>
-        <div class="learn-stat-item">
+        <div class="learn-stat-item" onclick="goToPage('04-知识课堂.html')">
           <div class="learn-stat-value">15</div>
           <div class="learn-stat-label">完成课程数</div>
         </div>
-        <div class="learn-stat-item">
+        <div class="learn-stat-item" onclick="goToPage('06-个人中心.html')">
           <div class="learn-stat-value">8</div>
           <div class="learn-stat-label">我的收藏数</div>
         </div>
@@ -226,61 +209,72 @@
     <div class="shortcut-section" id="shortcut-section">
       <div class="section-header">
         <div class="section-title">快捷入口</div>
-        <div class="section-more" onclick="toggleEditMode()">编辑</div>
+        <div class="section-more" id="edit-btn" onclick="toggleEditMode()">编辑</div>
       </div>
       <div class="shortcut-grid" id="shortcut-grid">
-        <div class="shortcut-item" onclick="goToPage('03-养殖信息上报.html')">
+        <div class="shortcut-item" onclick="goToModule('breeding-info')">
           <div class="del-btn" onclick="delShortcut(event, this)">×</div>
           <div class="shortcut-icon" style="background:#e8f5e9"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2d9e5f" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
           <div class="shortcut-label">养殖信息</div>
           <div class="shortcut-badge">2</div>
         </div>
-        <div class="shortcut-item" onclick="goToPage('03-养殖信息上报.html')">
+        <div class="shortcut-item" onclick="goToModule('breeding-record')">
           <div class="del-btn" onclick="delShortcut(event, this)">×</div>
           <div class="shortcut-icon" style="background:#fff3e0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f57c00" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
           <div class="shortcut-label">繁育管理</div>
         </div>
-        <div class="shortcut-item" onclick="goToPage('03-养殖信息上报.html')">
+        <div class="shortcut-item" onclick="goToModule('weaning')">
           <div class="del-btn" onclick="delShortcut(event, this)">×</div>
-          <div class="shortcut-icon" style="background:#e3f2fd"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1976d2" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+          <div class="shortcut-icon" style="background:#e3f2fd"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1976d2" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
           <div class="shortcut-label">断奶管理</div>
         </div>
-        <div class="shortcut-item" onclick="goToPage('03-养殖信息上报.html')">
+        <div class="shortcut-item" onclick="goToModule('entry')">
           <div class="del-btn" onclick="delShortcut(event, this)">×</div>
-          <div class="shortcut-icon" style="background:#fce4ec"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c2185b" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+          <div class="shortcut-icon" style="background:#fce4ec"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c2185b" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg></div>
           <div class="shortcut-label">入栏管理</div>
         </div>
-        <div class="shortcut-item" onclick="goToPage('03-养殖信息上报.html')">
+        <div class="shortcut-item" onclick="goToModule('transfer')">
           <div class="del-btn" onclick="delShortcut(event, this)">×</div>
           <div class="shortcut-icon" style="background:#f3e5f5"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7b1fa2" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg></div>
           <div class="shortcut-label">转栏管理</div>
         </div>
-        <div class="shortcut-item" onclick="goToPage('03-养殖信息上报.html')">
+        <div class="shortcut-item" onclick="goToModule('input')">
           <div class="del-btn" onclick="delShortcut(event, this)">×</div>
           <div class="shortcut-icon" style="background:#e8f5e9"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#388e3c" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div>
           <div class="shortcut-label">投入品管理</div>
         </div>
-        <div class="shortcut-item" onclick="goToPage('03-养殖信息上报.html')">
+        <div class="shortcut-item" onclick="goToModule('disposal')">
           <div class="del-btn" onclick="delShortcut(event, this)">×</div>
           <div class="shortcut-icon" style="background:#fff8e1"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f9a825" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
           <div class="shortcut-label">无害化处理</div>
         </div>
-        <div class="shortcut-item" onclick="goToPage('03-养殖信息上报.html')">
+        <div class="shortcut-item" onclick="goToModule('outbound')">
           <div class="del-btn" onclick="delShortcut(event, this)">×</div>
-          <div class="shortcut-icon" style="background:#e0f7fa"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0097a7" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+          <div class="shortcut-icon" style="background:#e0f7fa"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0097a7" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
           <div class="shortcut-label">出栏管理</div>
+          <div class="shortcut-badge">1</div>
         </div>
-        <div class="shortcut-item" onclick="goToPage('04-知识课堂.html')">
+        <div class="shortcut-item" onclick="goToModule('immune')">
+          <div class="del-btn" onclick="delShortcut(event, this)">×</div>
+          <div class="shortcut-icon" style="background:#e8f5e9"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2d9e5f" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <div class="shortcut-label">免疫管理</div>
+        </div>
+        <div class="shortcut-item" onclick="goToModule('disinfect')">
+          <div class="del-btn" onclick="delShortcut(event, this)">×</div>
+          <div class="shortcut-icon" style="background:#fff3e0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f57c00" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div>
+          <div class="shortcut-label">消毒管理</div>
+        </div>
+        <div class="shortcut-item" onclick="goToKnowledge('course')">
           <div class="del-btn" onclick="delShortcut(event, this)">×</div>
           <div class="shortcut-icon" style="background:#e8eaf6"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3949ab" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div>
           <div class="shortcut-label">课程视频</div>
         </div>
-        <div class="shortcut-item" onclick="goToPage('04-知识课堂.html')">
+        <div class="shortcut-item" onclick="goToKnowledge('policy')">
           <div class="del-btn" onclick="delShortcut(event, this)">×</div>
-          <div class="shortcut-icon" style="background:#fbe9e7"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#bf360c" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div>
+          <div class="shortcut-icon" style="background:#fbe9e7"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#bf360c" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
           <div class="shortcut-label">政策资讯</div>
         </div>
-        <div class="shortcut-item" onclick="goToPage('04-知识课堂.html')">
+        <div class="shortcut-item" onclick="goToKnowledge('training')">
           <div class="del-btn" onclick="delShortcut(event, this)">×</div>
           <div class="shortcut-icon" style="background:#e8f5e9"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2d9e5f" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
           <div class="shortcut-label">培训活动</div>
@@ -291,49 +285,26 @@
           <div class="shortcut-label">通知公告</div>
           <div class="shortcut-badge">3</div>
         </div>
+        <div class="shortcut-item" onclick="goToPage('06-个人中心.html')">
+          <div class="del-btn" onclick="delShortcut(event, this)">×</div>
+          <div class="shortcut-icon" style="background:#f3e5f5"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7b1fa2" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+          <div class="shortcut-label">企业信息</div>
+        </div>
+        <div class="shortcut-item" onclick="goToPage('06-个人中心.html')">
+          <div class="del-btn" onclick="delShortcut(event, this)">×</div>
+          <div class="shortcut-icon" style="background:#e0f2f1"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00796b" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>
+          <div class="shortcut-label">猪舍管理</div>
+        </div>
       </div>
-      <div class="edit-hint">长按拖动可调整顺序，点击 × 可隐藏入口</div>
+      <div class="edit-hint">长按拖动可调整顺序，点击 × 可隐藏入口（最少保留4个）</div>
       <button class="edit-done-btn" onclick="toggleEditMode()">完成编辑</button>
-    </div>
-
-    <!-- 待办事项 -->
-    <div class="todo-section">
-      <div class="section-header">
-        <div class="section-title">待办事项</div>
-        <div class="section-more" onclick="showToast('跳转待办列表页')">查看全部</div>
-      </div>
-      <div class="todo-item" id="todo-1" onclick="swipeTodo('todo-1')">
-        <div class="todo-dot high"></div>
-        <div class="todo-content">
-          <div class="todo-title high">今日养殖信息上报</div>
-          <div class="todo-deadline">截止：今日 23:59</div>
-        </div>
-        <div class="todo-swipe-btn" onclick="completeTodo(event, 'todo-1')">完成</div>
-      </div>
-      <div class="todo-item" id="todo-2" onclick="swipeTodo('todo-2')">
-        <div class="todo-dot mid"></div>
-        <div class="todo-content">
-          <div class="todo-title">培训活动报名审核</div>
-          <div class="todo-deadline">截止：3个工作日内</div>
-        </div>
-        <div class="todo-swipe-btn" onclick="completeTodo(event, 'todo-2')">完成</div>
-      </div>
-      <div class="todo-item" id="todo-3" onclick="swipeTodo('todo-3')">
-        <div class="todo-dot low"></div>
-        <div class="todo-content">
-          <div class="todo-title">完成《生猪疾病防控》课程</div>
-          <div class="todo-deadline">无截止时间</div>
-        </div>
-        <div class="todo-swipe-btn" onclick="completeTodo(event, 'todo-3')">完成</div>
-      </div>
-      <div class="todo-view-all" onclick="showToast('跳转待办列表页')">查看全部待办 →</div>
     </div>
 
     <!-- 通知公告 -->
     <div class="notice-section" style="margin-bottom:16px">
       <div class="section-header" style="margin-bottom:10px">
         <div class="section-title">通知公告</div>
-        <div class="section-more" onclick="showToast('跳转通知列表页')">更多</div>
+        <div class="section-more" onclick="goToPage('05-消息通知.html')">更多</div>
       </div>
       <div class="notice-scroll">
         <div class="notice-ticker" id="notice-ticker">
@@ -356,7 +327,7 @@
 
   <!-- 底部导航 -->
   <div class="bottom-nav">
-    <div class="nav-item active" onclick="showToast('当前页面')">
+    <div class="nav-item active">
       <div class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2d9e5f" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
       <div class="nav-label" style="color:#2d9e5f">首页</div>
     </div>
@@ -383,10 +354,17 @@
   <div class="modal-overlay" id="notice-modal" onclick="closeModal()">
     <div class="modal-sheet" onclick="event.stopPropagation()">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
-        <div class="modal-title" id="modal-notice-title">通知标题</div>
+        <div style="flex:1;padding-right:10px">
+          <div class="modal-title" id="modal-notice-title">通知标题</div>
+          <div class="modal-meta">
+            <span class="modal-tag" id="modal-notice-type-tag">系统公告</span>
+            <span id="modal-notice-important-tag" class="modal-tag important" style="display:none">重要</span>
+            <span id="modal-notice-top-tag" class="modal-tag top" style="display:none">置顶</span>
+            <span id="modal-notice-time" style="font-size:12px;color:#999"></span>
+          </div>
+        </div>
         <div class="modal-close" onclick="closeModal()">×</div>
       </div>
-      <div class="modal-meta" id="modal-notice-meta"></div>
       <div class="modal-content" id="modal-notice-content"></div>
     </div>
   </div>
@@ -396,16 +374,23 @@
 
 <script>
 const notices = [
-  { title: '【预警通知】非洲猪瘟疫情防控紧急通知', type: '预警通知', time: '2026-02-27 09:00', content: '近期周边地区发现非洲猪瘟疫情，请各养殖场立即采取以下防控措施：\n\n1. 严格执行封场管理，禁止外来人员进入养殖区域；\n2. 加强猪只健康监测，发现异常立即上报；\n3. 做好消毒工作，每日对猪舍、通道进行消毒；\n4. 严禁从疫区购入猪只及相关产品；\n5. 如发现疑似病例，立即联系当地兽医部门。\n\n联系电话：0825-XXXXXXX' },
-  { title: '2026年生猪养殖补贴申报通知', type: '政策通知', time: '2026-02-25 14:30', content: '根据县农业农村局相关文件，2026年生猪养殖补贴申报工作正式开始。\n\n申报条件：\n• 年出栏生猪500头以上的规模养殖场\n• 具有完整的养殖档案记录\n• 通过动物防疫合格证年检\n\n申报截止时间：2026年3月31日\n\n请符合条件的养殖户登录本平台完成在线申报，如有疑问请联系县农业农村局。' },
-  { title: '生猪疾病防控技术培训活动通知', type: '活动通知', time: '2026-02-24 10:00', content: '为提高养殖从业人员的疾病防控技术水平，县农业农村局将于2026年3月15日举办生猪疾病防控技术培训。\n\n培训时间：2026年3月15日 09:00-17:00\n培训地点：蓬溪县农业技术推广中心\n培训内容：非洲猪瘟防控、口蹄疫防控、猪瘟防控\n\n请有意参加的养殖户在本平台报名，名额有限，先到先得。' }
+  { title: '【预警通知】非洲猪瘟疫情防控紧急通知', type: '预警通知', time: '2026-02-27 09:00', important: true, top: true, content: '近期周边地区发现非洲猪瘟疫情，请各养殖场立即采取以下防控措施：\n\n1. 严格执行封场管理，禁止外来人员进入养殖区域；\n2. 加强猪只健康监测，发现异常立即上报；\n3. 做好消毒工作，每日对猪舍、通道进行消毒；\n4. 严禁从疫区购入猪只及相关产品；\n5. 如发现疑似病例，立即联系当地兽医部门。\n\n联系电话：0825-XXXXXXX' },
+  { title: '2026年生猪养殖补贴申报通知', type: '政策通知', time: '2026-02-25 14:30', important: false, top: false, content: '根据县农业农村局相关文件，2026年生猪养殖补贴申报工作正式开始。\n\n申报条件：\n• 年出栏生猪500头以上的规模养殖场\n• 具有完整的养殖档案记录\n• 通过动物防疫合格证年检\n\n申报截止时间：2026年3月31日\n\n请符合条件的养殖户登录本平台完成在线申报，如有疑问请联系县农业农村局。' },
+  { title: '生猪疾病防控技术培训活动通知', type: '活动通知', time: '2026-02-24 10:00', important: false, top: false, content: '为提高养殖从业人员的疾病防控技术水平，县农业农村局将于2026年3月15日举办生猪疾病防控技术培训。\n\n培训时间：2026年3月15日 09:00-17:00\n培训地点：蓬溪县农业技术推广中心\n培训内容：非洲猪瘟防控、口蹄疫防控、猪瘟防控\n\n请有意参加的养殖户在本平台报名，名额有限，先到先得。' }
 ];
 
 let editMode = false;
-let noticeIndex = 0;
 
 function goToPage(page) {
   window.location.href = page;
+}
+
+function goToModule(module) {
+  window.location.href = '03-养殖信息上报.html?module=' + module;
+}
+
+function goToKnowledge(tab) {
+  window.location.href = '04-知识课堂.html?tab=' + tab;
 }
 
 function showToast(msg) {
@@ -415,24 +400,11 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2000);
 }
 
-function swipeTodo(id) {
-  const item = document.getElementById(id);
-  item.classList.toggle('swiped');
-}
-
-function completeTodo(e, id) {
-  e.stopPropagation();
-  const item = document.getElementById(id);
-  item.style.opacity = '0';
-  item.style.transition = 'opacity 0.3s';
-  setTimeout(() => { item.style.display = 'none'; showToast('待办已完成'); }, 300);
-}
-
 function toggleEditMode() {
   editMode = !editMode;
   const section = document.getElementById('shortcut-section');
   section.classList.toggle('edit-mode', editMode);
-  document.querySelector('.section-more').textContent = editMode ? '完成' : '编辑';
+  document.getElementById('edit-btn').textContent = editMode ? '完成' : '编辑';
   if (!editMode) showToast('快捷入口配置已保存');
 }
 
@@ -449,7 +421,10 @@ function delShortcut(e, btn) {
 function showNoticeDetail(idx) {
   const n = notices[idx];
   document.getElementById('modal-notice-title').textContent = n.title;
-  document.getElementById('modal-notice-meta').textContent = n.type + ' · ' + n.time;
+  document.getElementById('modal-notice-type-tag').textContent = n.type;
+  document.getElementById('modal-notice-time').textContent = n.time;
+  document.getElementById('modal-notice-important-tag').style.display = n.important ? 'inline-flex' : 'none';
+  document.getElementById('modal-notice-top-tag').style.display = n.top ? 'inline-flex' : 'none';
   document.getElementById('modal-notice-content').innerHTML = n.content.replace(/\n/g, '<br>');
   document.getElementById('notice-modal').classList.add('show');
 }
@@ -458,7 +433,7 @@ function closeModal() {
   document.getElementById('notice-modal').classList.remove('show');
 }
 
-// 通知公告自动轮播
+// 通知公告自动轮播（3秒）
 let tickerIndex = 0;
 const ticker = document.getElementById('notice-ticker');
 setInterval(() => {
@@ -476,6 +451,7 @@ scrollArea.addEventListener('touchend', e => {
     const tip = document.getElementById('refresh-tip');
     tip.classList.add('show');
     setTimeout(() => tip.classList.remove('show'), 1500);
+    showToast('刷新成功');
   }
 });
 </script>

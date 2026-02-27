@@ -66,10 +66,10 @@
 </head>
 <body>
 <div class="phone-frame">
-  <div class="demo-bar">📱 原型演示 - 功能六：消息通知</div>
+  <div class="demo-bar">📱 原型演示 - 功能六：消息通知 | <a href="index.html" style="color:#7a6200">返回导航</a></div>
 
   <!-- 主消息列表视图 -->
-  <div id="view-main" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+  <div id="view-main" style="display:flex;flex-direction:column;flex:1;overflow:hidden;padding-bottom:60px">
     <div class="page-nav">
       <div class="nav-back" onclick="window.location.href='02-首页.html'">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
@@ -268,6 +268,29 @@
           <div class="msg-title">您的出栏信息记录被村级退回</div>
           <div class="msg-preview">您的出栏信息记录被村级退回，原因：检疫证照片不清晰...</div>
         </div>
+      </div>
+    </div>
+    <!-- 底部导航 -->
+    <div style="position:absolute;bottom:0;left:0;right:0;height:60px;background:white;border-top:1px solid #f0f0f0;display:flex;align-items:center;box-shadow:0 -2px 10px rgba(0,0,0,0.06)">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:6px 0" onclick="window.location.href='02-首页.html'">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span style="font-size:10px;color:#999">首页</span>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:6px 0" onclick="window.location.href='03-养殖信息上报.html'">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        <span style="font-size:10px;color:#999">养殖管理</span>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:6px 0" onclick="window.location.href='04-知识课堂.html'">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+        <span style="font-size:10px;color:#999">知识课堂</span>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:6px 0;position:relative">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2d9e5f" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span style="font-size:10px;color:#2d9e5f">消息</span>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:6px 0" onclick="window.location.href='06-个人中心.html'">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span style="font-size:10px;color:#999">我的</span>
       </div>
     </div>
   </div>
