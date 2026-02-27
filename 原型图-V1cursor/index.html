@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=375px, initial-scale=1.0">
+<title>蓬溪县生猪数字化管理平台 - 首页</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --primary: #16a34a;
+    --primary-light: #22c55e;
+    --primary-dark: #15803d;
+    --secondary: #0ea5e9;
+    --accent: #f97316;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --bg: #f0fdf4;
+    --surface: rgba(255,255,255,0.85);
+    --surface-solid: #ffffff;
+    --text: #14532d;
+    --text-secondary: #4b7c59;
+    --text-muted: #86a892;
+    --border: rgba(22,163,74,0.15);
+    --shadow: 0 4px 24px rgba(22,163,74,0.12);
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --glass: rgba(255,255,255,0.72);
+    --glass-border: rgba(255,255,255,0.5);
+  }
+  body {
+    font-family: 'Noto Sans SC', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    max-width: 390px;
+    margin: 0 auto;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 0; }
+
+  /* ===== TOP HEADER ===== */
+  .header {
+    background: linear-gradient(135deg, #15803d 0%, #16a34a 50%, #22c55e 100%);
+    padding: 48px 20px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 180px; height: 180px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 50%;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; left: -30px;
+    width: 200px; height: 200px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+  }
+  .header-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    z-index: 1;
+  }
+  .avatar {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.25);
+    border: 2px solid rgba(255,255,255,0.5);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .avatar svg { width: 28px; height: 28px; fill: white; }
+  .user-info { flex: 1; }
+  .user-name {
+    font-size: 16px; font-weight: 600;
+    color: white; line-height: 1.3;
+  }
+  .enterprise-name {
+    font-size: 12px; color: rgba(255,255,255,0.8);
+    margin-top: 2px;
+  }
+  .enterprise-tag {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-top: 3px;
+  }
+  .msg-btn {
+    position: relative;
+    width: 40px; height: 40px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s;
+  }
+  .msg-btn:active { background: rgba(255,255,255,0.3); }
+  .msg-btn svg { width: 20px; height: 20px; stroke: white; fill: none; }
+  .badge {
+    position: absolute;
+    top: -2px; right: -2px;
+    background: var(--danger);
+    color: white;
+    font-size: 9px; font-weight: 700;
+    min-width: 16px; height: 16px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 3px;
+    border: 1.5px solid white;
+  }
+
+  /* ===== SCROLL NOTICE ===== */
+  .notice-bar {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(8px);
+    margin: 12px 20px 0;
+    border-radius: 8px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    z-index: 1;
+    cursor: pointer;
+  }
+  .notice-bar svg { width: 14px; height: 14px; fill: rgba(255,255,255,0.9); flex-shrink: 0; }
+  .notice-text {
+    font-size: 12px;
+    color: rgba(255,255,255,0.9);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+  }
+  .notice-more { font-size: 11px; color: rgba(255,255,255,0.7); flex-shrink: 0; }
+
+  /* ===== MAIN CONTENT ===== */
+  .content {
+    padding: 0 0 80px;
+  }
+
+  /* ===== CARDS SECTION ===== */
+  .section { padding: 16px 16px 0; }
+  .section-title {
+    font-size: 14px; font-weight: 600;
+    color: var(--text);
+    margin-bottom: 10px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .section-title .more {
+    font-size: 12px; font-weight: 400;
+    color: var(--primary);
+    cursor: pointer;
+  }
+  .section-badge {
+    background: var(--danger);
+    color: white;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    margin-left: 6px;
+  }
+
+  /* Today Stats - Horizontal Scroll */
+  .stats-scroll {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .stat-card {
+    flex-shrink: 0;
+    width: 130px;
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: 14px;
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .stat-card:active { transform: scale(0.97); }
+  .stat-label { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
+  .stat-value { font-size: 26px; font-weight: 700; color: var(--text); line-height: 1; }
+  .stat-unit { font-size: 11px; color: var(--text-secondary); margin-left: 2px; }
+  .stat-trend {
+    font-size: 10px;
+    margin-top: 6px;
+    display: flex; align-items: center; gap: 2px;
+  }
+  .trend-up { color: var(--primary); }
+  .trend-down { color: var(--danger); }
+
+  /* Farm Overview - 2x2 Grid */
+  .farm-card {
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+  }
+  .farm-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .farm-item {
+    background: var(--surface);
+    padding: 14px 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .farm-item:active { background: rgba(22,163,74,0.05); }
+  .farm-item-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+  .farm-item-value { font-size: 22px; font-weight: 700; }
+  .farm-item-unit { font-size: 11px; font-weight: 400; margin-left: 2px; }
+  .val-green { color: var(--primary); }
+  .val-blue { color: var(--secondary); }
+  .val-red { color: var(--danger); }
+  .val-dark { color: var(--text); }
+
+  /* Study Stats */
+  .study-card {
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+  }
+  .study-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .study-item {
+    text-align: center;
+    cursor: pointer;
+  }
+  .study-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 6px;
+  }
+  .study-icon svg { width: 18px; height: 18px; }
+  .study-num { font-size: 18px; font-weight: 700; color: var(--text); }
+  .study-label { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ===== SHORTCUTS ===== */
+  .shortcuts-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .shortcuts-header .title { font-size: 14px; font-weight: 600; color: var(--text); }
+  .edit-btn {
+    font-size: 12px; color: var(--primary);
+    background: rgba(22,163,74,0.08);
+    border: none;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+  }
+  .edit-btn:active { background: rgba(22,163,74,0.15); }
+  .shortcuts-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .shortcut-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    padding: 10px 4px;
+    border-radius: 12px;
+    transition: background 0.15s;
+    position: relative;
+  }
+  .shortcut-item:active { background: rgba(22,163,74,0.08); }
+  .shortcut-icon {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .shortcut-icon svg { width: 24px; height: 24px; }
+  .shortcut-badge {
+    position: absolute;
+    top: -4px; right: -4px;
+    background: var(--danger);
+    color: white;
+    font-size: 9px; font-weight: 700;
+    min-width: 16px; height: 16px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 3px;
+    border: 1.5px solid white;
+  }
+  .shortcut-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-align: center;
+    line-height: 1.3;
+    max-width: 56px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Shortcut icon colors */
+  .icon-green { background: rgba(22,163,74,0.12); }
+  .icon-green svg { stroke: var(--primary); fill: none; }
+  .icon-blue { background: rgba(14,165,233,0.12); }
+  .icon-blue svg { stroke: var(--secondary); fill: none; }
+  .icon-orange { background: rgba(249,115,22,0.12); }
+  .icon-orange svg { stroke: var(--accent); fill: none; }
+  .icon-purple { background: rgba(139,92,246,0.12); }
+  .icon-purple svg { stroke: #8b5cf6; fill: none; }
+  .icon-teal { background: rgba(20,184,166,0.12); }
+  .icon-teal svg { stroke: #14b8a6; fill: none; }
+  .icon-red { background: rgba(239,68,68,0.12); }
+  .icon-red svg { stroke: var(--danger); fill: none; }
+  .icon-yellow { background: rgba(245,158,11,0.12); }
+  .icon-yellow svg { stroke: var(--warning); fill: none; }
+  .icon-indigo { background: rgba(99,102,241,0.12); }
+  .icon-indigo svg { stroke: #6366f1; fill: none; }
+
+  /* ===== TODO SECTION ===== */
+  .todo-list { display: flex; flex-direction: column; gap: 8px; }
+  .todo-item {
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .todo-item:active { transform: scale(0.98); }
+  .todo-item.high::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--danger);
+    border-radius: 3px 0 0 3px;
+  }
+  .todo-item.medium::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--warning);
+    border-radius: 3px 0 0 3px;
+  }
+  .todo-item.low::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--text-muted);
+    border-radius: 3px 0 0 3px;
+  }
+  .todo-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .todo-icon svg { width: 18px; height: 18px; fill: none; stroke-width: 1.8; }
+  .todo-body { flex: 1; min-width: 0; }
+  .todo-title { font-size: 13px; font-weight: 500; color: var(--text); }
+  .todo-title.high { color: var(--danger); }
+  .todo-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .todo-meta { text-align: right; flex-shrink: 0; }
+  .todo-time { font-size: 10px; color: var(--text-muted); }
+  .todo-arrow svg { width: 14px; height: 14px; stroke: var(--text-muted); fill: none; margin-top: 4px; }
+
+  /* ===== BOTTOM NAV ===== */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 390px;
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--glass-border);
+    display: flex;
+    height: 56px;
+    z-index: 100;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+  }
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    cursor: pointer;
+    text-decoration: none;
+    position: relative;
+    transition: opacity 0.15s;
+  }
+  .nav-item:active { opacity: 0.7; }
+  .nav-item svg { width: 22px; height: 22px; fill: none; stroke: var(--text-muted); stroke-width: 1.8; transition: stroke 0.2s; }
+  .nav-item span { font-size: 10px; color: var(--text-muted); transition: color 0.2s; }
+  .nav-item.active svg { stroke: var(--primary); }
+  .nav-item.active span { color: var(--primary); font-weight: 600; }
+  .nav-badge {
+    position: absolute;
+    top: 6px; right: calc(50% - 18px);
+    background: var(--danger);
+    color: white;
+    font-size: 9px; font-weight: 700;
+    min-width: 15px; height: 15px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 3px;
+    border: 1.5px solid white;
+  }
+
+  /* ===== DIVIDER ===== */
+  .divider { height: 8px; background: rgba(22,163,74,0.04); }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: white;
+    border-radius: 20px 20px 0 0;
+    padding: 20px;
+    width: 100%;
+    max-width: 390px;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .modal-handle {
+    width: 36px; height: 4px;
+    background: #e5e7eb;
+    border-radius: 2px;
+    margin: 0 auto 16px;
+  }
+  .modal-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 16px; }
+  .modal-close {
+    position: absolute; top: 20px; right: 20px;
+    background: none; border: none;
+    cursor: pointer; padding: 4px;
+  }
+  .modal-close svg { width: 20px; height: 20px; stroke: var(--text-muted); fill: none; }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.75);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    z-index: 300;
+    display: none;
+    white-space: nowrap;
+  }
+  .toast.show { display: block; }
+
+  /* ===== SKELETON ===== */
+  .skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 6px;
+  }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* ===== EDIT MODE ===== */
+  .shortcut-item.editing .shortcut-icon::after {
+    content: '−';
+    position: absolute;
+    top: -4px; left: -4px;
+    width: 18px; height: 18px;
+    background: var(--danger);
+    color: white;
+    border-radius: 50%;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    line-height: 18px;
+    text-align: center;
+  }
+  .shortcut-item.editing {
+    animation: wobble 0.5s infinite alternate;
+  }
+  @keyframes wobble {
+    from { transform: rotate(-1.5deg); }
+    to { transform: rotate(1.5deg); }
+  }
+  .add-shortcut-btn {
+    display: none;
+    width: 100%;
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(22,163,74,0.08);
+    border: 1.5px dashed rgba(22,163,74,0.3);
+    border-radius: 12px;
+    color: var(--primary);
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    text-align: center;
+  }
+  .add-shortcut-btn.show { display: block; }
+  .done-btn {
+    display: none;
+    width: 100%;
+    margin-top: 12px;
+    padding: 12px;
+    background: var(--primary);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .done-btn.show { display: block; }
+
+  /* ===== NOTICE DETAIL ===== */
+  .notice-list { display: flex; flex-direction: column; gap: 8px; }
+  .notice-item {
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.15s;
+  }
+  .notice-item:active { transform: scale(0.98); }
+  .notice-item-header { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+  .notice-tag {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+  .tag-red { background: rgba(239,68,68,0.1); color: var(--danger); }
+  .tag-blue { background: rgba(14,165,233,0.1); color: var(--secondary); }
+  .tag-green { background: rgba(22,163,74,0.1); color: var(--primary); }
+  .tag-top { background: var(--danger); color: white; }
+  .notice-item-title { font-size: 13px; font-weight: 500; color: var(--text); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .notice-item-title.important { color: var(--danger); }
+  .notice-item-meta { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+  /* Pull to refresh indicator */
+  .ptr-indicator {
+    text-align: center;
+    padding: 12px;
+    font-size: 12px;
+    color: var(--text-muted);
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-inner">
+    <div class="avatar" onclick="goTo('profile.html')">
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+    </div>
+    <div class="user-info">
+      <div class="user-name">张建国</div>
+      <div class="enterprise-name">蓬溪县鑫旺养殖场</div>
+      <div class="enterprise-tag">规模养殖场</div>
+    </div>
+    <button class="msg-btn" onclick="goTo('messages.html')">
+      <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="badge">5</span>
+    </button>
+  </div>
+  <!-- Notice bar -->
+  <div class="notice-bar" onclick="showNoticeModal()">
+    <svg viewBox="0 0 24 24"><path d="M11 5.882V19.24a1.76 1.76 0 0 1-3.417.592l-2.147-6.15M18 13a3 3 0 1 0 0-6M5.436 13.683A4.001 4.001 0 0 0 17.17 11.5"/></svg>
+    <span class="notice-text">【重要通知】2026年生猪养殖补贴政策申请截止日期为3月31日，请及时申报</span>
+    <span class="notice-more">更多</span>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="content">
+
+  <!-- Today Stats -->
+  <div class="section" style="padding-top:16px;">
+    <div class="section-title">今日数据</div>
+    <div class="stats-scroll">
+      <div class="stat-card">
+        <div class="stat-label">今日上报次数</div>
+        <div class="stat-value">3<span class="stat-unit">次</span></div>
+        <div class="stat-trend trend-up">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+          较昨日 +1
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">今日学习时长</div>
+        <div class="stat-value">45<span class="stat-unit">分钟</span></div>
+        <div class="stat-trend trend-up">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+          较昨日 +15
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">今日新增消息</div>
+        <div class="stat-value">5<span class="stat-unit">条</span></div>
+        <div class="stat-trend trend-down">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          较昨日 -2
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider" style="height:12px;"></div>
+
+  <!-- Farm Overview -->
+  <div class="section">
+    <div class="section-title">养殖数据概览</div>
+    <div class="farm-card">
+      <div class="farm-grid">
+        <div class="farm-item" onclick="goTo('breeding.html')">
+          <div class="farm-item-label">当前总存栏</div>
+          <div class="farm-item-value val-dark">1,280<span class="farm-item-unit">头</span></div>
+        </div>
+        <div class="farm-item" onclick="goTo('breeding.html')">
+          <div class="farm-item-label">本月出栏</div>
+          <div class="farm-item-value val-green">320<span class="farm-item-unit">头</span></div>
+        </div>
+        <div class="farm-item" onclick="goTo('breeding.html')">
+          <div class="farm-item-label">本月入栏</div>
+          <div class="farm-item-value val-blue">280<span class="farm-item-unit">头</span></div>
+        </div>
+        <div class="farm-item" onclick="showTodoModal()">
+          <div class="farm-item-label">待处理事项</div>
+          <div class="farm-item-value val-red">4<span class="farm-item-unit">项</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider" style="height:12px;"></div>
+
+  <!-- Study Stats -->
+  <div class="section">
+    <div class="section-title">学习统计 <span class="more" onclick="goTo('profile.html')">查看详情</span></div>
+    <div class="study-card">
+      <div class="study-grid">
+        <div class="study-item" onclick="goTo('profile.html')">
+          <div class="study-icon" style="background:rgba(22,163,74,0.1);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <div class="study-num">28</div>
+          <div class="study-label">学习天数</div>
+        </div>
+        <div class="study-item" onclick="goTo('profile.html')">
+          <div class="study-icon" style="background:rgba(14,165,233,0.1);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="study-num">36<span style="font-size:12px;font-weight:400;">h</span></div>
+          <div class="study-label">累计时长</div>
+        </div>
+        <div class="study-item" onclick="goTo('knowledge.html')">
+          <div class="study-icon" style="background:rgba(139,92,246,0.1);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          </div>
+          <div class="study-num">12</div>
+          <div class="study-label">完成课程</div>
+        </div>
+        <div class="study-item" onclick="goTo('profile.html')">
+          <div class="study-icon" style="background:rgba(245,158,11,0.1);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <div class="study-num">8</div>
+          <div class="study-label">我的收藏</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider" style="height:12px;"></div>
+
+  <!-- Shortcuts -->
+  <div class="section">
+    <div class="shortcuts-header">
+      <span class="title">快捷入口</span>
+      <button class="edit-btn" id="editBtn" onclick="toggleEdit()">编辑</button>
+    </div>
+    <div class="shortcuts-grid" id="shortcutsGrid">
+      <!-- Breeding shortcuts -->
+      <div class="shortcut-item" onclick="goTo('breeding-form.html?type=breeding_info')" id="sc_breeding_info">
+        <div class="shortcut-icon icon-green">
+          <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span class="shortcut-badge">1</span>
+        </div>
+        <span class="shortcut-label">养殖信息上报</span>
+      </div>
+      <div class="shortcut-item" onclick="goTo('breeding-form.html?type=breeding_record')" id="sc_breeding_record">
+        <div class="shortcut-icon icon-purple">
+          <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+        </div>
+        <span class="shortcut-label">繁育信息上报</span>
+      </div>
+      <div class="shortcut-item" onclick="goTo('breeding-form.html?type=weaning_record')" id="sc_weaning">
+        <div class="shortcut-icon icon-blue">
+          <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+        </div>
+        <span class="shortcut-label">断奶信息上报</span>
+      </div>
+      <div class="shortcut-item" onclick="goTo('breeding-form.html?type=entry_record')" id="sc_entry">
+        <div class="shortcut-icon icon-teal">
+          <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+        </div>
+        <span class="shortcut-label">入栏信息上报</span>
+      </div>
+      <div class="shortcut-item" onclick="goTo('breeding-form.html?type=transfer_record')" id="sc_transfer">
+        <div class="shortcut-icon icon-orange">
+          <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+        </div>
+        <span class="shortcut-label">转栏信息上报</span>
+      </div>
+      <div class="shortcut-item" onclick="goTo('breeding-form.html?type=input_record')" id="sc_input">
+        <div class="shortcut-icon icon-yellow">
+          <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+        </div>
+        <span class="shortcut-label">投入品使用上报</span>
+      </div>
+      <div class="shortcut-item" onclick="goTo('breeding-form.html?type=disposal_record')" id="sc_disposal">
+        <div class="shortcut-icon icon-red">
+          <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        </div>
+        <span class="shortcut-label">无害化处理上报</span>
+      </div>
+      <div class="shortcut-item" onclick="goTo('breeding-form.html?type=outbound_record')" id="sc_outbound">
+        <div class="shortcut-icon icon-green">
+          <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        </div>
+        <span class="shortcut-label">出栏信息上报</span>
+      </div>
+      <div class="shortcut-item" onclick="goTo('breeding-form.html?type=immune_record')" id="sc_immune">
+        <div class="shortcut-icon icon-blue">
+          <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        </div>
+        <span class="shortcut-label">免疫信息上报</span>
+      </div>
+      <div class="shortcut-item" onclick="goTo('breeding-form.html?type=disinfect_record')" id="sc_disinfect">
+        <div class="shortcut-icon icon-teal">
+          <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+        </div>
+        <span class="shortcut-label">消毒信息上报</span>
+      </div>
+      <div class="shortcut-item" onclick="goTo('knowledge.html?tab=course')" id="sc_course">
+        <div class="shortcut-icon icon-purple">
+          <svg viewBox="0 0 24 24" stroke-width="1.8"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        </div>
+        <span class="shortcut-label">课程视频</span>
+      </div>
+      <div class="shortcut-item" onclick="goTo('knowledge.html?tab=policy')" id="sc_policy">
+        <div class="shortcut-icon icon-orange">
+          <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l6 6v8a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        </div>
+        <span class="shortcut-label">政策资讯</span>
+      </div>
+      <div class="shortcut-item" onclick="goTo('knowledge.html?tab=training')" id="sc_training">
+        <div class="shortcut-icon icon-indigo">
+          <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        </div>
+        <span class="shortcut-label">培训活动</span>
+      </div>
+      <div class="shortcut-item" onclick="goTo('profile.html?tab=report')" id="sc_report">
+        <div class="shortcut-icon icon-green">
+          <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        </div>
+        <span class="shortcut-label">我的上报记录</span>
+      </div>
+      <div class="shortcut-item" onclick="goTo('profile.html?tab=study')" id="sc_study">
+        <div class="shortcut-icon icon-blue">
+          <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+        </div>
+        <span class="shortcut-label">我的学习记录</span>
+      </div>
+      <div class="shortcut-item" onclick="goTo('profile.html?tab=enterprise')" id="sc_enterprise">
+        <div class="shortcut-icon icon-orange">
+          <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+        </div>
+        <span class="shortcut-label">企业信息管理</span>
+      </div>
+    </div>
+    <button class="add-shortcut-btn" id="addShortcutBtn" onclick="showToast('添加入口功能开发中')">+ 添加更多入口</button>
+    <button class="done-btn" id="doneBtn" onclick="toggleEdit()">完成</button>
+  </div>
+
+  <div class="divider" style="height:12px;"></div>
+
+  <!-- Todo Section -->
+  <div class="section">
+    <div class="section-title">
+      待办事项
+      <span class="section-badge">4</span>
+      <span class="more" onclick="showTodoModal()">查看全部</span>
+    </div>
+    <div class="todo-list">
+      <div class="todo-item high" onclick="goTo('breeding-form.html?type=breeding_info')">
+        <div class="todo-icon" style="background:rgba(239,68,68,0.1);">
+          <svg viewBox="0 0 24 24" stroke="#ef4444" stroke-width="1.8"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        </div>
+        <div class="todo-body">
+          <div class="todo-title high">今日养殖信息未上报</div>
+          <div class="todo-desc">请在今日23:59前完成养殖信息上报</div>
+        </div>
+        <div class="todo-meta">
+          <div class="todo-time">截止今日</div>
+          <div class="todo-arrow"><svg viewBox="0 0 24 24" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+      </div>
+      <div class="todo-item medium" onclick="goTo('knowledge.html?tab=training')">
+        <div class="todo-icon" style="background:rgba(245,158,11,0.1);">
+          <svg viewBox="0 0 24 24" stroke="#f59e0b" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <div class="todo-body">
+          <div class="todo-title">生猪疾病防控培训即将开始</div>
+          <div class="todo-desc">明日上午9:00，蓬溪县农业局</div>
+        </div>
+        <div class="todo-meta">
+          <div class="todo-time">明日9:00</div>
+          <div class="todo-arrow"><svg viewBox="0 0 24 24" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+      </div>
+      <div class="todo-item low" onclick="goTo('knowledge.html?tab=course')">
+        <div class="todo-icon" style="background:rgba(134,168,146,0.15);">
+          <svg viewBox="0 0 24 24" stroke="#86a892" stroke-width="1.8"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        </div>
+        <div class="todo-body">
+          <div class="todo-title">未完成课程：猪瘟防控技术</div>
+          <div class="todo-desc">已观看 65%，继续学习</div>
+        </div>
+        <div class="todo-meta">
+          <div class="todo-time">无截止</div>
+          <div class="todo-arrow"><svg viewBox="0 0 24 24" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider" style="height:12px;"></div>
+
+  <!-- Notices -->
+  <div class="section" style="padding-bottom:16px;">
+    <div class="section-title">通知公告 <span class="more" onclick="showNoticeModal()">更多</span></div>
+    <div class="notice-list">
+      <div class="notice-item" onclick="showNoticeDetail('1')">
+        <div class="notice-item-header">
+          <span class="notice-tag tag-top">置顶</span>
+          <span class="notice-tag tag-red">重要</span>
+          <span class="notice-item-title important">2026年生猪养殖补贴政策申请通知</span>
+        </div>
+        <div class="notice-item-meta">蓬溪县农业农村局 · 2026-02-20 · 阅读 1,234</div>
+      </div>
+      <div class="notice-item" onclick="showNoticeDetail('2')">
+        <div class="notice-item-header">
+          <span class="notice-tag tag-blue">系统公告</span>
+          <span class="notice-item-title">平台功能升级通知：新增消毒记录批量上报功能</span>
+        </div>
+        <div class="notice-item-meta">系统管理员 · 2026-02-25 · 阅读 568</div>
+      </div>
+      <div class="notice-item" onclick="showNoticeDetail('3')">
+        <div class="notice-item-header">
+          <span class="notice-tag tag-green">活动通知</span>
+          <span class="notice-item-title">3月生猪养殖技术培训活动报名开始</span>
+        </div>
+        <div class="notice-item-meta">蓬溪县畜牧局 · 2026-02-22 · 阅读 892</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <a class="nav-item active" href="index.html">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span>首页</span>
+  </a>
+  <a class="nav-item" href="breeding.html">
+    <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+    <span>养殖管理</span>
+  </a>
+  <a class="nav-item" href="knowledge.html">
+    <svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+    <span>知识课堂</span>
+  </a>
+  <a class="nav-item" href="messages.html">
+    <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+    <span>消息</span>
+    <span class="nav-badge">5</span>
+  </a>
+  <a class="nav-item" href="profile.html">
+    <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <span>我的</span>
+  </a>
+</nav>
+
+<!-- Notice Modal -->
+<div class="modal-overlay" id="noticeModal" onclick="closeModal('noticeModal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">通知公告</div>
+    <div style="display:flex;flex-direction:column;gap:12px;max-height:60vh;overflow-y:auto;">
+      <div style="background:#fff8f0;border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:14px;cursor:pointer;" onclick="showNoticeDetail('1');closeModal('noticeModal')">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+          <span style="background:#ef4444;color:white;font-size:10px;padding:1px 6px;border-radius:4px;">置顶</span>
+          <span style="font-size:13px;font-weight:600;color:#ef4444;">2026年生猪养殖补贴政策申请通知</span>
+        </div>
+        <p style="font-size:12px;color:#6b7280;line-height:1.6;">关于开展2026年度生猪养殖补贴申请工作的通知，请各养殖企业于3月31日前完成申报...</p>
+        <div style="font-size:11px;color:#9ca3af;margin-top:6px;">蓬溪县农业农村局 · 2026-02-20</div>
+      </div>
+      <div style="background:white;border:1px solid #f0f0f0;border-radius:12px;padding:14px;cursor:pointer;" onclick="showNoticeDetail('2');closeModal('noticeModal')">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+          <span style="background:rgba(14,165,233,0.1);color:#0ea5e9;font-size:10px;padding:1px 6px;border-radius:4px;">系统公告</span>
+          <span style="font-size:13px;font-weight:500;color:#14532d;">平台功能升级通知</span>
+        </div>
+        <p style="font-size:12px;color:#6b7280;line-height:1.6;">新增消毒记录批量上报功能，支持一次性上报多个猪舍的消毒记录...</p>
+        <div style="font-size:11px;color:#9ca3af;margin-top:6px;">系统管理员 · 2026-02-25</div>
+      </div>
+      <div style="background:white;border:1px solid #f0f0f0;border-radius:12px;padding:14px;cursor:pointer;" onclick="showNoticeDetail('3');closeModal('noticeModal')">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+          <span style="background:rgba(22,163,74,0.1);color:#16a34a;font-size:10px;padding:1px 6px;border-radius:4px;">活动通知</span>
+          <span style="font-size:13px;font-weight:500;color:#14532d;">3月生猪养殖技术培训活动报名开始</span>
+        </div>
+        <p style="font-size:12px;color:#6b7280;line-height:1.6;">3月15日将举办生猪养殖技术专题培训，欢迎各养殖企业积极报名参加...</p>
+        <div style="font-size:11px;color:#9ca3af;margin-top:6px;">蓬溪县畜牧局 · 2026-02-22</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Todo Modal -->
+<div class="modal-overlay" id="todoModal" onclick="closeModal('todoModal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">全部待办事项 <span style="font-size:12px;color:#ef4444;background:rgba(239,68,68,0.1);padding:2px 8px;border-radius:10px;margin-left:6px;">4项</span></div>
+    <div style="display:flex;flex-direction:column;gap:10px;max-height:60vh;overflow-y:auto;">
+      <div style="background:#fff5f5;border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:12px;" onclick="goTo('breeding-form.html?type=breeding_info');closeModal('todoModal')">
+        <div style="width:36px;height:36px;background:rgba(239,68,68,0.1);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.8"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:600;color:#ef4444;">今日养殖信息未上报</div>
+          <div style="font-size:11px;color:#9ca3af;margin-top:2px;">截止今日 23:59</div>
+        </div>
+        <span style="font-size:10px;background:#ef4444;color:white;padding:2px 6px;border-radius:4px;">高优先级</span>
+      </div>
+      <div style="background:white;border:1px solid #f0f0f0;border-radius:12px;padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:12px;" onclick="goTo('knowledge.html?tab=training');closeModal('todoModal')">
+        <div style="width:36px;height:36px;background:rgba(245,158,11,0.1);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:500;color:#14532d;">生猪疾病防控培训即将开始</div>
+          <div style="font-size:11px;color:#9ca3af;margin-top:2px;">明日 2026-02-28 09:00</div>
+        </div>
+        <span style="font-size:10px;background:rgba(245,158,11,0.15);color:#f59e0b;padding:2px 6px;border-radius:4px;">中优先级</span>
+      </div>
+      <div style="background:white;border:1px solid #f0f0f0;border-radius:12px;padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:12px;" onclick="goTo('messages.html');closeModal('todoModal')">
+        <div style="width:36px;height:36px;background:rgba(14,165,233,0.1);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="1.8"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:500;color:#14532d;">报名审核结果待查看</div>
+          <div style="font-size:11px;color:#9ca3af;margin-top:2px;">养殖技术培训报名已通过审核</div>
+        </div>
+        <span style="font-size:10px;background:rgba(14,165,233,0.1);color:#0ea5e9;padding:2px 6px;border-radius:4px;">中优先级</span>
+      </div>
+      <div style="background:white;border:1px solid #f0f0f0;border-radius:12px;padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:12px;" onclick="goTo('knowledge.html?tab=course');closeModal('todoModal')">
+        <div style="width:36px;height:36px;background:rgba(134,168,146,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#86a892" stroke-width="1.8"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:500;color:#14532d;">未完成课程：猪瘟防控技术</div>
+          <div style="font-size:11px;color:#9ca3af;margin-top:2px;">已观看 65%</div>
+        </div>
+        <span style="font-size:10px;background:rgba(134,168,146,0.15);color:#86a892;padding:2px 6px;border-radius:4px;">低优先级</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  function goTo(url) { window.location.href = url; }
+  
+  function showToast(msg, duration = 1500) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), duration);
+  }
+  
+  function showNoticeModal() {
+    document.getElementById('noticeModal').classList.add('show');
+  }
+  
+  function showTodoModal() {
+    document.getElementById('todoModal').classList.add('show');
+  }
+  
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('show');
+  }
+  
+  function showNoticeDetail(id) {
+    window.location.href = 'notice-detail.html?id=' + id;
+  }
+  
+  let editMode = false;
+  function toggleEdit() {
+    editMode = !editMode;
+    const btn = document.getElementById('editBtn');
+    const items = document.querySelectorAll('.shortcut-item');
+    const addBtn = document.getElementById('addShortcutBtn');
+    const doneBtn = document.getElementById('doneBtn');
+    
+    if (editMode) {
+      btn.style.display = 'none';
+      items.forEach(item => item.classList.add('editing'));
+      addBtn.classList.add('show');
+      doneBtn.classList.add('show');
+    } else {
+      btn.style.display = '';
+      items.forEach(item => item.classList.remove('editing'));
+      addBtn.classList.remove('show');
+      doneBtn.classList.remove('show');
+      showToast('配置已保存');
+    }
+  }
+
+  // Simulate pull-to-refresh
+  let startY = 0;
+  document.addEventListener('touchstart', e => { startY = e.touches[0].clientY; });
+  document.addEventListener('touchend', e => {
+    const dy = e.changedTouches[0].clientY - startY;
+    if (dy > 80 && window.scrollY === 0) {
+      showToast('刷新成功');
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=375px, initial-scale=1.0">
+<title>通知详情 - 蓬溪县生猪数字化管理平台</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --primary: #16a34a; --primary-dark: #15803d;
+    --danger: #ef4444; --warning: #f59e0b; --secondary: #0ea5e9; --purple: #8b5cf6;
+    --bg: #f0fdf4; --text: #14532d; --text-secondary: #4b7c59; --text-muted: #86a892;
+    --border: rgba(22,163,74,0.15); --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+    --radius: 16px; --radius-sm: 10px;
+    --glass: rgba(255,255,255,0.85); --glass-border: rgba(255,255,255,0.6);
+  }
+  body { font-family: 'Noto Sans SC', -apple-system, sans-serif; background: var(--bg); color: var(--text); max-width: 390px; margin: 0 auto; min-height: 100vh; }
+  ::-webkit-scrollbar { width: 0; }
+
+  /* Nav Bar */
+  .nav-bar {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--glass-border);
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px; padding-top: 44px;
+  }
+  .nav-back {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: rgba(22,163,74,0.08); border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0;
+  }
+  .nav-back svg { width: 18px; height: 18px; stroke: var(--text); fill: none; stroke-width: 2; }
+  .nav-title { flex: 1; font-size: 16px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nav-actions { display: flex; gap: 8px; }
+  .nav-action-btn {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: rgba(22,163,74,0.08); border: none;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+  .nav-action-btn svg { width: 18px; height: 18px; stroke: var(--text-secondary); fill: none; stroke-width: 1.8; }
+
+  /* Content */
+  .content { padding: 0 0 80px; }
+
+  /* Notice Header */
+  .notice-header {
+    background: white;
+    padding: 20px 16px 16px;
+    border-bottom: 1px solid rgba(22,163,74,0.08);
+  }
+  .notice-type-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .notice-type-tag {
+    font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 6px;
+  }
+  .type-system { background: rgba(22,163,74,0.1); color: var(--primary); }
+  .type-policy { background: rgba(14,165,233,0.1); color: var(--secondary); }
+  .type-activity { background: rgba(249,115,22,0.1); color: #f97316; }
+  .type-warning { background: rgba(239,68,68,0.1); color: var(--danger); }
+  .notice-top-tag {
+    font-size: 11px; padding: 3px 8px; border-radius: 6px;
+    background: rgba(239,68,68,0.08); color: var(--danger); font-weight: 600;
+  }
+  .notice-important-tag {
+    font-size: 11px; padding: 3px 8px; border-radius: 6px;
+    background: rgba(245,158,11,0.1); color: var(--warning); font-weight: 600;
+  }
+  .notice-title {
+    font-size: 18px; font-weight: 700; color: var(--text);
+    line-height: 1.5; margin-bottom: 12px;
+  }
+  .notice-meta { display: flex; flex-direction: column; gap: 5px; }
+  .notice-meta-row { display: flex; align-items: center; gap: 6px; }
+  .notice-meta-row svg { width: 14px; height: 14px; stroke: var(--text-muted); fill: none; stroke-width: 1.8; flex-shrink: 0; }
+  .notice-meta-text { font-size: 12px; color: var(--text-muted); }
+  .notice-read-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; color: var(--primary); background: rgba(22,163,74,0.08);
+    padding: 2px 8px; border-radius: 6px; margin-top: 6px;
+  }
+  .notice-read-badge svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+  /* Body */
+  .notice-body {
+    padding: 20px 16px;
+    background: white;
+    margin-top: 8px;
+  }
+  .notice-body-title { font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .notice-richtext {
+    font-size: 15px; color: var(--text); line-height: 1.8;
+  }
+  .notice-richtext p { margin-bottom: 14px; }
+  .notice-richtext strong { font-weight: 600; color: var(--text); }
+  .notice-richtext ul { padding-left: 20px; margin-bottom: 14px; }
+  .notice-richtext li { margin-bottom: 6px; }
+  .notice-richtext .highlight-box {
+    background: rgba(22,163,74,0.06); border-left: 3px solid var(--primary);
+    padding: 12px 14px; border-radius: 0 8px 8px 0; margin: 14px 0;
+    font-size: 14px;
+  }
+  .notice-richtext .warning-box {
+    background: rgba(245,158,11,0.08); border-left: 3px solid var(--warning);
+    padding: 12px 14px; border-radius: 0 8px 8px 0; margin: 14px 0;
+    font-size: 14px; color: #92400e;
+  }
+  .notice-img {
+    width: 100%; border-radius: 10px; margin: 14px 0;
+    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+    height: 160px; display: flex; align-items: center; justify-content: center;
+    border: 1px solid rgba(22,163,74,0.1);
+  }
+  .notice-img svg { width: 40px; height: 40px; stroke: rgba(22,163,74,0.4); fill: none; stroke-width: 1.5; }
+  .notice-img-caption { font-size: 12px; color: var(--text-muted); text-align: center; margin-top: -10px; margin-bottom: 14px; }
+
+  /* Attachments */
+  .attachments-section {
+    padding: 16px;
+    background: white;
+    margin-top: 8px;
+  }
+  .attachments-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .attachments-title svg { width: 16px; height: 16px; stroke: var(--primary); fill: none; stroke-width: 1.8; }
+  .attachment-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px; border-radius: var(--radius-sm);
+    background: rgba(22,163,74,0.04); border: 1px solid rgba(22,163,74,0.1);
+    margin-bottom: 8px; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .attachment-item:last-child { margin-bottom: 0; }
+  .attachment-item:active { background: rgba(22,163,74,0.08); }
+  .attachment-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .attachment-icon svg { width: 20px; height: 20px; fill: none; stroke-width: 1.8; }
+  .icon-pdf { background: rgba(239,68,68,0.1); }
+  .icon-pdf svg { stroke: var(--danger); }
+  .icon-word { background: rgba(14,165,233,0.1); }
+  .icon-word svg { stroke: var(--secondary); }
+  .icon-img { background: rgba(22,163,74,0.1); }
+  .icon-img svg { stroke: var(--primary); }
+  .attachment-info { flex: 1; min-width: 0; }
+  .attachment-name { font-size: 13px; color: var(--text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .attachment-size { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .attachment-download {
+    font-size: 12px; color: var(--primary); background: rgba(22,163,74,0.1);
+    padding: 5px 10px; border-radius: 6px; white-space: nowrap; flex-shrink: 0;
+  }
+
+  /* Error State */
+  .error-state {
+    display: none;
+    flex-direction: column; align-items: center; justify-content: center;
+    padding: 80px 32px; text-align: center;
+  }
+  .error-state.show { display: flex; }
+  .error-icon { width: 80px; height: 80px; border-radius: 50%; background: rgba(239,68,68,0.08); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+  .error-icon svg { width: 36px; height: 36px; stroke: var(--danger); fill: none; stroke-width: 1.5; }
+  .error-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+  .error-desc { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px; }
+  .error-back-btn { padding: 11px 28px; background: var(--primary); border: none; border-radius: var(--radius-sm); color: white; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+
+  /* Bottom Actions */
+  .bottom-actions {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 390px; background: var(--glass);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--glass-border);
+    padding: 10px 16px 24px;
+    display: flex; gap: 10px; z-index: 100;
+  }
+  .action-btn {
+    flex: 1; padding: 11px;
+    border-radius: var(--radius-sm); font-size: 14px; font-weight: 500;
+    cursor: pointer; font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: opacity 0.15s;
+  }
+  .action-btn svg { width: 16px; height: 16px; fill: none; stroke-width: 1.8; }
+  .action-btn-back { background: rgba(22,163,74,0.08); border: 1px solid rgba(22,163,74,0.15); color: var(--text-secondary); }
+  .action-btn-back svg { stroke: var(--text-secondary); }
+  .action-btn-share { background: var(--primary); border: none; color: white; }
+  .action-btn-share svg { stroke: white; }
+
+  /* Toast */
+  .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.75); color: white; padding: 10px 20px; border-radius: 8px; font-size: 13px; z-index: 500; display: none; }
+  .toast.show { display: block; }
+
+  /* Notices selector (for demo) */
+  .demo-selector {
+    padding: 12px 16px;
+    background: rgba(22,163,74,0.04);
+    border-bottom: 1px solid rgba(22,163,74,0.08);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .demo-selector label { font-size: 12px; color: var(--text-muted); flex-shrink: 0; }
+  .demo-selector select { flex: 1; padding: 6px 10px; border: 1px solid rgba(22,163,74,0.2); border-radius: 8px; font-size: 12px; font-family: inherit; outline: none; background: white; }
+  .demo-selector button { padding: 6px 12px; background: var(--primary); border: none; border-radius: 8px; color: white; font-size: 12px; cursor: pointer; font-family: inherit; }
+</style>
+</head>
+<body>
+
+<!-- Nav Bar -->
+<div class="nav-bar">
+  <button class="nav-back" onclick="history.back()">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
+  <div class="nav-title" id="navTitle">通知详情</div>
+  <div class="nav-actions">
+    <button class="nav-action-btn" onclick="showToast('分享功能开发中')">
+      <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- Demo Selector -->
+<div class="demo-selector">
+  <label>切换通知：</label>
+  <select id="noticeSelector" onchange="loadNotice(this.value)">
+    <option value="1">系统公告 - 关于开展生猪养殖信息上报工作的通知</option>
+    <option value="2">政策通知 - 2026年生猪产业扶持政策解读</option>
+    <option value="3">活动通知 - 生猪养殖技术培训活动报名开始</option>
+    <option value="4">预警通知 - 非洲猪瘟防控预警</option>
+    <option value="404">已下架通知（异常示例）</option>
+  </select>
+  <button onclick="loadNotice(document.getElementById('noticeSelector').value)">加载</button>
+</div>
+
+<div class="content" id="mainContent">
+
+  <!-- Normal State -->
+  <div id="normalState">
+    <!-- Notice Header -->
+    <div class="notice-header">
+      <div class="notice-type-row">
+        <span class="notice-type-tag" id="noticeTypeTag">系统公告</span>
+        <span class="notice-top-tag" id="noticeTopTag" style="display:none;">置顶</span>
+        <span class="notice-important-tag" id="noticeImportantTag" style="display:none;">重要</span>
+      </div>
+      <div class="notice-title" id="noticeTitle">关于开展2026年生猪养殖信息上报工作的通知</div>
+      <div class="notice-meta">
+        <div class="notice-meta-row">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+          <span class="notice-meta-text" id="noticeSource">蓬溪县农业农村局</span>
+        </div>
+        <div class="notice-meta-row">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span class="notice-meta-text" id="noticeTime">2026-02-27 09:00</span>
+        </div>
+      </div>
+      <div class="notice-read-badge" id="readBadge">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        已读
+      </div>
+    </div>
+
+    <!-- Notice Body -->
+    <div class="notice-body" id="noticeBody">
+      <!-- Dynamic content -->
+    </div>
+
+    <!-- Attachments -->
+    <div class="attachments-section" id="attachmentsSection" style="display:none;">
+      <div class="attachments-title">
+        <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+        附件列表
+      </div>
+      <div id="attachmentsList"></div>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-state" id="errorState">
+    <div class="error-icon">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <div class="error-title">该通知不存在或已下架</div>
+    <div class="error-desc">您查看的通知可能已被管理员删除或下架，请返回查看其他通知。</div>
+    <button class="error-back-btn" onclick="history.back()">返回上一页</button>
+  </div>
+
+</div>
+
+<!-- Bottom Actions -->
+<div class="bottom-actions" id="bottomActions">
+  <button class="action-btn action-btn-back" onclick="history.back()">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    返回
+  </button>
+  <button class="action-btn action-btn-share" onclick="showToast('分享功能开发中')">
+    <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+    分享
+  </button>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  const notices = {
+    '1': {
+      type: 'system', typeLabel: '系统公告', typeClass: 'type-system',
+      title: '关于开展2026年生猪养殖信息上报工作的通知',
+      source: '蓬溪县农业农村局',
+      time: '2026-02-27 09:00',
+      isTop: true, isImportant: true,
+      body: `
+        <p>各养殖企业、家庭农场、养殖户：</p>
+        <p>为全面掌握我县生猪养殖动态，提升畜牧业数字化管理水平，根据《四川省畜禽养殖信息化管理办法》相关规定，现就开展2026年生猪养殖信息上报工作通知如下：</p>
+        <div class="highlight-box">
+          <strong>一、上报范围</strong><br>
+          全县所有规模养殖场（存栏50头以上）、家庭农场及已注册的散养户，均须通过本平台进行信息上报。
+        </div>
+        <p><strong>二、上报内容</strong></p>
+        <ul>
+          <li>每日存栏量统计（每日上报）</li>
+          <li>出栏、入栏、转栏信息（发生时上报）</li>
+          <li>免疫、消毒、无害化处理记录（发生时上报）</li>
+          <li>繁育、断奶信息（发生时上报）</li>
+          <li>投入品（饲料、兽药）使用记录（每周汇总上报）</li>
+        </ul>
+        <p><strong>三、上报时限</strong></p>
+        <p>自本通知下发之日起，各养殖主体须于<strong>2026年3月1日</strong>前完成平台注册与信息完善，并开始正式上报。</p>
+        <div class="warning-box">
+          ⚠️ 逾期未上报或上报信息不实的，将依据相关规定予以通报批评，情节严重的将影响政策补贴申请资格。
+        </div>
+        <p>如有疑问，请联系蓬溪县农业农村局畜牧股，电话：0825-XXXXXXXX。</p>
+        <p style="text-align:right;color:#86a892;font-size:13px;">蓬溪县农业农村局<br>2026年2月27日</p>
+      `,
+      attachments: [
+        { name: '2026年生猪养殖信息上报工作方案.pdf', size: '1.2 MB', type: 'pdf' },
+        { name: '上报操作指南.pdf', size: '856 KB', type: 'pdf' },
+        { name: '信息上报模板（参考）.docx', size: '45 KB', type: 'word' },
+      ]
+    },
+    '2': {
+      type: 'policy', typeLabel: '政策通知', typeClass: 'type-policy',
+      title: '2026年蓬溪县生猪产业扶持政策解读',
+      source: '蓬溪县农业农村局',
+      time: '2026-02-20 14:30',
+      isTop: false, isImportant: true,
+      body: `
+        <p>为促进我县生猪产业高质量发展，县政府制定了2026年生猪产业扶持政策，现解读如下：</p>
+        <div class="highlight-box">
+          <strong>一、规模养殖补贴</strong><br>
+          存栏500头以上规模养殖场，每头能繁母猪补贴200元/年；存栏100-499头，每头能繁母猪补贴150元/年。
+        </div>
+        <div class="highlight-box">
+          <strong>二、设施改造补贴</strong><br>
+          对新建或改造标准化猪舍的养殖场，按实际投入的30%给予补贴，最高不超过50万元。
+        </div>
+        <div class="highlight-box">
+          <strong>三、保险补贴</strong><br>
+          参加生猪政策性保险的养殖户，保费由政府承担80%，养殖户仅需承担20%。
+        </div>
+        <p><strong>申请条件：</strong></p>
+        <ul>
+          <li>在本平台完成信息注册并正常上报数据满3个月</li>
+          <li>无重大动物疫情隐患</li>
+          <li>无违规记录</li>
+        </ul>
+        <p>申请时间：2026年4月1日至4月30日，请通过本平台在线申请或前往县农业农村局窗口办理。</p>
+      `,
+      attachments: [
+        { name: '2026年生猪产业扶持政策全文.pdf', size: '2.1 MB', type: 'pdf' },
+      ]
+    },
+    '3': {
+      type: 'activity', typeLabel: '活动通知', typeClass: 'type-activity',
+      title: '2026年第一期生猪养殖技术培训班报名开始',
+      source: '蓬溪县农业农村局畜牧股',
+      time: '2026-02-25 10:00',
+      isTop: false, isImportant: false,
+      body: `
+        <p>为提升我县生猪养殖从业人员的技术水平，县农业农村局将于近期举办2026年第一期生猪养殖技术培训班，现开始接受报名。</p>
+        <div class="notice-img">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </div>
+        <div class="notice-img-caption">培训活动封面图</div>
+        <p><strong>培训时间：</strong>2026年3月15日（周六）09:00-17:00</p>
+        <p><strong>培训地点：</strong>蓬溪县农业局培训中心（蓬溪县蓬南镇政务服务中心3楼）</p>
+        <p><strong>培训内容：</strong></p>
+        <ul>
+          <li>生猪疾病防控与免疫技术</li>
+          <li>非洲猪瘟防控实操演练</li>
+          <li>生猪养殖信息化管理平台操作培训</li>
+          <li>政策法规解读</li>
+        </ul>
+        <p><strong>报名截止：</strong>2026年3月10日</p>
+        <p><strong>名额限制：</strong>共50个名额，先报先得</p>
+        <div class="warning-box">
+          📌 参加培训并完成签到的学员，可获得继续教育学时证明，并在政策补贴申请中享受加分。
+        </div>
+      `,
+      attachments: [
+        { name: '培训活动日程安排.pdf', size: '320 KB', type: 'pdf' },
+        { name: '培训地点地图.jpg', size: '180 KB', type: 'img' },
+      ]
+    },
+    '4': {
+      type: 'warning', typeLabel: '预警通知', typeClass: 'type-warning',
+      title: '【紧急】关于加强非洲猪瘟防控工作的预警通知',
+      source: '蓬溪县农业农村局',
+      time: '2026-02-26 16:45',
+      isTop: true, isImportant: true,
+      body: `
+        <p>各养殖企业、养殖户：</p>
+        <div class="warning-box">
+          ⚠️ <strong>紧急预警</strong>：据省农业农村厅通报，近期周边县市发现疑似非洲猪瘟疫情，请各养殖主体立即提高防控等级，严格落实各项防控措施。
+        </div>
+        <p><strong>一、立即采取以下措施：</strong></p>
+        <ul>
+          <li>暂停从疫区购入生猪及相关产品</li>
+          <li>加强猪场消毒，每日至少消毒一次</li>
+          <li>严格限制外来人员进入养殖场</li>
+          <li>密切观察猪群健康状况，发现异常立即上报</li>
+          <li>禁止使用泔水喂猪</li>
+        </ul>
+        <p><strong>二、报告要求：</strong></p>
+        <p>如发现生猪出现高热、厌食、皮肤发红等疑似症状，须在<strong>24小时内</strong>通过本平台上报，同时拨打动物疫情报告电话：<strong>0825-XXXXXXXX</strong>。</p>
+        <div class="highlight-box">
+          <strong>法律提示：</strong>瞒报、谎报动物疫情的，依法追究相关责任人的法律责任。
+        </div>
+      `,
+      attachments: [
+        { name: '非洲猪瘟防控技术指南（2026版）.pdf', size: '3.5 MB', type: 'pdf' },
+      ]
+    }
+  };
+
+  function loadNotice(id) {
+    const notice = notices[id];
+    const normalState = document.getElementById('normalState');
+    const errorState = document.getElementById('errorState');
+    const bottomActions = document.getElementById('bottomActions');
+
+    if (!notice) {
+      normalState.style.display = 'none';
+      errorState.classList.add('show');
+      bottomActions.style.display = 'none';
+      document.getElementById('navTitle').textContent = '通知详情';
+      return;
+    }
+
+    normalState.style.display = 'block';
+    errorState.classList.remove('show');
+    bottomActions.style.display = 'flex';
+
+    // Update nav title
+    const shortTitle = notice.title.length > 12 ? notice.title.substring(0, 12) + '...' : notice.title;
+    document.getElementById('navTitle').textContent = shortTitle;
+
+    // Type tag
+    const typeTag = document.getElementById('noticeTypeTag');
+    typeTag.textContent = notice.typeLabel;
+    typeTag.className = 'notice-type-tag ' + notice.typeClass;
+
+    // Top / Important
+    document.getElementById('noticeTopTag').style.display = notice.isTop ? 'inline-flex' : 'none';
+    document.getElementById('noticeImportantTag').style.display = notice.isImportant ? 'inline-flex' : 'none';
+
+    // Title, source, time
+    document.getElementById('noticeTitle').textContent = notice.title;
+    document.getElementById('noticeSource').textContent = notice.source;
+    document.getElementById('noticeTime').textContent = notice.time;
+
+    // Body
+    document.getElementById('noticeBody').innerHTML = '<div class="notice-richtext">' + notice.body + '</div>';
+
+    // Attachments
+    const attSection = document.getElementById('attachmentsSection');
+    const attList = document.getElementById('attachmentsList');
+    if (notice.attachments && notice.attachments.length > 0) {
+      attSection.style.display = 'block';
+      attList.innerHTML = notice.attachments.map(att => {
+        const iconClass = att.type === 'pdf' ? 'icon-pdf' : att.type === 'word' ? 'icon-word' : 'icon-img';
+        const iconSvg = att.type === 'pdf'
+          ? '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>'
+          : att.type === 'word'
+          ? '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
+          : '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
+        return `
+          <div class="attachment-item" onclick="downloadAttachment('${att.name}')">
+            <div class="attachment-icon ${iconClass}">${iconSvg}</div>
+            <div class="attachment-info">
+              <div class="attachment-name">${att.name}</div>
+              <div class="attachment-size">${att.size}</div>
+            </div>
+            <div class="attachment-download">下载</div>
+          </div>
+        `;
+      }).join('');
+    } else {
+      attSection.style.display = 'none';
+    }
+
+    // Mark as read (simulate)
+    document.getElementById('readBadge').style.display = 'inline-flex';
+  }
+
+  function downloadAttachment(name) {
+    showToast('正在下载：' + name);
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 1500);
+  }
+
+  // Load from URL param or default
+  const urlParams = new URLSearchParams(window.location.search);
+  const noticeId = urlParams.get('id') || '1';
+  document.getElementById('noticeSelector').value = noticeId;
+  loadNotice(noticeId);
+</script>
+</body>
+</html>

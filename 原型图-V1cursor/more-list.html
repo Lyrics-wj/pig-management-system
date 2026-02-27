@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=375px, initial-scale=1.0">
+<title>更多记录 - 蓬溪县生猪数字化管理平台</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --primary: #16a34a; --primary-dark: #15803d;
+    --danger: #ef4444; --warning: #f59e0b; --secondary: #0ea5e9; --purple: #8b5cf6;
+    --bg: #f0fdf4; --text: #14532d; --text-secondary: #4b7c59; --text-muted: #86a892;
+    --border: rgba(22,163,74,0.15); --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+    --radius: 16px; --radius-sm: 10px;
+    --glass: rgba(255,255,255,0.85); --glass-border: rgba(255,255,255,0.6);
+  }
+  body { font-family: 'Noto Sans SC', -apple-system, sans-serif; background: var(--bg); color: var(--text); max-width: 390px; margin: 0 auto; min-height: 100vh; }
+  ::-webkit-scrollbar { width: 0; }
+
+  /* Nav Bar */
+  .nav-bar {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--glass-border);
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px; padding-top: 44px;
+  }
+  .nav-back {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: rgba(22,163,74,0.08); border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0;
+  }
+  .nav-back svg { width: 18px; height: 18px; stroke: var(--text); fill: none; stroke-width: 2; }
+  .nav-title { flex: 1; font-size: 16px; font-weight: 600; color: var(--text); }
+
+  /* Filter Bar */
+  .filter-bar {
+    background: white; padding: 10px 16px;
+    border-bottom: 1px solid rgba(22,163,74,0.08);
+    display: flex; gap: 8px; align-items: center;
+  }
+  .filter-input-wrap { flex: 1; position: relative; }
+  .filter-input {
+    width: 100%; padding: 8px 12px 8px 34px;
+    border: 1.5px solid rgba(22,163,74,0.15);
+    border-radius: 8px; font-size: 13px; color: var(--text);
+    background: var(--bg); font-family: inherit; outline: none;
+  }
+  .filter-input:focus { border-color: var(--primary); }
+  .filter-input-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; stroke: var(--text-muted); fill: none; stroke-width: 1.8; pointer-events: none; }
+  .filter-btn {
+    padding: 8px 12px; border: 1.5px solid rgba(22,163,74,0.15);
+    border-radius: 8px; background: white; font-size: 12px; color: var(--text-secondary);
+    cursor: pointer; font-family: inherit; display: flex; align-items: center; gap: 4px; white-space: nowrap;
+  }
+  .filter-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+  .filter-btn.active { background: rgba(22,163,74,0.08); border-color: var(--primary); color: var(--primary); }
+
+  /* Filter Tags */
+  .filter-tags { display: flex; gap: 6px; padding: 8px 16px; overflow-x: auto; background: white; border-bottom: 1px solid rgba(22,163,74,0.06); }
+  .filter-tags::-webkit-scrollbar { display: none; }
+  .filter-tag {
+    flex-shrink: 0; padding: 5px 12px; border-radius: 20px;
+    font-size: 12px; cursor: pointer; border: 1px solid var(--border);
+    background: white; color: var(--text-secondary); transition: all 0.2s;
+  }
+  .filter-tag.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+  /* Content */
+  .content { padding: 12px 16px 80px; }
+
+  /* List items */
+  .list-item {
+    background: var(--glass);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm); padding: 12px 14px;
+    margin-bottom: 10px; cursor: pointer;
+    box-shadow: var(--shadow-sm); transition: transform 0.15s;
+  }
+  .list-item:active { transform: scale(0.98); }
+
+  /* Report item */
+  .report-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .report-type { font-size: 12px; font-weight: 600; color: var(--primary); background: rgba(22,163,74,0.1); padding: 2px 8px; border-radius: 6px; }
+  .report-status { font-size: 11px; }
+  .status-submitted { color: var(--primary); }
+  .status-draft { color: var(--text-muted); }
+  .report-desc { font-size: 13px; color: var(--text); margin-bottom: 4px; }
+  .report-date { font-size: 11px; color: var(--text-muted); }
+
+  /* Study item */
+  .study-item { display: flex; gap: 12px; }
+  .study-thumb { width: 72px; height: 54px; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .study-thumb svg { width: 24px; height: 24px; fill: none; stroke: rgba(255,255,255,0.7); stroke-width: 1.8; }
+  .study-info { flex: 1; min-width: 0; }
+  .study-title { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.4; margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .study-progress-bar { height: 4px; background: rgba(22,163,74,0.15); border-radius: 2px; overflow: hidden; margin-bottom: 4px; }
+  .study-progress-fill { height: 100%; background: var(--primary); border-radius: 2px; }
+  .study-meta { display: flex; align-items: center; justify-content: space-between; }
+  .study-pct { font-size: 11px; color: var(--primary); font-weight: 500; }
+  .study-continue { font-size: 11px; color: var(--primary); background: rgba(22,163,74,0.1); padding: 3px 8px; border-radius: 6px; }
+
+  /* Collect item */
+  .collect-item { display: flex; gap: 12px; }
+  .collect-thumb { width: 72px; height: 54px; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .collect-info { flex: 1; min-width: 0; }
+  .collect-title { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.4; margin-bottom: 4px; }
+  .collect-meta { font-size: 11px; color: var(--text-muted); }
+  .collect-type-tag { font-size: 11px; padding: 1px 6px; border-radius: 4px; margin-right: 4px; }
+
+  /* Question item */
+  .question-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .question-source { font-size: 11px; padding: 2px 6px; border-radius: 4px; }
+  .question-new-reply { font-size: 10px; background: var(--danger); color: white; padding: 2px 6px; border-radius: 8px; }
+  .question-content { font-size: 13px; color: var(--text); line-height: 1.5; margin-bottom: 4px; }
+  .question-meta { font-size: 11px; color: var(--text-muted); }
+
+  /* Load More */
+  .load-more {
+    text-align: center; padding: 16px;
+    font-size: 13px; color: var(--primary);
+    cursor: pointer;
+  }
+  .load-more.loading { color: var(--text-muted); pointer-events: none; }
+  .load-more.end { color: var(--text-muted); cursor: default; }
+
+  /* Empty State */
+  .empty-state {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 60px 32px; text-align: center;
+  }
+  .empty-icon { width: 80px; height: 80px; border-radius: 50%; background: rgba(22,163,74,0.06); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+  .empty-icon svg { width: 36px; height: 36px; stroke: rgba(22,163,74,0.3); fill: none; stroke-width: 1.5; }
+  .empty-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .empty-desc { font-size: 13px; color: var(--text-muted); }
+
+  /* Toast */
+  .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.75); color: white; padding: 10px 20px; border-radius: 8px; font-size: 13px; z-index: 500; display: none; }
+  .toast.show { display: block; }
+
+  /* Pull refresh indicator */
+  .pull-indicator { text-align: center; padding: 8px; font-size: 12px; color: var(--text-muted); display: none; }
+  .pull-indicator.show { display: block; }
+</style>
+</head>
+<body>
+
+<!-- Nav Bar -->
+<div class="nav-bar">
+  <button class="nav-back" onclick="history.back()">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
+  <div class="nav-title" id="pageTitle">上报记录</div>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+  <div class="filter-input-wrap">
+    <svg class="filter-input-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" class="filter-input" placeholder="搜索..." id="searchInput" oninput="filterItems()" />
+  </div>
+  <button class="filter-btn" id="filterBtn" onclick="toggleFilterPanel()">
+    <svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+    筛选
+  </button>
+</div>
+
+<!-- Filter Tags (dynamic) -->
+<div class="filter-tags" id="filterTags"></div>
+
+<!-- Pull Refresh -->
+<div class="pull-indicator" id="pullIndicator">↓ 下拉刷新</div>
+
+<!-- Content -->
+<div class="content" id="listContent">
+  <!-- Dynamic content -->
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const listType = urlParams.get('type') || 'report';
+  let currentPage = 1;
+  let activeFilter = 'all';
+  let isLoading = false;
+
+  const pageTitles = {
+    report: '上报记录',
+    study: '学习记录',
+    collect: '我的收藏',
+    question: '我的提问'
+  };
+
+  const filterConfigs = {
+    report: [
+      { id: 'all', label: '全部' },
+      { id: 'submitted', label: '已提交' },
+      { id: 'draft', label: '草稿' },
+      { id: 'breeding_info', label: '养殖信息' },
+      { id: 'outbound', label: '出栏信息' },
+      { id: 'immune', label: '免疫信息' },
+      { id: 'disinfect', label: '消毒信息' },
+    ],
+    study: [
+      { id: 'all', label: '全部' },
+      { id: 'ongoing', label: '学习中' },
+      { id: 'done', label: '已完成' },
+      { id: 'video', label: '课程视频' },
+      { id: 'policy', label: '政策资讯' },
+    ],
+    collect: [
+      { id: 'all', label: '全部' },
+      { id: 'video', label: '视频收藏' },
+      { id: 'policy', label: '资讯收藏' },
+    ],
+    question: [
+      { id: 'all', label: '全部' },
+      { id: 'replied', label: '有回复' },
+      { id: 'no_reply', label: '待回复' },
+      { id: 'new_reply', label: '新回复' },
+    ]
+  };
+
+  // Mock data
+  const mockData = {
+    report: [
+      { type: '养殖信息', status: 'submitted', desc: '育肥舍A区 · 存栏 320 头', date: '2026-02-27 09:30', url: 'breeding.html' },
+      { type: '出栏信息', status: 'submitted', desc: '育肥舍A区 · 出栏 50 头 · 销售', date: '2026-02-27 08:00', url: 'breeding.html' },
+      { type: '免疫信息', status: 'submitted', desc: '育肥舍A区 · 口蹄疫疫苗 · 320 头', date: '2026-02-27 09:00', url: 'breeding.html' },
+      { type: '养殖信息', status: 'draft', desc: '保育舍C区 · 未完成', date: '2026-02-25 (草稿)', url: 'breeding-form.html?type=breeding_info' },
+      { type: '消毒信息', status: 'submitted', desc: '育肥舍A区 · 常规消毒 · 次氯酸钠', date: '2026-02-25 16:00', url: 'breeding.html' },
+      { type: '繁育信息', status: 'submitted', desc: '母猪舍 · 配种记录 · 5头', date: '2026-02-24 10:00', url: 'breeding.html' },
+      { type: '入栏信息', status: 'submitted', desc: '保育舍B区 · 入栏 80 头', date: '2026-02-23 14:30', url: 'breeding.html' },
+      { type: '投入品使用', status: 'submitted', desc: '育肥舍A区 · 饲料 500kg', date: '2026-02-22 08:00', url: 'breeding.html' },
+      { type: '无害化处理', status: 'submitted', desc: '育肥舍A区 · 病死猪 2头', date: '2026-02-21 15:00', url: 'breeding.html' },
+      { type: '转栏信息', status: 'submitted', desc: '保育舍→育肥舍 · 60头', date: '2026-02-20 09:00', url: 'breeding.html' },
+    ],
+    study: [
+      { title: '猪瘟防控技术与免疫程序详解', type: 'video', progress: 65, date: '2026-02-27', color: '#064e3b,#16a34a', url: 'knowledge.html?tab=course' },
+      { title: '规模化猪场环境控制与通风管理实操指南', type: 'video', progress: 100, date: '2026-02-20', color: '#1e3a5f,#0ea5e9', url: 'knowledge.html?tab=course' },
+      { title: '生猪不同生长阶段饲料配方与营养需求', type: 'video', progress: 30, date: '2026-02-18', color: '#4c1d95,#8b5cf6', url: 'knowledge.html?tab=course' },
+      { title: '非洲猪瘟防控技术指南（2026年版）', type: 'policy', progress: 100, date: '2026-02-15', color: '#7c2d12,#f97316', url: 'knowledge.html?tab=policy' },
+      { title: '2026年生猪产业扶持政策解读', type: 'policy', progress: 80, date: '2026-02-14', color: '#1e3a5f,#0ea5e9', url: 'knowledge.html?tab=policy' },
+      { title: '生猪养殖场生物安全管理规范', type: 'video', progress: 50, date: '2026-02-12', color: '#064e3b,#16a34a', url: 'knowledge.html?tab=course' },
+      { title: '母猪繁殖管理与提高产仔率技术', type: 'video', progress: 0, date: '2026-02-10', color: '#4c1d95,#8b5cf6', url: 'knowledge.html?tab=course' },
+    ],
+    collect: [
+      { title: '规模化猪场环境控制与通风管理实操指南', type: 'video', meta: '王教授 · 25:08 · 收藏于2026-02-20', color: '#064e3b,#16a34a', url: 'knowledge.html?tab=course' },
+      { title: '生猪不同生长阶段饲料配方与营养需求', type: 'video', meta: '张博士 · 32:15 · 收藏于2026-02-18', color: '#4c1d95,#8b5cf6', url: 'knowledge.html?tab=course' },
+      { title: '非洲猪瘟防控技术指南（2026年版）', type: 'policy', meta: '农业农村部兽医局 · 收藏于2026-02-15', color: '#7c2d12,#f97316', url: 'knowledge.html?tab=policy' },
+      { title: '蓬溪县2026年生猪产业发展扶持政策汇编', type: 'policy', meta: '蓬溪县农业农村局 · 收藏于2026-02-16', color: '#1e3a5f,#0ea5e9', url: 'knowledge.html?tab=policy' },
+      { title: '猪瘟防控技术与免疫程序详解', type: 'video', meta: '李教授 · 45:20 · 收藏于2026-02-10', color: '#064e3b,#16a34a', url: 'knowledge.html?tab=course' },
+      { title: '生猪养殖场生物安全管理规范', type: 'video', meta: '陈博士 · 28:45 · 收藏于2026-02-08', color: '#1e3a5f,#0ea5e9', url: 'knowledge.html?tab=course' },
+    ],
+    question: [
+      { source: '课程视频', sourceColor: '#0ea5e9', sourceBg: 'rgba(14,165,233,0.1)', content: '请问口蹄疫疫苗和猪瘟疫苗可以同时接种吗？', date: '2026-02-25', replies: 1, newReply: true, url: 'knowledge.html?tab=course' },
+      { source: '政策资讯', sourceColor: '#f97316', sourceBg: 'rgba(249,115,22,0.1)', content: '2026年补贴申请需要提交哪些材料？', date: '2026-02-22', replies: 0, newReply: false, url: 'knowledge.html?tab=policy' },
+      { source: '课程视频', sourceColor: '#0ea5e9', sourceBg: 'rgba(14,165,233,0.1)', content: '非洲猪瘟疫情期间，猪场消毒频率应该是多少？', date: '2026-02-18', replies: 3, newReply: false, url: 'knowledge.html?tab=course' },
+      { source: '政策资讯', sourceColor: '#f97316', sourceBg: 'rgba(249,115,22,0.1)', content: '家庭农场和规模养殖场的认定标准有什么区别？', date: '2026-02-15', replies: 2, newReply: true, url: 'knowledge.html?tab=policy' },
+      { source: '课程视频', sourceColor: '#0ea5e9', sourceBg: 'rgba(14,165,233,0.1)', content: '仔猪断奶后应激反应如何预防和处理？', date: '2026-02-10', replies: 1, newReply: false, url: 'knowledge.html?tab=course' },
+    ]
+  };
+
+  function init() {
+    document.getElementById('pageTitle').textContent = pageTitles[listType] || '记录列表';
+    document.title = pageTitles[listType] + ' - 蓬溪县生猪数字化管理平台';
+
+    // Render filter tags
+    const tags = filterConfigs[listType] || [];
+    const tagsEl = document.getElementById('filterTags');
+    tagsEl.innerHTML = tags.map(t =>
+      `<div class="filter-tag ${t.id === 'all' ? 'active' : ''}" onclick="setFilter('${t.id}', this)">${t.label}</div>`
+    ).join('');
+
+    renderList();
+  }
+
+  function setFilter(filterId, el) {
+    activeFilter = filterId;
+    document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    renderList();
+  }
+
+  function toggleFilterPanel() {
+    const btn = document.getElementById('filterBtn');
+    btn.classList.toggle('active');
+    showToast('筛选面板开发中');
+  }
+
+  function filterItems() {
+    renderList();
+  }
+
+  function renderList() {
+    const data = mockData[listType] || [];
+    const searchVal = document.getElementById('searchInput').value.toLowerCase();
+    const content = document.getElementById('listContent');
+
+    let filtered = data.filter(item => {
+      const text = JSON.stringify(item).toLowerCase();
+      return text.includes(searchVal);
+    });
+
+    if (filtered.length === 0) {
+      content.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          </div>
+          <div class="empty-title">暂无数据</div>
+          <div class="empty-desc">没有找到相关记录</div>
+        </div>
+      `;
+      return;
+    }
+
+    const items = filtered.map(item => renderItem(item)).join('');
+    content.innerHTML = items + `
+      <div class="load-more" id="loadMoreBtn" onclick="loadMore()">
+        上拉加载更多
+      </div>
+    `;
+  }
+
+  function renderItem(item) {
+    if (listType === 'report') {
+      const statusClass = item.status === 'submitted' ? 'status-submitted' : 'status-draft';
+      const statusText = item.status === 'submitted' ? '已提交' : '草稿';
+      return `
+        <div class="list-item" onclick="goTo('${item.url}')">
+          <div class="report-header">
+            <span class="report-type">${item.type}</span>
+            <span class="report-status ${statusClass}">${statusText}</span>
+          </div>
+          <div class="report-desc">${item.desc}</div>
+          <div class="report-date">${item.date}</div>
+        </div>
+      `;
+    }
+    if (listType === 'study') {
+      const isDone = item.progress === 100;
+      return `
+        <div class="list-item" onclick="goTo('${item.url}')">
+          <div class="study-item">
+            <div class="study-thumb" style="background:linear-gradient(135deg,${item.color});">
+              <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            </div>
+            <div class="study-info">
+              <div class="study-title">${item.title}</div>
+              <div class="study-progress-bar"><div class="study-progress-fill" style="width:${item.progress}%;"></div></div>
+              <div class="study-meta">
+                <span class="study-pct" style="${isDone ? 'color:#16a34a;' : ''}">${isDone ? '已完成' : item.progress + '%'}</span>
+                ${isDone ? `<span style="font-size:11px;color:#86a892;">${item.date}</span>` : `<span class="study-continue">继续学习</span>`}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    if (listType === 'collect') {
+      const isVideo = item.type === 'video';
+      return `
+        <div class="list-item" onclick="goTo('${item.url}')">
+          <div class="collect-item">
+            <div class="collect-thumb" style="background:linear-gradient(135deg,${item.color});">
+              ${isVideo
+                ? `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="1.8"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>`
+                : `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`
+              }
+            </div>
+            <div class="collect-info">
+              <div class="collect-title">${item.title}</div>
+              <div class="collect-meta">
+                <span class="collect-type-tag" style="background:${isVideo ? 'rgba(14,165,233,0.1)' : 'rgba(249,115,22,0.1)'};color:${isVideo ? '#0ea5e9' : '#f97316'};">${isVideo ? '视频' : '资讯'}</span>
+                ${item.meta}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    if (listType === 'question') {
+      return `
+        <div class="list-item" onclick="goTo('${item.url}')">
+          <div class="question-header">
+            <span class="question-source" style="background:${item.sourceBg};color:${item.sourceColor};">${item.source}</span>
+            ${item.newReply ? `<span class="question-new-reply">${item.replies}条新回复</span>` : `<span style="font-size:10px;color:#86a892;">${item.replies > 0 ? '回复数：' + item.replies : '暂无回复'}</span>`}
+          </div>
+          <div class="question-content">${item.content}</div>
+          <div class="question-meta">${item.date}</div>
+        </div>
+      `;
+    }
+    return '';
+  }
+
+  function loadMore() {
+    const btn = document.getElementById('loadMoreBtn');
+    if (!btn) return;
+    btn.textContent = '加载中...';
+    btn.classList.add('loading');
+    setTimeout(() => {
+      btn.textContent = '没有更多了';
+      btn.classList.remove('loading');
+      btn.classList.add('end');
+    }, 1000);
+  }
+
+  function goTo(url) { window.location.href = url; }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 1500);
+  }
+
+  // Pull to refresh simulation
+  let startY = 0;
+  document.addEventListener('touchstart', e => { startY = e.touches[0].clientY; });
+  document.addEventListener('touchend', e => {
+    const dy = e.changedTouches[0].clientY - startY;
+    if (dy > 80 && window.scrollY === 0) {
+      const indicator = document.getElementById('pullIndicator');
+      indicator.classList.add('show');
+      indicator.textContent = '刷新中...';
+      setTimeout(() => {
+        indicator.classList.remove('show');
+        showToast('刷新成功');
+      }, 1000);
+    }
+  });
+
+  init();
+</script>
+</body>
+</html>

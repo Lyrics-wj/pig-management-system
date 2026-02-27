@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>功能三：养殖信息上报 - 蓬溪县生猪数字化管理平台</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
+  .phone-frame { width: 390px; height: 844px; background: #f5f5f5; border-radius: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); overflow: hidden; position: relative; display: flex; flex-direction: column; }
+  .demo-bar { background: #fff9c4; padding: 5px 16px; font-size: 11px; color: #7a6200; text-align: center; flex-shrink: 0; }
+  .scroll-area { flex: 1; overflow-y: auto; }
+  .scroll-area::-webkit-scrollbar { display: none; }
+
+  /* 页面导航 */
+  .page-nav { display: flex; align-items: center; padding: 12px 16px; background: white; border-bottom: 1px solid #f0f0f0; flex-shrink: 0; }
+  .nav-back { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 50%; }
+  .nav-back:hover { background: #f5f5f5; }
+  .nav-title { flex: 1; text-align: center; font-size: 16px; font-weight: 600; color: #1a1a1a; }
+  .nav-right { width: 36px; }
+
+  /* 模块选择 */
+  .module-list { background: white; }
+  .module-group-title { padding: 12px 16px 6px; font-size: 12px; color: #999; font-weight: 500; }
+  .module-item { display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid #f5f5f5; cursor: pointer; transition: background 0.15s; }
+  .module-item:hover { background: #f9f9f9; }
+  .module-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 12px; flex-shrink: 0; }
+  .module-info { flex: 1; }
+  .module-name { font-size: 15px; color: #1a1a1a; font-weight: 500; }
+  .module-desc { font-size: 12px; color: #999; margin-top: 2px; }
+  .module-arrow { color: #ccc; }
+  .module-badge { background: #f44336; color: white; font-size: 10px; min-width: 18px; height: 18px; border-radius: 9px; display: flex; align-items: center; justify-content: center; padding: 0 4px; margin-right: 8px; }
+
+  /* Tab 栏 */
+  .tab-bar { display: flex; background: white; border-bottom: 1px solid #f0f0f0; overflow-x: auto; flex-shrink: 0; }
+  .tab-bar::-webkit-scrollbar { display: none; }
+  .tab-item { padding: 10px 14px; font-size: 13px; color: #666; cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; transition: all 0.2s; flex-shrink: 0; }
+  .tab-item.active { color: #2d9e5f; border-bottom-color: #2d9e5f; font-weight: 600; }
+
+  /* 列表 */
+  .list-filters { padding: 10px 16px; background: white; display: flex; gap: 8px; border-bottom: 1px solid #f0f0f0; }
+  .filter-select { flex: 1; height: 34px; border: 1px solid #e0e0e0; border-radius: 8px; padding: 0 10px; font-size: 13px; color: #666; background: #fafafa; outline: none; }
+  .record-card { background: white; margin: 10px 12px 0; border-radius: 14px; padding: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); cursor: pointer; }
+  .record-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+  .record-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .record-title { font-size: 14px; font-weight: 600; color: #1a1a1a; }
+  .status-tag { font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 500; }
+  .status-draft { background: #f5f5f5; color: #757575; }
+  .status-submitted { background: #e3f2fd; color: #1565c0; }
+  .status-village-ok { background: #fff3e0; color: #e65100; }
+  .status-village-back { background: #ffebee; color: #c62828; }
+  .status-county-back { background: #ffebee; color: #c62828; }
+  .status-stored { background: #e8f5e9; color: #2e7d32; }
+  .record-info { font-size: 12px; color: #666; line-height: 1.8; }
+  .record-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .btn-sm { height: 30px; padding: 0 14px; border-radius: 8px; font-size: 12px; cursor: pointer; border: none; font-weight: 500; }
+  .btn-sm-outline { background: transparent; border: 1px solid #2d9e5f; color: #2d9e5f; }
+  .btn-sm-primary { background: #2d9e5f; color: white; }
+  .btn-sm-danger { background: transparent; border: 1px solid #f44336; color: #f44336; }
+  .btn-sm-gray { background: transparent; border: 1px solid #ccc; color: #999; }
+
+  /* 表单页 */
+  .form-page { display: none; flex-direction: column; height: 100%; }
+  .form-page.active { display: flex; }
+  .form-body { flex: 1; overflow-y: auto; padding: 16px; }
+  .form-body::-webkit-scrollbar { display: none; }
+  .form-section { background: white; border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+  .form-section-title { font-size: 14px; font-weight: 600; color: #1a1a1a; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 2px solid #e8f5e9; }
+  .form-group { margin-bottom: 14px; }
+  .form-label { font-size: 13px; color: #555; margin-bottom: 6px; display: block; }
+  .required { color: #f44336; }
+  .form-input { width: 100%; height: 44px; border: 1.5px solid #e0e0e0; border-radius: 10px; padding: 0 12px; font-size: 14px; color: #1a1a1a; outline: none; background: #fafafa; }
+  .form-input:focus { border-color: #2d9e5f; background: white; }
+  .form-input.error { border-color: #f44336; }
+  .form-input[readonly] { background: #f5f5f5; color: #999; cursor: not-allowed; }
+  .form-select { width: 100%; height: 44px; border: 1.5px solid #e0e0e0; border-radius: 10px; padding: 0 12px; font-size: 14px; color: #1a1a1a; outline: none; background: #fafafa; appearance: none; cursor: pointer; }
+  .form-select:focus { border-color: #2d9e5f; }
+  .error-msg { font-size: 12px; color: #f44336; margin-top: 4px; display: none; }
+  .error-msg.show { display: block; }
+  .readonly-hint { font-size: 11px; color: #bbb; margin-top: 3px; }
+  .form-footer { padding: 12px 16px 24px; background: white; border-top: 1px solid #f0f0f0; display: flex; gap: 10px; flex-shrink: 0; }
+  .btn-draft { flex: 1; height: 44px; background: transparent; border: 1.5px solid #2d9e5f; color: #2d9e5f; border-radius: 12px; font-size: 14px; cursor: pointer; }
+  .btn-submit { flex: 2; height: 44px; background: linear-gradient(135deg, #2d9e5f, #1a6b3c); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; }
+
+  /* 审核进度条 */
+  .audit-progress { background: white; margin: 10px 12px 0; border-radius: 14px; padding: 16px; }
+  .progress-steps { display: flex; align-items: center; }
+  .progress-step { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+  .progress-circle { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; }
+  .progress-circle.done { background: #2d9e5f; color: white; }
+  .progress-circle.current { background: #ff9800; color: white; }
+  .progress-circle.pending { background: #f0f0f0; color: #999; }
+  .progress-circle.rejected { background: #f44336; color: white; }
+  .progress-label { font-size: 10px; color: #666; text-align: center; }
+  .progress-line { flex: 1; height: 2px; background: #f0f0f0; margin: 0 4px; margin-bottom: 16px; }
+  .progress-line.done { background: #2d9e5f; }
+  .reject-reason { background: #ffebee; border-radius: 10px; padding: 10px 12px; margin-top: 10px; font-size: 13px; color: #c62828; }
+  .reject-reason-title { font-weight: 600; margin-bottom: 4px; }
+
+  /* 上传区域 */
+  .upload-area { display: flex; flex-wrap: wrap; gap: 8px; }
+  .upload-thumb { width: 72px; height: 72px; border-radius: 8px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid #e0e0e0; overflow: hidden; }
+  .upload-add { border: 2px dashed #ccc; background: white; flex-direction: column; gap: 4px; font-size: 11px; color: #999; }
+  .upload-add:hover { border-color: #2d9e5f; color: #2d9e5f; }
+
+  /* 确认弹窗 */
+  .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal-overlay.show { display: flex; }
+  .modal-box { background: white; border-radius: 20px; width: 100%; padding: 24px; }
+  .modal-title { font-size: 16px; font-weight: 600; color: #1a1a1a; text-align: center; margin-bottom: 12px; }
+  .modal-content { font-size: 13px; color: #666; line-height: 1.7; margin-bottom: 20px; }
+  .modal-btns { display: flex; gap: 10px; }
+  .btn-cancel { flex: 1; height: 44px; background: #f5f5f5; border: none; border-radius: 12px; font-size: 14px; color: #666; cursor: pointer; }
+  .btn-confirm { flex: 1; height: 44px; background: linear-gradient(135deg, #2d9e5f, #1a6b3c); border: none; border-radius: 12px; font-size: 14px; color: white; font-weight: 600; cursor: pointer; }
+  .btn-confirm-danger { background: linear-gradient(135deg, #f44336, #c62828); }
+
+  /* 审核操作 */
+  .audit-form { background: white; margin: 10px 12px 0; border-radius: 14px; padding: 16px; }
+  .audit-form-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+  .form-textarea { width: 100%; border: 1.5px solid #e0e0e0; border-radius: 10px; padding: 10px 12px; font-size: 14px; color: #1a1a1a; outline: none; background: #fafafa; resize: none; height: 80px; font-family: inherit; }
+  .form-textarea:focus { border-color: #2d9e5f; }
+  .audit-btns { display: flex; gap: 10px; margin-top: 12px; }
+  .btn-audit-pass { flex: 1; height: 44px; background: #2d9e5f; color: white; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .btn-audit-reject { flex: 1; height: 44px; background: #f44336; color: white; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; }
+
+  /* 角色切换 */
+  .role-switcher { background: white; padding: 10px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #f0f0f0; }
+  .role-label { font-size: 12px; color: #666; }
+  .role-select { flex: 1; height: 32px; border: 1px solid #e0e0e0; border-radius: 8px; padding: 0 8px; font-size: 12px; outline: none; }
+
+  .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.75); color: white; padding: 10px 20px; border-radius: 20px; font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; white-space: nowrap; }
+  .toast.show { opacity: 1; }
+  .empty-state { text-align: center; padding: 40px 20px; color: #999; font-size: 14px; }
+  .empty-icon { font-size: 40px; margin-bottom: 10px; }
+  .add-btn { position: fixed; bottom: 80px; right: 30px; width: 52px; height: 52px; background: #2d9e5f; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 16px rgba(45,158,95,0.4); z-index: 50; }
+  .conditional-field { display: none; }
+  .conditional-field.show { display: block; }
+  .info-row { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px solid #f5f5f5; }
+  .info-row:last-child { border-bottom: none; }
+  .info-key { color: #666; }
+  .info-val { color: #1a1a1a; font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="demo-bar">📱 原型演示 - 功能三：养殖信息上报</div>
+
+  <!-- 主页面：模块选择 -->
+  <div id="view-main" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+    <div class="page-nav">
+      <div class="nav-back" onclick="window.location.href='02-首页.html'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <div class="nav-title">养殖信息上报</div>
+      <div class="nav-right"></div>
+    </div>
+    <div class="role-switcher">
+      <span class="role-label">当前角色：</span>
+      <select class="role-select" id="role-select" onchange="switchRole()">
+        <option value="farm">养殖场用户</option>
+        <option value="village">村级审核员</option>
+        <option value="county">县级管理员</option>
+      </select>
+    </div>
+    <div class="scroll-area">
+      <div class="module-list">
+        <div class="module-group-title">基础信息</div>
+        <div class="module-item" onclick="showModule('breeding-info')">
+          <div class="module-icon" style="background:#e8f5e9"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2d9e5f" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+          <div class="module-info"><div class="module-name">基础养殖信息</div><div class="module-desc">存栏数量、各类猪只统计</div></div>
+          <div class="module-badge">1</div>
+          <div class="module-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+        <div class="module-item" onclick="showModule('breeding-record')">
+          <div class="module-icon" style="background:#fff3e0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f57c00" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
+          <div class="module-info"><div class="module-name">繁育信息</div><div class="module-desc">配种、妊娠、分娩记录</div></div>
+          <div class="module-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+        <div class="module-item" onclick="showModule('weaning')">
+          <div class="module-icon" style="background:#e3f2fd"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1976d2" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
+          <div class="module-info"><div class="module-name">断奶信息</div><div class="module-desc">断奶日期、数量、转入猪舍</div></div>
+          <div class="module-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+        <div class="module-group-title">进出栏管理</div>
+        <div class="module-item" onclick="showModule('entry')">
+          <div class="module-icon" style="background:#fce4ec"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c2185b" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg></div>
+          <div class="module-info"><div class="module-name">入栏信息</div><div class="module-desc">入栏日期、数量、来源、检疫</div></div>
+          <div class="module-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+        <div class="module-item" onclick="showModule('transfer')">
+          <div class="module-icon" style="background:#f3e5f5"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7b1fa2" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg></div>
+          <div class="module-info"><div class="module-name">转栏信息</div><div class="module-desc">源猪舍、目标猪舍、转栏数量</div></div>
+          <div class="module-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+        <div class="module-item" onclick="showModule('outbound')">
+          <div class="module-icon" style="background:#e0f7fa"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0097a7" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
+          <div class="module-info"><div class="module-name">出栏信息</div><div class="module-desc">出栏日期、数量、用途、检疫</div></div>
+          <div class="module-badge">1</div>
+          <div class="module-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+        <div class="module-group-title">防疫与处理</div>
+        <div class="module-item" onclick="showModule('immune')">
+          <div class="module-icon" style="background:#e8f5e9"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#388e3c" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <div class="module-info"><div class="module-name">免疫信息</div><div class="module-desc">疫苗名称、免疫数量、方式</div></div>
+          <div class="module-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+        <div class="module-item" onclick="showModule('disinfect')">
+          <div class="module-icon" style="background:#fff8e1"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f9a825" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div>
+          <div class="module-info"><div class="module-name">消毒信息</div><div class="module-desc">消毒日期、类型、消毒剂</div></div>
+          <div class="module-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+        <div class="module-item" onclick="showModule('input')">
+          <div class="module-icon" style="background:#fbe9e7"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#bf360c" stroke-width="2"><path d="M12 2a10 10 0 110 20A10 10 0 0112 2z"/><path d="M12 8v4M12 16h.01"/></svg></div>
+          <div class="module-info"><div class="module-name">投入品使用</div><div class="module-desc">饲料、兽药、疫苗使用记录</div></div>
+          <div class="module-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+        <div class="module-item" onclick="showModule('disposal')">
+          <div class="module-icon" style="background:#efebe9"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5d4037" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></div>
+          <div class="module-info"><div class="module-name">无害化处理</div><div class="module-desc">死亡原因、处理方式、凭证</div></div>
+          <div class="module-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 出栏信息表单（示例详细表单） -->
+  <div id="view-outbound" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div class="page-nav" style="flex-shrink:0">
+      <div class="nav-back" onclick="showView('main')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <div class="nav-title">出栏信息上报</div>
+      <div class="nav-right"></div>
+    </div>
+    <!-- Tab -->
+    <div class="tab-bar">
+      <div class="tab-item active" onclick="switchTab(this, 'outbound-form-tab')">填写上报</div>
+      <div class="tab-item" onclick="switchTab(this, 'outbound-list-tab')">历史记录</div>
+    </div>
+    <!-- 表单 -->
+    <div id="outbound-form-tab" class="scroll-area" style="flex:1;padding:12px">
+      <div class="form-section">
+        <div class="form-section-title">基本信息</div>
+        <div class="form-group">
+          <label class="form-label">所属企业</label>
+          <input class="form-input" readonly value="蓬溪县兴旺养殖场">
+          <div class="readonly-hint">系统自动填充，只读</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">猪舍 <span class="required">*</span></label>
+          <select class="form-select" id="ob-pigsty" onchange="updateStock()">
+            <option value="">请选择猪舍</option>
+            <option value="1">育肥舍A（当前存栏：320头）</option>
+            <option value="2">育肥舍B（当前存栏：180头）</option>
+            <option value="3">母猪舍（当前存栏：45头）</option>
+          </select>
+          <div class="error-msg" id="err-ob-pigsty">请选择猪舍</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">当前存栏量</label>
+          <input class="form-input" id="ob-stock" readonly placeholder="选择猪舍后自动显示">
+          <div class="readonly-hint">选择猪舍后自动回显，只读</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">出栏日期 <span class="required">*</span></label>
+          <input class="form-input" id="ob-date" type="date" max="2026-02-27" onblur="validateOb('date')">
+          <div class="error-msg" id="err-ob-date">请选择出栏日期</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">出栏数量（头）<span class="required">*</span></label>
+          <input class="form-input" id="ob-quantity" type="number" placeholder="不能超过当前存栏量" min="1" onblur="validateOb('quantity')">
+          <div class="error-msg" id="err-ob-quantity">出栏数量不能为空</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">出栏总重（公斤）<span class="required">*</span></label>
+          <input class="form-input" id="ob-total-weight" type="number" placeholder="请输入出栏总重" min="0.01" onblur="validateOb('total-weight')">
+          <div class="error-msg" id="err-ob-total-weight">出栏总重不能为空</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">平均体重（公斤）<span class="required">*</span></label>
+          <input class="form-input" id="ob-avg-weight" type="number" placeholder="请输入平均体重" min="0.01" max="999.99">
+          <div class="error-msg" id="err-ob-avg-weight">平均体重不能为空</div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">出栏用途</div>
+        <div class="form-group">
+          <label class="form-label">出栏用途 <span class="required">*</span></label>
+          <select class="form-select" id="ob-purpose" onchange="toggleBuyerFields()">
+            <option value="">请选择出栏用途</option>
+            <option value="1">销售</option>
+            <option value="2">自宰</option>
+            <option value="3">种用</option>
+            <option value="4">调拨</option>
+          </select>
+          <div class="error-msg" id="err-ob-purpose">请选择出栏用途</div>
+        </div>
+        <div class="conditional-field" id="buyer-fields">
+          <div class="form-group">
+            <label class="form-label">购买方名称 <span class="required">*</span></label>
+            <input class="form-input" id="ob-buyer-name" type="text" placeholder="出栏用途为销售时必填">
+          </div>
+          <div class="form-group">
+            <label class="form-label">购买方地址 <span class="required">*</span></label>
+            <input class="form-input" id="ob-buyer-address" type="text" placeholder="出栏用途为销售时必填">
+          </div>
+          <div class="form-group">
+            <label class="form-label">购买方电话 <span class="required">*</span></label>
+            <input class="form-input" id="ob-buyer-phone" type="tel" placeholder="11位手机号，销售时必填" maxlength="11">
+          </div>
+          <div class="form-group">
+            <label class="form-label">销售单价（元/公斤）</label>
+            <input class="form-input" type="number" placeholder="选填">
+          </div>
+          <div class="form-group">
+            <label class="form-label">销售总额（元）</label>
+            <input class="form-input" type="number" placeholder="选填">
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">检疫信息</div>
+        <div class="form-group">
+          <label class="form-label">检疫证号 <span class="required">*</span></label>
+          <input class="form-input" type="text" placeholder="请输入检疫证号">
+        </div>
+        <div class="form-group">
+          <label class="form-label">检疫有效期 <span class="required">*</span></label>
+          <input class="form-input" type="date" id="ob-quarantine-date" onblur="validateQuarantineDate()">
+          <div class="error-msg" id="err-ob-quarantine-date">检疫有效期不能早于出栏日期</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">运输车辆号</label>
+          <input class="form-input" type="text" placeholder="选填">
+        </div>
+        <div class="form-group">
+          <label class="form-label">检疫证照片 <span class="required">*</span></label>
+          <div class="upload-area">
+            <div class="upload-thumb" style="background:#e8f5e9;border-color:#a5d6a7">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2d9e5f" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+            <div class="upload-thumb upload-add" onclick="showToast('模拟上传图片')">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>上传</span>
+            </div>
+          </div>
+          <div class="readonly-hint">支持 jpg/jpeg/png，单张不超过5MB，最多9张</div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">其他信息</div>
+        <div class="form-group">
+          <label class="form-label">备注</label>
+          <textarea class="form-textarea" placeholder="选填，最多500字"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="form-footer">
+      <button class="btn-draft" onclick="saveDraft()">保存草稿</button>
+      <button class="btn-submit" onclick="showSubmitConfirm()">确认提交</button>
+    </div>
+    <!-- 历史记录 -->
+    <div id="outbound-list-tab" style="display:none;flex:1;overflow-y:auto">
+      <div class="list-filters">
+        <select class="filter-select"><option>近7天</option><option>近30天</option><option>近3个月</option></select>
+        <select class="filter-select"><option>全部猪舍</option><option>育肥舍A</option><option>育肥舍B</option></select>
+      </div>
+      <div id="record-list-outbound"></div>
+    </div>
+  </div>
+
+  <!-- 繁育信息表单 -->
+  <div id="view-breeding-record" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div class="page-nav" style="flex-shrink:0">
+      <div class="nav-back" onclick="showView('main')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <div class="nav-title">繁育信息上报</div>
+      <div class="nav-right"></div>
+    </div>
+    <div class="tab-bar">
+      <div class="tab-item active" onclick="switchTab(this, 'breed-form-tab')">填写上报</div>
+      <div class="tab-item" onclick="switchTab(this, 'breed-list-tab')">历史记录</div>
+    </div>
+    <div id="breed-form-tab" class="scroll-area" style="flex:1;padding:12px">
+      <div class="form-section">
+        <div class="form-section-title">配种信息</div>
+        <div class="form-group">
+          <label class="form-label">母猪耳号 <span class="required">*</span></label>
+          <input class="form-input" type="text" placeholder="请输入母猪耳号">
+        </div>
+        <div class="form-group">
+          <label class="form-label">公猪耳号 <span class="required">*</span></label>
+          <input class="form-input" type="text" placeholder="请输入公猪耳号">
+        </div>
+        <div class="form-group">
+          <label class="form-label">配种方式 <span class="required">*</span></label>
+          <select class="form-select">
+            <option value="">请选择配种方式</option>
+            <option value="1">本交</option>
+            <option value="2">人工授精</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">配种日期 <span class="required">*</span></label>
+          <input class="form-input" type="date" id="breed-date" max="2026-02-27" onchange="calcExpectedDate()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">配种次数 <span class="required">*</span></label>
+          <input class="form-input" type="number" value="1" min="1" max="5">
+        </div>
+        <div class="form-group">
+          <label class="form-label">预产期（自动计算）</label>
+          <input class="form-input" id="expected-date" readonly placeholder="配种日期+114天自动计算">
+          <div class="readonly-hint">系统根据配种日期自动计算（+114天），只读</div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">妊娠检查（选填）</div>
+        <div class="form-group">
+          <label class="form-label">妊娠检查日期</label>
+          <input class="form-input" type="date" max="2026-02-27">
+        </div>
+        <div class="form-group">
+          <label class="form-label">妊娠结果</label>
+          <select class="form-select">
+            <option value="">请选择</option>
+            <option value="1">妊娠</option>
+            <option value="2">未妊娠</option>
+            <option value="3">待检查</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">分娩信息（选填）</div>
+        <div class="form-group">
+          <label class="form-label">分娩日期</label>
+          <input class="form-input" type="date" max="2026-02-27">
+        </div>
+        <div class="form-group">
+          <label class="form-label">产仔总数</label>
+          <input class="form-input" id="total-piglets" type="number" placeholder="须等于活仔数+死胎数" min="0" max="30" onblur="validatePiglets()">
+          <div class="error-msg" id="err-piglets">产仔总数须等于活仔数与死胎数之和</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">活仔数</label>
+          <input class="form-input" id="alive-piglets" type="number" placeholder="请输入活仔数" min="0" max="30" onblur="validatePiglets()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">死胎数</label>
+          <input class="form-input" id="dead-piglets" type="number" placeholder="请输入死胎数" min="0" max="30" onblur="validatePiglets()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">初生平均重（公斤）</label>
+          <input class="form-input" type="number" placeholder="选填" min="0.01" max="9.99">
+        </div>
+        <div class="form-group">
+          <label class="form-label">接产员</label>
+          <input class="form-input" type="text" placeholder="选填">
+        </div>
+      </div>
+    </div>
+    <div class="form-footer">
+      <button class="btn-draft" onclick="saveDraft()">保存草稿</button>
+      <button class="btn-submit" onclick="showSubmitConfirm()">确认提交</button>
+    </div>
+    <div id="breed-list-tab" style="display:none;flex:1;overflow-y:auto">
+      <div id="record-list-breed"></div>
+    </div>
+  </div>
+
+  <!-- 村级审核视图 -->
+  <div id="view-village-audit" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div class="page-nav" style="flex-shrink:0">
+      <div class="nav-back" onclick="showView('main')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <div class="nav-title">村级审核</div>
+      <div class="nav-right"></div>
+    </div>
+    <div class="tab-bar">
+      <div class="tab-item active" onclick="switchTab(this, 'village-pending')">待审核(2)</div>
+      <div class="tab-item" onclick="switchTab(this, 'village-done')">已处理</div>
+    </div>
+    <div id="village-pending" class="scroll-area" style="flex:1">
+      <div class="record-card" style="margin-top:10px">
+        <div class="record-header">
+          <div class="record-title">出栏信息上报</div>
+          <div class="status-tag status-submitted">待审核</div>
+        </div>
+        <div class="record-info">
+          企业：蓬溪县兴旺养殖场<br>
+          猪舍：育肥舍A | 出栏数量：50头<br>
+          出栏日期：2026-02-27 | 用途：销售<br>
+          提交时间：2026-02-27 10:30
+        </div>
+        <div class="audit-form" style="margin:10px 0 0;padding:0">
+          <div class="form-group">
+            <label class="form-label">审核意见（退回时必填，至少10字）</label>
+            <textarea class="form-textarea" id="village-remark-1" placeholder="退回时请填写退回原因（至少10个字符）"></textarea>
+          </div>
+          <div class="audit-btns">
+            <button class="btn-audit-reject" onclick="doAudit('village', 'reject', 1)">退 回</button>
+            <button class="btn-audit-pass" onclick="doAudit('village', 'pass', 1)">审核通过</button>
+          </div>
+        </div>
+      </div>
+      <div class="record-card">
+        <div class="record-header">
+          <div class="record-title">免疫信息上报</div>
+          <div class="status-tag status-submitted">待审核</div>
+        </div>
+        <div class="record-info">
+          企业：蓬溪县振兴农场<br>
+          猪舍：母猪舍 | 免疫数量：45头<br>
+          疫苗：口蹄疫疫苗 | 免疫日期：2026-02-26<br>
+          提交时间：2026-02-27 09:15
+        </div>
+        <div class="audit-form" style="margin:10px 0 0;padding:0">
+          <div class="form-group">
+            <label class="form-label">审核意见（退回时必填）</label>
+            <textarea class="form-textarea" id="village-remark-2" placeholder="退回时请填写退回原因（至少10个字符）"></textarea>
+          </div>
+          <div class="audit-btns">
+            <button class="btn-audit-reject" onclick="doAudit('village', 'reject', 2)">退 回</button>
+            <button class="btn-audit-pass" onclick="doAudit('village', 'pass', 2)">审核通过</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="village-done" style="display:none;flex:1;overflow-y:auto">
+      <div class="record-card" style="margin-top:10px">
+        <div class="record-header">
+          <div class="record-title">基础养殖信息</div>
+          <div class="status-tag status-village-ok">已通过</div>
+        </div>
+        <div class="record-info">企业：蓬溪县兴旺养殖场 | 审核时间：2026-02-26 15:00</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 确认提交弹窗 -->
+  <div class="modal-overlay" id="submit-modal">
+    <div class="modal-box">
+      <div class="modal-title">确认提交</div>
+      <div class="modal-content">
+        <div class="info-row"><span class="info-key">上报类型</span><span class="info-val">出栏信息</span></div>
+        <div class="info-row"><span class="info-key">猪舍</span><span class="info-val">育肥舍A</span></div>
+        <div class="info-row"><span class="info-key">出栏数量</span><span class="info-val">50头</span></div>
+        <div class="info-row"><span class="info-key">出栏日期</span><span class="info-val">2026-02-27</span></div>
+        <div class="info-row"><span class="info-key">出栏用途</span><span class="info-val">销售</span></div>
+        <br><span style="color:#999;font-size:12px">提交后将进入村级审核流程，提交前请确认信息无误。</span>
+      </div>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeModal()">取消</button>
+        <button class="btn-confirm" onclick="doSubmit()">确认提交</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const stockMap = { '1': 320, '2': 180, '3': 45 };
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function showView(name) {
+  document.querySelectorAll('[id^="view-"]').forEach(v => v.style.display = 'none');
+  const el = document.getElementById('view-' + name);
+  if (el) { el.style.display = 'flex'; }
+}
+
+function showModule(name) {
+  const role = document.getElementById('role-select').value;
+  if (role === 'village') { showView('village-audit'); return; }
+  if (role === 'county') { showView('village-audit'); showToast('县级管理员：查看村级已审核记录'); return; }
+  if (name === 'outbound') { showView('outbound'); renderRecords(); }
+  else if (name === 'breeding-record') { showView('breeding-record'); }
+  else { showToast('跳转到：' + name + ' 表单页'); }
+}
+
+function switchRole() {
+  const role = document.getElementById('role-select').value;
+  if (role === 'village') { showView('village-audit'); }
+  else { showView('main'); }
+}
+
+function switchTab(el, tabId) {
+  const parent = el.closest('.phone-frame') || document.querySelector('.phone-frame');
+  const allTabs = el.closest('.tab-bar').querySelectorAll('.tab-item');
+  allTabs.forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const container = el.closest('[id^="view-"]');
+  container.querySelectorAll('[id$="-tab"]').forEach(t => t.style.display = 'none');
+  const target = document.getElementById(tabId);
+  if (target) target.style.display = 'flex';
+}
+
+function updateStock() {
+  const val = document.getElementById('ob-pigsty').value;
+  document.getElementById('ob-stock').value = val ? stockMap[val] + ' 头' : '';
+}
+
+function toggleBuyerFields() {
+  const purpose = document.getElementById('ob-purpose').value;
+  document.getElementById('buyer-fields').classList.toggle('show', purpose === '1');
+}
+
+function validateOb(field) {
+  if (field === 'quantity') {
+    const qty = parseInt(document.getElementById('ob-quantity').value);
+    const pigsty = document.getElementById('ob-pigsty').value;
+    const stock = pigsty ? stockMap[pigsty] : 0;
+    const err = document.getElementById('err-ob-quantity');
+    if (!qty || qty < 1) { err.textContent = '出栏数量不能为空'; err.classList.add('show'); return; }
+    if (stock && qty > stock) { err.textContent = `出栏数量不能超过当前存栏量 ${stock} 头`; err.classList.add('show'); return; }
+    err.classList.remove('show');
+  }
+}
+
+function validateQuarantineDate() {
+  const obDate = document.getElementById('ob-date').value;
+  const qDate = document.getElementById('ob-quarantine-date').value;
+  const err = document.getElementById('err-ob-quarantine-date');
+  if (obDate && qDate && qDate < obDate) {
+    err.classList.add('show');
+  } else {
+    err.classList.remove('show');
+  }
+}
+
+function calcExpectedDate() {
+  const breedDate = document.getElementById('breed-date').value;
+  if (breedDate) {
+    const d = new Date(breedDate);
+    d.setDate(d.getDate() + 114);
+    document.getElementById('expected-date').value = d.toISOString().split('T')[0];
+  }
+}
+
+function validatePiglets() {
+  const total = parseInt(document.getElementById('total-piglets').value) || 0;
+  const alive = parseInt(document.getElementById('alive-piglets').value) || 0;
+  const dead = parseInt(document.getElementById('dead-piglets').value) || 0;
+  const err = document.getElementById('err-piglets');
+  if (total > 0 && (alive > 0 || dead > 0) && total !== alive + dead) {
+    err.classList.add('show');
+  } else {
+    err.classList.remove('show');
+  }
+}
+
+function saveDraft() { showToast('草稿已保存'); }
+
+function showSubmitConfirm() {
+  document.getElementById('submit-modal').classList.add('show');
+}
+
+function closeModal() {
+  document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
+}
+
+function doSubmit() {
+  closeModal();
+  showToast('提交成功，等待村级审核');
+  setTimeout(() => showView('main'), 1000);
+}
+
+function doAudit(level, action, idx) {
+  if (action === 'reject') {
+    const remark = document.getElementById(`${level}-remark-${idx}`).value.trim();
+    if (remark.length < 10) { showToast('退回原因至少需要10个字符'); return; }
+    showToast('已退回，消息通知已发送给养殖场');
+  } else {
+    showToast('审核通过，消息通知已发送');
+  }
+}
+
+function renderRecords() {
+  const records = [
+    { title: '出栏信息', pigsty: '育肥舍A', qty: '50头', date: '2026-02-27', status: 'submitted', statusText: '已提交', actions: ['withdraw'] },
+    { title: '出栏信息', pigsty: '育肥舍B', qty: '30头', date: '2026-02-20', status: 'stored', statusText: '已入库', actions: ['view'] },
+    { title: '出栏信息', pigsty: '育肥舍A', qty: '80头', date: '2026-02-15', status: 'village-back', statusText: '村级退回', actions: ['edit'] },
+    { title: '出栏信息', pigsty: '育肥舍B', qty: '60头', date: '2026-02-10', status: 'draft', statusText: '草稿', actions: ['edit', 'delete'] },
+  ];
+  const container = document.getElementById('record-list-outbound');
+  container.innerHTML = records.map(r => `
+    <div class="record-card">
+      <div class="record-header">
+        <div class="record-title">${r.title}</div>
+        <div class="status-tag status-${r.status}">${r.statusText}</div>
+      </div>
+      <div class="record-info">猪舍：${r.pigsty} | 出栏数量：${r.qty}<br>出栏日期：${r.date}</div>
+      ${r.status === 'village-back' ? '<div class="reject-reason"><div class="reject-reason-title">退回原因：</div>检疫证照片不清晰，请重新上传清晰的检疫证照片</div>' : ''}
+      <div class="record-actions">
+        ${r.actions.includes('view') ? '<button class="btn-sm btn-sm-outline" onclick="showToast(\'查看详情\')">查看</button>' : ''}
+        ${r.actions.includes('edit') ? '<button class="btn-sm btn-sm-primary" onclick="showToast(\'编辑记录\')">编辑</button>' : ''}
+        ${r.actions.includes('withdraw') ? '<button class="btn-sm btn-sm-danger" onclick="showToast(\'撤回成功，状态变为草稿\')">撤回</button>' : ''}
+        ${r.actions.includes('delete') ? '<button class="btn-sm btn-sm-gray" onclick="showToast(\'草稿已删除\')">删除</button>' : ''}
+      </div>
+    </div>
+  `).join('');
+}
+</script>
+</body>
+</html>

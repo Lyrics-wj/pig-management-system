@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=375px, initial-scale=1.0">
+<title>蓬溪县生猪数字化管理平台 - 养殖管理</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --primary: #16a34a; --primary-light: #22c55e; --primary-dark: #15803d;
+    --secondary: #0ea5e9; --accent: #f97316; --danger: #ef4444; --warning: #f59e0b;
+    --bg: #f0fdf4; --surface: rgba(255,255,255,0.85); --text: #14532d;
+    --text-secondary: #4b7c59; --text-muted: #86a892; --border: rgba(22,163,74,0.15);
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.08); --radius: 16px; --radius-sm: 10px;
+    --glass: rgba(255,255,255,0.72); --glass-border: rgba(255,255,255,0.5);
+  }
+  body { font-family: 'Noto Sans SC', -apple-system, sans-serif; background: var(--bg); color: var(--text); max-width: 390px; margin: 0 auto; min-height: 100vh; }
+  ::-webkit-scrollbar { width: 0; }
+
+  .header {
+    background: linear-gradient(135deg, #15803d 0%, #16a34a 50%, #22c55e 100%);
+    padding: 48px 20px 20px;
+    position: relative;
+  }
+  .header-row { display: flex; align-items: center; gap: 12px; }
+  .back-btn { background: rgba(255,255,255,0.2); border: none; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+  .back-btn svg { width: 18px; height: 18px; stroke: white; fill: none; stroke-width: 2; }
+  .page-title { font-size: 18px; font-weight: 600; color: white; flex: 1; }
+
+  /* Tabs */
+  .tabs-wrap { background: white; border-bottom: 1px solid rgba(22,163,74,0.1); position: sticky; top: 0; z-index: 50; }
+  .tabs { display: flex; overflow-x: auto; padding: 0 16px; gap: 0; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex-shrink: 0; padding: 12px 16px; font-size: 13px; font-weight: 500;
+    color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s; white-space: nowrap;
+  }
+  .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+  /* Content */
+  .content { padding: 0 0 80px; }
+
+  /* Module Grid */
+  .module-section { padding: 16px; }
+  .module-section-title { font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .module-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .module-card {
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: 16px 10px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    cursor: pointer; box-shadow: var(--shadow-sm);
+    transition: transform 0.15s, box-shadow 0.15s;
+    text-decoration: none;
+  }
+  .module-card:active { transform: scale(0.96); box-shadow: none; }
+  .module-icon {
+    width: 48px; height: 48px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .module-icon svg { width: 24px; height: 24px; fill: none; stroke-width: 1.8; }
+  .module-name { font-size: 12px; font-weight: 500; color: var(--text); text-align: center; line-height: 1.3; }
+  .module-count { font-size: 10px; color: var(--text-muted); }
+
+  /* List View */
+  .list-section { padding: 16px; display: none; }
+  .list-section.active { display: block; }
+
+  /* Search Bar */
+  .search-bar {
+    display: flex; gap: 8px; margin-bottom: 12px;
+  }
+  .search-input-wrap {
+    flex: 1; display: flex; align-items: center; gap: 8px;
+    background: white; border: 1px solid var(--border); border-radius: 10px;
+    padding: 8px 12px;
+  }
+  .search-input-wrap svg { width: 16px; height: 16px; stroke: var(--text-muted); fill: none; flex-shrink: 0; }
+  .search-input { border: none; outline: none; font-size: 13px; color: var(--text); background: none; flex: 1; font-family: inherit; }
+  .search-input::placeholder { color: var(--text-muted); }
+  .filter-btn {
+    background: white; border: 1px solid var(--border); border-radius: 10px;
+    padding: 8px 12px; display: flex; align-items: center; gap: 4px;
+    font-size: 12px; color: var(--text-secondary); cursor: pointer; font-family: inherit;
+  }
+  .filter-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; }
+
+  /* Filter Tags */
+  .filter-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .filter-tag {
+    display: flex; align-items: center; gap: 4px;
+    background: rgba(22,163,74,0.1); color: var(--primary);
+    font-size: 11px; padding: 4px 8px; border-radius: 6px; cursor: pointer;
+  }
+  .filter-tag svg { width: 12px; height: 12px; stroke: currentColor; fill: none; }
+
+  /* Record Cards */
+  .record-list { display: flex; flex-direction: column; gap: 10px; }
+  .record-card {
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: 14px;
+    cursor: pointer; box-shadow: var(--shadow-sm);
+    transition: transform 0.15s;
+  }
+  .record-card:active { transform: scale(0.98); }
+  .record-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .record-type { font-size: 12px; font-weight: 600; color: var(--primary); background: rgba(22,163,74,0.1); padding: 2px 8px; border-radius: 6px; }
+  .record-status { font-size: 11px; }
+  .status-submitted { color: var(--primary); background: rgba(22,163,74,0.1); padding: 2px 8px; border-radius: 6px; }
+  .status-draft { color: var(--text-muted); background: rgba(134,168,146,0.15); padding: 2px 8px; border-radius: 6px; }
+  .record-info { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
+  .record-field { }
+  .record-field-label { font-size: 10px; color: var(--text-muted); }
+  .record-field-value { font-size: 13px; font-weight: 500; color: var(--text); }
+  .record-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1px solid rgba(22,163,74,0.08); }
+  .record-date { font-size: 11px; color: var(--text-muted); }
+  .record-actions { display: flex; gap: 8px; }
+  .action-btn {
+    font-size: 11px; padding: 4px 10px; border-radius: 6px; cursor: pointer;
+    border: none; font-family: inherit; transition: opacity 0.15s;
+  }
+  .action-btn:active { opacity: 0.7; }
+  .btn-edit { background: rgba(14,165,233,0.1); color: var(--secondary); }
+  .btn-delete { background: rgba(239,68,68,0.1); color: var(--danger); }
+  .btn-view { background: rgba(22,163,74,0.1); color: var(--primary); }
+
+  /* FAB */
+  .fab {
+    position: fixed; bottom: 72px; right: 20px;
+    width: 52px; height: 52px;
+    background: var(--primary);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; box-shadow: 0 4px 20px rgba(22,163,74,0.4);
+    border: none; z-index: 60;
+    transition: transform 0.15s;
+  }
+  .fab:active { transform: scale(0.92); }
+  .fab svg { width: 24px; height: 24px; stroke: white; fill: none; stroke-width: 2; }
+
+
+  /* Bottom Nav */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 390px; background: var(--glass);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--glass-border);
+    display: flex; height: 56px; z-index: 100;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+  }
+  .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; text-decoration: none; position: relative; transition: opacity 0.15s; }
+  .nav-item:active { opacity: 0.7; }
+  .nav-item svg { width: 22px; height: 22px; fill: none; stroke: var(--text-muted); stroke-width: 1.8; transition: stroke 0.2s; }
+  .nav-item span { font-size: 10px; color: var(--text-muted); transition: color 0.2s; }
+  .nav-item.active svg { stroke: var(--primary); }
+  .nav-item.active span { color: var(--primary); font-weight: 600; }
+  .nav-badge { position: absolute; top: 6px; right: calc(50% - 18px); background: var(--danger); color: white; font-size: 9px; font-weight: 700; min-width: 15px; height: 15px; border-radius: 8px; display: flex; align-items: center; justify-content: center; padding: 0 3px; border: 1.5px solid white; }
+
+  /* Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 200; display: none; align-items: flex-end; justify-content: center; }
+  .modal-overlay.show { display: flex; }
+  .modal { background: white; border-radius: 20px 20px 0 0; padding: 20px; width: 100%; max-width: 390px; animation: slideUp 0.3s ease; }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .modal-handle { width: 36px; height: 4px; background: #e5e7eb; border-radius: 2px; margin: 0 auto 16px; }
+  .modal-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 16px; }
+
+  /* Confirm Dialog */
+  .confirm-dialog { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .confirm-dialog.show { display: flex; }
+  .confirm-box { background: white; border-radius: 16px; padding: 24px; width: 100%; max-width: 300px; text-align: center; }
+  .confirm-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+  .confirm-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5; }
+  .confirm-actions { display: flex; gap: 10px; }
+  .confirm-cancel { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 10px; background: none; font-size: 14px; color: var(--text-secondary); cursor: pointer; font-family: inherit; }
+  .confirm-ok { flex: 1; padding: 10px; background: var(--danger); border: none; border-radius: 10px; font-size: 14px; color: white; font-weight: 600; cursor: pointer; font-family: inherit; }
+
+  /* Toast */
+  .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.75); color: white; padding: 10px 20px; border-radius: 8px; font-size: 13px; z-index: 400; display: none; white-space: nowrap; }
+  .toast.show { display: block; }
+
+  /* Empty State */
+  .empty-state { text-align: center; padding: 48px 20px; }
+  .empty-state svg { width: 64px; height: 64px; stroke: var(--text-muted); fill: none; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-row">
+    <button class="back-btn" onclick="history.back()">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="page-title">养殖管理</div>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs-wrap">
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('overview', this)">上报入口</div>
+    <div class="tab" onclick="switchTab('breeding_info', this)">养殖信息</div>
+    <div class="tab" onclick="switchTab('breeding_record', this)">繁育信息</div>
+    <div class="tab" onclick="switchTab('weaning', this)">断奶信息</div>
+    <div class="tab" onclick="switchTab('entry', this)">入栏信息</div>
+    <div class="tab" onclick="switchTab('transfer', this)">转栏信息</div>
+    <div class="tab" onclick="switchTab('input', this)">投入品</div>
+    <div class="tab" onclick="switchTab('disposal', this)">无害化处理</div>
+    <div class="tab" onclick="switchTab('outbound', this)">出栏信息</div>
+    <div class="tab" onclick="switchTab('immune', this)">免疫信息</div>
+    <div class="tab" onclick="switchTab('disinfect', this)">消毒信息</div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- Overview / Shortcuts -->
+  <div id="tab-overview" class="list-section active">
+    <div style="padding:16px 0 0;">
+      <div class="module-section">
+        <div class="module-section-title">养殖管理上报</div>
+        <div class="module-grid">
+          <a class="module-card" href="breeding-form.html?type=breeding_info">
+            <div class="module-icon" style="background:rgba(22,163,74,0.1);">
+              <svg viewBox="0 0 24 24" stroke="#16a34a"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <span class="module-name">养殖信息上报</span>
+            <span class="module-count">今日已报 3 次</span>
+          </a>
+          <a class="module-card" href="breeding-form.html?type=breeding_record">
+            <div class="module-icon" style="background:rgba(139,92,246,0.1);">
+              <svg viewBox="0 0 24 24" stroke="#8b5cf6"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+            </div>
+            <span class="module-name">繁育信息上报</span>
+            <span class="module-count">本月 12 条</span>
+          </a>
+          <a class="module-card" href="breeding-form.html?type=weaning_record">
+            <div class="module-icon" style="background:rgba(14,165,233,0.1);">
+              <svg viewBox="0 0 24 24" stroke="#0ea5e9"><path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+            </div>
+            <span class="module-name">断奶信息上报</span>
+            <span class="module-count">本月 8 条</span>
+          </a>
+          <a class="module-card" href="breeding-form.html?type=entry_record">
+            <div class="module-icon" style="background:rgba(20,184,166,0.1);">
+              <svg viewBox="0 0 24 24" stroke="#14b8a6"><path d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+            </div>
+            <span class="module-name">入栏信息上报</span>
+            <span class="module-count">本月 5 条</span>
+          </a>
+          <a class="module-card" href="breeding-form.html?type=transfer_record">
+            <div class="module-icon" style="background:rgba(249,115,22,0.1);">
+              <svg viewBox="0 0 24 24" stroke="#f97316"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+            </div>
+            <span class="module-name">转栏信息上报</span>
+            <span class="module-count">本月 3 条</span>
+          </a>
+          <a class="module-card" href="breeding-form.html?type=input_record">
+            <div class="module-icon" style="background:rgba(245,158,11,0.1);">
+              <svg viewBox="0 0 24 24" stroke="#f59e0b"><path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+            </div>
+            <span class="module-name">投入品使用上报</span>
+            <span class="module-count">本月 18 条</span>
+          </a>
+          <a class="module-card" href="breeding-form.html?type=disposal_record">
+            <div class="module-icon" style="background:rgba(239,68,68,0.1);">
+              <svg viewBox="0 0 24 24" stroke="#ef4444"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </div>
+            <span class="module-name">无害化处理上报</span>
+            <span class="module-count">本月 2 条</span>
+          </a>
+          <a class="module-card" href="breeding-form.html?type=outbound_record">
+            <div class="module-icon" style="background:rgba(22,163,74,0.1);">
+              <svg viewBox="0 0 24 24" stroke="#16a34a"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            </div>
+            <span class="module-name">出栏信息上报</span>
+            <span class="module-count">本月 320 头</span>
+          </a>
+          <a class="module-card" href="breeding-form.html?type=immune_record">
+            <div class="module-icon" style="background:rgba(14,165,233,0.1);">
+              <svg viewBox="0 0 24 24" stroke="#0ea5e9"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            </div>
+            <span class="module-name">免疫信息上报</span>
+            <span class="module-count">本月 6 次</span>
+          </a>
+          <a class="module-card" href="breeding-form.html?type=disinfect_record">
+            <div class="module-icon" style="background:rgba(20,184,166,0.1);">
+              <svg viewBox="0 0 24 24" stroke="#14b8a6"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+            </div>
+            <span class="module-name">消毒信息上报</span>
+            <span class="module-count">本月 14 次</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Breeding Info List -->
+  <div id="tab-breeding_info" class="list-section">
+    <div class="search-bar">
+      <div class="search-input-wrap">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search-input" placeholder="搜索记录..." />
+      </div>
+      <button class="filter-btn" onclick="showFilterModal()">
+        <svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        筛选
+      </button>
+    </div>
+    <div class="filter-tags">
+      <div class="filter-tag">近7天 <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+      <div class="filter-tag">已提交 <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+    </div>
+    <div class="record-list">
+      <div class="record-card" onclick="showRecordDetail()">
+        <div class="record-header">
+          <span class="record-type">养殖信息</span>
+          <span class="record-status status-submitted">已提交</span>
+        </div>
+        <div class="record-info">
+          <div class="record-field"><div class="record-field-label">猪舍</div><div class="record-field-value">育肥舍A区</div></div>
+          <div class="record-field"><div class="record-field-label">存栏量</div><div class="record-field-value">320 头</div></div>
+          <div class="record-field"><div class="record-field-label">公猪</div><div class="record-field-value">12 头</div></div>
+          <div class="record-field"><div class="record-field-label">母猪</div><div class="record-field-value">68 头</div></div>
+          <div class="record-field"><div class="record-field-label">仔猪</div><div class="record-field-value">180 头</div></div>
+          <div class="record-field"><div class="record-field-label">育肥猪</div><div class="record-field-value">60 头</div></div>
+        </div>
+        <div class="record-footer">
+          <span class="record-date">2026-02-27 09:30</span>
+          <div class="record-actions">
+            <button class="action-btn btn-edit" onclick="event.stopPropagation();goTo('breeding-form.html?type=breeding_info&mode=edit&id=1')">编辑</button>
+            <button class="action-btn btn-delete" onclick="event.stopPropagation();showDeleteConfirm()">删除</button>
+          </div>
+        </div>
+      </div>
+      <div class="record-card" onclick="showRecordDetail()">
+        <div class="record-header">
+          <span class="record-type">养殖信息</span>
+          <span class="record-status status-submitted">已提交</span>
+        </div>
+        <div class="record-info">
+          <div class="record-field"><div class="record-field-label">猪舍</div><div class="record-field-value">母猪舍B区</div></div>
+          <div class="record-field"><div class="record-field-label">存栏量</div><div class="record-field-value">280 头</div></div>
+          <div class="record-field"><div class="record-field-label">公猪</div><div class="record-field-value">8 头</div></div>
+          <div class="record-field"><div class="record-field-label">母猪</div><div class="record-field-value">120 头</div></div>
+          <div class="record-field"><div class="record-field-label">仔猪</div><div class="record-field-value">152 头</div></div>
+          <div class="record-field"><div class="record-field-label">育肥猪</div><div class="record-field-value">0 头</div></div>
+        </div>
+        <div class="record-footer">
+          <span class="record-date">2026-02-26 10:15</span>
+          <div class="record-actions">
+            <button class="action-btn btn-edit" onclick="event.stopPropagation();goTo('breeding-form.html?type=breeding_info&mode=edit&id=2')">编辑</button>
+            <button class="action-btn btn-delete" onclick="event.stopPropagation();showDeleteConfirm()">删除</button>
+          </div>
+        </div>
+      </div>
+      <div class="record-card" onclick="showRecordDetail()">
+        <div class="record-header">
+          <span class="record-type">养殖信息</span>
+          <span class="record-status status-draft">草稿</span>
+        </div>
+        <div class="record-info">
+          <div class="record-field"><div class="record-field-label">猪舍</div><div class="record-field-value">保育舍C区</div></div>
+          <div class="record-field"><div class="record-field-label">存栏量</div><div class="record-field-value">-- 头</div></div>
+        </div>
+        <div class="record-footer">
+          <span class="record-date">2026-02-25 (草稿)</span>
+          <div class="record-actions">
+            <button class="action-btn btn-edit" onclick="event.stopPropagation();goTo('breeding-form.html?type=breeding_info&mode=edit&id=3')">继续编辑</button>
+            <button class="action-btn btn-delete" onclick="event.stopPropagation();showDeleteConfirm()">删除</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Outbound List (as example for other tabs) -->
+  <div id="tab-outbound" class="list-section">
+    <div class="search-bar">
+      <div class="search-input-wrap">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search-input" placeholder="搜索出栏记录..." />
+      </div>
+      <button class="filter-btn" onclick="showFilterModal()">
+        <svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        筛选
+      </button>
+    </div>
+    <div class="record-list">
+      <div class="record-card" onclick="showRecordDetail()">
+        <div class="record-header">
+          <span class="record-type">出栏信息</span>
+          <span class="record-status status-submitted">已提交</span>
+        </div>
+        <div class="record-info">
+          <div class="record-field"><div class="record-field-label">出栏猪舍</div><div class="record-field-value">育肥舍A区</div></div>
+          <div class="record-field"><div class="record-field-label">出栏数量</div><div class="record-field-value">50 头</div></div>
+          <div class="record-field"><div class="record-field-label">出栏重量</div><div class="record-field-value">5,200 kg</div></div>
+          <div class="record-field"><div class="record-field-label">出栏用途</div><div class="record-field-value">销售</div></div>
+          <div class="record-field"><div class="record-field-label">购买方</div><div class="record-field-value">蓬溪县肉联厂</div></div>
+          <div class="record-field"><div class="record-field-label">检疫证号</div><div class="record-field-value">JY2026022701</div></div>
+        </div>
+        <div class="record-footer">
+          <span class="record-date">2026-02-27 08:00</span>
+          <div class="record-actions">
+            <button class="action-btn btn-view" onclick="event.stopPropagation();showRecordDetail()">查看</button>
+            <button class="action-btn btn-delete" onclick="event.stopPropagation();showDeleteConfirm()">删除</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Other tabs show empty or placeholder -->
+  <div id="tab-breeding_record" class="list-section"><div style="padding:16px;"><div class="empty-state"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><p>暂无繁育记录</p></div></div></div>
+  <div id="tab-weaning" class="list-section"><div style="padding:16px;"><div class="empty-state"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><p>暂无断奶记录</p></div></div></div>
+  <div id="tab-entry" class="list-section">
+    <div style="padding:16px;">
+      <div class="record-list">
+        <div class="record-card">
+          <div class="record-header"><span class="record-type">入栏信息</span><span class="record-status status-submitted">已提交</span></div>
+          <div class="record-info">
+            <div class="record-field"><div class="record-field-label">目标猪舍</div><div class="record-field-value">育肥舍A区</div></div>
+            <div class="record-field"><div class="record-field-label">入栏数量</div><div class="record-field-value">80 头</div></div>
+            <div class="record-field"><div class="record-field-label">来源类型</div><div class="record-field-value">外购</div></div>
+            <div class="record-field"><div class="record-field-label">供应商</div><div class="record-field-value">成都某种猪场</div></div>
+          </div>
+          <div class="record-footer">
+            <span class="record-date">2026-02-20 14:00</span>
+            <div class="record-actions">
+              <button class="action-btn btn-view" onclick="showRecordDetail()">查看</button>
+              <button class="action-btn btn-delete" onclick="showDeleteConfirm()">删除</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="tab-transfer" class="list-section"><div style="padding:16px;"><div class="empty-state"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><p>暂无转栏记录</p></div></div></div>
+  <div id="tab-input" class="list-section">
+    <div style="padding:16px;">
+      <div class="record-list">
+        <div class="record-card">
+          <div class="record-header"><span class="record-type">投入品使用</span><span class="record-status status-submitted">已提交</span></div>
+          <div class="record-info">
+            <div class="record-field"><div class="record-field-label">投入品类型</div><div class="record-field-value">饲料</div></div>
+            <div class="record-field"><div class="record-field-label">品牌名称</div><div class="record-field-value">正大育肥料</div></div>
+            <div class="record-field"><div class="record-field-label">使用量</div><div class="record-field-value">500 kg</div></div>
+            <div class="record-field"><div class="record-field-label">使用猪舍</div><div class="record-field-value">育肥舍A区</div></div>
+          </div>
+          <div class="record-footer">
+            <span class="record-date">2026-02-27 07:30</span>
+            <div class="record-actions">
+              <button class="action-btn btn-edit" onclick="goTo('breeding-form.html?type=input_record&mode=edit')">编辑</button>
+              <button class="action-btn btn-delete" onclick="showDeleteConfirm()">删除</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="tab-disposal" class="list-section"><div style="padding:16px;"><div class="empty-state"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><p>暂无无害化处理记录</p></div></div></div>
+  <div id="tab-immune" class="list-section">
+    <div style="padding:16px;">
+      <div class="record-list">
+        <div class="record-card">
+          <div class="record-header"><span class="record-type">免疫信息</span><span class="record-status status-submitted">已提交</span></div>
+          <div class="record-info">
+            <div class="record-field"><div class="record-field-label">疫苗类型</div><div class="record-field-value">口蹄疫疫苗</div></div>
+            <div class="record-field"><div class="record-field-label">免疫方式</div><div class="record-field-value">肌肉注射</div></div>
+            <div class="record-field"><div class="record-field-label">免疫数量</div><div class="record-field-value">320 头</div></div>
+            <div class="record-field"><div class="record-field-label">下次免疫</div><div class="record-field-value">2026-05-27</div></div>
+          </div>
+          <div class="record-footer">
+            <span class="record-date">2026-02-27 09:00</span>
+            <div class="record-actions">
+              <button class="action-btn btn-view" onclick="showRecordDetail()">查看</button>
+              <button class="action-btn btn-delete" onclick="showDeleteConfirm()">删除</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="tab-disinfect" class="list-section">
+    <div style="padding:16px;">
+      <div class="record-list">
+        <div class="record-card">
+          <div class="record-header"><span class="record-type">消毒信息</span><span class="record-status status-submitted">已提交</span></div>
+          <div class="record-info">
+            <div class="record-field"><div class="record-field-label">消毒类型</div><div class="record-field-value">常规消毒</div></div>
+            <div class="record-field"><div class="record-field-label">消毒剂</div><div class="record-field-value">次氯酸钠</div></div>
+            <div class="record-field"><div class="record-field-label">消毒方式</div><div class="record-field-value">喷雾消毒</div></div>
+            <div class="record-field"><div class="record-field-label">消毒面积</div><div class="record-field-value">500 m²</div></div>
+          </div>
+          <div class="record-footer">
+            <span class="record-date">2026-02-25 16:00</span>
+            <div class="record-actions">
+              <button class="action-btn btn-edit" onclick="goTo('breeding-form.html?type=disinfect_record&mode=edit')">编辑</button>
+              <button class="action-btn btn-delete" onclick="showDeleteConfirm()">删除</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FAB (only show on list tabs) -->
+<button class="fab" id="fab" onclick="goToAddForm()" style="display:none;">
+  <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+</button>
+
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <a class="nav-item" href="index.html"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>首页</span></a>
+  <a class="nav-item active" href="breeding.html"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg><span>养殖管理</span></a>
+  <a class="nav-item" href="knowledge.html"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span>知识课堂</span></a>
+  <a class="nav-item" href="messages.html"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><span>消息</span><span class="nav-badge">5</span></a>
+  <a class="nav-item" href="profile.html"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>我的</span></a>
+</nav>
+
+<!-- Filter Modal -->
+<div class="modal-overlay" id="filterModal" onclick="closeModal('filterModal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">筛选条件</div>
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div>
+        <div style="font-size:13px;font-weight:500;color:#4b7c59;margin-bottom:8px;">日期范围</div>
+        <div style="display:flex;gap:8px;">
+          <button onclick="setDateFilter(this,'近7天')" style="flex:1;padding:8px;border:1px solid #d1fae5;border-radius:8px;background:#f0fdf4;color:#16a34a;font-size:12px;cursor:pointer;font-family:inherit;">近7天</button>
+          <button onclick="setDateFilter(this,'近30天')" style="flex:1;padding:8px;border:1px solid #e5e7eb;border-radius:8px;background:white;color:#6b7280;font-size:12px;cursor:pointer;font-family:inherit;">近30天</button>
+          <button onclick="setDateFilter(this,'本月')" style="flex:1;padding:8px;border:1px solid #e5e7eb;border-radius:8px;background:white;color:#6b7280;font-size:12px;cursor:pointer;font-family:inherit;">本月</button>
+          <button onclick="setDateFilter(this,'自定义')" style="flex:1;padding:8px;border:1px solid #e5e7eb;border-radius:8px;background:white;color:#6b7280;font-size:12px;cursor:pointer;font-family:inherit;">自定义</button>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:500;color:#4b7c59;margin-bottom:8px;">状态</div>
+        <div style="display:flex;gap:8px;">
+          <button onclick="setStatusFilter(this,'全部')" style="flex:1;padding:8px;border:1px solid #d1fae5;border-radius:8px;background:#f0fdf4;color:#16a34a;font-size:12px;cursor:pointer;font-family:inherit;">全部</button>
+          <button onclick="setStatusFilter(this,'已提交')" style="flex:1;padding:8px;border:1px solid #e5e7eb;border-radius:8px;background:white;color:#6b7280;font-size:12px;cursor:pointer;font-family:inherit;">已提交</button>
+          <button onclick="setStatusFilter(this,'草稿')" style="flex:1;padding:8px;border:1px solid #e5e7eb;border-radius:8px;background:white;color:#6b7280;font-size:12px;cursor:pointer;font-family:inherit;">草稿</button>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:500;color:#4b7c59;margin-bottom:8px;">猪舍</div>
+        <select style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;color:#14532d;background:white;font-family:inherit;outline:none;">
+          <option>全部猪舍</option>
+          <option>育肥舍A区</option>
+          <option>母猪舍B区</option>
+          <option>保育舍C区</option>
+          <option>产房D区</option>
+        </select>
+      </div>
+      <button onclick="applyFilter()" style="width:100%;padding:12px;background:#16a34a;border:none;border-radius:12px;color:white;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">应用筛选</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm -->
+<div class="confirm-dialog" id="deleteConfirm">
+  <div class="confirm-box">
+    <div class="confirm-title">确认删除</div>
+    <div class="confirm-desc">确定删除该记录吗？删除后无法恢复。</div>
+    <div class="confirm-actions">
+      <button class="confirm-cancel" onclick="closeConfirm()">取消</button>
+      <button class="confirm-ok" onclick="doDelete()">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  let currentTab = 'overview';
+  const tabFormMap = {
+    breeding_info: 'breeding_info', breeding_record: 'breeding_record',
+    weaning: 'weaning_record', entry: 'entry_record', transfer: 'transfer_record',
+    input: 'input_record', disposal: 'disposal_record', outbound: 'outbound_record',
+    immune: 'immune_record', disinfect: 'disinfect_record'
+  };
+
+  function switchTab(tab, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('.list-section').forEach(s => s.classList.remove('active'));
+    const section = document.getElementById('tab-' + tab);
+    if (section) section.classList.add('active');
+    currentTab = tab;
+    document.getElementById('fab').style.display = tab === 'overview' ? 'none' : 'flex';
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }
+
+  function goToAddForm() {
+    const type = tabFormMap[currentTab] || currentTab;
+    window.location.href = 'breeding-form.html?type=' + type;
+  }
+
+  function goTo(url) { window.location.href = url; }
+  function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1500); }
+  function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+  function showFilterModal() { document.getElementById('filterModal').classList.add('show'); }
+  function showDeleteConfirm() { document.getElementById('deleteConfirm').classList.add('show'); }
+  function closeConfirm() { document.getElementById('deleteConfirm').classList.remove('show'); }
+  function doDelete() { closeConfirm(); showToast('删除成功'); }
+  function applyFilter() { closeModal('filterModal'); showToast('筛选已应用'); }
+  function setDateFilter(btn, val) {
+    btn.parentElement.querySelectorAll('button').forEach(b => { b.style.background='white'; b.style.color='#6b7280'; b.style.borderColor='#e5e7eb'; });
+    btn.style.background='#f0fdf4'; btn.style.color='#16a34a'; btn.style.borderColor='#d1fae5';
+  }
+  function setStatusFilter(btn, val) {
+    btn.parentElement.querySelectorAll('button').forEach(b => { b.style.background='white'; b.style.color='#6b7280'; b.style.borderColor='#e5e7eb'; });
+    btn.style.background='#f0fdf4'; btn.style.color='#16a34a'; btn.style.borderColor='#d1fae5';
+  }
+  function showRecordDetail() { showToast('查看详情'); }
+
+  // Check URL params
+  const urlParams = new URLSearchParams(window.location.search);
+  const tabParam = urlParams.get('tab');
+  if (tabParam) {
+    const tabEl = document.querySelector(`.tab[onclick*="${tabParam}"]`);
+    if (tabEl) switchTab(tabParam, tabEl);
+  }
+</script>
+</body>
+</html>

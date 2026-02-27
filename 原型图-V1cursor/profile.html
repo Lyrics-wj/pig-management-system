@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=375px, initial-scale=1.0">
+<title>蓬溪县生猪数字化管理平台 - 个人中心</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --primary: #16a34a; --secondary: #0ea5e9; --accent: #f97316;
+    --danger: #ef4444; --warning: #f59e0b; --purple: #8b5cf6;
+    --bg: #f0fdf4; --text: #14532d; --text-secondary: #4b7c59;
+    --text-muted: #86a892; --border: rgba(22,163,74,0.15);
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.08); --radius: 16px; --radius-sm: 10px;
+    --glass: rgba(255,255,255,0.85); --glass-border: rgba(255,255,255,0.6);
+  }
+  body { font-family: 'Noto Sans SC', -apple-system, sans-serif; background: var(--bg); color: var(--text); max-width: 390px; margin: 0 auto; min-height: 100vh; }
+  ::-webkit-scrollbar { width: 0; }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #15803d 0%, #16a34a 50%, #22c55e 100%);
+    padding: 48px 20px 24px;
+    position: relative; overflow: hidden;
+  }
+  .header::before { content: ''; position: absolute; top: -40px; right: -40px; width: 160px; height: 160px; background: rgba(255,255,255,0.07); border-radius: 50%; }
+  .profile-row { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; }
+  .profile-avatar {
+    width: 68px; height: 68px; border-radius: 50%;
+    background: rgba(255,255,255,0.25); border: 3px solid rgba(255,255,255,0.5);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0;
+  }
+  .profile-avatar svg { width: 36px; height: 36px; fill: white; }
+  .profile-info { flex: 1; }
+  .profile-name { font-size: 20px; font-weight: 700; color: white; margin-bottom: 4px; }
+  .profile-phone { font-size: 13px; color: rgba(255,255,255,0.8); margin-bottom: 6px; }
+  .profile-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .profile-tag { background: rgba(255,255,255,0.2); color: white; font-size: 11px; padding: 2px 8px; border-radius: 6px; }
+  .edit-profile-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); border-radius: 8px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer; font-family: inherit; flex-shrink: 0; }
+
+  /* Stats Row */
+  .stats-row {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    background: rgba(255,255,255,0.15); backdrop-filter: blur(10px);
+    border-radius: 12px; margin: 14px 0 0; padding: 12px 0;
+    position: relative; z-index: 1;
+  }
+  .stat-item { text-align: center; cursor: pointer; }
+  .stat-item + .stat-item { border-left: 1px solid rgba(255,255,255,0.2); }
+  .stat-num { font-size: 20px; font-weight: 700; color: white; }
+  .stat-label { font-size: 10px; color: rgba(255,255,255,0.8); margin-top: 2px; }
+
+  .content { padding: 0 0 80px; }
+
+  /* Enterprise Card */
+  .enterprise-card {
+    margin: 16px 16px 0;
+    background: var(--glass);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius); padding: 16px;
+    box-shadow: var(--shadow-sm); cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .enterprise-card:active { transform: scale(0.98); }
+  .enterprise-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .enterprise-name { font-size: 16px; font-weight: 600; color: var(--text); }
+  .enterprise-status { font-size: 11px; background: rgba(22,163,74,0.1); color: var(--primary); padding: 2px 8px; border-radius: 6px; }
+  .enterprise-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .enterprise-field { }
+  .enterprise-field-label { font-size: 11px; color: var(--text-muted); }
+  .enterprise-field-value { font-size: 13px; color: var(--text); font-weight: 500; margin-top: 2px; }
+
+  /* Menu Sections */
+  .menu-section { margin: 16px 16px 0; }
+  .menu-section-title { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .menu-card {
+    background: var(--glass);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius); overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  .menu-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px; cursor: pointer;
+    border-bottom: 1px solid rgba(22,163,74,0.06);
+    transition: background 0.15s;
+  }
+  .menu-item:last-child { border-bottom: none; }
+  .menu-item:active { background: rgba(22,163,74,0.04); }
+  .menu-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .menu-icon svg { width: 18px; height: 18px; fill: none; stroke-width: 1.8; }
+  .menu-label { flex: 1; font-size: 14px; color: var(--text); }
+  .menu-value { font-size: 12px; color: var(--text-muted); }
+  .menu-arrow { width: 16px; height: 16px; stroke: var(--text-muted); fill: none; flex-shrink: 0; }
+  .menu-badge { background: var(--danger); color: white; font-size: 10px; padding: 1px 6px; border-radius: 8px; }
+
+  /* Study Stats Card */
+  .study-stats-card {
+    margin: 16px 16px 0;
+    background: var(--glass);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius); padding: 16px;
+    box-shadow: var(--shadow-sm);
+  }
+  .study-stats-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+  .study-stats-title .more { font-size: 12px; font-weight: 400; color: var(--primary); cursor: pointer; }
+  .study-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .study-stat { text-align: center; background: rgba(22,163,74,0.04); border-radius: 10px; padding: 12px 8px; }
+  .study-stat-num { font-size: 22px; font-weight: 700; color: var(--primary); }
+  .study-stat-unit { font-size: 11px; color: var(--text-muted); }
+  .study-stat-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+  /* Learning History */
+  .learn-list { padding: 0 16px; display: flex; flex-direction: column; gap: 10px; }
+  .learn-item {
+    background: var(--glass);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm); padding: 12px 14px;
+    display: flex; gap: 12px; cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.15s;
+  }
+  .learn-item:active { transform: scale(0.98); }
+  .learn-thumb { width: 72px; height: 54px; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .learn-thumb svg { width: 24px; height: 24px; fill: none; stroke: rgba(255,255,255,0.7); stroke-width: 1.8; }
+  .learn-info { flex: 1; min-width: 0; }
+  .learn-title { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.4; margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .learn-progress-wrap { margin-bottom: 4px; }
+  .learn-progress-bar { height: 4px; background: rgba(22,163,74,0.15); border-radius: 2px; overflow: hidden; }
+  .learn-progress-fill { height: 100%; background: var(--primary); border-radius: 2px; }
+  .learn-meta { display: flex; align-items: center; justify-content: space-between; }
+  .learn-pct { font-size: 11px; color: var(--primary); font-weight: 500; }
+  .learn-continue-btn { font-size: 11px; color: var(--primary); background: rgba(22,163,74,0.1); padding: 3px 8px; border-radius: 6px; cursor: pointer; }
+
+  /* Report Records */
+  .report-list { padding: 0 16px; display: flex; flex-direction: column; gap: 10px; }
+  .report-item {
+    background: var(--glass);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm); padding: 12px 14px;
+    cursor: pointer; box-shadow: var(--shadow-sm);
+    transition: transform 0.15s;
+  }
+  .report-item:active { transform: scale(0.98); }
+  .report-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .report-type { font-size: 12px; font-weight: 600; color: var(--primary); background: rgba(22,163,74,0.1); padding: 2px 8px; border-radius: 6px; }
+  .report-status { font-size: 11px; }
+  .status-submitted { color: var(--primary); }
+  .status-draft { color: var(--text-muted); }
+  .report-desc { font-size: 13px; color: var(--text); margin-bottom: 4px; }
+  .report-date { font-size: 11px; color: var(--text-muted); }
+
+  /* Register Records */
+  .register-list { padding: 0 16px; display: flex; flex-direction: column; gap: 10px; }
+  .register-item {
+    background: var(--glass);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm); padding: 12px 14px;
+    cursor: pointer; box-shadow: var(--shadow-sm);
+  }
+  .register-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .register-title { font-size: 13px; font-weight: 500; color: var(--text); flex: 1; }
+  .register-status { font-size: 11px; padding: 2px 8px; border-radius: 6px; font-weight: 500; margin-left: 8px; flex-shrink: 0; }
+  .status-approved { background: rgba(22,163,74,0.1); color: var(--primary); }
+  .status-pending { background: rgba(245,158,11,0.1); color: var(--warning); }
+  .status-rejected { background: rgba(239,68,68,0.1); color: var(--danger); }
+  .register-meta { font-size: 11px; color: var(--text-muted); }
+  .qr-btn { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--primary); background: rgba(22,163,74,0.1); padding: 4px 10px; border-radius: 6px; cursor: pointer; margin-top: 6px; }
+  .qr-btn svg { width: 12px; height: 12px; stroke: currentColor; fill: none; }
+
+  /* Collect Tabs */
+  .collect-tabs { display: flex; gap: 8px; padding: 12px 16px; }
+  .collect-tab { flex: 1; padding: 8px; text-align: center; font-size: 13px; border-radius: 8px; cursor: pointer; border: 1px solid var(--border); background: white; color: var(--text-secondary); transition: all 0.2s; }
+  .collect-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+  /* Tabs for profile sections */
+  .section-tabs { display: flex; overflow-x: auto; padding: 12px 16px 0; gap: 8px; }
+  .section-tabs::-webkit-scrollbar { display: none; }
+  .section-tab { flex-shrink: 0; padding: 7px 16px; font-size: 13px; border-radius: 20px; cursor: pointer; border: 1px solid var(--border); background: white; color: var(--text-secondary); transition: all 0.2s; }
+  .section-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+  /* Pigsty Card Swipe */
+  .pigsty-card { position: relative; overflow: hidden; border-radius: 12px; background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); box-shadow: var(--shadow-sm); }
+  .pigsty-card-inner { padding: 14px; transition: transform 0.25s ease; position: relative; z-index: 1; background: var(--glass); border-radius: 12px; }
+  .pigsty-card.swiped .pigsty-card-inner { transform: translateX(-148px); }
+  .pigsty-swipe-actions { position: absolute; right: 0; top: 0; bottom: 0; display: flex; width: 148px; z-index: 0; border-radius: 0 12px 12px 0; overflow: hidden; }
+  @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+  /* Bottom Nav */
+  .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 390px; background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--glass-border); display: flex; height: 56px; z-index: 100; box-shadow: 0 -4px 20px rgba(0,0,0,0.06); }
+  .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; text-decoration: none; position: relative; }
+  .nav-item svg { width: 22px; height: 22px; fill: none; stroke: var(--text-muted); stroke-width: 1.8; }
+  .nav-item span { font-size: 10px; color: var(--text-muted); }
+  .nav-item.active svg { stroke: var(--primary); }
+  .nav-item.active span { color: var(--primary); font-weight: 600; }
+  .nav-badge { position: absolute; top: 6px; right: calc(50% - 18px); background: var(--danger); color: white; font-size: 9px; font-weight: 700; min-width: 15px; height: 15px; border-radius: 8px; display: flex; align-items: center; justify-content: center; padding: 0 3px; border: 1.5px solid white; }
+
+  /* Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 200; display: none; align-items: flex-end; justify-content: center; }
+  .modal-overlay.show { display: flex; }
+  .modal { background: white; border-radius: 20px 20px 0 0; padding: 20px; width: 100%; max-width: 390px; animation: slideUp 0.3s ease; max-height: 85vh; overflow-y: auto; }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .modal-handle { width: 36px; height: 4px; background: #e5e7eb; border-radius: 2px; margin: 0 auto 16px; }
+  .modal-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 16px; }
+  .form-group { margin-bottom: 14px; }
+  .form-label { font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; display: block; }
+  .form-input { width: 100%; padding: 10px 12px; border: 1.5px solid rgba(22,163,74,0.2); border-radius: 10px; font-size: 14px; color: var(--text); background: white; font-family: inherit; outline: none; }
+  .form-input:focus { border-color: var(--primary); }
+  .form-select { width: 100%; padding: 10px 12px; border: 1.5px solid rgba(22,163,74,0.2); border-radius: 10px; font-size: 14px; color: var(--text); background: white; font-family: inherit; outline: none; }
+  .modal-save-btn { width: 100%; padding: 13px; background: var(--primary); border: none; border-radius: 12px; color: white; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; margin-top: 8px; }
+
+  /* QR Code Modal */
+  .qr-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .qr-modal.show { display: flex; }
+  .qr-box { background: white; border-radius: 20px; padding: 24px; text-align: center; width: 100%; max-width: 280px; }
+  .qr-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .qr-subtitle { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; }
+  .qr-code { width: 160px; height: 160px; background: linear-gradient(45deg, #f0fdf4, #dcfce7); border-radius: 12px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; border: 2px solid rgba(22,163,74,0.2); }
+  .qr-code svg { width: 80px; height: 80px; stroke: var(--primary); fill: none; }
+  .qr-close { width: 100%; padding: 10px; background: rgba(22,163,74,0.1); border: none; border-radius: 10px; color: var(--primary); font-size: 14px; cursor: pointer; font-family: inherit; }
+
+  /* Toast */
+  .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.75); color: white; padding: 10px 20px; border-radius: 8px; font-size: 13px; z-index: 400; display: none; }
+  .toast.show { display: block; }
+
+  /* Divider */
+  .divider { height: 8px; background: rgba(22,163,74,0.04); }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="profile-row">
+    <div class="profile-avatar">
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+    </div>
+    <div class="profile-info">
+      <div class="profile-name">张建国</div>
+      <div class="profile-phone">138****8888</div>
+      <div class="profile-tags">
+        <span class="profile-tag">养殖企业</span>
+        <span class="profile-tag">规模养殖场</span>
+      </div>
+    </div>
+    <button class="edit-profile-btn" onclick="showEditModal()">编辑资料</button>
+  </div>
+  <div class="stats-row">
+    <div class="stat-item" onclick="switchSection('report')">
+      <div class="stat-num">156</div>
+      <div class="stat-label">上报记录</div>
+    </div>
+    <div class="stat-item" onclick="switchSection('study')">
+      <div class="stat-num">28</div>
+      <div class="stat-label">学习天数</div>
+    </div>
+    <div class="stat-item" onclick="switchSection('collect')">
+      <div class="stat-num">8</div>
+      <div class="stat-label">我的收藏</div>
+    </div>
+    <div class="stat-item" onclick="switchSection('register')">
+      <div class="stat-num">3</div>
+      <div class="stat-label">我的报名</div>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- Enterprise Card -->
+  <div class="enterprise-card" onclick="showEnterpriseModal()">
+    <div class="enterprise-header">
+      <span class="enterprise-name">蓬溪县鑫旺养殖场</span>
+      <span class="enterprise-status">正常运营</span>
+    </div>
+    <div class="enterprise-grid">
+      <div class="enterprise-field">
+        <div class="enterprise-field-label">企业类型</div>
+        <div class="enterprise-field-value">规模养殖场</div>
+      </div>
+      <div class="enterprise-field">
+        <div class="enterprise-field-label">养殖规模</div>
+        <div class="enterprise-field-value">1,500 头</div>
+      </div>
+      <div class="enterprise-field">
+        <div class="enterprise-field-label">法人代表</div>
+        <div class="enterprise-field-value">张建国</div>
+      </div>
+      <div class="enterprise-field">
+        <div class="enterprise-field-label">联系电话</div>
+        <div class="enterprise-field-value">138****8888</div>
+      </div>
+      <div class="enterprise-field" style="grid-column:span 2;">
+        <div class="enterprise-field-label">企业地址</div>
+        <div class="enterprise-field-value">四川省遂宁市蓬溪县蓬南镇XX村XX组</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider" style="height:12px;margin-top:16px;"></div>
+
+  <!-- Section Tabs -->
+  <div class="section-tabs">
+    <div class="section-tab active" id="tab-btn-report" onclick="switchSection('report', this)">上报记录</div>
+    <div class="section-tab" id="tab-btn-study" onclick="switchSection('study', this)">学习记录</div>
+    <div class="section-tab" id="tab-btn-collect" onclick="switchSection('collect', this)">我的收藏</div>
+    <div class="section-tab" id="tab-btn-question" onclick="switchSection('question', this)">我的提问</div>
+    <div class="section-tab" id="tab-btn-register" onclick="switchSection('register', this)">我的报名</div>
+  </div>
+
+  <!-- Report Records -->
+  <div id="section-report" style="padding:12px 0;">
+    <div class="report-list">
+      <div class="report-item" onclick="goTo('breeding.html?tab=breeding_info')">
+        <div class="report-header">
+          <span class="report-type">养殖信息</span>
+          <span class="report-status status-submitted">已提交</span>
+        </div>
+        <div class="report-desc">育肥舍A区 · 存栏 320 头</div>
+        <div class="report-date">2026-02-27 09:30</div>
+      </div>
+      <div class="report-item" onclick="goTo('breeding.html?tab=outbound')">
+        <div class="report-header">
+          <span class="report-type">出栏信息</span>
+          <span class="report-status status-submitted">已提交</span>
+        </div>
+        <div class="report-desc">育肥舍A区 · 出栏 50 头 · 销售</div>
+        <div class="report-date">2026-02-27 08:00</div>
+      </div>
+      <div class="report-item" onclick="goTo('breeding.html?tab=immune')">
+        <div class="report-header">
+          <span class="report-type">免疫信息</span>
+          <span class="report-status status-submitted">已提交</span>
+        </div>
+        <div class="report-desc">育肥舍A区 · 口蹄疫疫苗 · 320 头</div>
+        <div class="report-date">2026-02-27 09:00</div>
+      </div>
+      <div class="report-item" onclick="goTo('breeding-form.html?type=breeding_info&mode=edit&id=3')">
+        <div class="report-header">
+          <span class="report-type">养殖信息</span>
+          <span class="report-status status-draft">草稿</span>
+        </div>
+        <div class="report-desc">保育舍C区 · 未完成</div>
+        <div class="report-date">2026-02-25 (草稿)</div>
+      </div>
+      <div class="report-item" onclick="goTo('breeding.html?tab=disinfect')">
+        <div class="report-header">
+          <span class="report-type">消毒信息</span>
+          <span class="report-status status-submitted">已提交</span>
+        </div>
+        <div class="report-desc">育肥舍A区 · 常规消毒 · 次氯酸钠</div>
+        <div class="report-date">2026-02-25 16:00</div>
+      </div>
+    </div>
+    <div style="padding:10px 16px 4px;">
+      <div onclick="goTo('more-list.html?type=report')" style="display:flex;align-items:center;justify-content:center;gap:4px;padding:10px;background:rgba(22,163,74,0.05);border:1px solid rgba(22,163,74,0.12);border-radius:10px;cursor:pointer;font-size:13px;color:var(--primary);">
+        查看更多上报记录
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Study Records -->
+  <div id="section-study" style="display:none;padding:12px 0;">
+    <div class="study-stats-card" style="margin:0 16px 12px;">
+      <div class="study-stats-title">
+        学习统计
+        <span class="more">详情</span>
+      </div>
+      <div class="study-stats-grid">
+        <div class="study-stat">
+          <div class="study-stat-num">28<span class="study-stat-unit">天</span></div>
+          <div class="study-stat-label">累计学习天数</div>
+        </div>
+        <div class="study-stat">
+          <div class="study-stat-num">36<span class="study-stat-unit">h</span></div>
+          <div class="study-stat-label">累计学习时长</div>
+        </div>
+        <div class="study-stat">
+          <div class="study-stat-num">12<span class="study-stat-unit">门</span></div>
+          <div class="study-stat-label">完成课程数</div>
+        </div>
+      </div>
+    </div>
+    <div class="learn-list">
+      <div class="learn-item" onclick="goTo('knowledge.html?tab=course')">
+        <div class="learn-thumb" style="background:linear-gradient(135deg,#064e3b,#16a34a);">
+          <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        </div>
+        <div class="learn-info">
+          <div class="learn-title">猪瘟防控技术与免疫程序详解</div>
+          <div class="learn-progress-wrap">
+            <div class="learn-progress-bar"><div class="learn-progress-fill" style="width:65%;"></div></div>
+          </div>
+          <div class="learn-meta">
+            <span class="learn-pct">65%</span>
+            <span class="learn-continue-btn">继续学习</span>
+          </div>
+        </div>
+      </div>
+      <div class="learn-item" onclick="goTo('knowledge.html?tab=course')">
+        <div class="learn-thumb" style="background:linear-gradient(135deg,#1e3a5f,#0ea5e9);">
+          <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        </div>
+        <div class="learn-info">
+          <div class="learn-title">规模化猪场环境控制与通风管理实操指南</div>
+          <div class="learn-progress-wrap">
+            <div class="learn-progress-bar"><div class="learn-progress-fill" style="width:100%;"></div></div>
+          </div>
+          <div class="learn-meta">
+            <span class="learn-pct" style="color:#16a34a;">已完成</span>
+            <span style="font-size:11px;color:#86a892;">2026-02-20</span>
+          </div>
+        </div>
+      </div>
+      <div class="learn-item" onclick="goTo('knowledge.html?tab=course')">
+        <div class="learn-thumb" style="background:linear-gradient(135deg,#4c1d95,#8b5cf6);">
+          <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        </div>
+        <div class="learn-info">
+          <div class="learn-title">生猪不同生长阶段饲料配方与营养需求</div>
+          <div class="learn-progress-wrap">
+            <div class="learn-progress-bar"><div class="learn-progress-fill" style="width:30%;"></div></div>
+          </div>
+          <div class="learn-meta">
+            <span class="learn-pct">30%</span>
+            <span class="learn-continue-btn">继续学习</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="padding:10px 16px 4px;">
+      <div onclick="goTo('more-list.html?type=study')" style="display:flex;align-items:center;justify-content:center;gap:4px;padding:10px;background:rgba(22,163,74,0.05);border:1px solid rgba(22,163,74,0.12);border-radius:10px;cursor:pointer;font-size:13px;color:var(--primary);">
+        查看更多学习记录
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Collect Records -->
+  <div id="section-collect" style="display:none;">
+    <div class="collect-tabs">
+      <div class="collect-tab active" onclick="switchCollect('video',this)">视频收藏</div>
+      <div class="collect-tab" onclick="switchCollect('policy',this)">资讯收藏</div>
+    </div>
+    <div id="collect-video" style="padding:0 16px 12px;">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:12px 14px;display:flex;gap:12px;cursor:pointer;" onclick="goTo('knowledge.html?tab=course')">
+          <div style="width:72px;height:54px;border-radius:8px;background:linear-gradient(135deg,#064e3b,#16a34a);flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="1.8"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:500;color:#14532d;line-height:1.4;margin-bottom:4px;">规模化猪场环境控制与通风管理实操指南</div>
+            <div style="font-size:11px;color:#86a892;">王教授 · 25:08 · 收藏于2026-02-20</div>
+          </div>
+        </div>
+        <div style="background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:12px 14px;display:flex;gap:12px;cursor:pointer;" onclick="goTo('knowledge.html?tab=course')">
+          <div style="width:72px;height:54px;border-radius:8px;background:linear-gradient(135deg,#4c1d95,#8b5cf6);flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="1.8"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:500;color:#14532d;line-height:1.4;margin-bottom:4px;">生猪不同生长阶段饲料配方与营养需求</div>
+            <div style="font-size:11px;color:#86a892;">张博士 · 32:15 · 收藏于2026-02-18</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="collect-policy" style="display:none;padding:0 16px 12px;">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:12px 14px;cursor:pointer;" onclick="goTo('knowledge.html?tab=policy')">
+          <div style="font-size:13px;font-weight:500;color:#14532d;margin-bottom:4px;">非洲猪瘟防控技术指南（2026年版）</div>
+          <div style="font-size:11px;color:#86a892;">农业农村部兽医局 · 收藏于2026-02-15</div>
+        </div>
+        <div style="background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:12px 14px;cursor:pointer;" onclick="goTo('knowledge.html?tab=policy')">
+          <div style="font-size:13px;font-weight:500;color:#14532d;margin-bottom:4px;">蓬溪县2026年生猪产业发展扶持政策汇编</div>
+          <div style="font-size:11px;color:#86a892;">蓬溪县农业农村局 · 收藏于2026-02-16</div>
+        </div>
+      </div>
+    </div>
+    <div style="padding:10px 16px 4px;">
+      <div onclick="goTo('more-list.html?type=collect')" style="display:flex;align-items:center;justify-content:center;gap:4px;padding:10px;background:rgba(22,163,74,0.05);border:1px solid rgba(22,163,74,0.12);border-radius:10px;cursor:pointer;font-size:13px;color:var(--primary);">
+        查看更多收藏
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- My Questions -->
+  <div id="section-question" style="display:none;padding:12px 16px;">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:12px 14px;cursor:pointer;" onclick="goTo('knowledge.html?tab=course')">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:11px;color:#0ea5e9;background:rgba(14,165,233,0.1);padding:2px 6px;border-radius:4px;">课程视频</span>
+          <span style="font-size:10px;background:#ef4444;color:white;padding:2px 6px;border-radius:8px;">1条新回复</span>
+        </div>
+        <div style="font-size:13px;color:#14532d;line-height:1.5;margin-bottom:4px;">请问口蹄疫疫苗和猪瘟疫苗可以同时接种吗？</div>
+        <div style="font-size:11px;color:#86a892;">2026-02-25 · 回复数：1</div>
+      </div>
+      <div style="background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:12px 14px;cursor:pointer;" onclick="goTo('knowledge.html?tab=policy')">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:11px;color:#f97316;background:rgba(249,115,22,0.1);padding:2px 6px;border-radius:4px;">政策资讯</span>
+          <span style="font-size:10px;color:#86a892;">暂无回复</span>
+        </div>
+        <div style="font-size:13px;color:#14532d;line-height:1.5;margin-bottom:4px;">2026年补贴申请需要提交哪些材料？</div>
+        <div style="font-size:11px;color:#86a892;">2026-02-22 · 回复数：0</div>
+      </div>
+    </div>
+    <div style="padding:10px 16px 4px;">
+      <div onclick="goTo('more-list.html?type=question')" style="display:flex;align-items:center;justify-content:center;gap:4px;padding:10px;background:rgba(22,163,74,0.05);border:1px solid rgba(22,163,74,0.12);border-radius:10px;cursor:pointer;font-size:13px;color:var(--primary);">
+        查看更多提问
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- My Registrations -->
+  <div id="section-register" style="display:none;padding:12px 16px;">
+    <div class="register-list">
+      <div class="register-item" onclick="goTo('knowledge.html?tab=training')">
+        <div class="register-header">
+          <span class="register-title">养殖企业经营管理与政策法规培训班</span>
+          <span class="register-status status-approved">已通过</span>
+        </div>
+        <div class="register-meta">2026-03-20 09:00 · 蓬溪县政务服务中心</div>
+        <div class="qr-btn" onclick="event.stopPropagation();showQRCode()">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="14" width="3" height="3"/><rect x="14" y="18" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg>
+          查看签到码
+        </div>
+      </div>
+      <div class="register-item" onclick="goTo('knowledge.html?tab=training')">
+        <div class="register-header">
+          <span class="register-title">生猪疾病防控与免疫技术专题培训</span>
+          <span class="register-status status-pending">待审核</span>
+        </div>
+        <div class="register-meta">2026-03-15 09:00 · 蓬溪县农业局培训中心</div>
+      </div>
+      <div class="register-item" onclick="goTo('knowledge.html?tab=training')">
+        <div class="register-header">
+          <span class="register-title">2026年第一期生猪养殖技术培训</span>
+          <span class="register-status status-approved" style="background:rgba(134,168,146,0.15);color:#86a892;">已结束</span>
+        </div>
+        <div class="register-meta">2026-01-15 09:00 · 蓬溪县农业局培训中心 · 已签到</div>
+        <div style="margin-top:6px;">
+          <span style="font-size:11px;color:#16a34a;cursor:pointer;" onclick="event.stopPropagation();showToast('查看评价')">查看我的评价</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider" style="height:12px;margin-top:16px;"></div>
+
+  <!-- Pigsty & Enterprise Menu -->
+  <div class="menu-section">
+    <div class="menu-section-title">企业管理</div>
+    <div class="menu-card">
+      <div class="menu-item" onclick="showPigstyPage()">
+        <div class="menu-icon" style="background:rgba(22,163,74,0.1);">
+          <svg viewBox="0 0 24 24" stroke="#16a34a"><path d="M2 20h20M4 20V10l8-6 8 6v10"/><rect x="9" y="14" width="6" height="6"/></svg>
+        </div>
+        <span class="menu-label">猪舍管理</span>
+        <span class="menu-value">3 个猪舍</span>
+        <svg class="menu-arrow" viewBox="0 0 24 24" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+      <div class="menu-item" onclick="showEnterpriseModal()">
+        <div class="menu-icon" style="background:rgba(249,115,22,0.1);">
+          <svg viewBox="0 0 24 24" stroke="#f97316"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+        </div>
+        <span class="menu-label">企业信息管理</span>
+        <svg class="menu-arrow" viewBox="0 0 24 24" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider" style="height:12px;"></div>
+
+  <!-- Settings Menu -->
+  <div class="menu-section">
+    <div class="menu-section-title">功能设置</div>
+    <div class="menu-card">
+      <div class="menu-item" onclick="goTo('settings.html')">
+        <div class="menu-icon" style="background:rgba(22,163,74,0.1);">
+          <svg viewBox="0 0 24 24" stroke="#16a34a"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </div>
+        <span class="menu-label">功能设置</span>
+        <span class="menu-value">消息通知 · 隐私</span>
+        <svg class="menu-arrow" viewBox="0 0 24 24" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+      <div class="menu-item" onclick="goTo('settings.html?page=notification')">
+        <div class="menu-icon" style="background:rgba(245,158,11,0.1);">
+          <svg viewBox="0 0 24 24" stroke="#f59e0b"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        </div>
+        <span class="menu-label">消息通知</span>
+        <span class="menu-value">全部已开启</span>
+        <svg class="menu-arrow" viewBox="0 0 24 24" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+      <div class="menu-item" onclick="goTo('settings.html?page=privacy')">
+        <div class="menu-icon" style="background:rgba(14,165,233,0.1);">
+          <svg viewBox="0 0 24 24" stroke="#0ea5e9"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <span class="menu-label">隐私设置</span>
+        <span class="menu-value">已配置</span>
+        <svg class="menu-arrow" viewBox="0 0 24 24" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+      <div class="menu-item" onclick="showToast('关于平台')">
+        <div class="menu-icon" style="background:rgba(22,163,74,0.1);">
+          <svg viewBox="0 0 24 24" stroke="#16a34a"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <span class="menu-label">关于平台</span>
+        <span class="menu-value">v1.0.0</span>
+        <svg class="menu-arrow" viewBox="0 0 24 24" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="menu-section" style="padding-bottom:16px;">
+    <div class="menu-card">
+      <div class="menu-item" onclick="showLogoutConfirm()" style="justify-content:center;">
+        <span style="font-size:14px;color:#ef4444;font-weight:500;">退出登录</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <a class="nav-item" href="index.html"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>首页</span></a>
+  <a class="nav-item" href="breeding.html"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><span>养殖管理</span></a>
+  <a class="nav-item" href="knowledge.html"><svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13"/></svg><span>知识课堂</span></a>
+  <a class="nav-item" href="messages.html"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><span>消息</span><span class="nav-badge">5</span></a>
+  <a class="nav-item active" href="profile.html"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>我的</span></a>
+</nav>
+
+<!-- Edit Profile Modal -->
+<div class="modal-overlay" id="editModal" onclick="closeModal('editModal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">编辑个人资料</div>
+    <div class="form-group">
+      <label class="form-label">姓名</label>
+      <input type="text" class="form-input" value="张建国" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">手机号</label>
+      <input type="tel" class="form-input" value="13812348888" />
+    </div>
+    <button class="modal-save-btn" onclick="saveProfile()">保存</button>
+  </div>
+</div>
+
+<!-- Enterprise Modal -->
+<div class="modal-overlay" id="enterpriseModal" onclick="closeModal('enterpriseModal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">企业信息管理</div>
+    <div class="form-group">
+      <label class="form-label">企业名称</label>
+      <input type="text" class="form-input" value="蓬溪县鑫旺养殖场" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">统一社会信用代码</label>
+      <input type="text" class="form-input" value="91510921XXXXXXXXXX" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">企业类型</label>
+      <select class="form-select">
+        <option selected>规模养殖场</option>
+        <option>家庭农场</option>
+        <option>散养户</option>
+        <option>合作社</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">法人代表</label>
+      <input type="text" class="form-input" value="张建国" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">联系电话</label>
+      <input type="tel" class="form-input" value="13812348888" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">养殖规模（头）</label>
+      <input type="number" class="form-input" value="1500" min="1" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">详细地址</label>
+      <input type="text" class="form-input" value="四川省遂宁市蓬溪县蓬南镇XX村XX组" />
+    </div>
+    <button class="modal-save-btn" onclick="saveEnterprise()">保存</button>
+  </div>
+</div>
+
+<!-- QR Code Modal -->
+<div class="qr-modal" id="qrModal" onclick="closeQR()">
+  <div class="qr-box" onclick="event.stopPropagation()">
+    <div class="qr-title">活动签到码</div>
+    <div class="qr-subtitle">养殖企业经营管理与政策法规培训班</div>
+    <div class="qr-code">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="14" width="3" height="3"/><rect x="14" y="18" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg>
+    </div>
+    <div style="font-size:12px;color:#86a892;margin-bottom:16px;">2026-03-20 活动当天出示此码签到</div>
+    <button class="qr-close" onclick="closeQR()">关闭</button>
+  </div>
+</div>
+
+<!-- ===== PIGSTY MANAGEMENT PAGE ===== -->
+<div id="pigstyPage" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:200;overflow-y:auto;max-width:390px;left:50%;transform:translateX(-50%);">
+  <!-- Header -->
+  <div style="background:linear-gradient(135deg,#15803d,#16a34a);padding:48px 20px 16px;position:sticky;top:0;z-index:10;">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <button onclick="hidePigstyPage()" style="background:rgba(255,255,255,0.2);border:none;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <span style="font-size:17px;font-weight:700;color:white;">猪舍管理</span>
+      <button onclick="showPigstyForm(null)" style="background:rgba(255,255,255,0.2);border:none;border-radius:8px;padding:6px 12px;color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        新增
+      </button>
+    </div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:6px;text-align:center;">本企业猪舍列表（共 3 个）</div>
+  </div>
+
+  <!-- Pigsty List -->
+  <div style="padding:16px;display:flex;flex-direction:column;gap:12px;" id="pigstyList">
+
+    <!-- Card 1: 育肥舍A区 (存栏>0, 不可删除) -->
+    <div class="pigsty-card" id="pc1">
+      <div class="pigsty-card-inner" id="pci1">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:40px;height:40px;border-radius:12px;background:rgba(22,163,74,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="1.8"><path d="M2 20h20M4 20V10l8-6 8 6v10"/><rect x="9" y="14" width="6" height="6"/></svg>
+            </div>
+            <div>
+              <div style="font-size:15px;font-weight:600;color:var(--text);">育肥舍A区</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">编号：PS-2024-001 · 育肥舍</div>
+            </div>
+          </div>
+          <span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;background:rgba(22,163,74,0.1);color:#16a34a;">使用中</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">
+          <div style="background:rgba(22,163,74,0.04);border-radius:8px;padding:8px;text-align:center;">
+            <div style="font-size:15px;font-weight:700;color:var(--primary);">320</div>
+            <div style="font-size:10px;color:var(--text-muted);">当前存栏</div>
+          </div>
+          <div style="background:rgba(14,165,233,0.04);border-radius:8px;padding:8px;text-align:center;">
+            <div style="font-size:15px;font-weight:700;color:#0ea5e9;">400</div>
+            <div style="font-size:10px;color:var(--text-muted);">设计容量</div>
+          </div>
+          <div style="background:rgba(245,158,11,0.04);border-radius:8px;padding:8px;text-align:center;">
+            <div style="font-size:15px;font-weight:700;color:#f59e0b;">1200㎡</div>
+            <div style="font-size:10px;color:var(--text-muted);">建筑面积</div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:4px;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          左滑卡片可编辑或删除
+        </div>
+      </div>
+      <div class="pigsty-swipe-actions" id="psa1">
+        <button onclick="showPigstyForm({id:1,name:'育肥舍A区',code:'PS-2024-001',type:'育肥舍',capacity:400,area:1200,status:'使用中',stock:320,remark:''})" style="background:#0ea5e9;color:white;border:none;padding:0 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;height:100%;">编辑</button>
+        <button onclick="tryDeletePigsty(1,'育肥舍A区',320)" style="background:#ef4444;color:white;border:none;padding:0 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;height:100%;border-radius:0 12px 12px 0;">删除</button>
+      </div>
+    </div>
+
+    <!-- Card 2: 保育舍B区 (存栏>0) -->
+    <div class="pigsty-card" id="pc2">
+      <div class="pigsty-card-inner" id="pci2">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:40px;height:40px;border-radius:12px;background:rgba(139,92,246,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="1.8"><path d="M2 20h20M4 20V10l8-6 8 6v10"/><rect x="9" y="14" width="6" height="6"/></svg>
+            </div>
+            <div>
+              <div style="font-size:15px;font-weight:600;color:var(--text);">保育舍B区</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">编号：PS-2024-002 · 保育舍</div>
+            </div>
+          </div>
+          <span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;background:rgba(22,163,74,0.1);color:#16a34a;">使用中</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">
+          <div style="background:rgba(22,163,74,0.04);border-radius:8px;padding:8px;text-align:center;">
+            <div style="font-size:15px;font-weight:700;color:var(--primary);">150</div>
+            <div style="font-size:10px;color:var(--text-muted);">当前存栏</div>
+          </div>
+          <div style="background:rgba(14,165,233,0.04);border-radius:8px;padding:8px;text-align:center;">
+            <div style="font-size:15px;font-weight:700;color:#0ea5e9;">200</div>
+            <div style="font-size:10px;color:var(--text-muted);">设计容量</div>
+          </div>
+          <div style="background:rgba(245,158,11,0.04);border-radius:8px;padding:8px;text-align:center;">
+            <div style="font-size:15px;font-weight:700;color:#f59e0b;">600㎡</div>
+            <div style="font-size:10px;color:var(--text-muted);">建筑面积</div>
+          </div>
+        </div>
+      </div>
+      <div class="pigsty-swipe-actions" id="psa2">
+        <button onclick="showPigstyForm({id:2,name:'保育舍B区',code:'PS-2024-002',type:'保育舍',capacity:200,area:600,status:'使用中',stock:150,remark:''})" style="background:#0ea5e9;color:white;border:none;padding:0 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;height:100%;">编辑</button>
+        <button onclick="tryDeletePigsty(2,'保育舍B区',150)" style="background:#ef4444;color:white;border:none;padding:0 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;height:100%;border-radius:0 12px 12px 0;">删除</button>
+      </div>
+    </div>
+
+    <!-- Card 3: 空栏隔离舍 (存栏=0, 可删除) -->
+    <div class="pigsty-card" id="pc3">
+      <div class="pigsty-card-inner" id="pci3">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:40px;height:40px;border-radius:12px;background:rgba(107,114,128,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="1.8"><path d="M2 20h20M4 20V10l8-6 8 6v10"/><rect x="9" y="14" width="6" height="6"/></svg>
+            </div>
+            <div>
+              <div style="font-size:15px;font-weight:600;color:var(--text);">隔离舍C区</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">编号：PS-2024-003 · 隔离舍</div>
+            </div>
+          </div>
+          <span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;background:rgba(107,114,128,0.1);color:#6b7280;">空栏</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">
+          <div style="background:rgba(22,163,74,0.04);border-radius:8px;padding:8px;text-align:center;">
+            <div style="font-size:15px;font-weight:700;color:var(--text-muted);">0</div>
+            <div style="font-size:10px;color:var(--text-muted);">当前存栏</div>
+          </div>
+          <div style="background:rgba(14,165,233,0.04);border-radius:8px;padding:8px;text-align:center;">
+            <div style="font-size:15px;font-weight:700;color:#0ea5e9;">50</div>
+            <div style="font-size:10px;color:var(--text-muted);">设计容量</div>
+          </div>
+          <div style="background:rgba(245,158,11,0.04);border-radius:8px;padding:8px;text-align:center;">
+            <div style="font-size:15px;font-weight:700;color:#f59e0b;">200㎡</div>
+            <div style="font-size:10px;color:var(--text-muted);">建筑面积</div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:#6b7280;">备注：新建隔离舍，暂未投入使用</div>
+      </div>
+      <div class="pigsty-swipe-actions" id="psa3">
+        <button onclick="showPigstyForm({id:3,name:'隔离舍C区',code:'PS-2024-003',type:'隔离舍',capacity:50,area:200,status:'空栏',stock:0,remark:'新建隔离舍，暂未投入使用'})" style="background:#0ea5e9;color:white;border:none;padding:0 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;height:100%;">编辑</button>
+        <button onclick="tryDeletePigsty(3,'隔离舍C区',0)" style="background:#ef4444;color:white;border:none;padding:0 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;height:100%;border-radius:0 12px 12px 0;">删除</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== PIGSTY FORM PAGE ===== -->
+<div id="pigstyFormPage" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:210;overflow-y:auto;max-width:390px;left:50%;transform:translateX(-50%);">
+  <div style="background:linear-gradient(135deg,#15803d,#16a34a);padding:48px 20px 16px;position:sticky;top:0;z-index:10;">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <button onclick="hidePigstyForm()" style="background:rgba(255,255,255,0.2);border:none;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <span style="font-size:17px;font-weight:700;color:white;" id="pigstyFormTitle">新增猪舍</span>
+      <div style="width:36px;"></div>
+    </div>
+  </div>
+  <div style="padding:20px;">
+    <!-- 猪舍名称 -->
+    <div class="form-group">
+      <label class="form-label">猪舍名称 <span style="color:#ef4444;">*</span></label>
+      <input type="text" class="form-input" id="pf_name" placeholder="最多50个字符" maxlength="50" />
+      <div class="form-error" id="pf_name_err"></div>
+    </div>
+    <!-- 猪舍编号 -->
+    <div class="form-group">
+      <label class="form-label">猪舍编号</label>
+      <input type="text" class="form-input" id="pf_code" placeholder="选填，企业内唯一；不填时系统自动生成" maxlength="50" />
+      <div class="form-error" id="pf_code_err"></div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">不填时系统自动生成编号</div>
+    </div>
+    <!-- 猪舍类型 -->
+    <div class="form-group">
+      <label class="form-label">猪舍类型 <span style="color:#ef4444;">*</span></label>
+      <select class="form-select" id="pf_type">
+        <option value="">请选择猪舍类型</option>
+        <option>公猪舍</option>
+        <option>母猪舍</option>
+        <option>保育舍</option>
+        <option>育肥舍</option>
+        <option>产房</option>
+        <option>隔离舍</option>
+      </select>
+      <div class="form-error" id="pf_type_err"></div>
+    </div>
+    <!-- 设计容量 -->
+    <div class="form-group">
+      <label class="form-label">设计容量（头）<span style="color:#ef4444;">*</span></label>
+      <input type="number" class="form-input" id="pf_capacity" placeholder="1 ~ 9999" min="1" max="9999" />
+      <div class="form-error" id="pf_capacity_err"></div>
+    </div>
+    <!-- 建筑面积 -->
+    <div class="form-group">
+      <label class="form-label">建筑面积（㎡）</label>
+      <input type="number" class="form-input" id="pf_area" placeholder="选填，0.01 ~ 99999.99" min="0.01" max="99999.99" step="0.01" />
+    </div>
+    <!-- 状态 -->
+    <div class="form-group">
+      <label class="form-label">状态 <span style="color:#ef4444;">*</span></label>
+      <select class="form-select" id="pf_status">
+        <option value="使用中" selected>使用中</option>
+        <option value="空栏">空栏</option>
+        <option value="维修中">维修中</option>
+      </select>
+    </div>
+    <!-- 当前存栏（只读，仅编辑时显示） -->
+    <div class="form-group" id="pf_stock_group" style="display:none;">
+      <label class="form-label">当前存栏（头）</label>
+      <input type="number" class="form-input" id="pf_stock" readonly style="background:rgba(0,0,0,0.03);color:var(--text-muted);" />
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">当前存栏由业务操作自动更新，不可手动修改</div>
+    </div>
+    <!-- 备注 -->
+    <div class="form-group">
+      <label class="form-label">备注</label>
+      <textarea class="form-input" id="pf_remark" placeholder="选填，最多500个字符" maxlength="500" rows="3" style="resize:none;line-height:1.5;"></textarea>
+    </div>
+    <button onclick="savePigstyForm()" style="width:100%;padding:14px;background:var(--primary);border:none;border-radius:12px;color:white;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px;">保存</button>
+  </div>
+</div>
+
+<!-- Delete Pigsty Confirm -->
+<div style="position:fixed;inset:0;background:rgba(0,0,0,0.45);backdrop-filter:blur(4px);z-index:300;display:none;align-items:center;justify-content:center;padding:20px;" id="deletePigstyConfirm">
+  <div style="background:white;border-radius:16px;padding:24px;width:100%;max-width:300px;text-align:center;animation:scaleIn 0.2s ease;">
+    <div style="width:52px;height:52px;background:rgba(239,68,68,0.08);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+    </div>
+    <div style="font-size:16px;font-weight:600;color:#14532d;margin-bottom:6px;">确认删除猪舍？</div>
+    <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:4px;" id="deletePigstyName">隔离舍C区</div>
+    <div style="font-size:12px;color:#6b7280;margin-bottom:20px;">删除后该猪舍不可恢复，关联的历史上报记录将保留</div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="closeDeletePigsty()" style="flex:1;padding:11px;border:1px solid rgba(22,163,74,0.2);border-radius:10px;background:none;font-size:14px;color:#4b7c59;cursor:pointer;font-family:inherit;">取消</button>
+      <button onclick="doDeletePigsty()" style="flex:1;padding:11px;background:#ef4444;border:none;border-radius:10px;font-size:14px;color:white;font-weight:600;cursor:pointer;font-family:inherit;">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- Logout Confirm -->
+<div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);z-index:300;display:none;align-items:center;justify-content:center;padding:20px;" id="logoutConfirm">
+  <div style="background:white;border-radius:16px;padding:24px;width:100%;max-width:300px;text-align:center;">
+    <div style="font-size:16px;font-weight:600;color:#14532d;margin-bottom:8px;">确定退出登录？</div>
+    <div style="font-size:13px;color:#86a892;margin-bottom:20px;">退出后将清除登录状态，需重新登录才能使用</div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="closeLogout()" style="flex:1;padding:10px;border:1px solid rgba(22,163,74,0.2);border-radius:10px;background:none;font-size:14px;color:#4b7c59;cursor:pointer;font-family:inherit;">取消</button>
+      <button onclick="doLogout()" style="flex:1;padding:10px;background:#ef4444;border:none;border-radius:10px;font-size:14px;color:white;font-weight:600;cursor:pointer;font-family:inherit;">退出登录</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  function switchSection(section, el) {
+    ['report','study','collect','question','register'].forEach(s => {
+      document.getElementById('section-' + s).style.display = 'none';
+    });
+    document.getElementById('section-' + section).style.display = 'block';
+    document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
+    if (el) el.classList.add('active');
+    else {
+      const btn = document.getElementById('tab-btn-' + section);
+      if (btn) btn.classList.add('active');
+    }
+  }
+
+  function switchCollect(type, el) {
+    document.getElementById('collect-video').style.display = 'none';
+    document.getElementById('collect-policy').style.display = 'none';
+    document.getElementById('collect-' + type).style.display = 'block';
+    el.parentElement.querySelectorAll('.collect-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  function showEditModal() { document.getElementById('editModal').classList.add('show'); }
+  function showEnterpriseModal() { document.getElementById('enterpriseModal').classList.add('show'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+  function saveProfile() { closeModal('editModal'); showToast('资料已保存'); }
+  function saveEnterprise() { closeModal('enterpriseModal'); showToast('企业信息已保存'); }
+  function showQRCode() { document.getElementById('qrModal').classList.add('show'); }
+  function closeQR() { document.getElementById('qrModal').classList.remove('show'); }
+  function showLogoutConfirm() { document.getElementById('logoutConfirm').style.display = 'flex'; }
+  function closeLogout() { document.getElementById('logoutConfirm').style.display = 'none'; }
+  function doLogout() {
+    closeLogout();
+    // Clear token & user info (simulate)
+    localStorage.removeItem('token');
+    localStorage.removeItem('userInfo');
+    showToast('已退出登录');
+    // Navigate to login page, replace history so back button won't return to business pages
+    setTimeout(() => { window.location.replace('login.html'); }, 1200);
+  }
+  // ===== PIGSTY MANAGEMENT =====
+  function showPigstyPage() {
+    document.getElementById('pigstyPage').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    initSwipe();
+  }
+  function hidePigstyPage() {
+    document.getElementById('pigstyPage').style.display = 'none';
+    document.body.style.overflow = '';
+    resetAllSwipe();
+  }
+
+  // Swipe to reveal actions
+  function initSwipe() {
+    [1,2,3].forEach(i => {
+      const inner = document.getElementById('pci' + i);
+      const card = document.getElementById('pc' + i);
+      if (!inner || !card) return;
+      let startX = 0, startY = 0, isDragging = false;
+      inner.addEventListener('touchstart', e => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        isDragging = true;
+      }, { passive: true });
+      inner.addEventListener('touchmove', e => {
+        if (!isDragging) return;
+        const dx = e.touches[0].clientX - startX;
+        const dy = e.touches[0].clientY - startY;
+        if (Math.abs(dy) > Math.abs(dx)) { isDragging = false; return; }
+        if (dx < -20) { resetAllSwipe(); card.classList.add('swiped'); }
+        else if (dx > 20) { card.classList.remove('swiped'); }
+      }, { passive: true });
+      inner.addEventListener('touchend', () => { isDragging = false; });
+    });
+  }
+  function resetAllSwipe() {
+    [1,2,3].forEach(i => {
+      const card = document.getElementById('pc' + i);
+      if (card) card.classList.remove('swiped');
+    });
+  }
+
+  // Pigsty Form
+  let currentPigstyId = null;
+  function showPigstyForm(data) {
+    resetAllSwipe();
+    currentPigstyId = data ? data.id : null;
+    document.getElementById('pigstyFormTitle').textContent = data ? '编辑猪舍' : '新增猪舍';
+    document.getElementById('pf_name').value = data ? data.name : '';
+    document.getElementById('pf_code').value = data ? data.code : '';
+    document.getElementById('pf_type').value = data ? data.type : '';
+    document.getElementById('pf_capacity').value = data ? data.capacity : '';
+    document.getElementById('pf_area').value = data ? (data.area || '') : '';
+    document.getElementById('pf_status').value = data ? data.status : '使用中';
+    document.getElementById('pf_remark').value = data ? data.remark : '';
+    // 当前存栏只读，仅编辑时显示
+    const stockGroup = document.getElementById('pf_stock_group');
+    if (data) {
+      stockGroup.style.display = 'block';
+      document.getElementById('pf_stock').value = data.stock;
+    } else {
+      stockGroup.style.display = 'none';
+    }
+    // Clear errors
+    ['name','code','type','capacity'].forEach(f => {
+      const el = document.getElementById('pf_' + f + '_err');
+      if (el) el.textContent = '';
+    });
+    document.getElementById('pigstyFormPage').style.display = 'block';
+  }
+  function hidePigstyForm() {
+    document.getElementById('pigstyFormPage').style.display = 'none';
+  }
+  function savePigstyForm() {
+    let valid = true;
+    const name = document.getElementById('pf_name').value.trim();
+    const type = document.getElementById('pf_type').value;
+    const capacity = document.getElementById('pf_capacity').value;
+    const code = document.getElementById('pf_code').value.trim();
+    if (!name) { document.getElementById('pf_name_err').textContent = '猪舍名称不能为空'; valid = false; }
+    else { document.getElementById('pf_name_err').textContent = ''; }
+    if (!type) { document.getElementById('pf_type_err').textContent = '请选择猪舍类型'; valid = false; }
+    else { document.getElementById('pf_type_err').textContent = ''; }
+    if (!capacity || capacity < 1 || capacity > 9999) { document.getElementById('pf_capacity_err').textContent = '设计容量须为 1 ~ 9999 之间的整数'; valid = false; }
+    else { document.getElementById('pf_capacity_err').textContent = ''; }
+    // 模拟编号唯一性校验
+    const existingCodes = ['PS-2024-001','PS-2024-002','PS-2024-003'];
+    if (code && existingCodes.includes(code) && currentPigstyId === null) {
+      document.getElementById('pf_code_err').textContent = '该编号已存在，请更换';
+      valid = false;
+    } else { document.getElementById('pf_code_err').textContent = ''; }
+    if (!valid) return;
+    hidePigstyForm();
+    showToast(currentPigstyId ? '猪舍信息已保存' : '猪舍新增成功');
+  }
+
+  // Delete
+  let pendingDeleteId = null;
+  function tryDeletePigsty(id, name, stock) {
+    resetAllSwipe();
+    if (stock > 0) {
+      showToast('该猪舍存在存栏记录（' + stock + ' 头），无法删除');
+      return;
+    }
+    pendingDeleteId = id;
+    document.getElementById('deletePigstyName').textContent = name;
+    document.getElementById('deletePigstyConfirm').style.display = 'flex';
+  }
+  function closeDeletePigsty() {
+    document.getElementById('deletePigstyConfirm').style.display = 'none';
+    pendingDeleteId = null;
+  }
+  function doDeletePigsty() {
+    closeDeletePigsty();
+    showToast('猪舍已删除');
+  }
+
+  function goTo(url) { window.location.href = url; }
+  function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1500); }
+
+  // Init from URL params
+  const urlParams = new URLSearchParams(window.location.search);
+  const tabParam = urlParams.get('tab');
+  if (tabParam) switchSection(tabParam);
+</script>
+</body>
+</html>

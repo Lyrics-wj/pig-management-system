@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=375px, initial-scale=1.0">
+<title>蓬溪县生猪数字化管理平台 - 信息上报</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --primary: #16a34a; --secondary: #0ea5e9; --accent: #f97316;
+    --danger: #ef4444; --warning: #f59e0b;
+    --bg: #f0fdf4; --text: #14532d; --text-secondary: #4b7c59;
+    --text-muted: #86a892; --border: rgba(22,163,74,0.2);
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.08); --radius: 16px; --radius-sm: 10px;
+    --glass: rgba(255,255,255,0.85); --glass-border: rgba(255,255,255,0.6);
+  }
+  body { font-family: 'Noto Sans SC', -apple-system, sans-serif; background: var(--bg); color: var(--text); max-width: 390px; margin: 0 auto; min-height: 100vh; }
+  ::-webkit-scrollbar { width: 0; }
+
+  .header {
+    background: linear-gradient(135deg, #15803d 0%, #16a34a 100%);
+    padding: 48px 20px 20px;
+  }
+  .header-row { display: flex; align-items: center; gap: 12px; }
+  .back-btn { background: rgba(255,255,255,0.2); border: none; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+  .back-btn svg { width: 18px; height: 18px; stroke: white; fill: none; stroke-width: 2; }
+  .page-title { font-size: 18px; font-weight: 600; color: white; flex: 1; }
+  .draft-btn { background: rgba(255,255,255,0.2); border: none; border-radius: 8px; padding: 6px 12px; color: white; font-size: 12px; cursor: pointer; font-family: inherit; }
+
+  /* Type Selector */
+  .type-selector { background: white; padding: 16px; border-bottom: 1px solid rgba(22,163,74,0.1); }
+  .type-label { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+  .type-select {
+    width: 100%; padding: 10px 12px;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    font-size: 14px; font-weight: 500; color: var(--text);
+    background: white; font-family: inherit; outline: none;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2386a892' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+
+  /* Form */
+  .form-content { padding: 16px 16px 120px; }
+  .form-card {
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 12px;
+  }
+  .form-card-title {
+    font-size: 13px; font-weight: 600; color: var(--text-secondary);
+    margin-bottom: 14px; padding-bottom: 10px;
+    border-bottom: 1px solid rgba(22,163,74,0.1);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .form-card-title svg { width: 16px; height: 16px; stroke: var(--primary); fill: none; stroke-width: 2; }
+
+  .form-group { margin-bottom: 14px; }
+  .form-group:last-child { margin-bottom: 0; }
+  .form-label {
+    font-size: 13px; font-weight: 500; color: var(--text-secondary);
+    margin-bottom: 6px; display: flex; align-items: center; gap: 4px;
+  }
+  .required { color: var(--danger); }
+  .form-input {
+    width: 100%; padding: 10px 12px;
+    border: 1.5px solid rgba(22,163,74,0.2); border-radius: 10px;
+    font-size: 14px; color: var(--text);
+    background: rgba(255,255,255,0.8); font-family: inherit; outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(22,163,74,0.1); }
+  .form-input.error { border-color: var(--danger); box-shadow: 0 0 0 3px rgba(239,68,68,0.1); }
+  .form-input.success { border-color: var(--primary); }
+  .form-input::placeholder { color: var(--text-muted); }
+  .form-input[type="date"] { color: var(--text); }
+  .form-error { font-size: 11px; color: var(--danger); margin-top: 4px; display: none; }
+  .form-error.show { display: block; }
+  .form-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+  /* Input with unit */
+  .input-with-unit { display: flex; align-items: center; gap: 0; }
+  .input-with-unit .form-input { border-radius: 10px 0 0 10px; flex: 1; }
+  .input-unit {
+    padding: 10px 12px;
+    background: rgba(22,163,74,0.08); border: 1.5px solid rgba(22,163,74,0.2);
+    border-left: none; border-radius: 0 10px 10px 0;
+    font-size: 13px; color: var(--text-secondary); white-space: nowrap;
+  }
+
+  /* Select */
+  .form-select {
+    width: 100%; padding: 10px 12px;
+    border: 1.5px solid rgba(22,163,74,0.2); border-radius: 10px;
+    font-size: 14px; color: var(--text);
+    background: rgba(255,255,255,0.8); font-family: inherit; outline: none;
+    cursor: pointer; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2386a892' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
+    transition: border-color 0.2s;
+  }
+  .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(22,163,74,0.1); }
+
+  /* Textarea */
+  .form-textarea {
+    width: 100%; padding: 10px 12px; min-height: 80px;
+    border: 1.5px solid rgba(22,163,74,0.2); border-radius: 10px;
+    font-size: 14px; color: var(--text);
+    background: rgba(255,255,255,0.8); font-family: inherit; outline: none;
+    resize: none; line-height: 1.5;
+    transition: border-color 0.2s;
+  }
+  .form-textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(22,163,74,0.1); }
+  .form-textarea::placeholder { color: var(--text-muted); }
+  .char-count { font-size: 11px; color: var(--text-muted); text-align: right; margin-top: 4px; }
+
+  /* Radio/Checkbox group */
+  .option-group { display: flex; flex-wrap: wrap; gap: 8px; }
+  .option-item {
+    padding: 7px 14px;
+    border: 1.5px solid rgba(22,163,74,0.2); border-radius: 8px;
+    font-size: 13px; color: var(--text-secondary);
+    cursor: pointer; transition: all 0.15s;
+    background: rgba(255,255,255,0.8);
+  }
+  .option-item.selected {
+    background: rgba(22,163,74,0.1); border-color: var(--primary);
+    color: var(--primary); font-weight: 500;
+  }
+
+  /* Image Upload */
+  .upload-area {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  }
+  .upload-thumb {
+    aspect-ratio: 1; border-radius: 10px;
+    background: rgba(255,255,255,0.8);
+    border: 1.5px dashed rgba(22,163,74,0.3);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 4px; cursor: pointer; transition: all 0.15s; position: relative;
+  }
+  .upload-thumb:active { background: rgba(22,163,74,0.05); }
+  .upload-thumb svg { width: 24px; height: 24px; stroke: var(--text-muted); fill: none; }
+  .upload-thumb span { font-size: 11px; color: var(--text-muted); }
+  .upload-thumb.has-image { border-style: solid; border-color: rgba(22,163,74,0.2); overflow: hidden; }
+  .upload-thumb.has-image img { width: 100%; height: 100%; object-fit: cover; }
+  .upload-thumb .remove-img {
+    position: absolute; top: 4px; right: 4px;
+    width: 20px; height: 20px; background: rgba(0,0,0,0.5);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .upload-thumb .remove-img svg { width: 12px; height: 12px; stroke: white; fill: none; }
+  .upload-hint { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+
+  /* Computed field */
+  .computed-field {
+    padding: 10px 12px;
+    background: rgba(22,163,74,0.06); border: 1.5px solid rgba(22,163,74,0.15);
+    border-radius: 10px; font-size: 14px; color: var(--primary); font-weight: 500;
+  }
+
+  /* Bottom Actions */
+  .bottom-actions {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 390px; background: var(--glass);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--glass-border);
+    padding: 12px 16px 20px;
+    display: flex; gap: 10px; z-index: 100;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+  }
+  .btn-save-draft {
+    flex: 1; padding: 12px;
+    background: rgba(22,163,74,0.08); border: 1.5px solid rgba(22,163,74,0.2);
+    border-radius: 12px; color: var(--primary); font-size: 14px; font-weight: 500;
+    cursor: pointer; font-family: inherit; transition: all 0.15s;
+  }
+  .btn-save-draft:active { background: rgba(22,163,74,0.15); }
+  .btn-submit {
+    flex: 2; padding: 12px;
+    background: var(--primary); border: none;
+    border-radius: 12px; color: white; font-size: 14px; font-weight: 600;
+    cursor: pointer; font-family: inherit; transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .btn-submit:active { background: var(--primary-dark); transform: scale(0.98); }
+  .btn-submit:disabled { background: #86a892; cursor: not-allowed; transform: none; }
+  .btn-submit svg { width: 16px; height: 16px; stroke: white; fill: none; }
+
+  /* Loading */
+  .loading-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.3);
+    display: none; align-items: center; justify-content: center; z-index: 300;
+  }
+  .loading-overlay.show { display: flex; }
+  .loading-box { background: white; border-radius: 16px; padding: 24px 32px; text-align: center; }
+  .spinner { width: 32px; height: 32px; border: 3px solid rgba(22,163,74,0.2); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 13px; color: var(--text-secondary); }
+
+  /* Success */
+  .success-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    display: none; align-items: center; justify-content: center; z-index: 300;
+    padding: 20px;
+  }
+  .success-overlay.show { display: flex; }
+  .success-box { background: white; border-radius: 20px; padding: 32px 24px; text-align: center; width: 100%; max-width: 300px; }
+  .success-icon { width: 64px; height: 64px; background: rgba(22,163,74,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+  .success-icon svg { width: 32px; height: 32px; stroke: var(--primary); fill: none; stroke-width: 2; }
+  .success-title { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+  .success-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+  .success-btn { width: 100%; padding: 12px; background: var(--primary); border: none; border-radius: 12px; color: white; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+
+  /* Confirm */
+  .confirm-dialog { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .confirm-dialog.show { display: flex; }
+  .confirm-box { background: white; border-radius: 16px; padding: 24px; width: 100%; max-width: 320px; }
+  .confirm-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+  .confirm-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5; }
+  .confirm-summary { background: rgba(22,163,74,0.06); border-radius: 10px; padding: 12px; margin-bottom: 16px; }
+  .confirm-summary-item { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
+  .confirm-summary-item:last-child { margin-bottom: 0; }
+  .confirm-summary-label { color: var(--text-muted); }
+  .confirm-summary-value { color: var(--text); font-weight: 500; }
+  .confirm-actions { display: flex; gap: 10px; }
+  .confirm-cancel { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 10px; background: none; font-size: 14px; color: var(--text-secondary); cursor: pointer; font-family: inherit; }
+  .confirm-ok { flex: 2; padding: 10px; background: var(--primary); border: none; border-radius: 10px; font-size: 14px; color: white; font-weight: 600; cursor: pointer; font-family: inherit; }
+
+  /* Toast */
+  .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.75); color: white; padding: 10px 20px; border-radius: 8px; font-size: 13px; z-index: 400; display: none; white-space: nowrap; }
+  .toast.show { display: block; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-row">
+    <button class="back-btn" onclick="history.back()">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="page-title" id="pageTitle">养殖信息上报</div>
+    <button class="draft-btn" onclick="saveDraft()">保存草稿</button>
+  </div>
+</div>
+
+<!-- Type Selector -->
+<div class="type-selector">
+  <div class="type-label">上报类型</div>
+  <select class="type-select" id="typeSelect" onchange="switchFormType(this.value)">
+    <option value="breeding_info">养殖信息上报</option>
+    <option value="breeding_record">繁育信息上报</option>
+    <option value="weaning_record">断奶信息上报</option>
+    <option value="entry_record">入栏信息上报</option>
+    <option value="transfer_record">转栏信息上报</option>
+    <option value="input_record">投入品使用上报</option>
+    <option value="disposal_record">无害化处理上报</option>
+    <option value="outbound_record">出栏信息上报</option>
+    <option value="immune_record">免疫信息上报</option>
+    <option value="disinfect_record">消毒信息上报</option>
+  </select>
+</div>
+
+<div class="form-content">
+
+  <!-- ===== BREEDING INFO FORM ===== -->
+  <div id="form-breeding_info">
+    <div class="form-card">
+      <div class="form-card-title">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+        基础信息
+      </div>
+      <div class="form-group">
+        <div class="form-label">猪舍 <span class="required">*</span></div>
+        <select class="form-select" id="pigsty" onchange="updateStockInfo()">
+          <option value="">请选择猪舍</option>
+          <option value="1">育肥舍A区（当前存栏：320头）</option>
+          <option value="2">母猪舍B区（当前存栏：280头）</option>
+          <option value="3">保育舍C区（当前存栏：150头）</option>
+          <option value="4">产房D区（当前存栏：80头）</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <div class="form-label">上报日期 <span class="required">*</span></div>
+        <input type="date" class="form-input" id="reportDate" value="2026-02-27" max="2026-02-27" />
+        <div class="form-error" id="dateError">日期不能大于当前日期</div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-card-title">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        存栏数量
+      </div>
+      <div class="form-group">
+        <div class="form-label">公猪数量 <span class="required">*</span></div>
+        <div class="input-with-unit">
+          <input type="number" class="form-input" placeholder="请输入" min="0" id="boarCount" oninput="calcTotal()" />
+          <span class="input-unit">头</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">母猪数量 <span class="required">*</span></div>
+        <div class="input-with-unit">
+          <input type="number" class="form-input" placeholder="请输入" min="0" id="sowCount" oninput="calcTotal()" />
+          <span class="input-unit">头</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">仔猪数量 <span class="required">*</span></div>
+        <div class="input-with-unit">
+          <input type="number" class="form-input" placeholder="请输入" min="0" id="pigletCount" oninput="calcTotal()" />
+          <span class="input-unit">头</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">育肥猪数量 <span class="required">*</span></div>
+        <div class="input-with-unit">
+          <input type="number" class="form-input" placeholder="请输入" min="0" id="fatteningCount" oninput="calcTotal()" />
+          <span class="input-unit">头</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">后备猪数量</div>
+        <div class="input-with-unit">
+          <input type="number" class="form-input" placeholder="请输入" min="0" id="reserveCount" oninput="calcTotal()" />
+          <span class="input-unit">头</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">存栏总数（自动计算）</div>
+        <div class="computed-field" id="totalStock">0 头</div>
+        <div class="form-hint">= 公猪 + 母猪 + 仔猪 + 育肥猪 + 后备猪</div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-card-title">
+        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        备注
+      </div>
+      <div class="form-group">
+        <div class="form-label">备注说明</div>
+        <textarea class="form-textarea" placeholder="如有特殊情况请备注说明..." id="remark" oninput="updateCharCount(this,'remarkCount',500)"></textarea>
+        <div class="char-count"><span id="remarkCount">0</span>/500</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== BREEDING RECORD FORM ===== -->
+  <div id="form-breeding_record" style="display:none;">
+    <div class="form-card">
+      <div class="form-card-title">
+        <svg viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+        配种信息
+      </div>
+      <div class="form-group">
+        <div class="form-label">母猪耳号 <span class="required">*</span></div>
+        <input type="text" class="form-input" placeholder="请输入母猪耳号" />
+      </div>
+      <div class="form-group">
+        <div class="form-label">公猪耳号 <span class="required">*</span></div>
+        <input type="text" class="form-input" placeholder="请输入公猪耳号" />
+      </div>
+      <div class="form-group">
+        <div class="form-label">配种方式 <span class="required">*</span></div>
+        <div class="option-group" id="breedingMethod">
+          <div class="option-item selected" onclick="selectOption(this,'breedingMethod')">本交</div>
+          <div class="option-item" onclick="selectOption(this,'breedingMethod')">人工授精</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">配种日期 <span class="required">*</span></div>
+        <input type="date" class="form-input" id="breedingDate" value="2026-02-27" max="2026-02-27" oninput="calcDueDate()" />
+      </div>
+      <div class="form-group">
+        <div class="form-label">预产期（自动计算）</div>
+        <div class="computed-field" id="dueDate">配种日期 + 114天</div>
+        <div class="form-hint">妊娠期约114天（范围110-118天）</div>
+      </div>
+    </div>
+    <div class="form-card">
+      <div class="form-card-title">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        妊娠检查
+      </div>
+      <div class="form-group">
+        <div class="form-label">检查日期</div>
+        <input type="date" class="form-input" max="2026-02-27" />
+      </div>
+      <div class="form-group">
+        <div class="form-label">妊娠结果</div>
+        <div class="option-group" id="pregnancyResult">
+          <div class="option-item" onclick="selectOption(this,'pregnancyResult')">妊娠</div>
+          <div class="option-item" onclick="selectOption(this,'pregnancyResult')">未妊娠</div>
+          <div class="option-item selected" onclick="selectOption(this,'pregnancyResult')">待检查</div>
+        </div>
+      </div>
+    </div>
+    <div class="form-card">
+      <div class="form-card-title">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        分娩记录
+      </div>
+      <div class="form-group">
+        <div class="form-label">分娩日期</div>
+        <input type="date" class="form-input" max="2026-02-27" />
+      </div>
+      <div class="form-group">
+        <div class="form-label">活仔数</div>
+        <div class="input-with-unit">
+          <input type="number" class="form-input" placeholder="请输入" min="0" id="liveCount" oninput="calcTotalPiglets()" />
+          <span class="input-unit">头</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">死胎数</div>
+        <div class="input-with-unit">
+          <input type="number" class="form-input" placeholder="请输入" min="0" id="deadCount" oninput="calcTotalPiglets()" />
+          <span class="input-unit">头</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">产仔总数（自动计算）</div>
+        <div class="computed-field" id="totalPiglets">0 头</div>
+        <div class="form-hint">= 活仔数 + 死胎数</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ENTRY RECORD FORM ===== -->
+  <div id="form-entry_record" style="display:none;">
+    <div class="form-card">
+      <div class="form-card-title">
+        <svg viewBox="0 0 24 24"><path d="M11 16l-4-4m0 0l4-4m-4 4h14"/></svg>
+        入栏基本信息
+      </div>
+      <div class="form-group">
+        <div class="form-label">目标猪舍 <span class="required">*</span></div>
+        <select class="form-select">
+          <option value="">请选择猪舍</option>
+          <option>育肥舍A区</option>
+          <option>母猪舍B区</option>
+          <option>保育舍C区</option>
+          <option>产房D区</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <div class="form-label">入栏日期 <span class="required">*</span></div>
+        <input type="date" class="form-input" value="2026-02-27" max="2026-02-27" />
+      </div>
+      <div class="form-group">
+        <div class="form-label">来源类型 <span class="required">*</span></div>
+        <div class="option-group" id="sourceType">
+          <div class="option-item selected" onclick="selectOption(this,'sourceType');togglePurchaseInfo(this)">外购</div>
+          <div class="option-item" onclick="selectOption(this,'sourceType');togglePurchaseInfo(this)">自繁</div>
+          <div class="option-item" onclick="selectOption(this,'sourceType');togglePurchaseInfo(this)">调拨</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">猪只类型 <span class="required">*</span></div>
+        <div class="option-group" id="pigType">
+          <div class="option-item" onclick="selectOption(this,'pigType')">仔猪</div>
+          <div class="option-item selected" onclick="selectOption(this,'pigType')">育肥猪</div>
+          <div class="option-item" onclick="selectOption(this,'pigType')">种猪</div>
+          <div class="option-item" onclick="selectOption(this,'pigType')">后备猪</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">入栏数量 <span class="required">*</span></div>
+        <div class="input-with-unit">
+          <input type="number" class="form-input" placeholder="请输入" min="1" />
+          <span class="input-unit">头</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">入栏重量</div>
+        <div class="input-with-unit">
+          <input type="number" class="form-input" placeholder="请输入" min="0" step="0.1" />
+          <span class="input-unit">kg</span>
+        </div>
+      </div>
+    </div>
+    <div class="form-card" id="purchaseInfo">
+      <div class="form-card-title">
+        <svg viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/></svg>
+        外购信息
+      </div>
+      <div class="form-group">
+        <div class="form-label">供应商名称 <span class="required">*</span></div>
+        <input type="text" class="form-input" placeholder="请输入供应商名称" />
+      </div>
+      <div class="form-group">
+        <div class="form-label">供应商地址</div>
+        <input type="text" class="form-input" placeholder="请输入供应商地址" />
+      </div>
+      <div class="form-group">
+        <div class="form-label">检疫证号 <span class="required">*</span></div>
+        <input type="text" class="form-input" placeholder="请输入检疫证编号" />
+      </div>
+      <div class="form-group">
+        <div class="form-label">检疫有效期 <span class="required">*</span></div>
+        <input type="date" class="form-input" min="2026-02-27" />
+      </div>
+      <div class="form-group">
+        <div class="form-label">检疫证照片 <span class="required">*</span></div>
+        <div class="upload-area">
+          <div class="upload-thumb" onclick="uploadImage(this)">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>上传</span>
+          </div>
+          <div class="upload-thumb" onclick="uploadImage(this)">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>上传</span>
+          </div>
+          <div class="upload-thumb" onclick="uploadImage(this)">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>上传</span>
+          </div>
+        </div>
+        <div class="upload-hint">最多上传9张，每张不超过5MB，支持jpg/png</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== OUTBOUND RECORD FORM ===== -->
+  <div id="form-outbound_record" style="display:none;">
+    <div class="form-card">
+      <div class="form-card-title">
+        <svg viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7"/></svg>
+        出栏基本信息
+      </div>
+      <div class="form-group">
+        <div class="form-label">出栏猪舍 <span class="required">*</span></div>
+        <select class="form-select" id="outboundPigsty" onchange="showCurrentStock(this)">
+          <option value="">请选择猪舍</option>
+          <option value="320">育肥舍A区（当前存栏：320头）</option>
+          <option value="280">母猪舍B区（当前存栏：280头）</option>
+          <option value="150">保育舍C区（当前存栏：150头）</option>
+        </select>
+      </div>
+      <div class="form-group" id="currentStockInfo" style="display:none;">
+        <div class="form-label">当前存栏量</div>
+        <div class="computed-field" id="currentStockVal">-- 头</div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">出栏日期 <span class="required">*</span></div>
+        <input type="date" class="form-input" value="2026-02-27" max="2026-02-27" />
+      </div>
+      <div class="form-group">
+        <div class="form-label">出栏数量 <span class="required">*</span></div>
+        <div class="input-with-unit">
+          <input type="number" class="form-input" placeholder="请输入" min="1" id="outboundCount" oninput="validateOutbound()" />
+          <span class="input-unit">头</span>
+        </div>
+        <div class="form-error" id="outboundError">出栏数量不能大于当前存栏量</div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">出栏重量</div>
+        <div class="input-with-unit">
+          <input type="number" class="form-input" placeholder="请输入" min="0" step="0.1" />
+          <span class="input-unit">kg</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">出栏用途 <span class="required">*</span></div>
+        <div class="option-group" id="outboundPurpose">
+          <div class="option-item selected" onclick="selectOption(this,'outboundPurpose');toggleBuyerInfo(this)">销售</div>
+          <div class="option-item" onclick="selectOption(this,'outboundPurpose');toggleBuyerInfo(this)">自宰</div>
+          <div class="option-item" onclick="selectOption(this,'outboundPurpose');toggleBuyerInfo(this)">种用</div>
+          <div class="option-item" onclick="selectOption(this,'outboundPurpose');toggleBuyerInfo(this)">调拨</div>
+        </div>
+      </div>
+    </div>
+    <div class="form-card" id="buyerInfo">
+      <div class="form-card-title">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        购买方信息
+      </div>
+      <div class="form-group">
+        <div class="form-label">购买方名称 <span class="required">*</span></div>
+        <input type="text" class="form-input" placeholder="请输入购买方名称" />
+      </div>
+      <div class="form-group">
+        <div class="form-label">联系电话</div>
+        <input type="tel" class="form-input" placeholder="请输入联系电话" maxlength="11" />
+      </div>
+      <div class="form-group">
+        <div class="form-label">检疫证号 <span class="required">*</span></div>
+        <input type="text" class="form-input" placeholder="请输入检疫证编号" />
+      </div>
+      <div class="form-group">
+        <div class="form-label">检疫证照片 <span class="required">*</span></div>
+        <div class="upload-area">
+          <div class="upload-thumb" onclick="uploadImage(this)">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>上传</span>
+          </div>
+        </div>
+        <div class="upload-hint">最多上传9张，每张不超过5MB</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== IMMUNE RECORD FORM ===== -->
+  <div id="form-immune_record" style="display:none;">
+    <div class="form-card">
+      <div class="form-card-title">
+        <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        免疫信息
+      </div>
+      <div class="form-group">
+        <div class="form-label">免疫猪舍 <span class="required">*</span></div>
+        <select class="form-select">
+          <option value="">请选择猪舍</option>
+          <option>育肥舍A区</option>
+          <option>母猪舍B区</option>
+          <option>保育舍C区</option>
+          <option>产房D区</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <div class="form-label">免疫日期 <span class="required">*</span></div>
+        <input type="date" class="form-input" value="2026-02-27" max="2026-02-27" />
+      </div>
+      <div class="form-group">
+        <div class="form-label">疫苗类型 <span class="required">*</span></div>
+        <select class="form-select">
+          <option value="">请选择疫苗类型</option>
+          <option>口蹄疫疫苗</option>
+          <option>猪瘟疫苗</option>
+          <option>伪狂犬疫苗</option>
+          <option>蓝耳病疫苗</option>
+          <option>圆环病毒疫苗</option>
+          <option>其他</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <div class="form-label">疫苗批号</div>
+        <input type="text" class="form-input" placeholder="请输入疫苗批号" />
+      </div>
+      <div class="form-group">
+        <div class="form-label">免疫方式 <span class="required">*</span></div>
+        <div class="option-group" id="immuneMethod">
+          <div class="option-item selected" onclick="selectOption(this,'immuneMethod')">肌肉注射</div>
+          <div class="option-item" onclick="selectOption(this,'immuneMethod')">皮下注射</div>
+          <div class="option-item" onclick="selectOption(this,'immuneMethod')">滴鼻</div>
+          <div class="option-item" onclick="selectOption(this,'immuneMethod')">饮水</div>
+          <div class="option-item" onclick="selectOption(this,'immuneMethod')">拌料</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">免疫数量 <span class="required">*</span></div>
+        <div class="input-with-unit">
+          <input type="number" class="form-input" placeholder="请输入" min="1" />
+          <span class="input-unit">头</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">下次免疫日期</div>
+        <input type="date" class="form-input" min="2026-02-27" />
+        <div class="form-hint">设置后将生成待办提醒</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DISINFECT RECORD FORM ===== -->
+  <div id="form-disinfect_record" style="display:none;">
+    <div class="form-card">
+      <div class="form-card-title">
+        <svg viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+        消毒信息
+      </div>
+      <div class="form-group">
+        <div class="form-label">消毒猪舍 <span class="required">*</span></div>
+        <select class="form-select">
+          <option value="">请选择猪舍</option>
+          <option>育肥舍A区</option>
+          <option>母猪舍B区</option>
+          <option>保育舍C区</option>
+          <option>产房D区</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <div class="form-label">消毒日期 <span class="required">*</span></div>
+        <input type="date" class="form-input" value="2026-02-27" max="2026-02-27" />
+      </div>
+      <div class="form-group">
+        <div class="form-label">消毒类型 <span class="required">*</span></div>
+        <div class="option-group" id="disinfectType">
+          <div class="option-item selected" onclick="selectOption(this,'disinfectType')">常规消毒</div>
+          <div class="option-item" onclick="selectOption(this,'disinfectType')">空栏消毒</div>
+          <div class="option-item" onclick="selectOption(this,'disinfectType')">疫情消毒</div>
+          <div class="option-item" onclick="selectOption(this,'disinfectType')">进出消毒</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">消毒剂类型 <span class="required">*</span></div>
+        <select class="form-select">
+          <option value="">请选择消毒剂</option>
+          <option>过氧乙酸</option>
+          <option>次氯酸钠</option>
+          <option>戊二醛</option>
+          <option>碘制剂</option>
+          <option>季铵盐类</option>
+          <option>其他</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <div class="form-label">消毒方式 <span class="required">*</span></div>
+        <div class="option-group" id="disinfectMethod">
+          <div class="option-item selected" onclick="selectOption(this,'disinfectMethod')">喷雾消毒</div>
+          <div class="option-item" onclick="selectOption(this,'disinfectMethod')">浸泡消毒</div>
+          <div class="option-item" onclick="selectOption(this,'disinfectMethod')">熏蒸消毒</div>
+          <div class="option-item" onclick="selectOption(this,'disinfectMethod')">火焰消毒</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">消毒面积</div>
+        <div class="input-with-unit">
+          <input type="number" class="form-input" placeholder="请输入" min="0" />
+          <span class="input-unit">m²</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">消毒剂用量</div>
+        <div class="input-with-unit">
+          <input type="number" class="form-input" placeholder="请输入" min="0" step="0.01" />
+          <span class="input-unit">L</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">操作人员 <span class="required">*</span></div>
+        <input type="text" class="form-input" placeholder="请输入操作人员姓名" value="张建国" />
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== INPUT RECORD FORM ===== -->
+  <div id="form-input_record" style="display:none;">
+    <div class="form-card">
+      <div class="form-card-title">
+        <svg viewBox="0 0 24 24"><path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+        投入品信息
+      </div>
+      <div class="form-group">
+        <div class="form-label">使用猪舍 <span class="required">*</span></div>
+        <select class="form-select">
+          <option value="">请选择猪舍</option>
+          <option>育肥舍A区</option>
+          <option>母猪舍B区</option>
+          <option>保育舍C区</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <div class="form-label">使用日期 <span class="required">*</span></div>
+        <input type="date" class="form-input" value="2026-02-27" max="2026-02-27" />
+      </div>
+      <div class="form-group">
+        <div class="form-label">投入品类型 <span class="required">*</span></div>
+        <div class="option-group" id="inputType">
+          <div class="option-item selected" onclick="selectOption(this,'inputType');toggleWithdrawal(this)">饲料</div>
+          <div class="option-item" onclick="selectOption(this,'inputType');toggleWithdrawal(this)">兽药</div>
+          <div class="option-item" onclick="selectOption(this,'inputType');toggleWithdrawal(this)">饲料添加剂</div>
+          <div class="option-item" onclick="selectOption(this,'inputType');toggleWithdrawal(this)">疫苗</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">品牌/名称 <span class="required">*</span></div>
+        <input type="text" class="form-input" placeholder="请输入品牌或名称" />
+      </div>
+      <div class="form-group">
+        <div class="form-label">批号/生产日期</div>
+        <input type="text" class="form-input" placeholder="请输入批号或生产日期" />
+      </div>
+      <div class="form-group">
+        <div class="form-label">使用量 <span class="required">*</span></div>
+        <div class="input-with-unit">
+          <input type="number" class="form-input" placeholder="请输入" min="0" step="0.01" />
+          <span class="input-unit">kg</span>
+        </div>
+      </div>
+      <div class="form-group" id="withdrawalGroup" style="display:none;">
+        <div class="form-label">休药期 <span class="required">*</span></div>
+        <div class="input-with-unit">
+          <input type="number" class="form-input" placeholder="请输入" min="0" />
+          <span class="input-unit">天</span>
+        </div>
+        <div class="form-hint">兽药使用必须填写休药期，出栏前须满足休药期要求</div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">使用用途</div>
+        <input type="text" class="form-input" placeholder="请描述使用用途" />
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DISPOSAL RECORD FORM ===== -->
+  <div id="form-disposal_record" style="display:none;">
+    <div class="form-card">
+      <div class="form-card-title">
+        <svg viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        无害化处理信息
+      </div>
+      <div class="form-group">
+        <div class="form-label">处理猪舍 <span class="required">*</span></div>
+        <select class="form-select">
+          <option value="">请选择猪舍</option>
+          <option>育肥舍A区</option>
+          <option>母猪舍B区</option>
+          <option>保育舍C区</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <div class="form-label">处理日期 <span class="required">*</span></div>
+        <input type="date" class="form-input" value="2026-02-27" max="2026-02-27" />
+      </div>
+      <div class="form-group">
+        <div class="form-label">死亡数量 <span class="required">*</span></div>
+        <div class="input-with-unit">
+          <input type="number" class="form-input" placeholder="请输入" min="1" />
+          <span class="input-unit">头</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">死亡原因 <span class="required">*</span></div>
+        <div class="option-group" id="deathReason">
+          <div class="option-item selected" onclick="selectOption(this,'deathReason')">疾病</div>
+          <div class="option-item" onclick="selectOption(this,'deathReason')">意外伤害</div>
+          <div class="option-item" onclick="selectOption(this,'deathReason')">自然死亡</div>
+          <div class="option-item" onclick="selectOption(this,'deathReason')">其他</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">处理方式 <span class="required">*</span></div>
+        <div class="option-group" id="disposalMethod">
+          <div class="option-item" onclick="selectOption(this,'disposalMethod');toggleDisposalUnit(this)">深埋</div>
+          <div class="option-item" onclick="selectOption(this,'disposalMethod');toggleDisposalUnit(this)">焚烧</div>
+          <div class="option-item selected" onclick="selectOption(this,'disposalMethod');toggleDisposalUnit(this)">委托专业机构处理</div>
+        </div>
+      </div>
+      <div class="form-group" id="disposalUnitGroup">
+        <div class="form-label">处理单位 <span class="required">*</span></div>
+        <input type="text" class="form-input" placeholder="请输入处理单位名称" />
+      </div>
+      <div class="form-group" id="disposalCertGroup">
+        <div class="form-label">处理凭证号 <span class="required">*</span></div>
+        <input type="text" class="form-input" placeholder="请输入处理凭证编号" />
+      </div>
+      <div class="form-group">
+        <div class="form-label">现场照片 <span class="required">*</span></div>
+        <div class="upload-area">
+          <div class="upload-thumb" onclick="uploadImage(this)">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>上传</span>
+          </div>
+          <div class="upload-thumb" onclick="uploadImage(this)">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>上传</span>
+          </div>
+          <div class="upload-thumb" onclick="uploadImage(this)">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>上传</span>
+          </div>
+        </div>
+        <div class="upload-hint">至少上传1张现场照片，最多9张，每张不超过5MB</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TRANSFER RECORD FORM ===== -->
+  <div id="form-transfer_record" style="display:none;">
+    <div class="form-card">
+      <div class="form-card-title">
+        <svg viewBox="0 0 24 24"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+        转栏信息
+      </div>
+      <div class="form-group">
+        <div class="form-label">转栏日期 <span class="required">*</span></div>
+        <input type="date" class="form-input" value="2026-02-27" max="2026-02-27" />
+      </div>
+      <div class="form-group">
+        <div class="form-label">源猪舍 <span class="required">*</span></div>
+        <select class="form-select" id="sourcePigsty" onchange="updateTransferInfo()">
+          <option value="">请选择源猪舍</option>
+          <option value="320">育肥舍A区（当前存栏：320头）</option>
+          <option value="280">母猪舍B区（当前存栏：280头）</option>
+          <option value="150">保育舍C区（当前存栏：150头）</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <div class="form-label">目标猪舍 <span class="required">*</span></div>
+        <select class="form-select" id="targetPigsty">
+          <option value="">请选择目标猪舍</option>
+          <option>育肥舍A区</option>
+          <option>母猪舍B区</option>
+          <option>保育舍C区</option>
+          <option>产房D区</option>
+        </select>
+        <div class="form-error" id="sameStallError">源猪舍和目标猪舍不能相同</div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">转栏数量 <span class="required">*</span></div>
+        <div class="input-with-unit">
+          <input type="number" class="form-input" placeholder="请输入" min="1" id="transferCount" />
+          <span class="input-unit">头</span>
+        </div>
+        <div class="form-error" id="transferError">转栏数量不能大于源猪舍存栏量</div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">转栏原因 <span class="required">*</span></div>
+        <div class="option-group" id="transferReason">
+          <div class="option-item selected" onclick="selectOption(this,'transferReason')">生长阶段转换</div>
+          <div class="option-item" onclick="selectOption(this,'transferReason')">分群管理</div>
+          <div class="option-item" onclick="selectOption(this,'transferReason')">治疗隔离</div>
+          <div class="option-item" onclick="selectOption(this,'transferReason')">配种转群</div>
+          <div class="option-item" onclick="selectOption(this,'transferReason')">其他</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== WEANING RECORD FORM ===== -->
+  <div id="form-weaning_record" style="display:none;">
+    <div class="form-card">
+      <div class="form-card-title">
+        <svg viewBox="0 0 24 24"><path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4"/></svg>
+        断奶信息
+      </div>
+      <div class="form-group">
+        <div class="form-label">关联母猪耳号 <span class="required">*</span></div>
+        <input type="text" class="form-input" placeholder="请输入母猪耳号" />
+        <div class="form-hint">关联后自动带出繁育记录</div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">胎次</div>
+        <div class="computed-field">第 3 胎（活仔数：12头）</div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">断奶日期 <span class="required">*</span></div>
+        <input type="date" class="form-input" value="2026-02-27" max="2026-02-27" />
+      </div>
+      <div class="form-group">
+        <div class="form-label">断奶日龄 <span class="required">*</span></div>
+        <div class="input-with-unit">
+          <input type="number" class="form-input" placeholder="请输入" min="1" id="weaningAge" oninput="checkWeaningAge()" />
+          <span class="input-unit">天</span>
+        </div>
+        <div class="form-error" id="weaningAgeWarn" style="color:var(--warning);">断奶日龄超出正常范围(21-28天)，请备注说明</div>
+        <div class="form-hint">正常范围：21-28天，允许范围：18-35天</div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">断奶数量 <span class="required">*</span></div>
+        <div class="input-with-unit">
+          <input type="number" class="form-input" placeholder="请输入" min="1" max="12" />
+          <span class="input-unit">头</span>
+        </div>
+        <div class="form-hint">不能大于该胎次活仔数（12头）</div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">断奶体重（平均）</div>
+        <div class="input-with-unit">
+          <input type="number" class="form-input" placeholder="请输入" min="0" step="0.1" />
+          <span class="input-unit">kg</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">转入猪舍</div>
+        <select class="form-select">
+          <option value="">请选择转入猪舍</option>
+          <option>保育舍C区</option>
+          <option>其他</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bottom Actions -->
+<div class="bottom-actions">
+  <button class="btn-save-draft" onclick="saveDraft()">保存草稿</button>
+  <button class="btn-submit" id="submitBtn" onclick="showConfirm()">
+    <svg viewBox="0 0 24 24" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    提交上报
+  </button>
+</div>
+
+<!-- Confirm Dialog -->
+<div class="confirm-dialog" id="confirmDialog">
+  <div class="confirm-box">
+    <div class="confirm-title">确认提交</div>
+    <div class="confirm-desc">请确认以下信息无误后提交</div>
+    <div class="confirm-summary">
+      <div class="confirm-summary-item"><span class="confirm-summary-label">上报类型</span><span class="confirm-summary-value" id="confirmType">养殖信息上报</span></div>
+      <div class="confirm-summary-item"><span class="confirm-summary-label">猪舍</span><span class="confirm-summary-value">育肥舍A区</span></div>
+      <div class="confirm-summary-item"><span class="confirm-summary-label">上报日期</span><span class="confirm-summary-value">2026-02-27</span></div>
+      <div class="confirm-summary-item"><span class="confirm-summary-label">存栏总数</span><span class="confirm-summary-value" id="confirmStock">-- 头</span></div>
+    </div>
+    <div class="confirm-actions">
+      <button class="confirm-cancel" onclick="closeConfirm()">取消</button>
+      <button class="confirm-ok" onclick="doSubmit()">确认提交</button>
+    </div>
+  </div>
+</div>
+
+<!-- Loading -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-box">
+    <div class="spinner"></div>
+    <div class="loading-text">正在提交...</div>
+  </div>
+</div>
+
+<!-- Success -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-box">
+    <div class="success-icon">
+      <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    </div>
+    <div class="success-title">提交成功！</div>
+    <div class="success-desc">养殖信息已成功上报，数据将实时同步到监管平台</div>
+    <button class="success-btn" onclick="goBack()">返回列表</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  const typeNames = {
+    breeding_info: '养殖信息上报', breeding_record: '繁育信息上报',
+    weaning_record: '断奶信息上报', entry_record: '入栏信息上报',
+    transfer_record: '转栏信息上报', input_record: '投入品使用上报',
+    disposal_record: '无害化处理上报', outbound_record: '出栏信息上报',
+    immune_record: '免疫信息上报', disinfect_record: '消毒信息上报'
+  };
+
+  let currentType = 'breeding_info';
+
+  function switchFormType(type) {
+    document.querySelectorAll('[id^="form-"]').forEach(f => f.style.display = 'none');
+    const form = document.getElementById('form-' + type);
+    if (form) form.style.display = 'block';
+    else {
+      // Show breeding_info as default for unimplemented types
+      document.getElementById('form-breeding_info').style.display = 'block';
+    }
+    currentType = type;
+    document.getElementById('pageTitle').textContent = typeNames[type] || '信息上报';
+    document.getElementById('confirmType').textContent = typeNames[type] || '信息上报';
+  }
+
+  function calcTotal() {
+    const b = parseInt(document.getElementById('boarCount').value) || 0;
+    const s = parseInt(document.getElementById('sowCount').value) || 0;
+    const p = parseInt(document.getElementById('pigletCount').value) || 0;
+    const f = parseInt(document.getElementById('fatteningCount').value) || 0;
+    const r = parseInt(document.getElementById('reserveCount').value) || 0;
+    const total = b + s + p + f + r;
+    document.getElementById('totalStock').textContent = total + ' 头';
+    document.getElementById('confirmStock').textContent = total + ' 头';
+  }
+
+  function calcTotalPiglets() {
+    const live = parseInt(document.getElementById('liveCount').value) || 0;
+    const dead = parseInt(document.getElementById('deadCount').value) || 0;
+    document.getElementById('totalPiglets').textContent = (live + dead) + ' 头';
+  }
+
+  function calcDueDate() {
+    const d = document.getElementById('breedingDate').value;
+    if (d) {
+      const date = new Date(d);
+      date.setDate(date.getDate() + 114);
+      document.getElementById('dueDate').textContent = date.toISOString().split('T')[0];
+    }
+  }
+
+  function selectOption(el, groupId) {
+    document.querySelectorAll('#' + groupId + ' .option-item').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function updateCharCount(el, countId, max) {
+    document.getElementById(countId).textContent = el.value.length;
+  }
+
+  function showCurrentStock(sel) {
+    const val = sel.value;
+    if (val) {
+      document.getElementById('currentStockInfo').style.display = 'block';
+      document.getElementById('currentStockVal').textContent = val + ' 头';
+    } else {
+      document.getElementById('currentStockInfo').style.display = 'none';
+    }
+  }
+
+  function validateOutbound() {
+    const pigstyVal = document.getElementById('outboundPigsty').value;
+    const count = parseInt(document.getElementById('outboundCount').value) || 0;
+    const stock = parseInt(pigstyVal) || 0;
+    const errEl = document.getElementById('outboundError');
+    if (stock > 0 && count > stock) {
+      errEl.classList.add('show');
+      document.getElementById('outboundCount').classList.add('error');
+    } else {
+      errEl.classList.remove('show');
+      document.getElementById('outboundCount').classList.remove('error');
+    }
+  }
+
+  function checkWeaningAge() {
+    const age = parseInt(document.getElementById('weaningAge').value) || 0;
+    const warn = document.getElementById('weaningAgeWarn');
+    if (age > 0 && (age < 21 || age > 28)) {
+      warn.style.display = 'block';
+    } else {
+      warn.style.display = 'none';
+    }
+  }
+
+  function togglePurchaseInfo(el) {
+    const show = el.textContent === '外购';
+    document.getElementById('purchaseInfo').style.display = show ? 'block' : 'none';
+  }
+
+  function toggleBuyerInfo(el) {
+    const show = el.textContent === '销售' || el.textContent === '调拨';
+    document.getElementById('buyerInfo').style.display = show ? 'block' : 'none';
+  }
+
+  function toggleWithdrawal(el) {
+    const show = el.textContent === '兽药';
+    document.getElementById('withdrawalGroup').style.display = show ? 'block' : 'none';
+  }
+
+  function toggleDisposalUnit(el) {
+    const show = el.textContent === '委托专业机构处理';
+    document.getElementById('disposalUnitGroup').style.display = show ? 'block' : 'none';
+    document.getElementById('disposalCertGroup').style.display = show ? 'block' : 'none';
+  }
+
+  function uploadImage(el) {
+    el.classList.add('has-image');
+    el.innerHTML = '<img src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'%3E%3Crect fill=\'%23d1fae5\' width=\'100\' height=\'100\'/%3E%3Ctext x=\'50\' y=\'55\' text-anchor=\'middle\' font-size=\'12\' fill=\'%2316a34a\'%3E图片%3C/text%3E%3C/svg%3E" alt="上传图片"><div class="remove-img" onclick="removeImage(event,this.parentElement)"><svg viewBox="0 0 24 24" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>';
+  }
+
+  function removeImage(e, el) {
+    e.stopPropagation();
+    el.classList.remove('has-image');
+    el.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#86a892" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>上传</span>';
+    el.onclick = () => uploadImage(el);
+  }
+
+  function saveDraft() {
+    showToast('草稿已保存');
+  }
+
+  function showConfirm() {
+    document.getElementById('confirmDialog').classList.add('show');
+  }
+
+  function closeConfirm() {
+    document.getElementById('confirmDialog').classList.remove('show');
+  }
+
+  function doSubmit() {
+    closeConfirm();
+    document.getElementById('loadingOverlay').classList.add('show');
+    setTimeout(() => {
+      document.getElementById('loadingOverlay').classList.remove('show');
+      document.getElementById('successOverlay').classList.add('show');
+    }, 1800);
+  }
+
+  function goBack() {
+    window.location.href = 'breeding.html';
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 1500);
+  }
+
+  // Init from URL params
+  const urlParams = new URLSearchParams(window.location.search);
+  const typeParam = urlParams.get('type');
+  const modeParam = urlParams.get('mode');
+  if (typeParam) {
+    document.getElementById('typeSelect').value = typeParam;
+    switchFormType(typeParam);
+  }
+  if (modeParam === 'edit') {
+    document.getElementById('pageTitle').textContent = (typeNames[typeParam] || '信息') + '（编辑）';
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>功能四：生猪知识课堂 - 蓬溪县生猪数字化管理平台</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
+  .phone-frame { width: 390px; height: 844px; background: #f5f5f5; border-radius: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); overflow: hidden; position: relative; display: flex; flex-direction: column; }
+  .demo-bar { background: #fff9c4; padding: 5px 16px; font-size: 11px; color: #7a6200; text-align: center; flex-shrink: 0; }
+  .scroll-area { flex: 1; overflow-y: auto; }
+  .scroll-area::-webkit-scrollbar { display: none; }
+
+  .page-nav { display: flex; align-items: center; padding: 12px 16px; background: white; border-bottom: 1px solid #f0f0f0; flex-shrink: 0; }
+  .nav-back { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 50%; }
+  .nav-back:hover { background: #f5f5f5; }
+  .nav-title { flex: 1; text-align: center; font-size: 16px; font-weight: 600; color: #1a1a1a; }
+  .nav-right { width: 36px; display: flex; justify-content: flex-end; }
+
+  /* 顶部Tab */
+  .main-tab { display: flex; background: white; border-bottom: 1px solid #f0f0f0; flex-shrink: 0; }
+  .main-tab-item { flex: 1; padding: 12px 0; text-align: center; font-size: 14px; color: #666; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
+  .main-tab-item.active { color: #2d9e5f; border-bottom-color: #2d9e5f; font-weight: 600; }
+
+  /* 分类Tab */
+  .cat-tab { display: flex; background: white; overflow-x: auto; padding: 8px 12px; gap: 8px; flex-shrink: 0; }
+  .cat-tab::-webkit-scrollbar { display: none; }
+  .cat-item { padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer; white-space: nowrap; border: 1px solid #e0e0e0; color: #666; background: white; transition: all 0.2s; }
+  .cat-item.active { background: #2d9e5f; color: white; border-color: #2d9e5f; }
+
+  /* 课程卡片 */
+  .course-card { background: white; margin: 10px 12px 0; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); cursor: pointer; }
+  .course-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+  .course-cover { width: 100%; height: 160px; background: linear-gradient(135deg, #1a6b3c, #4caf7d); display: flex; align-items: center; justify-content: center; position: relative; }
+  .course-cover-small { width: 110px; height: 80px; background: linear-gradient(135deg, #1a6b3c, #4caf7d); display: flex; align-items: center; justify-content: center; border-radius: 10px; flex-shrink: 0; }
+  .play-btn { width: 48px; height: 48px; background: rgba(255,255,255,0.9); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .play-btn-sm { width: 32px; height: 32px; background: rgba(255,255,255,0.9); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .course-duration { position: absolute; bottom: 8px; right: 10px; background: rgba(0,0,0,0.6); color: white; font-size: 11px; padding: 2px 6px; border-radius: 4px; }
+  .course-progress-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.3); }
+  .course-progress-fill { height: 100%; background: #4caf7d; }
+  .course-info { padding: 12px; }
+  .course-title { font-size: 14px; font-weight: 600; color: #1a1a1a; line-height: 1.4; margin-bottom: 6px; }
+  .course-meta { display: flex; align-items: center; gap: 12px; font-size: 12px; color: #999; }
+  .course-tag { background: #e8f5e9; color: #2d9e5f; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+  .course-actions { display: flex; gap: 12px; margin-top: 8px; }
+  .action-btn { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #999; cursor: pointer; padding: 4px 0; }
+  .action-btn.liked { color: #f44336; }
+  .action-btn.collected { color: #ff9800; }
+
+  /* 横向列表课程卡片 */
+  .course-row { background: white; margin: 8px 12px 0; border-radius: 14px; padding: 12px; display: flex; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); cursor: pointer; }
+  .course-row:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+  .course-row-info { flex: 1; }
+  .course-row-title { font-size: 14px; font-weight: 500; color: #1a1a1a; line-height: 1.4; margin-bottom: 6px; }
+  .course-row-meta { font-size: 12px; color: #999; }
+  .progress-text { font-size: 11px; color: #2d9e5f; margin-top: 4px; }
+
+  /* 政策资讯 */
+  .policy-card { background: white; margin: 8px 12px 0; border-radius: 14px; padding: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); cursor: pointer; }
+  .policy-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+  .policy-title { font-size: 14px; font-weight: 600; color: #1a1a1a; line-height: 1.5; margin-bottom: 6px; }
+  .policy-title.red { color: #c62828; }
+  .policy-title.read { color: #999; }
+  .policy-summary { font-size: 12px; color: #666; line-height: 1.6; margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .policy-meta { display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: #bbb; }
+  .policy-tag { font-size: 11px; padding: 2px 8px; border-radius: 4px; }
+  .tag-national { background: #e3f2fd; color: #1565c0; }
+  .tag-local { background: #e8f5e9; color: #2e7d32; }
+  .tag-industry { background: #fff3e0; color: #e65100; }
+  .tag-guide { background: #f3e5f5; color: #6a1b9a; }
+  .tag-important { background: #ffebee; color: #c62828; }
+  .tag-top { background: #fff8e1; color: #f57f17; }
+
+  /* 培训活动 */
+  .training-card { background: white; margin: 8px 12px 0; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); cursor: pointer; }
+  .training-cover { height: 100px; background: linear-gradient(135deg, #1565c0, #42a5f5); display: flex; align-items: center; justify-content: center; position: relative; }
+  .training-status-badge { position: absolute; top: 10px; right: 10px; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .badge-open { background: #4caf50; color: white; }
+  .badge-closed { background: #9e9e9e; color: white; }
+  .badge-ongoing { background: #ff9800; color: white; }
+  .badge-ended { background: #757575; color: white; }
+  .training-info { padding: 12px; }
+  .training-title { font-size: 14px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px; }
+  .training-detail { font-size: 12px; color: #666; line-height: 1.8; }
+  .training-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+  .training-quota { font-size: 12px; color: #999; }
+  .btn-register { height: 32px; padding: 0 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; }
+  .btn-register-open { background: #2d9e5f; color: white; }
+  .btn-register-pending { background: #f5f5f5; color: #999; cursor: not-allowed; }
+  .btn-register-passed { background: #e8f5e9; color: #2d9e5f; cursor: default; }
+  .btn-register-closed { background: #f5f5f5; color: #bbb; cursor: not-allowed; }
+
+  /* 视频播放页 */
+  .video-player { background: #000; width: 100%; height: 200px; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; flex-shrink: 0; }
+  .video-controls { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 20px 12px 10px; }
+  .progress-bar { height: 3px; background: rgba(255,255,255,0.3); border-radius: 2px; margin-bottom: 8px; cursor: pointer; }
+  .progress-fill { height: 100%; background: #4caf7d; border-radius: 2px; width: 35%; }
+  .video-btns { display: flex; align-items: center; gap: 12px; }
+  .video-btn { color: white; font-size: 12px; cursor: pointer; }
+  .speed-btn { background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 4px; color: white; font-size: 11px; cursor: pointer; }
+  .quality-btn { background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 4px; color: white; font-size: 11px; cursor: pointer; }
+  .fullscreen-btn { margin-left: auto; color: white; cursor: pointer; }
+  .video-time { color: rgba(255,255,255,0.8); font-size: 11px; }
+  .play-pause { width: 40px; height: 40px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+  /* 评论区 */
+  .comment-section { background: white; margin: 10px 12px 0; border-radius: 14px; padding: 14px; }
+  .comment-header { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+  .comment-item { display: flex; gap: 10px; margin-bottom: 14px; }
+  .comment-avatar { width: 34px; height: 34px; border-radius: 50%; background: #e8f5e9; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: #2d9e5f; flex-shrink: 0; }
+  .comment-body { flex: 1; }
+  .comment-user { font-size: 12px; color: #999; margin-bottom: 4px; }
+  .comment-text { font-size: 13px; color: #1a1a1a; line-height: 1.6; }
+  .comment-actions { display: flex; gap: 12px; margin-top: 6px; }
+  .comment-action { font-size: 11px; color: #bbb; cursor: pointer; display: flex; align-items: center; gap: 3px; }
+  .comment-action:hover { color: #2d9e5f; }
+  .reply-item { background: #f9f9f9; border-radius: 8px; padding: 8px 10px; margin-top: 6px; }
+  .reply-user { font-size: 11px; color: #2d9e5f; font-weight: 500; }
+  .reply-text { font-size: 12px; color: #333; margin-top: 2px; }
+  .comment-input-bar { position: sticky; bottom: 0; background: white; border-top: 1px solid #f0f0f0; padding: 10px 12px; display: flex; gap: 8px; align-items: center; }
+  .comment-input { flex: 1; height: 36px; border: 1.5px solid #e0e0e0; border-radius: 18px; padding: 0 14px; font-size: 13px; outline: none; }
+  .comment-input:focus { border-color: #2d9e5f; }
+  .comment-send { height: 36px; padding: 0 14px; background: #2d9e5f; color: white; border: none; border-radius: 18px; font-size: 13px; cursor: pointer; }
+
+  /* 报名表单 */
+  .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: none; align-items: flex-end; }
+  .modal-overlay.show { display: flex; }
+  .modal-sheet { background: white; border-radius: 20px 20px 0 0; width: 100%; max-height: 80%; overflow-y: auto; padding: 20px; }
+  .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+  .form-group { margin-bottom: 14px; }
+  .form-label { font-size: 13px; color: #555; margin-bottom: 6px; display: block; }
+  .required { color: #f44336; }
+  .form-input { width: 100%; height: 44px; border: 1.5px solid #e0e0e0; border-radius: 10px; padding: 0 12px; font-size: 14px; color: #1a1a1a; outline: none; background: #fafafa; }
+  .form-input:focus { border-color: #2d9e5f; }
+  .form-input.error { border-color: #f44336; }
+  .error-msg { font-size: 12px; color: #f44336; margin-top: 4px; display: none; }
+  .error-msg.show { display: block; }
+  .btn-submit-full { width: 100%; height: 46px; background: linear-gradient(135deg, #2d9e5f, #1a6b3c); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+  .modal-close { float: right; width: 28px; height: 28px; background: #f5f5f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; color: #666; }
+
+  /* 评价弹窗 */
+  .star-row { display: flex; gap: 6px; margin-top: 6px; }
+  .star { font-size: 24px; cursor: pointer; color: #ddd; transition: color 0.15s; }
+  .star.active { color: #ff9800; }
+
+  .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.75); color: white; padding: 10px 20px; border-radius: 20px; font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; white-space: nowrap; }
+  .toast.show { opacity: 1; }
+  .empty-state { text-align: center; padding: 40px 20px; color: #999; font-size: 14px; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 4px; }
+  .section-title { font-size: 15px; font-weight: 600; color: #1a1a1a; }
+  .section-more { font-size: 12px; color: #2d9e5f; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="demo-bar">📱 原型演示 - 功能四：生猪知识课堂</div>
+
+  <!-- 主视图 -->
+  <div id="view-main" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+    <div class="page-nav">
+      <div class="nav-back" onclick="window.location.href='02-首页.html'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <div class="nav-title">生猪知识课堂</div>
+      <div class="nav-right">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" style="cursor:pointer" onclick="showToast('搜索功能')"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+    </div>
+    <div class="main-tab">
+      <div class="main-tab-item active" onclick="switchMainTab(this, 'tab-course')">课程视频</div>
+      <div class="main-tab-item" onclick="switchMainTab(this, 'tab-policy')">政策资讯</div>
+      <div class="main-tab-item" onclick="switchMainTab(this, 'tab-training')">培训活动</div>
+    </div>
+
+    <!-- 课程视频 -->
+    <div id="tab-course" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+      <div class="cat-tab">
+        <div class="cat-item active" onclick="switchCat(this)">推荐</div>
+        <div class="cat-item" onclick="switchCat(this)">养殖技术</div>
+        <div class="cat-item" onclick="switchCat(this)">疾病防控</div>
+        <div class="cat-item" onclick="switchCat(this)">饲料营养</div>
+        <div class="cat-item" onclick="switchCat(this)">环境管理</div>
+        <div class="cat-item" onclick="switchCat(this)">经营管理</div>
+      </div>
+      <div class="scroll-area">
+        <!-- 精选课程 -->
+        <div class="course-card" onclick="showView('video-player')">
+          <div class="course-cover">
+            <div class="play-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="#2d9e5f"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </div>
+            <div class="course-duration">28:35</div>
+            <div class="course-progress-bar"><div class="course-progress-fill" style="width:35%"></div></div>
+          </div>
+          <div class="course-info">
+            <div style="display:flex;gap:6px;margin-bottom:6px">
+              <span class="course-tag">疾病防控</span>
+              <span class="course-tag" style="background:#fff3e0;color:#f57c00">推荐</span>
+            </div>
+            <div class="course-title">非洲猪瘟综合防控技术与生物安全体系建设</div>
+            <div class="course-meta">
+              <span>李建国 讲师</span>
+              <span>1,286次观看</span>
+              <span>进度：35%</span>
+            </div>
+            <div class="course-actions">
+              <div class="action-btn liked" onclick="event.stopPropagation();toggleLike(this)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#f44336"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+                <span>128</span>
+              </div>
+              <div class="action-btn" onclick="event.stopPropagation();showToast('评论区')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                <span>32</span>
+              </div>
+              <div class="action-btn collected" onclick="event.stopPropagation();toggleCollect(this)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#ff9800"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <span>已收藏</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="course-row" onclick="showView('video-player')">
+          <div class="course-cover-small">
+            <div class="play-btn-sm">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#2d9e5f"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </div>
+          </div>
+          <div class="course-row-info">
+            <div class="course-row-title">生猪饲料配方与营养管理实操指南</div>
+            <div class="course-row-meta">王芳 讲师 · 45:20 · 饲料营养</div>
+            <div class="progress-text">未开始学习</div>
+          </div>
+        </div>
+        <div class="course-row" onclick="showView('video-player')">
+          <div class="course-cover-small" style="background:linear-gradient(135deg,#1565c0,#42a5f5)">
+            <div class="play-btn-sm">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#1565c0"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </div>
+          </div>
+          <div class="course-row-info">
+            <div class="course-row-title">猪舍环境控制与通风管理技术</div>
+            <div class="course-row-meta">张明 讲师 · 32:15 · 环境管理</div>
+            <div class="progress-text">进度：80% ✓ 已完成</div>
+          </div>
+        </div>
+        <div class="course-row" onclick="showView('video-player')">
+          <div class="course-cover-small" style="background:linear-gradient(135deg,#6a1b9a,#ab47bc)">
+            <div class="play-btn-sm">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </div>
+          </div>
+          <div class="course-row-info">
+            <div class="course-row-title">生猪养殖经营管理与成本控制</div>
+            <div class="course-row-meta">陈伟 讲师 · 58:40 · 经营管理</div>
+            <div class="progress-text">进度：60%</div>
+          </div>
+        </div>
+        <div style="height:20px"></div>
+      </div>
+    </div>
+
+    <!-- 政策资讯 -->
+    <div id="tab-policy" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+      <div class="cat-tab">
+        <div class="cat-item active" onclick="switchCat(this)">全部</div>
+        <div class="cat-item" onclick="switchCat(this)">国家政策</div>
+        <div class="cat-item" onclick="switchCat(this)">地方政策</div>
+        <div class="cat-item" onclick="switchCat(this)">行业动态</div>
+        <div class="cat-item" onclick="switchCat(this)">技术指南</div>
+      </div>
+      <div class="scroll-area">
+        <div class="policy-card" onclick="showView('policy-detail')">
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <span class="policy-tag tag-important">重要</span>
+            <span class="policy-tag tag-national">国家政策</span>
+          </div>
+          <div class="policy-title red">2026年生猪养殖补贴政策解读与申报指南</div>
+          <div class="policy-summary">农业农村部发布2026年生猪养殖补贴政策，规模养殖场每头出栏补贴标准提高至50元，家庭农场补贴标准为30元/头...</div>
+          <div class="policy-meta">
+            <span>农业农村部 · 2026-02-20</span>
+            <span>1,568次阅读</span>
+          </div>
+        </div>
+        <div class="policy-card" onclick="showView('policy-detail')">
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <span class="policy-tag tag-local">地方政策</span>
+          </div>
+          <div class="policy-title">蓬溪县2026年生猪产业发展扶持政策汇编</div>
+          <div class="policy-summary">蓬溪县农业农村局发布2026年生猪产业发展扶持政策，包括养殖设施改造补贴、疫病防控补贴、贷款贴息等多项优惠政策...</div>
+          <div class="policy-meta">
+            <span>蓬溪县农业农村局 · 2026-02-18</span>
+            <span>892次阅读</span>
+          </div>
+        </div>
+        <div class="policy-card" onclick="showView('policy-detail')">
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <span class="policy-tag tag-industry">行业动态</span>
+          </div>
+          <div class="policy-title read">2025年四川省生猪出栏量同比增长8.3%（已读）</div>
+          <div class="policy-summary">据四川省农业农村厅统计，2025年全省生猪出栏量达到6,820万头，同比增长8.3%，生猪产业持续向好发展...</div>
+          <div class="policy-meta">
+            <span>四川省农业农村厅 · 2026-02-15</span>
+            <span>456次阅读</span>
+          </div>
+        </div>
+        <div class="policy-card" onclick="showView('policy-detail')">
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <span class="policy-tag tag-guide">技术指南</span>
+          </div>
+          <div class="policy-title">非洲猪瘟防控技术规范（2026年版）</div>
+          <div class="policy-summary">农业农村部发布最新版非洲猪瘟防控技术规范，对养殖场生物安全管理、疫情监测、应急处置等方面提出新要求...</div>
+          <div class="policy-meta">
+            <span>农业农村部 · 2026-02-10</span>
+            <span>2,134次阅读</span>
+          </div>
+        </div>
+        <div style="height:20px"></div>
+      </div>
+    </div>
+
+    <!-- 培训活动 -->
+    <div id="tab-training" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+      <div class="cat-tab">
+        <div class="cat-item active" onclick="switchCat(this)">全部</div>
+        <div class="cat-item" onclick="switchCat(this)">报名中</div>
+        <div class="cat-item" onclick="switchCat(this)">已结束</div>
+        <div class="cat-item" onclick="switchCat(this)">我的报名</div>
+      </div>
+      <div class="scroll-area">
+        <div class="training-card">
+          <div class="training-cover">
+            <div style="color:white;font-size:16px;font-weight:700;text-align:center;padding:0 20px">生猪疾病防控技术培训</div>
+            <div class="training-status-badge badge-open">报名中</div>
+          </div>
+          <div class="training-info">
+            <div class="training-title">2026年春季生猪疾病防控技术培训班</div>
+            <div class="training-detail">
+              主办：蓬溪县农业农村局<br>
+              时间：2026-03-15 09:00 - 17:00<br>
+              地点：蓬溪县农业技术推广中心<br>
+              报名截止：2026-03-10
+            </div>
+            <div class="training-footer">
+              <div class="training-quota">已报名 28/50 人</div>
+              <button class="btn-register btn-register-open" onclick="showRegisterModal()">立即报名</button>
+            </div>
+          </div>
+        </div>
+        <div class="training-card">
+          <div class="training-cover" style="background:linear-gradient(135deg,#1a6b3c,#4caf7d)">
+            <div style="color:white;font-size:16px;font-weight:700;text-align:center;padding:0 20px">养殖技术培训</div>
+            <div class="training-status-badge badge-open">报名中</div>
+          </div>
+          <div class="training-info">
+            <div class="training-title">生猪精细化养殖管理技术培训</div>
+            <div class="training-detail">
+              主办：蓬溪县农业农村局<br>
+              时间：2026-03-22 09:00 - 17:00<br>
+              地点：蓬溪县畜牧兽医局会议室<br>
+              报名截止：2026-03-18
+            </div>
+            <div class="training-footer">
+              <div class="training-quota">已报名 15/30 人</div>
+              <button class="btn-register btn-register-pending" disabled>待审核</button>
+            </div>
+          </div>
+        </div>
+        <div class="training-card">
+          <div class="training-cover" style="background:linear-gradient(135deg,#37474f,#78909c)">
+            <div style="color:white;font-size:16px;font-weight:700;text-align:center;padding:0 20px">政策法规培训</div>
+            <div class="training-status-badge badge-ended">已结束</div>
+          </div>
+          <div class="training-info">
+            <div class="training-title">2025年生猪养殖政策法规宣贯培训</div>
+            <div class="training-detail">
+              主办：蓬溪县农业农村局<br>
+              时间：2025-12-20 09:00 - 17:00<br>
+              地点：蓬溪县政务服务中心
+            </div>
+            <div class="training-footer">
+              <div class="training-quota">已签到 42/50 人</div>
+              <button class="btn-register btn-register-closed" disabled>已结束</button>
+            </div>
+          </div>
+        </div>
+        <div style="height:20px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 视频播放页 -->
+  <div id="view-video-player" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div class="page-nav" style="flex-shrink:0">
+      <div class="nav-back" onclick="showView('main')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <div class="nav-title">课程详情</div>
+      <div class="nav-right"></div>
+    </div>
+    <div class="video-player" onclick="togglePlay()" id="video-player">
+      <div style="color:white;font-size:14px;text-align:center;padding:0 20px">
+        <div id="play-icon">
+          <svg width="60" height="60" viewBox="0 0 24 24" fill="rgba(255,255,255,0.8)"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </div>
+        <div id="pause-icon" style="display:none">
+          <svg width="60" height="60" viewBox="0 0 24 24" fill="rgba(255,255,255,0.8)"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        </div>
+      </div>
+      <div class="video-controls">
+        <div class="progress-bar" onclick="seekVideo(event)">
+          <div class="progress-fill" id="video-progress"></div>
+        </div>
+        <div class="video-btns">
+          <div class="play-pause" onclick="event.stopPropagation();togglePlay()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="white" id="ctrl-play"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          </div>
+          <div class="video-time" id="video-time">10:00 / 28:35</div>
+          <div class="speed-btn" onclick="event.stopPropagation();cycleSpeed()">1.0x</div>
+          <div class="quality-btn" onclick="event.stopPropagation();showToast('切换清晰度')">高清</div>
+          <div class="fullscreen-btn" onclick="event.stopPropagation();showToast('全屏播放')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="scroll-area">
+      <div style="background:white;padding:14px 16px">
+        <div style="font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:8px">非洲猪瘟综合防控技术与生物安全体系建设</div>
+        <div style="display:flex;align-items:center;gap:12px;font-size:12px;color:#999">
+          <span>李建国 讲师</span>
+          <span>1,286次观看</span>
+          <span>28:35</span>
+        </div>
+        <div style="display:flex;gap:16px;margin-top:12px">
+          <div class="action-btn liked">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="#f44336"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+            <span>128 点赞</span>
+          </div>
+          <div class="action-btn collected">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="#ff9800"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span>已收藏</span>
+          </div>
+        </div>
+      </div>
+      <div class="comment-section">
+        <div class="comment-header">评论 (32)</div>
+        <div class="comment-item">
+          <div class="comment-avatar">王</div>
+          <div class="comment-body">
+            <div class="comment-user">王建国 · 2天前</div>
+            <div class="comment-text">讲得非常详细，特别是生物安全体系那一块，对我们实际操作很有帮助！</div>
+            <div class="comment-actions">
+              <div class="comment-action" onclick="showToast('点赞')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/><path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg>
+                <span>12</span>
+              </div>
+              <div class="comment-action" onclick="showToast('回复评论')">回复</div>
+            </div>
+            <div class="reply-item">
+              <div class="reply-user">@李建国（讲师）</div>
+              <div class="reply-text">谢谢支持！如有实际操作问题欢迎继续提问</div>
+            </div>
+          </div>
+        </div>
+        <div class="comment-item">
+          <div class="comment-avatar" style="background:#e3f2fd;color:#1976d2">张</div>
+          <div class="comment-body">
+            <div class="comment-user">张小明 · 5天前</div>
+            <div class="comment-text">请问消毒频率一般建议多久一次比较合适？</div>
+            <div class="comment-actions">
+              <div class="comment-action">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/><path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg>
+                <span>5</span>
+              </div>
+              <div class="comment-action" onclick="showToast('回复评论')">回复</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="height:60px"></div>
+    </div>
+    <div class="comment-input-bar">
+      <input class="comment-input" placeholder="发表评论（2-500字）" id="comment-input">
+      <button class="comment-send" onclick="sendComment()">发送</button>
+    </div>
+  </div>
+
+  <!-- 政策详情页 -->
+  <div id="view-policy-detail" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div class="page-nav" style="flex-shrink:0">
+      <div class="nav-back" onclick="showView('main')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <div class="nav-title">政策详情</div>
+      <div class="nav-right"></div>
+    </div>
+    <div class="scroll-area">
+      <div style="background:white;padding:16px">
+        <div style="display:flex;gap:6px;margin-bottom:10px">
+          <span class="policy-tag tag-important">重要</span>
+          <span class="policy-tag tag-national">国家政策</span>
+        </div>
+        <div style="font-size:17px;font-weight:700;color:#1a1a1a;line-height:1.5;margin-bottom:10px">2026年生猪养殖补贴政策解读与申报指南</div>
+        <div style="font-size:12px;color:#999;margin-bottom:16px;display:flex;gap:12px">
+          <span>农业农村部</span>
+          <span>2026-02-20 10:00</span>
+          <span>1,568次阅读</span>
+        </div>
+        <div style="font-size:14px;color:#333;line-height:1.8">
+          <p style="margin-bottom:12px">为促进生猪产业持续健康发展，保障猪肉市场供应，农业农村部发布2026年生猪养殖补贴政策，现就相关内容解读如下：</p>
+          <p style="font-weight:600;margin-bottom:8px">一、补贴对象</p>
+          <p style="margin-bottom:12px">在蓬溪县境内依法注册登记，持有《动物防疫合格证》，年出栏生猪50头以上的规模养殖场（户）。</p>
+          <p style="font-weight:600;margin-bottom:8px">二、补贴标准</p>
+          <p style="margin-bottom:12px">• 规模养殖场（年出栏500头以上）：50元/头<br>• 家庭农场（年出栏50-499头）：30元/头<br>• 散养户（年出栏50头以下）：20元/头</p>
+          <p style="font-weight:600;margin-bottom:8px">三、申报流程</p>
+          <p style="margin-bottom:12px">1. 登录本平台提交申报材料<br>2. 村级初审（5个工作日）<br>3. 县级复审（10个工作日）<br>4. 公示（5个工作日）<br>5. 资金拨付</p>
+          <p style="font-weight:600;margin-bottom:8px">四、申报截止时间</p>
+          <p>2026年3月31日，逾期不予受理。</p>
+        </div>
+      </div>
+      <div class="comment-section">
+        <div class="comment-header">评论 (8)</div>
+        <div class="comment-item">
+          <div class="comment-avatar">李</div>
+          <div class="comment-body">
+            <div class="comment-user">李大农 · 1天前</div>
+            <div class="comment-text">请问申报材料需要哪些？</div>
+            <div class="comment-actions">
+              <div class="comment-action" onclick="showToast('回复评论')">回复</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="height:60px"></div>
+    </div>
+    <div class="comment-input-bar">
+      <input class="comment-input" placeholder="发表评论（2-500字）">
+      <button class="comment-send" onclick="showToast('评论已提交，待审核后显示')">发送</button>
+    </div>
+  </div>
+
+  <!-- 报名弹窗 -->
+  <div class="modal-overlay" id="register-modal">
+    <div class="modal-sheet">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div class="modal-title" style="margin-bottom:0">活动报名</div>
+        <div class="modal-close" onclick="closeModal()">×</div>
+      </div>
+      <div style="background:#f0faf4;border-radius:10px;padding:10px 12px;margin-bottom:16px;font-size:13px;color:#2d9e5f">
+        2026年春季生猪疾病防控技术培训班<br>
+        <span style="color:#666">2026-03-15 | 蓬溪县农业技术推广中心</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">报名人姓名 <span class="required">*</span></label>
+        <input class="form-input" id="reg-name" type="text" value="张大农" onblur="validateReg('name')">
+        <div class="error-msg" id="err-reg-name">报名人姓名不能为空</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">联系电话 <span class="required">*</span></label>
+        <input class="form-input" id="reg-phone" type="tel" value="138****8888" maxlength="11" onblur="validateReg('phone')">
+        <div class="error-msg" id="err-reg-phone">联系电话不能为空</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">所属单位 <span class="required">*</span></label>
+        <input class="form-input" id="reg-company" type="text" value="蓬溪县兴旺养殖场" onblur="validateReg('company')">
+        <div class="error-msg" id="err-reg-company">所属单位不能为空</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">职务</label>
+        <input class="form-input" type="text" placeholder="选填">
+      </div>
+      <div class="form-group">
+        <label class="form-label">报名人数 <span class="required">*</span></label>
+        <input class="form-input" id="reg-count" type="number" value="1" min="1" max="10" onblur="validateReg('count')">
+        <div class="error-msg" id="err-reg-count">报名人数须在1～10之间</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">备注</label>
+        <input class="form-input" type="text" placeholder="选填">
+      </div>
+      <button class="btn-submit-full" onclick="submitRegister()">提交报名</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let isPlaying = false;
+let videoProgress = 35;
+let speedIndex = 0;
+const speeds = ['0.5x', '1.0x', '1.25x', '1.5x', '2.0x'];
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function showView(name) {
+  document.querySelectorAll('[id^="view-"]').forEach(v => v.style.display = 'none');
+  const el = document.getElementById('view-' + name);
+  if (el) el.style.display = 'flex';
+}
+
+function switchMainTab(el, tabId) {
+  el.closest('.main-tab').querySelectorAll('.main-tab-item').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('#tab-course,#tab-policy,#tab-training').forEach(t => t.style.display = 'none');
+  document.getElementById(tabId).style.display = 'flex';
+}
+
+function switchCat(el) {
+  el.closest('.cat-tab').querySelectorAll('.cat-item').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  showToast('筛选：' + el.textContent);
+}
+
+function togglePlay() {
+  isPlaying = !isPlaying;
+  document.getElementById('play-icon').style.display = isPlaying ? 'none' : 'block';
+  document.getElementById('pause-icon').style.display = isPlaying ? 'block' : 'none';
+  if (isPlaying) {
+    showToast('正在播放（模拟）');
+  }
+}
+
+function seekVideo(e) {
+  const bar = e.currentTarget;
+  const rect = bar.getBoundingClientRect();
+  const pct = Math.max(0, Math.min(100, (e.clientX - rect.left) / rect.width * 100));
+  videoProgress = pct;
+  document.getElementById('video-progress').style.width = pct + '%';
+  const totalSec = 28 * 60 + 35;
+  const curSec = Math.floor(totalSec * pct / 100);
+  const m = Math.floor(curSec / 60);
+  const s = curSec % 60;
+  document.getElementById('video-time').textContent = `${m}:${s.toString().padStart(2,'0')} / 28:35`;
+}
+
+function cycleSpeed() {
+  speedIndex = (speedIndex + 1) % speeds.length;
+  document.querySelector('.speed-btn').textContent = speeds[speedIndex];
+  showToast('播放速度：' + speeds[speedIndex]);
+}
+
+function toggleLike(btn) {
+  btn.classList.toggle('liked');
+  showToast(btn.classList.contains('liked') ? '已点赞' : '已取消点赞');
+}
+
+function toggleCollect(btn) {
+  btn.classList.toggle('collected');
+  showToast(btn.classList.contains('collected') ? '已收藏' : '已取消收藏');
+}
+
+function sendComment() {
+  const input = document.getElementById('comment-input');
+  const val = input.value.trim();
+  if (val.length < 2) { showToast('评论内容至少2个字符'); return; }
+  if (val.length > 500) { showToast('评论内容不能超过500个字符'); return; }
+  showToast('评论已提交，待审核后显示');
+  input.value = '';
+}
+
+function showRegisterModal() {
+  document.getElementById('register-modal').classList.add('show');
+}
+
+function closeModal() {
+  document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
+}
+
+function validateReg(field) {
+  const fieldMap = {
+    name: { id: 'reg-name', msg: '报名人姓名不能为空' },
+    phone: { id: 'reg-phone', msg: '联系电话不能为空' },
+    company: { id: 'reg-company', msg: '所属单位不能为空' },
+    count: { id: 'reg-count', msg: '报名人数须在1～10之间' },
+  };
+  const f = fieldMap[field];
+  if (!f) return true;
+  const el = document.getElementById(f.id);
+  const val = el.value.trim();
+  const errEl = document.getElementById('err-' + f.id);
+  if (!val) { el.classList.add('error'); errEl.textContent = f.msg; errEl.classList.add('show'); return false; }
+  if (field === 'phone' && !/^1[3-9]\d{9}$/.test(val.replace(/\*/g, '0'))) {
+    // allow masked phone for demo
+  }
+  if (field === 'count') {
+    const n = parseInt(val);
+    if (isNaN(n) || n < 1 || n > 10) { el.classList.add('error'); errEl.classList.add('show'); return false; }
+  }
+  el.classList.remove('error');
+  errEl.classList.remove('show');
+  return true;
+}
+
+function submitRegister() {
+  const fields = ['name', 'phone', 'company', 'count'];
+  let valid = true;
+  fields.forEach(f => { if (!validateReg(f)) valid = false; });
+  if (!valid) { showToast('请完善报名信息'); return; }
+  closeModal();
+  showToast('报名成功，等待审核结果通知');
+}
+</script>
+</body>
+</html>
