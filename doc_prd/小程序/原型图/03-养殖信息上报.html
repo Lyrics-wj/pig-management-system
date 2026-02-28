@@ -412,7 +412,7 @@
         <div class="filter-row">
           <span class="filter-label">时间</span>
           <select class="filter-select"><option>近7天</option><option>近30天</option><option>近3个月</option><option>全部</option></select>
-        </div>
+      </div>
         <div class="filter-row">
           <span class="filter-label">猪舍</span>
           <select class="filter-select"><option>全部猪舍</option><option>育肥舍A</option><option>育肥舍B</option><option>母猪舍</option></select>
@@ -559,22 +559,22 @@
     </div>
     <div id="generic-form-tab" class="form-body">
       <div id="generic-form-content"></div>
-    </div>
+        </div>
     <div class="form-footer">
       <button class="btn-draft" onclick="saveDraft()">保存草稿</button>
       <button class="btn-submit" onclick="showSubmitConfirm('generic')">确认提交</button>
-    </div>
+        </div>
     <div id="generic-list-tab" style="display:none;flex:1;overflow-y:auto;flex-direction:column">
       <div class="list-filters">
         <div class="filter-row">
           <span class="filter-label">时间</span>
           <select class="filter-select"><option>近7天</option><option>近30天</option><option>近3个月</option><option>全部</option></select>
-        </div>
+          </div>
         <div class="filter-row">
           <span class="filter-label">猪舍</span>
           <select class="filter-select"><option>全部猪舍</option><option>育肥舍A</option><option>育肥舍B</option><option>母猪舍</option></select>
+          </div>
         </div>
-      </div>
       <div class="status-tabs">
         <div class="status-tab active" onclick="filterStatusTab(this,'all')">全部</div>
         <div class="status-tab" onclick="filterStatusTab(this,'draft')">草稿</div>
@@ -584,8 +584,8 @@
       </div>
       <div id="record-list-generic" style="display:flex;flex-direction:column"></div>
       <div style="height:20px"></div>
-    </div>
-  </div>
+        </div>
+        </div>
 
 
 
@@ -596,14 +596,14 @@
       <div class="sheet-header">
         <div class="sheet-title">确认提交</div>
         <div class="sheet-meta">请核对以下信息后提交</div>
-      </div>
+          </div>
       <div class="sheet-body" id="submit-modal-content"></div>
       <div style="padding:0 16px 28px;flex-shrink:0;display:flex;gap:10px">
         <button class="btn-cancel" onclick="closeAllModals()">取消</button>
         <button class="btn-confirm" id="submit-confirm-btn" onclick="doSubmit()">确认提交</button>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
 
   <!-- 查看详情 Sheet（底部上滑，内容展示） -->
   <div class="sheet-overlay" id="detail-sheet">
@@ -613,9 +613,9 @@
         <div style="display:flex;align-items:center;justify-content:space-between">
           <div class="sheet-title" id="detail-sheet-title">记录详情</div>
           <div id="detail-sheet-status"></div>
-        </div>
+    </div>
         <div class="sheet-meta" id="detail-sheet-meta"></div>
-      </div>
+        </div>
       <div class="sheet-body" id="detail-sheet-body"></div>
     </div>
   </div>
@@ -627,7 +627,7 @@
       <div class="modal-desc" id="confirm-modal-desc"></div>
       <div id="confirm-modal-extra"></div>
       <div class="modal-btns" id="confirm-modal-btns"></div>
-    </div>
+      </div>
   </div>
 
   <!-- 校验失败提示弹窗（居中） -->
@@ -861,8 +861,8 @@ function switchTab(el, tabId) {
   el.classList.add('active');
   const container = el.closest('[id^="view-"]');
   if (container) {
-    container.querySelectorAll('[id$="-tab"]').forEach(t => t.style.display = 'none');
-    const target = document.getElementById(tabId);
+  container.querySelectorAll('[id$="-tab"]').forEach(t => t.style.display = 'none');
+  const target = document.getElementById(tabId);
     if (target) {
       if (tabId.endsWith('-list-tab')) {
         // 历史记录 Tab：纵向 flex 滚动布局
