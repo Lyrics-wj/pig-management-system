@@ -1,0 +1,1988 @@
+<!--
+  功能名称：畜牧项目建设申报（企业端）
+  对应PRD：doc_prd/WEB/企业端/项目信息管理/项目申报/WEB企业端-项目申报-畜牧项目建设申报.prd.md
+  所属端口：WEB企业端
+  所属模块：项目信息管理 / 项目申报
+  制作日期：2026-03-06
+  最后更新：2026-03-06
+  角色说明：企业管理员（ent_admin）
+  功能说明：功能一：项目申报通知查看；功能二：申报信息填报；功能三：申报进度跟踪；功能四：项目实施信息填报
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>畜牧项目建设申报 - 企业端</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    /* SHARED STYLES */
+    [x-cloak] { display: none !important; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; }
+    .primary-color { color: #1677ff; }
+    .primary-bg { background-color: #1677ff; }
+    .sidebar-width { width: 240px; min-width: 240px; }
+    .content-area { margin-left: 240px; }
+    .top-nav { height: 60px; }
+    .status-tag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+    .tag-green { background: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
+    .tag-blue { background: #e6f4ff; color: #1677ff; border: 1px solid #91caff; }
+    .tag-gray { background: #f5f5f5; color: #8c8c8c; border: 1px solid #d9d9d9; }
+    .tag-orange { background: #fff7e6; color: #fa8c16; border: 1px solid #ffd591; }
+    .tag-red { background: #fff2f0; color: #ff4d4f; border: 1px solid #ffccc7; }
+    .tag-darkgreen { background: #f0fce8; color: #389e0d; border: 1px solid #95de64; }
+    .menu-item { padding: 10px 16px; cursor: pointer; border-radius: 6px; margin: 2px 8px; transition: all 0.2s; color: #595959; }
+    .menu-item:hover { background: #e6f4ff; color: #1677ff; }
+    .menu-item.active { background: #e6f4ff; color: #1677ff; font-weight: 500; }
+    .menu-group-title { padding: 8px 16px 4px; font-size: 11px; color: #8c8c8c; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .btn-primary { background: #1677ff; color: #fff; border: none; padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; transition: background 0.2s; }
+    .btn-primary:hover { background: #4096ff; }
+    .btn-primary:disabled { background: #bfbfbf; cursor: not-allowed; }
+    .btn-default { background: #fff; color: #262626; border: 1px solid #d9d9d9; padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+    .btn-default:hover { border-color: #1677ff; color: #1677ff; }
+    .btn-danger { background: #fff; color: #ff4d4f; border: 1px solid #ff4d4f; padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+    .btn-danger:hover { background: #fff2f0; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+    .modal-box { background: #fff; border-radius: 8px; padding: 24px; min-width: 480px; max-width: 90vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
+    .form-label { font-size: 14px; color: #262626; margin-bottom: 4px; }
+    .form-label.required::before { content: '*'; color: #ff4d4f; margin-right: 4px; }
+    .form-input { width: 100%; border: 1px solid #d9d9d9; border-radius: 6px; padding: 7px 11px; font-size: 14px; color: #262626; outline: none; box-sizing: border-box; }
+    .form-input:focus { border-color: #1677ff; box-shadow: 0 0 0 2px rgba(22,119,255,0.1); }
+    .form-input.error { border-color: #ff4d4f; }
+    .form-error { color: #ff4d4f; font-size: 12px; margin-top: 2px; }
+    .form-readonly { background: #f5f5f5; border: 1px solid #e8e8e8; border-radius: 6px; padding: 7px 11px; font-size: 14px; color: #595959; box-sizing: border-box; min-height: 34px; }
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #fafafa; padding: 10px 12px; text-align: left; font-weight: 500; color: #595959; border-bottom: 1px solid #e8e8e8; white-space: nowrap; }
+    td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; color: #262626; }
+    tr:hover td { background: #fafafa; }
+    tr:nth-child(even) td { background: #fafafa; }
+    tr:hover td { background: #e6f4ff !important; }
+    .sticky-col { position: sticky; right: 0; background: #fff; z-index: 1; }
+    tr:nth-child(even) .sticky-col { background: #fafafa; }
+    tr:hover .sticky-col { background: #e6f4ff !important; }
+    .pagination { display: flex; align-items: center; gap: 4px; }
+    .page-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1px solid #d9d9d9; border-radius: 6px; cursor: pointer; color: #262626; font-size: 13px; background: #fff; }
+    .page-btn:hover { border-color: #1677ff; color: #1677ff; }
+    .page-btn.active { background: #1677ff; color: #fff; border-color: #1677ff; }
+    .toast { position: fixed; top: 80px; right: 24px; z-index: 9999; padding: 12px 20px; border-radius: 8px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 14px; min-width: 200px; }
+    .toast-success { background: #fff; border-left: 4px solid #52c41a; color: #262626; }
+    .toast-error { background: #fff; border-left: 4px solid #ff4d4f; color: #262626; }
+    .step-bar { display: flex; align-items: flex-start; gap: 0; }
+    .step-item { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; }
+    .step-item:not(:last-child)::after { content: ''; position: absolute; top: 16px; left: 50%; width: 100%; height: 2px; background: #e8e8e8; z-index: 0; }
+    .step-item.done:not(:last-child)::after { background: #52c41a; }
+    .step-circle { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; z-index: 1; position: relative; }
+    .step-circle.pending { background: #f5f5f5; color: #8c8c8c; border: 2px solid #d9d9d9; }
+    .step-circle.active { background: #1677ff; color: #fff; }
+    .step-circle.done { background: #52c41a; color: #fff; }
+    .step-circle.rejected { background: #ff4d4f; color: #fff; }
+    .attachment-upload-area { border: 1px dashed #d9d9d9; border-radius: 6px; padding: 16px; background: #fafafa; }
+    .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, 120px); gap: 8px; }
+    .photo-item { width: 120px; height: 120px; border-radius: 6px; overflow: hidden; position: relative; border: 1px solid #e8e8e8; }
+    .photo-add { width: 120px; height: 120px; border: 1px dashed #d9d9d9; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; background: #fafafa; color: #8c8c8c; gap: 4px; font-size: 12px; }
+    .photo-add:hover { border-color: #1677ff; color: #1677ff; background: #e6f4ff; }
+    .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9000; display: flex; align-items: center; justify-content: center; }
+    .collapse-card { border: 1px solid #e8e8e8; border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
+    .collapse-header { padding: 12px 16px; background: #fafafa; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+    .collapse-header:hover { background: #e6f4ff; }
+  </style>
+</head>
+<body class="bg-gray-50" x-data="appState()" x-init="init()">
+
+<!-- Toast 通知 -->
+<div x-show="toast.show" x-cloak :class="'toast toast-' + toast.type" x-transition>
+  <i :class="toast.type === 'success' ? 'fas fa-check-circle text-green-500' : 'fas fa-times-circle text-red-500'"></i>
+  <span x-text="toast.msg"></span>
+</div>
+
+<!-- 顶部导航栏 -->
+<header class="top-nav fixed top-0 left-0 right-0 bg-white border-b border-gray-200 flex items-center justify-between px-6 z-50" style="box-shadow:0 1px 4px rgba(0,0,0,0.08)">
+  <div class="flex items-center gap-3">
+    <div class="w-8 h-8 rounded bg-blue-600 flex items-center justify-center">
+      <i class="fas fa-pig text-white text-sm"></i>
+    </div>
+    <span class="font-semibold text-gray-800" style="font-size:15px">蓬溪县生猪数字化管理平台</span>
+    <span class="text-gray-300 mx-2">|</span>
+    <span class="text-blue-600 font-medium">企业端</span>
+  </div>
+  <div class="flex items-center gap-4">
+    <div class="relative cursor-pointer" @click="showMsgPanel=!showMsgPanel">
+      <i class="fas fa-bell text-gray-500 text-lg"></i>
+      <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">2</span>
+    </div>
+    <div class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-3 py-1.5 rounded-lg">
+      <div class="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium text-sm">张</div>
+      <div>
+        <div class="text-sm font-medium text-gray-800" x-text="currentUser.name"></div>
+        <div class="text-xs text-gray-400" x-text="currentUser.roleName"></div>
+      </div>
+    </div>
+    <button class="btn-default text-sm" onclick="showLoginPage()"><i class="fas fa-sign-out-alt mr-1"></i>退出</button>
+  </div>
+</header>
+
+<!-- 侧边菜单 -->
+<aside class="sidebar-width fixed left-0 bg-white border-r border-gray-200 overflow-y-auto" style="top:60px;bottom:0;box-shadow:1px 0 4px rgba(0,0,0,0.04)">
+  <nav class="py-3">
+    <div class="menu-group-title">企业信息管理</div>
+    <div class="menu-item"><i class="fas fa-building mr-2 text-gray-400"></i>基础信息</div>
+    <div class="menu-item"><i class="fas fa-chart-line mr-2 text-gray-400"></i>实时监测</div>
+    <div class="menu-item"><i class="fas fa-tasks mr-2 text-gray-400"></i>养殖信息管理</div>
+    
+    <div class="menu-group-title mt-2">项目信息管理</div>
+    <div class="menu-item" :class="currentPage==='notice-list'?'active':''" @click="navigate('notice-list')">
+      <i class="fas fa-bullhorn mr-2 text-gray-400"></i>项目申报通知
+    </div>
+    <div class="menu-item" :class="currentPage==='my-apply-list'?'active':''" @click="navigate('my-apply-list')">
+      <i class="fas fa-file-alt mr-2 text-gray-400"></i>我的申报
+    </div>
+    
+    <div class="menu-group-title mt-2">政策信息查看</div>
+    <div class="menu-item"><i class="fas fa-newspaper mr-2 text-gray-400"></i>政策资讯</div>
+    
+    <div class="menu-group-title mt-2">其他功能</div>
+    <div class="menu-item"><i class="fas fa-video mr-2 text-gray-400"></i>视频监控</div>
+    <div class="menu-item"><i class="fas fa-cog mr-2 text-gray-400"></i>系统设置</div>
+  </nav>
+</aside>
+
+<!-- 主内容区 -->
+<main class="content-area" style="margin-top:60px;min-height:calc(100vh - 60px)">
+
+  <!-- ==================== 功能一：项目申报通知列表 ==================== -->
+  <!-- SECTION START: 申报通知列表 -->
+  <section id="feature-notice-list" x-show="currentPage==='notice-list'" x-cloak>
+    <div class="p-6">
+      <!-- 面包屑 -->
+      <div class="text-sm text-gray-400 mb-4 flex items-center gap-1">
+        <span>项目管理</span><span class="mx-1">/</span>
+        <span class="text-gray-600 font-medium">项目申报通知</span>
+      </div>
+      
+      <div class="bg-white rounded-xl border border-gray-100 overflow-hidden" style="box-shadow:0 1px 4px rgba(0,0,0,0.06)">
+        <!-- 页面标题 -->
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+          <h2 class="text-base font-semibold text-gray-800">项目申报通知</h2>
+        </div>
+        
+        <!-- 状态Tab -->
+        <div class="px-6 pt-4 flex gap-2">
+          <template x-for="tab in noticeTabs" :key="tab.key">
+            <button @click="noticeActiveTab=tab.key" :class="noticeActiveTab===tab.key ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors" x-text="tab.label"></button>
+          </template>
+        </div>
+        
+        <!-- 通知卡片列表 -->
+        <div class="p-6">
+          <div class="space-y-3">
+            <template x-for="notice in filteredNotices" :key="notice.id">
+              <div @click="viewNoticeDetail(notice)" class="border border-gray-100 rounded-xl p-4 hover:border-blue-200 hover:bg-blue-50 cursor-pointer transition-all group" style="box-shadow:0 1px 3px rgba(0,0,0,0.04)">
+                <div class="flex items-start justify-between">
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-1">
+                      <span :class="getNoticeStatusTag(notice.status)" class="status-tag" x-text="getNoticeStatusLabel(notice.status)"></span>
+                    </div>
+                    <h3 class="font-semibold text-gray-800 text-base group-hover:text-blue-600" x-text="notice.projectName"></h3>
+                    <p class="text-gray-400 text-sm mt-1">
+                      申报截止：<span class="text-gray-600" x-text="notice.applyEndTime + ' 截止'"></span>
+                    </p>
+                    <p class="text-gray-400 text-xs mt-1" x-text="'发布时间：' + notice.publishTime"></p>
+                  </div>
+                  <div class="flex items-center gap-2 ml-4">
+                    <template x-if="hasApplied(notice.id)">
+                      <button @click.stop="viewMyApply(notice)" class="btn-primary text-sm px-4">查看申报进度</button>
+                    </template>
+                    <template x-if="!hasApplied(notice.id) && notice.status==='IN_PROGRESS'">
+                      <button @click.stop="startApply(notice)" class="btn-primary text-sm px-4">去申报</button>
+                    </template>
+                    <template x-if="!hasApplied(notice.id) && notice.status!=='IN_PROGRESS'">
+                      <button disabled class="btn-primary text-sm px-4 opacity-50 cursor-not-allowed" :title="notice.status==='EXPIRED'?'申报已截止':'申报未开始'">去申报</button>
+                    </template>
+                    <i class="fas fa-chevron-right text-gray-300 group-hover:text-blue-400"></i>
+                  </div>
+                </div>
+              </div>
+            </template>
+            <div x-show="filteredNotices.length===0" class="text-center py-12 text-gray-400">
+              <i class="fas fa-inbox text-3xl mb-2"></i>
+              <p>暂无通知</p>
+            </div>
+          </div>
+          
+          <!-- 分页 -->
+          <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+            <span class="text-sm text-gray-400">共 <span class="text-gray-700" x-text="filteredNotices.length"></span> 条</span>
+            <div class="pagination">
+              <div class="page-btn"><i class="fas fa-chevron-left text-xs"></i></div>
+              <div class="page-btn active">1</div>
+              <div class="page-btn">2</div>
+              <div class="page-btn"><i class="fas fa-chevron-right text-xs"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- SECTION END: 申报通知列表 -->
+
+  <!-- ==================== 通知详情页 ==================== -->
+  <!-- SECTION START: 通知详情 -->
+  <section id="feature-notice-detail" x-show="currentPage==='notice-detail'" x-cloak>
+    <div class="p-6" x-show="selectedNotice">
+      <div class="text-sm text-gray-400 mb-4 flex items-center gap-1">
+        <span class="cursor-pointer hover:text-blue-600" @click="navigate('notice-list')">项目管理</span>
+        <span class="mx-1">/</span>
+        <span class="cursor-pointer hover:text-blue-600" @click="navigate('notice-list')">项目申报通知</span>
+        <span class="mx-1">/</span>
+        <span class="text-gray-600 font-medium">通知详情</span>
+      </div>
+      
+      <div class="bg-white rounded-xl border border-gray-100 overflow-hidden" style="box-shadow:0 1px 4px rgba(0,0,0,0.06)">
+        <div class="px-6 py-4 border-b border-gray-100">
+          <div class="flex items-center gap-2 mb-1">
+            <span x-show="selectedNotice" :class="getNoticeStatusTag(selectedNotice?.status)" class="status-tag" x-text="getNoticeStatusLabel(selectedNotice?.status)"></span>
+          </div>
+          <h1 class="text-xl font-bold text-gray-800 mt-2" x-text="selectedNotice?.projectName"></h1>
+          <div class="flex items-center gap-6 mt-3 text-sm text-gray-500">
+            <span><i class="fas fa-calendar mr-1"></i>申报开始：<span x-text="selectedNotice?.applyStartTime"></span></span>
+            <span><i class="fas fa-calendar-times mr-1"></i>申报截止：<span class="text-orange-600 font-medium" x-text="selectedNotice?.applyEndTime"></span></span>
+            <span><i class="fas fa-clock mr-1"></i>发布时间：<span x-text="selectedNotice?.publishTime"></span></span>
+          </div>
+        </div>
+        
+        <div class="p-6">
+          <div class="prose max-w-none" style="color:#262626;line-height:1.8">
+            <template x-if="selectedNotice?.id===1">
+              <div>
+                <h3 class="text-base font-semibold mb-3" style="color:#1677ff">一、项目背景</h3>
+                <p>为加快推进蓬溪县畜牧业转型升级，推动生猪产业高质量发展，根据《四川省农业农村厅关于推进现代畜牧业发展的实施意见》，结合我县实际，现开展2024年度蓬溪县畜牧项目建设申报工作。</p>
+                <h3 class="text-base font-semibold mb-3 mt-4" style="color:#1677ff">二、申报条件</h3>
+                <ul class="list-disc pl-6 space-y-1">
+                  <li>在我县辖区内依法登记注册的生猪养殖企业（含个体工商户）</li>
+                  <li>具有合法有效的动物防疫条件许可证</li>
+                  <li>具有合法有效的土地使用权或土地承包经营权</li>
+                  <li>完成环境影响评价（备案或批复）</li>
+                  <li>养殖场征信记录良好，无重大违规违法记录</li>
+                </ul>
+                <h3 class="text-base font-semibold mb-3 mt-4" style="color:#1677ff">三、申报材料要求</h3>
+                <p>申报单位须提供以下材料的电子版扫描件或照片：</p>
+                <ol class="list-decimal pl-6 space-y-1">
+                  <li>营业执照</li>
+                  <li>土地备案表（或土地承包经营权证）</li>
+                  <li>环评备案表或环评批复文件</li>
+                  <li>动物防疫条件许可证</li>
+                  <li>近半年征信记录</li>
+                  <li>承诺书（须法定代表人签字并加盖公章）</li>
+                </ol>
+                <h3 class="text-base font-semibold mb-3 mt-4" style="color:#1677ff">四、申报方式</h3>
+                <p>请登录"蓬溪县生猪数字化管理平台"企业端，在"项目信息管理—项目申报通知"中查看通知详情并点击"去申报"按钮进行线上申报。</p>
+              </div>
+            </template>
+            <template x-if="selectedNotice?.id!==1">
+              <div>
+                <p>本通知为蓬溪县2025年度畜牧项目建设补贴申报通知，请符合条件的养殖企业在申报截止日期前完成申报。详情请联系县农业农村局。</p>
+              </div>
+            </template>
+          </div>
+        </div>
+        
+        <!-- 底部操作区 -->
+        <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-end gap-3">
+          <button @click="navigate('notice-list')" class="btn-default">返回列表</button>
+          <template x-if="hasApplied(selectedNotice?.id)">
+            <button @click="navigate('my-apply-list')" class="btn-primary">查看申报进度</button>
+          </template>
+          <template x-if="!hasApplied(selectedNotice?.id) && selectedNotice?.status==='IN_PROGRESS'">
+            <button @click="startApplyFromDetail()" class="btn-primary"><i class="fas fa-pen mr-1"></i>去申报</button>
+          </template>
+          <template x-if="!hasApplied(selectedNotice?.id) && selectedNotice?.status==='EXPIRED'">
+            <button disabled class="btn-primary opacity-50 cursor-not-allowed" title="申报已截止">去申报（已截止）</button>
+          </template>
+          <template x-if="!hasApplied(selectedNotice?.id) && selectedNotice?.status==='NOT_STARTED'">
+            <button disabled class="btn-primary opacity-50 cursor-not-allowed" title="申报未开始">去申报（未开始）</button>
+          </template>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- SECTION END: 通知详情 -->
+
+  <!-- ==================== 功能二：申报填报页 ==================== -->
+  <!-- SECTION START: 申报填报 -->
+  <section id="feature-apply-form" x-show="currentPage==='apply-form'" x-cloak>
+    <div class="p-6">
+      <div class="text-sm text-gray-400 mb-4 flex items-center gap-1">
+        <span class="cursor-pointer hover:text-blue-600" @click="navigate('notice-list')">项目管理</span>
+        <span class="mx-1">/</span>
+        <span class="cursor-pointer hover:text-blue-600" @click="navigate('notice-list')">项目申报通知</span>
+        <span class="mx-1">/</span>
+        <span class="text-gray-600 font-medium" x-text="applyForm.id?'编辑申报':'申报填报'"></span>
+      </div>
+
+      <!-- 退回提示 -->
+      <template x-if="applyForm.showRejectTip">
+        <div class="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-4 flex items-start gap-3">
+          <i class="fas fa-exclamation-triangle text-orange-500 mt-0.5"></i>
+          <div>
+            <p class="font-medium text-orange-700">您的申报已被退回，请修改后重新提交</p>
+            <p class="text-sm text-orange-600 mt-1">退回原因：<span x-text="applyForm.rejectReason"></span></p>
+          </div>
+        </div>
+      </template>
+      
+      <div class="bg-white rounded-xl border border-gray-100 overflow-hidden" style="box-shadow:0 1px 4px rgba(0,0,0,0.06)">
+        <div class="px-6 py-4 border-b border-gray-100">
+          <h2 class="text-base font-semibold text-gray-800">畜牧项目建设申报填报</h2>
+          <p class="text-sm text-gray-400 mt-1">请如实填写各项信息，带 <span class="text-red-500">*</span> 为必填项</p>
+        </div>
+        
+        <div class="p-6 space-y-6">
+
+          <!-- 关联政策区 -->
+          <div class="bg-blue-50 rounded-xl p-4 border border-blue-100">
+            <h3 class="text-sm font-semibold text-blue-700 mb-3"><i class="fas fa-link mr-1"></i>关联政策</h3>
+            <template x-if="applyForm.policyLocked">
+              <div class="form-readonly" x-text="'关联政策：' + applyForm.policyTitle"></div>
+            </template>
+            <template x-if="!applyForm.policyLocked">
+              <div>
+                <label class="form-label required">关联政策</label>
+                <select x-model="applyForm.policyId" @change="onPolicySelect()" class="form-input" :class="formErrors.policyId?'error':''">
+                  <option value="">请选择关联政策</option>
+                  <template x-for="p in MOCK_DATA.policies" :key="p.id">
+                    <option :value="p.id" x-text="p.title + ' （截止 ' + p.applyDeadline + '）'"></option>
+                  </template>
+                </select>
+                <p class="form-error" x-show="formErrors.policyId" x-text="formErrors.policyId"></p>
+                <p x-show="MOCK_DATA.policies.length===0" class="text-sm text-gray-400 mt-2">暂无可申报的政策，请联系管理员</p>
+              </div>
+            </template>
+          </div>
+
+          <!-- 基本信息区 -->
+          <div>
+            <h3 class="text-sm font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-100"><i class="fas fa-info-circle mr-1 text-blue-500"></i>基本信息</h3>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="form-label">申请单位名称</label>
+                <div class="form-readonly" x-text="applyForm.companyName"></div>
+              </div>
+              <div>
+                <label class="form-label">申报时间</label>
+                <div class="form-readonly">2026-03-06（提交时自动生成）</div>
+              </div>
+              <div>
+                <label class="form-label required">场址-镇</label>
+                <input type="text" x-model="applyForm.addressTown" class="form-input" :class="formErrors.addressTown?'error':''" placeholder="请输入镇名称">
+                <p class="form-error" x-show="formErrors.addressTown" x-text="formErrors.addressTown"></p>
+              </div>
+              <div>
+                <label class="form-label required">场址-村</label>
+                <input type="text" x-model="applyForm.addressVillage" class="form-input" :class="formErrors.addressVillage?'error':''" placeholder="请输入村名称">
+                <p class="form-error" x-show="formErrors.addressVillage" x-text="formErrors.addressVillage"></p>
+              </div>
+              <div>
+                <label class="form-label required">场址-社</label>
+                <input type="text" x-model="applyForm.addressGroup" class="form-input" :class="formErrors.addressGroup?'error':''" placeholder="请输入社名称">
+                <p class="form-error" x-show="formErrors.addressGroup" x-text="formErrors.addressGroup"></p>
+              </div>
+              <div>
+                <label class="form-label required">养殖场类型</label>
+                <select x-model="applyForm.farmType" class="form-input" :class="formErrors.farmType?'error':''">
+                  <option value="">请选择</option>
+                  <option value="SELF_BREEDING">自繁自养场</option>
+                  <option value="FATTENING">育肥场</option>
+                  <option value="PIGLET_BREEDING">仔猪繁育场</option>
+                </select>
+                <p class="form-error" x-show="formErrors.farmType" x-text="formErrors.farmType"></p>
+              </div>
+              <div>
+                <label class="form-label required">联系人</label>
+                <input type="text" x-model="applyForm.contactName" class="form-input" :class="formErrors.contactName?'error':''" placeholder="请输入联系人姓名">
+                <p class="form-error" x-show="formErrors.contactName" x-text="formErrors.contactName"></p>
+              </div>
+              <div>
+                <label class="form-label required">联系电话</label>
+                <input type="text" x-model="applyForm.contactPhone" class="form-input" :class="formErrors.contactPhone?'error':''" placeholder="请输入11位手机号">
+                <p class="form-error" x-show="formErrors.contactPhone" x-text="formErrors.contactPhone"></p>
+              </div>
+              <div>
+                <label class="form-label required">建设性质</label>
+                <select x-model="applyForm.constructionType" class="form-input" :class="formErrors.constructionType?'error':''">
+                  <option value="">请选择</option>
+                  <option value="NEW_BUILD">新建</option>
+                  <option value="RENOVATION">改建</option>
+                  <option value="EXPANSION">扩建</option>
+                </select>
+                <p class="form-error" x-show="formErrors.constructionType" x-text="formErrors.constructionType"></p>
+              </div>
+              <div>
+                <label class="form-label required">建设期限</label>
+                <div class="flex items-center gap-2">
+                  <input type="date" x-model="applyForm.buildStartDate" class="form-input" :class="formErrors.buildStartDate?'error':''">
+                  <span class="text-gray-400">至</span>
+                  <input type="date" x-model="applyForm.buildEndDate" class="form-input" :class="formErrors.buildEndDate?'error':''">
+                </div>
+                <p class="form-error" x-show="formErrors.buildDate" x-text="formErrors.buildDate"></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 规模信息区 -->
+          <div>
+            <h3 class="text-sm font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-100"><i class="fas fa-chart-bar mr-1 text-blue-500"></i>规模信息</h3>
+            <div class="grid grid-cols-3 gap-4">
+              <div>
+                <label class="form-label required">设计存栏规模（头）</label>
+                <input type="number" x-model.number="applyForm.designStock" @input="calcRaise()" class="form-input" :class="formErrors.designStock?'error':''" min="1" placeholder="最小1头">
+                <p class="form-error" x-show="formErrors.designStock" x-text="formErrors.designStock"></p>
+              </div>
+              <div>
+                <label class="form-label required">设计年出栏规模（头）</label>
+                <input type="number" x-model.number="applyForm.designAnnualOutput" @input="calcRaise()" class="form-input" :class="formErrors.designAnnualOutput?'error':''" min="1" placeholder="最小1头">
+                <p class="form-error" x-show="formErrors.designAnnualOutput" x-text="formErrors.designAnnualOutput"></p>
+              </div>
+              <div>
+                <label class="form-label">建成后饲养量（头）</label>
+                <div class="form-readonly" x-text="applyForm.totalRaiseAfterBuild || '自动计算'"></div>
+              </div>
+              <div>
+                <label class="form-label required">建成后新增存栏（头）</label>
+                <input type="number" x-model.number="applyForm.newStockAfterBuild" class="form-input" :class="formErrors.newStockAfterBuild?'error':''" min="0" placeholder="最小0头">
+                <p class="form-error" x-show="formErrors.newStockAfterBuild" x-text="formErrors.newStockAfterBuild"></p>
+              </div>
+              <div>
+                <label class="form-label required">建成后新增出栏（头）</label>
+                <input type="number" x-model.number="applyForm.newOutputAfterBuild" class="form-input" :class="formErrors.newOutputAfterBuild?'error':''" min="0" placeholder="最小0头">
+                <p class="form-error" x-show="formErrors.newOutputAfterBuild" x-text="formErrors.newOutputAfterBuild"></p>
+              </div>
+              <div>
+                <label class="form-label required">现存栏（头）</label>
+                <input type="number" x-model.number="applyForm.currentStock" class="form-input" :class="formErrors.currentStock?'error':''" min="0" placeholder="最小0头">
+                <p class="form-error" x-show="formErrors.currentStock" x-text="formErrors.currentStock"></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 资质附件区 -->
+          <div>
+            <h3 class="text-sm font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-100"><i class="fas fa-paperclip mr-1 text-blue-500"></i>养殖场资质办理情况</h3>
+            <div class="grid grid-cols-2 gap-4">
+              <template x-for="att in MOCK_DATA.attachmentTypes" :key="att.type">
+                <div class="attachment-upload-area">
+                  <div class="flex items-center justify-between mb-2">
+                    <label class="form-label required mb-0" x-text="att.label"></label>
+                    <span class="text-xs text-gray-400" x-text="'已上传 ' + getAttCount(att.type) + '/5'"></span>
+                  </div>
+                  <!-- 已上传文件列表 -->
+                  <template x-for="(file, idx) in getAttFiles(att.type)" :key="idx">
+                    <div class="flex items-center justify-between bg-white rounded px-3 py-1.5 mb-1 border border-gray-100">
+                      <div class="flex items-center gap-2 text-sm">
+                        <i class="fas fa-file-pdf text-red-400"></i>
+                        <span class="text-gray-700" x-text="file.name"></span>
+                        <span class="text-gray-400 text-xs" x-text="file.size"></span>
+                      </div>
+                      <button @click="removeAttFile(att.type, idx)" class="text-gray-400 hover:text-red-500 text-xs"><i class="fas fa-times"></i></button>
+                    </div>
+                  </template>
+                  <label class="flex items-center gap-2 cursor-pointer mt-1">
+                    <input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" @change="onAttFileChange($event, att.type)">
+                    <span class="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"><i class="fas fa-upload"></i>点击上传</span>
+                    <span class="text-xs text-gray-400">（支持PDF、图片、Word，单文件≤100MB）</span>
+                  </label>
+                  <p class="form-error mt-1" x-show="formErrors['att_'+att.type]" x-text="formErrors['att_'+att.type]"></p>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- 申请建设内容区 -->
+          <div>
+            <h3 class="text-sm font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-100"><i class="fas fa-hammer mr-1 text-blue-500"></i>申请建设内容</h3>
+            <div class="table-container border border-gray-100 rounded-lg overflow-hidden">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="min-width:140px">子项目 <span class="text-red-500">*</span></th>
+                    <th style="min-width:160px">建设内容 <span class="text-red-500">*</span></th>
+                    <th style="min-width:60px">单位</th>
+                    <th style="min-width:90px">数量 <span class="text-red-500">*</span></th>
+                    <th style="min-width:110px">单价（元）<span class="text-red-500">*</span></th>
+                    <th style="min-width:110px">金额（万元）</th>
+                    <th style="min-width:120px">型号</th>
+                    <th style="min-width:140px">备注</th>
+                    <th class="sticky-col" style="min-width:70px">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template x-for="(item, idx) in applyForm.items" :key="idx">
+                    <tr>
+                      <td>
+                        <select x-model="item.subProject" @change="onSubProjectChange(idx)" class="form-input text-sm">
+                          <option value="">请选择</option>
+                          <template x-for="sp in MOCK_DATA.subProjects" :key="sp.key">
+                            <option :value="sp.key" x-text="sp.label"></option>
+                          </template>
+                        </select>
+                        <p class="form-error" x-show="item.errors?.subProject" x-text="item.errors?.subProject"></p>
+                      </td>
+                      <td>
+                        <select x-model="item.buildContent" @change="onBuildContentChange(idx)" class="form-input text-sm">
+                          <option value="">请选择</option>
+                          <template x-for="bc in getBuildContents(item.subProject)" :key="bc.key">
+                            <option :value="bc.key" x-text="bc.label"></option>
+                          </template>
+                        </select>
+                        <p class="form-error" x-show="item.errors?.buildContent" x-text="item.errors?.buildContent"></p>
+                      </td>
+                      <td>
+                        <div class="form-readonly text-sm" x-text="item.unit||'—'"></div>
+                      </td>
+                      <td>
+                        <input type="number" x-model.number="item.quantity" @input="calcItemAmount(idx)" class="form-input text-sm" min="0.01" step="0.01" placeholder="0.01">
+                        <p class="form-error" x-show="item.errors?.quantity" x-text="item.errors?.quantity"></p>
+                      </td>
+                      <td>
+                        <input type="number" x-model.number="item.unitPrice" @input="calcItemAmount(idx)" class="form-input text-sm" min="0.01" step="0.01" placeholder="0.01">
+                        <p class="form-error" x-show="item.errors?.unitPrice" x-text="item.errors?.unitPrice"></p>
+                      </td>
+                      <td>
+                        <div class="form-readonly text-sm" x-text="item.amount ? item.amount.toFixed(4) : '0.0000'"></div>
+                      </td>
+                      <td>
+                        <input type="text" x-model="item.model" class="form-input text-sm" placeholder="选填" maxlength="200">
+                      </td>
+                      <td>
+                        <input type="text" x-model="item.remark" class="form-input text-sm" placeholder="选填" maxlength="500">
+                      </td>
+                      <td class="sticky-col">
+                        <button @click="removeItem(idx)" :disabled="applyForm.items.length<=1" class="text-red-500 hover:text-red-700 disabled:text-gray-300 disabled:cursor-not-allowed text-sm" :title="applyForm.items.length<=1?'至少保留一条建设内容':''">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+            <div class="flex items-center justify-between mt-3">
+              <button @click="addItem()" class="btn-default text-sm"><i class="fas fa-plus mr-1"></i>+ 添加建设内容</button>
+              <div class="flex items-center gap-2 text-sm">
+                <span class="text-gray-500">合计投资金额：</span>
+                <span class="text-lg font-bold text-blue-600" x-text="totalInvestment.toFixed(4) + ' 万元'"></span>
+              </div>
+            </div>
+            <p class="form-error mt-1" x-show="formErrors.items" x-text="formErrors.items"></p>
+          </div>
+
+          <!-- 申报单位意见 -->
+          <div>
+            <h3 class="text-sm font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-100"><i class="fas fa-comment mr-1 text-blue-500"></i>申报单位意见</h3>
+            <textarea x-model="applyForm.applicantOpinion" class="form-input" rows="3" maxlength="500" placeholder="选填，请填写申报单位签字意见文字描述..."></textarea>
+            <div class="text-right text-xs text-gray-400 mt-1" x-text="(applyForm.applicantOpinion?.length||0) + '/500'"></div>
+          </div>
+        </div>
+        
+        <!-- 底部操作区 -->
+        <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
+          <button @click="navigate('notice-list')" class="btn-default">取消</button>
+          <div class="flex gap-3">
+            <template x-if="!applyForm.showRejectTip">
+              <button @click="saveDraft()" class="btn-default"><i class="fas fa-save mr-1"></i>暂存草稿</button>
+            </template>
+            <button @click="submitApply()" class="btn-primary" :disabled="MOCK_DATA.policies.length===0"><i class="fas fa-paper-plane mr-1"></i><span x-text="applyForm.showRejectTip?'重新提交':'提交申报'"></span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- SECTION END: 申报填报 -->
+
+  <!-- ==================== 功能三：我的申报列表 ==================== -->
+  <!-- SECTION START: 我的申报 -->
+  <section id="feature-my-apply-list" x-show="currentPage==='my-apply-list'" x-cloak>
+    <div class="p-6">
+      <div class="text-sm text-gray-400 mb-4 flex items-center gap-1">
+        <span>项目管理</span><span class="mx-1">/</span>
+        <span class="text-gray-600 font-medium">我的申报</span>
+      </div>
+      
+      <div class="bg-white rounded-xl border border-gray-100 overflow-hidden" style="box-shadow:0 1px 4px rgba(0,0,0,0.06)">
+        <div class="px-6 py-4 border-b border-gray-100">
+          <h2 class="text-base font-semibold text-gray-800">我的申报记录</h2>
+        </div>
+        
+        <!-- 状态Tab -->
+        <div class="px-6 pt-4 flex gap-2">
+          <template x-for="tab in myApplyTabs" :key="tab.key">
+            <button @click="myApplyActiveTab=tab.key" :class="myApplyActiveTab===tab.key ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors" x-text="tab.label"></button>
+          </template>
+        </div>
+        
+        <!-- 申报卡片列表 -->
+        <div class="p-6">
+          <div class="space-y-3">
+            <template x-for="app in filteredMyApplies" :key="app.id">
+              <div class="border border-gray-100 rounded-xl p-4 hover:border-blue-200 cursor-pointer transition-all" @click="viewApplyDetail(app)" style="box-shadow:0 1px 3px rgba(0,0,0,0.04)">
+                <div class="flex items-start justify-between">
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-1">
+                      <span :class="getApplyStatusTag(app.status)" class="status-tag" x-text="getApplyStatusLabel(app.status)"></span>
+                    </div>
+                    <h3 class="font-semibold text-gray-800 text-base" x-text="app.projectName"></h3>
+                    <div class="flex items-center gap-4 mt-1 text-sm text-gray-500">
+                      <span>申报时间：<span x-text="app.applyDate"></span></span>
+                      <span>关联政策：<span x-text="app.policyTitle"></span></span>
+                    </div>
+                    <template x-if="app.rejectReason">
+                      <p class="text-red-500 text-sm mt-1"><i class="fas fa-exclamation-circle mr-1"></i>退回原因：<span x-text="app.rejectReason"></span></p>
+                    </template>
+                  </div>
+                  <div class="flex items-center gap-2 ml-4" @click.stop>
+                    <template x-if="app.status==='DRAFT'">
+                      <button @click="continueApply(app)" class="btn-default text-sm">继续填写</button>
+                    </template>
+                    <template x-if="app.status==='DRAFT'">
+                      <button @click="withdrawApply(app)" class="btn-danger text-sm">撤回</button>
+                    </template>
+                    <template x-if="['STATION_REJECTED','TOWN_REJECTED','COUNTY_REJECTED'].includes(app.status)">
+                      <button @click="editApply(app)" class="btn-primary text-sm">修改重提</button>
+                    </template>
+                    <template x-if="app.status==='COUNTY_APPROVED'">
+                      <button @click="goImplementation(app)" class="btn-primary text-sm">填报实施信息</button>
+                    </template>
+                    <template x-if="app.status==='ACCEPTED'">
+                      <button @click="viewImplementation(app)" class="btn-default text-sm">查看实施信息</button>
+                    </template>
+                    <button @click="viewApplyDetail(app)" class="btn-default text-sm">查看详情</button>
+                  </div>
+                </div>
+              </div>
+            </template>
+            <div x-show="filteredMyApplies.length===0" class="text-center py-12 text-gray-400">
+              <i class="fas fa-file-alt text-3xl mb-2"></i>
+              <p>暂无申报记录</p>
+            </div>
+          </div>
+          
+          <!-- 分页 -->
+          <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+            <span class="text-sm text-gray-400">共 <span class="text-gray-700" x-text="filteredMyApplies.length"></span> 条</span>
+            <div class="pagination">
+              <div class="page-btn"><i class="fas fa-chevron-left text-xs"></i></div>
+              <div class="page-btn active">1</div>
+              <div class="page-btn"><i class="fas fa-chevron-right text-xs"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- SECTION END: 我的申报 -->
+
+  <!-- ==================== 申报详情页 ==================== -->
+  <!-- SECTION START: 申报详情 -->
+  <section id="feature-apply-detail" x-show="currentPage==='apply-detail'" x-cloak>
+    <div class="p-6" x-show="selectedApply">
+      <div class="text-sm text-gray-400 mb-4 flex items-center gap-1">
+        <span class="cursor-pointer hover:text-blue-600" @click="navigate('my-apply-list')">项目管理</span>
+        <span class="mx-1">/</span>
+        <span class="cursor-pointer hover:text-blue-600" @click="navigate('my-apply-list')">我的申报</span>
+        <span class="mx-1">/</span>
+        <span class="text-gray-600 font-medium">申报详情</span>
+      </div>
+
+      <!-- 退回提示 -->
+      <template x-if="selectedApply && ['STATION_REJECTED','TOWN_REJECTED','COUNTY_REJECTED'].includes(selectedApply.status)">
+        <div class="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-4 flex items-start gap-3">
+          <i class="fas fa-exclamation-triangle text-orange-500 mt-0.5"></i>
+          <div>
+            <p class="font-medium text-orange-700">您的申报已被退回，请修改后重新提交</p>
+            <p class="text-sm text-orange-600 mt-1" x-text="'退回原因：' + (selectedApply?.rejectReason||'无')"></p>
+          </div>
+        </div>
+      </template>
+      
+      <div class="bg-white rounded-xl border border-gray-100 overflow-hidden" style="box-shadow:0 1px 4px rgba(0,0,0,0.06)">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-semibold text-gray-800" x-text="selectedApply?.projectName"></h2>
+            <div class="flex items-center gap-3 mt-1">
+              <span x-show="selectedApply" :class="getApplyStatusTag(selectedApply?.status)" class="status-tag" x-text="getApplyStatusLabel(selectedApply?.status)"></span>
+              <span class="text-sm text-gray-400" x-text="'申报时间：' + (selectedApply?.applyDate||'')"></span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="p-6 space-y-6">
+          <!-- 信息摘要 -->
+          <div class="grid grid-cols-3 gap-4 text-sm">
+            <div><span class="text-gray-400">关联政策：</span><span class="text-gray-700" x-text="selectedApply?.policyTitle||'——'"></span></div>
+            <div><span class="text-gray-400">申请单位：</span><span class="text-gray-700" x-text="selectedApply?.companyName||'——'"></span></div>
+            <div><span class="text-gray-400">申报时间：</span><span class="text-gray-700" x-text="selectedApply?.applyDate||'——'"></span></div>
+            <div><span class="text-gray-400">场址：</span><span class="text-gray-700" x-text="selectedApply ? (selectedApply.addressTown + '镇' + selectedApply.addressVillage + '村' + selectedApply.addressGroup + '社') : '——'"></span></div>
+            <div><span class="text-gray-400">联系人：</span><span class="text-gray-700" x-text="selectedApply?.contactName||'——'"></span></div>
+            <div><span class="text-gray-400">联系电话：</span><span class="text-gray-700" x-text="selectedApply?.contactPhone||'——'"></span></div>
+            <div><span class="text-gray-400">建设性质：</span><span class="text-gray-700" x-text="getFarmTypeLabel(selectedApply?.constructionType)||'——'"></span></div>
+            <div><span class="text-gray-400">养殖场类型：</span><span class="text-gray-700" x-text="getFarmTypeLabel2(selectedApply?.farmType)||'——'"></span></div>
+            <div><span class="text-gray-400">合计投资：</span><span class="font-semibold text-blue-600" x-text="selectedApply ? selectedApply.totalInvestment + ' 万元' : '——'"></span></div>
+          </div>
+          
+          <!-- 审核流程进度轴 -->
+          <div>
+            <h3 class="text-sm font-semibold text-gray-700 mb-4 pb-2 border-b border-gray-100"><i class="fas fa-project-diagram mr-1 text-blue-500"></i>审核流程进度</h3>
+            <div class="step-bar">
+              <template x-for="(step, idx) in getApplySteps(selectedApply)" :key="idx">
+                <div class="step-item" :class="step.done&&idx<getApplySteps(selectedApply).length-1?'done':''">
+                  <div class="step-circle" :class="step.state">
+                    <template x-if="step.state==='done'"><i class="fas fa-check text-xs"></i></template>
+                    <template x-if="step.state==='rejected'"><i class="fas fa-times text-xs"></i></template>
+                    <template x-if="step.state==='active'"><i class="fas fa-circle text-xs"></i></template>
+                    <template x-if="step.state==='pending'"><span x-text="idx+1"></span></template>
+                  </div>
+                  <div class="text-center mt-2">
+                    <p class="text-xs font-medium text-gray-700" x-text="step.name"></p>
+                    <p class="text-xs text-gray-400 mt-0.5" x-text="step.time"></p>
+                    <template x-if="step.opinion">
+                      <p class="text-xs text-red-500 mt-0.5 max-w-20 truncate" x-text="step.opinion"></p>
+                    </template>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+          
+          <!-- 填报内容折叠 -->
+          <div>
+            <div class="collapse-card">
+              <div class="collapse-header" @click="detailExpanded=!detailExpanded">
+                <span class="text-sm font-medium text-gray-700"><i class="fas fa-list mr-1 text-blue-500"></i>已填报内容详情</span>
+                <i :class="detailExpanded?'fas fa-chevron-up':'fas fa-chevron-down'" class="text-gray-400 text-xs"></i>
+              </div>
+              <div x-show="detailExpanded" class="p-4">
+                <!-- 建设内容明细 -->
+                <div class="table-container border border-gray-100 rounded">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>子项目</th><th>建设内容</th><th>单位</th><th>数量</th><th>单价（元）</th><th>金额（万元）</th><th>型号</th><th>备注</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <template x-for="item in (selectedApply?.items||[])" :key="item.id">
+                        <tr>
+                          <td x-text="getSubProjectLabel(item.subProject)"></td>
+                          <td x-text="item.buildContent"></td>
+                          <td x-text="item.unit"></td>
+                          <td x-text="item.quantity"></td>
+                          <td x-text="item.unitPrice?.toLocaleString()"></td>
+                          <td x-text="item.amount?.toFixed(4)"></td>
+                          <td x-text="item.model||'—'"></td>
+                          <td x-text="item.remark||'—'"></td>
+                        </tr>
+                      </template>
+                    </tbody>
+                    <tfoot>
+                      <tr class="bg-blue-50">
+                        <td colspan="5" class="font-medium text-right">合计投资金额：</td>
+                        <td class="font-bold text-blue-600" x-text="selectedApply?.totalInvestment + ' 万元'"></td>
+                        <td colspan="2"></td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 底部操作 -->
+        <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
+          <button @click="navigate('my-apply-list')" class="btn-default">返回列表</button>
+          <div class="flex gap-3">
+            <template x-if="selectedApply && selectedApply.status==='COUNTY_APPROVED'">
+              <button @click="downloadPDF()" class="btn-default"><i class="fas fa-download mr-1"></i>下载申请表PDF</button>
+            </template>
+            <template x-if="selectedApply && selectedApply.status==='DRAFT'">
+              <button @click="withdrawApply(selectedApply)" class="btn-danger">撤回草稿</button>
+            </template>
+            <template x-if="selectedApply && selectedApply.status==='DRAFT'">
+              <button @click="continueApply(selectedApply)" class="btn-primary">继续填写</button>
+            </template>
+            <template x-if="selectedApply && ['STATION_REJECTED','TOWN_REJECTED','COUNTY_REJECTED'].includes(selectedApply.status)">
+              <button @click="editApply(selectedApply)" class="btn-primary">修改并重新提交</button>
+            </template>
+            <template x-if="selectedApply && selectedApply.status==='COUNTY_APPROVED'">
+              <button @click="goImplementation(selectedApply)" class="btn-primary"><i class="fas fa-upload mr-1"></i>填报实施信息</button>
+            </template>
+            <template x-if="selectedApply && selectedApply.status==='ACCEPTED'">
+              <button @click="viewImplementation(selectedApply)" class="btn-default">查看实施信息</button>
+            </template>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- SECTION END: 申报详情 -->
+
+  <!-- ==================== 功能四：项目实施信息填报 ==================== -->
+  <!-- SECTION START: 实施信息填报 -->
+  <section id="feature-implementation" x-show="currentPage==='implementation'" x-cloak>
+    <div class="p-6">
+      <div class="text-sm text-gray-400 mb-4 flex items-center gap-1">
+        <span class="cursor-pointer hover:text-blue-600" @click="navigate('my-apply-list')">项目管理</span>
+        <span class="mx-1">/</span>
+        <span class="cursor-pointer hover:text-blue-600" @click="navigate('my-apply-list')">我的申报</span>
+        <span class="mx-1">/</span>
+        <span class="cursor-pointer hover:text-blue-600" @click="viewApplyDetail(selectedApply)">申报详情</span>
+        <span class="mx-1">/</span>
+        <span class="text-gray-600 font-medium" x-text="implReadOnly?'查看实施信息':'实施信息填报'"></span>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-100 overflow-hidden" style="box-shadow:0 1px 4px rgba(0,0,0,0.06)">
+        <!-- 项目信息摘要 -->
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-semibold text-gray-800" x-text="selectedApply?.projectName"></h2>
+            <div class="flex items-center gap-3 mt-1 text-sm text-gray-500">
+              <span x-text="selectedApply?.companyName"></span>
+              <span>|</span>
+              <span x-text="(selectedApply?.addressTown||'') + '镇' + (selectedApply?.addressVillage||'') + '村'"></span>
+            </div>
+          </div>
+          <span x-show="implReadOnly" class="status-tag tag-darkgreen"><i class="fas fa-check-circle mr-1"></i>验收通过（只读）</span>
+          <span x-show="!implReadOnly" class="status-tag tag-blue"><i class="fas fa-check-circle mr-1"></i>县审核通过</span>
+        </div>
+
+        <div class="p-6">
+          <!-- 实施进度总览 -->
+          <div class="bg-blue-50 rounded-xl p-4 mb-6 border border-blue-100">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-sm font-medium text-blue-700">实施填报进度：</span>
+                <span class="text-blue-600 font-bold text-base" x-text="'已填 ' + getFilledCount() + ' 项 / 共 ' + getTotalImplCount() + ' 项'"></span>
+                <span class="text-gray-400 text-sm ml-2" x-text="'（' + Math.round(getFilledCount()/Math.max(getTotalImplCount(),1)*100) + '%）'"></span>
+              </div>
+              <template x-if="implReadOnly">
+                <div class="flex items-center gap-1 text-green-600 text-sm"><i class="fas fa-lock"></i><span>实施信息已锁定为只读状态</span></div>
+              </template>
+            </div>
+            <div class="mt-2 bg-white rounded-full h-2 overflow-hidden">
+              <div class="h-2 bg-blue-500 rounded-full transition-all" :style="'width:' + Math.round(getFilledCount()/Math.max(getTotalImplCount(),1)*100) + '%'"></div>
+            </div>
+          </div>
+
+          <!-- 建设内容明细列表（折叠卡片） -->
+          <div class="space-y-2">
+            <template x-for="(item, idx) in (selectedApply?.items||[])" :key="idx">
+              <div class="collapse-card">
+                <div class="collapse-header" @click="toggleImplCard(idx)">
+                  <div class="flex items-center gap-2 flex-1">
+                    <span class="text-sm font-medium text-gray-700" x-text="getSubProjectLabel(item.subProject) + ' - ' + item.buildContent + ' ' + item.quantity + item.unit"></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span :class="getImplStageTag(idx, 'EARLY')" class="status-tag text-xs">前期</span>
+                    <span :class="getImplStageTag(idx, 'MIDDLE')" class="status-tag text-xs">中期</span>
+                    <span :class="getImplStageTag(idx, 'LATER')" class="status-tag text-xs">后期</span>
+                    <i :class="expandedImplCard===idx?'fas fa-chevron-up':'fas fa-chevron-down'" class="text-gray-400 text-xs ml-2"></i>
+                  </div>
+                </div>
+                
+                <!-- 阶段填报区域 -->
+                <div x-show="expandedImplCard===idx" class="p-4 border-t border-gray-100">
+                  <!-- 阶段Tab -->
+                  <div class="flex gap-2 mb-4">
+                    <template x-for="stage in [{key:'EARLY',label:'前期'},{key:'MIDDLE',label:'中期'},{key:'LATER',label:'后期'}]" :key="stage.key">
+                      <button @click="activeImplStage=stage.key" :class="activeImplStage===stage.key ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'" class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors" x-text="stage.label"></button>
+                    </template>
+                  </div>
+                  
+                  <!-- 各阶段内容 -->
+                  <div class="space-y-4">
+                    <!-- 照片区 -->
+                    <div>
+                      <p class="text-sm font-medium text-gray-700 mb-2">项目照片</p>
+                      <div class="photo-grid">
+                        <template x-for="(photo, pIdx) in getImplPhotos(idx, activeImplStage)" :key="pIdx">
+                          <div class="photo-item">
+                            <img :src="photo.url" class="w-full h-full object-cover" alt="项目照片" @click="openLightbox(getImplPhotos(idx, activeImplStage), pIdx)">
+                            <template x-if="!implReadOnly">
+                              <button @click.stop="removeImplPhoto(idx, activeImplStage, pIdx)" class="absolute top-1 right-1 w-5 h-5 bg-red-500 rounded-full text-white text-xs flex items-center justify-center hover:bg-red-600">×</button>
+                            </template>
+                          </div>
+                        </template>
+                        <template x-if="!implReadOnly && getImplPhotos(idx, activeImplStage).length < 9">
+                          <label class="photo-add cursor-pointer">
+                            <input type="file" class="hidden" accept=".jpg,.jpeg,.png,.gif,.webp" multiple @change="onImplPhotoChange($event, idx, activeImplStage)">
+                            <i class="fas fa-plus text-lg"></i>
+                            <span>上传</span>
+                          </label>
+                        </template>
+                      </div>
+                      <p class="text-xs text-gray-400 mt-1">支持 JPG/PNG/GIF/WebP，单张不超过 10MB，最多 9 张</p>
+                    </div>
+                    
+                    <!-- 视频区 -->
+                    <div>
+                      <p class="text-sm font-medium text-gray-700 mb-2">项目视频</p>
+                      <template x-for="(video, vIdx) in getImplVideos(idx, activeImplStage)" :key="vIdx">
+                        <div class="flex items-center justify-between bg-gray-50 rounded px-3 py-2 mb-1">
+                          <div class="flex items-center gap-2">
+                            <i class="fas fa-video text-blue-400"></i>
+                            <span class="text-sm text-gray-700" x-text="video.name"></span>
+                            <span class="text-xs text-gray-400" x-text="video.size"></span>
+                          </div>
+                          <template x-if="!implReadOnly">
+                            <button @click="removeImplVideo(idx, activeImplStage, vIdx)" class="text-red-500 hover:text-red-700 text-sm"><i class="fas fa-times"></i></button>
+                          </template>
+                        </div>
+                      </template>
+                      <template x-if="!implReadOnly && getImplVideos(idx, activeImplStage).length < 3">
+                        <label class="flex items-center gap-2 cursor-pointer text-sm text-blue-600 hover:text-blue-800 mt-1">
+                          <input type="file" class="hidden" accept=".mp4,.mov,.avi" @change="onImplVideoChange($event, idx, activeImplStage)">
+                          <i class="fas fa-plus"></i><span>上传视频</span>
+                        </label>
+                      </template>
+                      <p class="text-xs text-gray-400 mt-1">支持 MP4/MOV/AVI，单个不超过 200MB，最多 3 个</p>
+                    </div>
+                    
+                    <!-- 文字说明 -->
+                    <div>
+                      <p class="text-sm font-medium text-gray-700 mb-2">文字说明</p>
+                      <textarea x-model="getImplRecord(idx, activeImplStage).description" class="form-input" rows="3" maxlength="1000" :readonly="implReadOnly" :placeholder="implReadOnly?'':('请输入' + (activeImplStage==='EARLY'?'前期':'') + (activeImplStage==='MIDDLE'?'中期':'') + (activeImplStage==='LATER'?'后期':'') + '阶段的实施情况说明…')"></textarea>
+                      <div class="text-right text-xs text-gray-400 mt-1" x-text="(getImplRecord(idx, activeImplStage).description?.length||0) + '/1000'"></div>
+                    </div>
+                    
+                    <!-- 保存按钮 -->
+                    <template x-if="!implReadOnly">
+                      <div class="flex justify-end">
+                        <button @click="saveImplRecord(idx, activeImplStage)" class="btn-primary text-sm"><i class="fas fa-save mr-1"></i>保存</button>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+        
+        <!-- 底部 -->
+        <div class="px-6 py-4 border-t border-gray-100 bg-gray-50">
+          <button @click="viewApplyDetail(selectedApply)" class="btn-default">返回申报详情</button>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- SECTION END: 实施信息填报 -->
+
+</main>
+
+<!-- 撤回确认弹窗 -->
+<div x-show="showWithdrawModal" x-cloak class="modal-overlay" @click.self="showWithdrawModal=false">
+  <div class="modal-box" style="max-width:400px">
+    <h3 class="text-base font-semibold mb-3">确认撤回</h3>
+    <p class="text-gray-600 mb-6">确认撤回该申报草稿吗？撤回后将无法恢复。</p>
+    <div class="flex justify-end gap-3">
+      <button @click="showWithdrawModal=false" class="btn-default">取消</button>
+      <button @click="confirmWithdraw()" class="btn-danger">确认撤回</button>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox 图片预览 -->
+<div x-show="lightbox.show" x-cloak class="lightbox" @click="lightbox.show=false">
+  <button @click.stop="lightbox.idx=Math.max(0,lightbox.idx-1)" class="absolute left-6 text-white text-3xl z-10"><i class="fas fa-chevron-left"></i></button>
+  <img :src="lightbox.images[lightbox.idx]?.url" class="max-w-4xl max-h-screen object-contain rounded-lg" @click.stop>
+  <button @click.stop="lightbox.idx=Math.min(lightbox.images.length-1,lightbox.idx+1)" class="absolute right-6 text-white text-3xl z-10"><i class="fas fa-chevron-right"></i></button>
+  <button @click="lightbox.show=false" class="absolute top-6 right-6 text-white text-2xl"><i class="fas fa-times"></i></button>
+</div>
+
+<script>
+const MOCK_DATA = {
+  currentUser: {
+    id: 1,
+    name: '李明强',
+    role: 'ent_admin',
+    roleName: '企业管理员',
+    farmId: 101,
+    companyName: '蓬溪县鑫源生猪养殖有限公司'
+  },
+
+  policies: [
+    { id: 1, title: '2024年蓬溪县生猪标准化规模养殖场建设补贴项目', applyDeadline: '2026-04-30' },
+    { id: 2, title: '2024年蓬溪县畜牧业绿色发展补贴申报', applyDeadline: '2026-05-15' }
+  ],
+
+  notices: [
+    {
+      id: 1,
+      projectName: '2024年蓬溪县畜牧项目建设申报',
+      content: '<p>详见通知正文</p>',
+      applyStartTime: '2026-01-01',
+      applyEndTime: '2026-04-30',
+      publishTime: '2026-01-01 09:00',
+      publishStatus: '1',
+      status: 'IN_PROGRESS'
+    },
+    {
+      id: 2,
+      projectName: '2025年蓬溪县畜牧业绿色发展申报',
+      content: '<p>详见通知正文</p>',
+      applyStartTime: '2026-06-01',
+      applyEndTime: '2026-08-31',
+      publishTime: '2026-02-15 10:00',
+      publishStatus: '1',
+      status: 'NOT_STARTED'
+    },
+    {
+      id: 3,
+      projectName: '2023年蓬溪县生猪养殖装备升级申报',
+      content: '<p>详见通知正文</p>',
+      applyStartTime: '2025-01-01',
+      applyEndTime: '2025-06-30',
+      publishTime: '2025-01-01 09:00',
+      publishStatus: '1',
+      status: 'EXPIRED'
+    }
+  ],
+
+  myApplications: [
+    {
+      id: 1001,
+      noticeId: 1,
+      policyId: 1,
+      policyTitle: '2024年蓬溪县生猪标准化规模养殖场建设补贴项目',
+      projectName: '2024年蓬溪县畜牧项目建设申报',
+      companyName: '蓬溪县鑫源生猪养殖有限公司',
+      applyDate: '2026-02-20',
+      addressTown: '蓬南', addressVillage: '金桥', addressGroup: '一',
+      farmType: 'SELF_BREEDING',
+      contactName: '李明强', contactPhone: '13812345678',
+      constructionType: 'EXPANSION',
+      buildStartDate: '2026-03-01', buildEndDate: '2026-12-31',
+      designStock: 3000, designAnnualOutput: 5000, totalRaiseAfterBuild: 8000,
+      newStockAfterBuild: 1000, newOutputAfterBuild: 2000, currentStock: 2000,
+      totalInvestment: '188.5600',
+      applicantOpinion: '本单位承诺以上填报内容真实准确',
+      status: 'COUNTY_APPROVED',
+      rejectReason: null,
+      items: [
+        { id: 1, subProject: 'PIGSTY', buildContent: '扩建', unit: '㎡', quantity: 500, unitPrice: 800, amount: 4.0000, model: '', remark: '' },
+        { id: 2, subProject: 'AUTO_FEEDING', buildContent: '料塔', unit: '个', quantity: 4, unitPrice: 35000, amount: 1.4000, model: 'LT-500', remark: '' },
+        { id: 3, subProject: 'SMART_MGMT', buildContent: '视频监控系统', unit: '套', quantity: 1, unitPrice: 180000, amount: 18.0000, model: 'HD-2000', remark: '' },
+        { id: 4, subProject: 'MANURE_TREATMENT', buildContent: '干湿分离机', unit: '组', quantity: 2, unitPrice: 68000, amount: 13.6000, model: '', remark: '' },
+        { id: 5, subProject: 'SMART_ENV_CTRL', buildContent: '风机', unit: '个', quantity: 20, unitPrice: 2800, amount: 0.5600, model: 'FJ-500', remark: '' }
+      ],
+      auditLogs: [
+        { node: 'STATION_AUDIT', result: 'APPROVED', opinion: '现场核查符合条件，公示无异议', time: '2026-02-28 14:30', auditor: '张主任' },
+        { node: 'TOWN_AUDIT', result: 'APPROVED', opinion: '同意申报', time: '2026-03-02 10:00', auditor: '王镇长' },
+        { node: 'COUNTY_AUDIT', result: 'APPROVED', opinion: '审核通过，同意立项', time: '2026-03-05 16:00', auditor: '刘局长' }
+      ]
+    },
+    {
+      id: 1002,
+      noticeId: 1,
+      policyId: 2,
+      policyTitle: '2024年蓬溪县畜牧业绿色发展补贴申报',
+      projectName: '2024年蓬溪县畜牧项目建设申报',
+      companyName: '蓬溪县鑫源生猪养殖有限公司',
+      applyDate: '2026-01-15',
+      addressTown: '蓬南', addressVillage: '金桥', addressGroup: '二',
+      farmType: 'FATTENING',
+      contactName: '李明强', contactPhone: '13812345678',
+      constructionType: 'NEW_BUILD',
+      buildStartDate: '2026-04-01', buildEndDate: '2026-12-31',
+      designStock: 2000, designAnnualOutput: 8000, totalRaiseAfterBuild: 10000,
+      newStockAfterBuild: 2000, newOutputAfterBuild: 8000, currentStock: 0,
+      totalInvestment: '356.2000',
+      applicantOpinion: '',
+      status: 'STATION_REJECTED',
+      rejectReason: '现场核查发现防疫围挡建设不符合规范要求，请整改后重新申报',
+      items: [
+        { id: 10, subProject: 'PIGSTY', buildContent: '新建', unit: '㎡', quantity: 2000, unitPrice: 1200, amount: 24.0000, model: '', remark: '' },
+        { id: 11, subProject: 'EPIDEMIC_PREVENTION', buildContent: '兽医室', unit: '㎡', quantity: 80, unitPrice: 2000, amount: 1.6000, model: '', remark: '' },
+        { id: 12, subProject: 'MANURE_TREATMENT', buildContent: '自动刮粪机', unit: '组', quantity: 8, unitPrice: 45000, amount: 3.6000, model: 'GP-200', remark: '' }
+      ],
+      auditLogs: [
+        { node: 'STATION_AUDIT', result: 'REJECTED', opinion: '现场核查发现防疫围挡建设不符合规范要求，请整改后重新申报', time: '2026-01-25 15:00', auditor: '张主任' }
+      ]
+    },
+    {
+      id: 1003,
+      noticeId: 1,
+      policyId: 1,
+      policyTitle: '2024年蓬溪县生猪标准化规模养殖场建设补贴项目',
+      projectName: '2024年蓬溪县畜牧项目建设申报',
+      companyName: '蓬溪县鑫源生猪养殖有限公司',
+      applyDate: '2026-03-01',
+      addressTown: '蓬南', addressVillage: '金桥', addressGroup: '三',
+      farmType: 'PIGLET_BREEDING',
+      contactName: '李明强', contactPhone: '13812345678',
+      constructionType: 'RENOVATION',
+      buildStartDate: '2026-05-01', buildEndDate: '2026-11-30',
+      designStock: 500, designAnnualOutput: 2000, totalRaiseAfterBuild: 2500,
+      newStockAfterBuild: 200, newOutputAfterBuild: 800, currentStock: 300,
+      totalInvestment: '42.8000',
+      applicantOpinion: '',
+      status: 'PENDING_PUBLICITY',
+      rejectReason: null,
+      items: [
+        { id: 20, subProject: 'PIGSTY', buildContent: '改建', unit: '㎡', quantity: 300, unitPrice: 900, amount: 2.7000, model: '', remark: '' },
+        { id: 21, subProject: 'AUTO_FEEDING', buildContent: '料线', unit: '米', quantity: 200, unitPrice: 150, amount: 0.3000, model: '', remark: '' }
+      ],
+      auditLogs: []
+    },
+    {
+      id: 1004,
+      noticeId: 1,
+      policyId: 1,
+      policyTitle: '2024年蓬溪县生猪标准化规模养殖场建设补贴项目',
+      projectName: '2024年蓬溪县畜牧项目建设申报',
+      companyName: '蓬溪县鑫源生猪养殖有限公司',
+      applyDate: '2026-03-06',
+      addressTown: '', addressVillage: '', addressGroup: '',
+      farmType: '', contactName: '', contactPhone: '',
+      constructionType: '', buildStartDate: '', buildEndDate: '',
+      designStock: null, designAnnualOutput: null, totalRaiseAfterBuild: null,
+      newStockAfterBuild: null, newOutputAfterBuild: null, currentStock: null,
+      totalInvestment: '0.0000',
+      applicantOpinion: '',
+      status: 'DRAFT',
+      rejectReason: null,
+      items: [{ subProject: '', buildContent: '', unit: '', quantity: null, unitPrice: null, amount: 0, model: '', remark: '', errors: {} }],
+      auditLogs: []
+    },
+    {
+      id: 1005,
+      noticeId: 1,
+      policyId: 2,
+      policyTitle: '2024年蓬溪县畜牧业绿色发展补贴申报',
+      projectName: '2024年蓬溪县畜牧项目建设申报',
+      companyName: '蓬溪县鑫源生猪养殖有限公司',
+      applyDate: '2025-09-10',
+      addressTown: '蓬南', addressVillage: '芋河', addressGroup: '五',
+      farmType: 'SELF_BREEDING',
+      contactName: '李明强', contactPhone: '13812345678',
+      constructionType: 'EXPANSION',
+      buildStartDate: '2025-10-01', buildEndDate: '2026-06-30',
+      designStock: 1500, designAnnualOutput: 6000, totalRaiseAfterBuild: 7500,
+      newStockAfterBuild: 500, newOutputAfterBuild: 2000, currentStock: 1000,
+      totalInvestment: '95.2000',
+      applicantOpinion: '',
+      status: 'ACCEPTED',
+      rejectReason: null,
+      items: [
+        { id: 30, subProject: 'PIGSTY', buildContent: '扩建', unit: '㎡', quantity: 800, unitPrice: 900, amount: 7.2000, model: '', remark: '' },
+        { id: 31, subProject: 'SMART_ENV_CTRL', buildContent: '水帘', unit: '㎡', quantity: 200, unitPrice: 350, amount: 0.7000, model: '', remark: '' }
+      ],
+      auditLogs: [
+        { node: 'STATION_AUDIT', result: 'APPROVED', opinion: '审核通过', time: '2025-09-20 14:00', auditor: '张主任' },
+        { node: 'TOWN_AUDIT', result: 'APPROVED', opinion: '同意', time: '2025-09-25 10:00', auditor: '王镇长' },
+        { node: 'COUNTY_AUDIT', result: 'APPROVED', opinion: '审核通过', time: '2025-10-01 09:00', auditor: '刘局长' }
+      ]
+    },
+    {
+      id: 1006,
+      noticeId: 3,
+      policyId: 1,
+      policyTitle: '2024年蓬溪县生猪标准化规模养殖场建设补贴项目',
+      projectName: '2023年蓬溪县生猪养殖装备升级申报',
+      companyName: '蓬溪县鑫源生猪养殖有限公司',
+      applyDate: '2025-03-15',
+      addressTown: '蓬南', addressVillage: '金桥', addressGroup: '六',
+      farmType: 'FATTENING',
+      contactName: '李明强', contactPhone: '13812345678',
+      constructionType: 'RENOVATION',
+      buildStartDate: '2025-04-01', buildEndDate: '2025-10-31',
+      designStock: 2500, designAnnualOutput: 10000, totalRaiseAfterBuild: 12500,
+      newStockAfterBuild: 500, newOutputAfterBuild: 2000, currentStock: 2000,
+      totalInvestment: '220.0000',
+      applicantOpinion: '',
+      status: 'IN_PUBLICITY',
+      rejectReason: null,
+      items: [
+        { id: 40, subProject: 'AUTO_FEEDING', buildContent: '自动饮水器', unit: '套', quantity: 20, unitPrice: 5000, amount: 1.0000, model: '', remark: '' }
+      ],
+      auditLogs: []
+    },
+    {
+      id: 1007,
+      noticeId: 3,
+      policyId: 1,
+      policyTitle: '2024年蓬溪县生猪标准化规模养殖场建设补贴项目',
+      projectName: '2023年蓬溪县生猪养殖装备升级申报',
+      companyName: '蓬溪县鑫源生猪养殖有限公司',
+      applyDate: '2025-02-10',
+      addressTown: '蓬南', addressVillage: '金桥', addressGroup: '七',
+      farmType: 'FATTENING',
+      contactName: '李明强', contactPhone: '13812345678',
+      constructionType: 'NEW_BUILD',
+      buildStartDate: '2025-03-01', buildEndDate: '2025-12-31',
+      designStock: 5000, designAnnualOutput: 20000, totalRaiseAfterBuild: 25000,
+      newStockAfterBuild: 5000, newOutputAfterBuild: 20000, currentStock: 0,
+      totalInvestment: '580.0000',
+      applicantOpinion: '',
+      status: 'COUNTY_REJECTED',
+      rejectReason: '建设方案中规模指标超出政策支持范围，请按政策要求调整后重新申报',
+      items: [
+        { id: 50, subProject: 'PIGSTY', buildContent: '新建', unit: '㎡', quantity: 4000, unitPrice: 1200, amount: 48.0000, model: '', remark: '' }
+      ],
+      auditLogs: [
+        { node: 'STATION_AUDIT', result: 'APPROVED', opinion: '审核通过', time: '2025-02-18 10:00', auditor: '张主任' },
+        { node: 'TOWN_AUDIT', result: 'APPROVED', opinion: '同意', time: '2025-02-22 14:00', auditor: '王镇长' },
+        { node: 'COUNTY_AUDIT', result: 'REJECTED', opinion: '建设方案中规模指标超出政策支持范围，请按政策要求调整后重新申报', time: '2025-02-28 09:00', auditor: '刘局长' }
+      ]
+    },
+    {
+      id: 1008,
+      noticeId: 1,
+      policyId: 2,
+      policyTitle: '2024年蓬溪县畜牧业绿色发展补贴申报',
+      projectName: '2024年蓬溪县畜牧项目建设申报',
+      companyName: '蓬溪县鑫源生猪养殖有限公司',
+      applyDate: '2026-02-28',
+      addressTown: '蓬南', addressVillage: '金桥', addressGroup: '八',
+      farmType: 'SELF_BREEDING',
+      contactName: '李明强', contactPhone: '13812345678',
+      constructionType: 'NEW_BUILD',
+      buildStartDate: '2026-04-01', buildEndDate: '2027-03-31',
+      designStock: 1000, designAnnualOutput: 4000, totalRaiseAfterBuild: 5000,
+      newStockAfterBuild: 1000, newOutputAfterBuild: 4000, currentStock: 0,
+      totalInvestment: '128.0000',
+      applicantOpinion: '',
+      status: 'PENDING_COUNTY_REVIEW',
+      rejectReason: null,
+      items: [
+        { id: 60, subProject: 'PIGSTY', buildContent: '新建', unit: '㎡', quantity: 800, unitPrice: 1000, amount: 8.0000, model: '', remark: '' },
+        { id: 61, subProject: 'MANURE_TREATMENT', buildContent: '沼气池', unit: 'm³', quantity: 200, unitPrice: 600, amount: 1.2000, model: '', remark: '' }
+      ],
+      auditLogs: [
+        { node: 'STATION_AUDIT', result: 'APPROVED', opinion: '审核通过', time: '2026-03-02 10:00', auditor: '张主任' },
+        { node: 'TOWN_AUDIT', result: 'APPROVED', opinion: '同意', time: '2026-03-04 14:00', auditor: '王镇长' }
+      ]
+    }
+  ],
+
+  attachmentTypes: [
+    { type: 'BUSINESS_LICENSE', label: '营业执照' },
+    { type: 'LAND_RECORD', label: '土地备案表' },
+    { type: 'ENV_ASSESSMENT', label: '环评备案表/环评批复' },
+    { type: 'EPIDEMIC_PERMIT', label: '动物防疫条件许可证' },
+    { type: 'CREDIT_RECORD', label: '征信记录' },
+    { type: 'COMMITMENT_LETTER', label: '承诺书' }
+  ],
+
+  subProjects: [
+    { key: 'PIGSTY', label: '圈舍建设' },
+    { key: 'AUTO_FEEDING', label: '自动化饲喂系统建设' },
+    { key: 'SMART_MGMT', label: '智能化管理系统建设' },
+    { key: 'EPIDEMIC_PREVENTION', label: '防疫系统建设' },
+    { key: 'MANURE_TREATMENT', label: '粪污处理系统建设' },
+    { key: 'SMART_ENV_CTRL', label: '智能化环控系统建设' }
+  ],
+
+  buildContentMap: {
+    'PIGSTY': [
+      { key: '新建', label: '新建', unit: '㎡' },
+      { key: '改建', label: '改建', unit: '㎡' },
+      { key: '扩建', label: '扩建', unit: '㎡' }
+    ],
+    'AUTO_FEEDING': [
+      { key: '料塔', label: '料塔', unit: '个' },
+      { key: '料线', label: '料线', unit: '米' },
+      { key: '料塔称重器', label: '料塔称重器', unit: '套' },
+      { key: '自动饮水器', label: '自动饮水器', unit: '套' }
+    ],
+    'SMART_MGMT': [
+      { key: '视频监控系统', label: '视频监控系统', unit: '套' }
+    ],
+    'EPIDEMIC_PREVENTION': [
+      { key: '兽医室', label: '兽医室', unit: '㎡' },
+      { key: '消毒室', label: '消毒室', unit: '㎡' },
+      { key: '防疫围挡', label: '防疫围挡', unit: '㎡' }
+    ],
+    'MANURE_TREATMENT': [
+      { key: '自动刮粪机', label: '自动刮粪机', unit: '组' },
+      { key: '干湿分离机', label: '干湿分离机', unit: '组' },
+      { key: '漏缝板', label: '漏缝板', unit: '张' },
+      { key: '沼液暂存池', label: '沼液暂存池', unit: 'm³' },
+      { key: '沼气池', label: '沼气池', unit: 'm³' },
+      { key: '沼液输送管网', label: '沼液输送管网', unit: '米' },
+      { key: '粪污运输车', label: '粪污运输车', unit: '辆' }
+    ],
+    'SMART_ENV_CTRL': [
+      { key: '风机', label: '风机', unit: '个' },
+      { key: '水帘', label: '水帘', unit: '㎡' },
+      { key: '地暖', label: '地暖', unit: '㎡' },
+      { key: '环境控制器', label: '环境控制器', unit: '套' }
+    ]
+  },
+
+  // 实施信息数据
+  implRecords: {
+    // key: "appId_itemIdx_stage" -> { description, photos: [], videos: [], saved: false }
+    '1001_0_EARLY': { description: '已完成扩建区域场地平整，基础开挖进行中，预计本月底完成基础施工。', photos: [
+      { url: 'https://picsum.photos/seed/impl1/200/200', name: 'site_01.jpg' },
+      { url: 'https://picsum.photos/seed/impl2/200/200', name: 'site_02.jpg' }
+    ], videos: [], saved: true },
+    '1001_1_EARLY': { description: '料塔基座已安装完成，等待料塔主体运输到场。', photos: [
+      { url: 'https://picsum.photos/seed/impl3/200/200', name: 'feeder_01.jpg' }
+    ], videos: [], saved: true },
+    '1001_2_EARLY': { description: '监控系统点位勘测完成，弱电管线预埋正在施工。', photos: [], videos: [], saved: true },
+    '1005_0_EARLY': { description: '扩建区基础施工完成', photos: [
+      { url: 'https://picsum.photos/seed/impl5/200/200', name: 'base_01.jpg' }
+    ], videos: [], saved: true },
+    '1005_0_MIDDLE': { description: '主体墙体砌筑完成，屋顶施工进行中', photos: [
+      { url: 'https://picsum.photos/seed/impl6/200/200', name: 'mid_01.jpg' },
+      { url: 'https://picsum.photos/seed/impl7/200/200', name: 'mid_02.jpg' }
+    ], videos: [], saved: true },
+    '1005_0_LATER': { description: '扩建圈舍竣工验收通过，已投入使用', photos: [
+      { url: 'https://picsum.photos/seed/impl8/200/200', name: 'fin_01.jpg' }
+    ], videos: [], saved: true },
+    '1005_1_EARLY': { description: '水帘安装完成', photos: [], videos: [], saved: true },
+    '1005_1_MIDDLE': { description: '调试完成，运行正常', photos: [], videos: [], saved: true },
+    '1005_1_LATER': { description: '验收合格', photos: [], videos: [], saved: true }
+  },
+
+  attachmentFiles: {
+    'BUSINESS_LICENSE': [{ name: '营业执照.pdf', size: '1.2MB' }],
+    'LAND_RECORD': [{ name: '土地备案表.pdf', size: '2.5MB' }],
+    'ENV_ASSESSMENT': [{ name: '环评批复.pdf', size: '3.8MB' }],
+    'EPIDEMIC_PERMIT': [{ name: '动物防疫条件许可证.pdf', size: '1.5MB' }],
+    'CREDIT_RECORD': [],
+    'COMMITMENT_LETTER': []
+  }
+};
+
+function appState() {
+  return {
+    currentUser: MOCK_DATA.currentUser,
+    currentPage: 'notice-list',
+    
+    // 通知列表
+    noticeTabs: [
+      { key: 'ALL', label: '全部' },
+      { key: 'IN_PROGRESS', label: '进行中' },
+      { key: 'NOT_STARTED', label: '未开始' },
+      { key: 'EXPIRED', label: '已截止' }
+    ],
+    noticeActiveTab: 'IN_PROGRESS',
+    selectedNotice: null,
+    
+    // 我的申报
+    myApplyTabs: [
+      { key: 'ALL', label: '全部' },
+      { key: 'DRAFT', label: '草稿' },
+      { key: 'IN_REVIEW', label: '审核中' },
+      { key: 'APPROVED', label: '已通过' },
+      { key: 'REJECTED', label: '已退回' }
+    ],
+    myApplyActiveTab: 'ALL',
+    selectedApply: null,
+    detailExpanded: false,
+    
+    // 申报表单
+    applyForm: {
+      id: null,
+      noticeId: null,
+      policyId: '',
+      policyTitle: '',
+      policyLocked: false,
+      companyName: MOCK_DATA.currentUser.companyName,
+      addressTown: '', addressVillage: '', addressGroup: '',
+      farmType: '',
+      contactName: '', contactPhone: '',
+      constructionType: '',
+      buildStartDate: '', buildEndDate: '',
+      designStock: null, designAnnualOutput: null,
+      newStockAfterBuild: null, newOutputAfterBuild: null,
+      currentStock: null,
+      totalRaiseAfterBuild: null,
+      applicantOpinion: '',
+      items: [{ subProject: '', buildContent: '', unit: '', quantity: null, unitPrice: null, amount: 0, model: '', remark: '', errors: {} }],
+      attachments: JSON.parse(JSON.stringify(MOCK_DATA.attachmentFiles)),
+      showRejectTip: false,
+      rejectReason: ''
+    },
+    formErrors: {},
+    
+    // 实施信息
+    implReadOnly: false,
+    expandedImplCard: null,
+    activeImplStage: 'EARLY',
+    implRecords: JSON.parse(JSON.stringify(MOCK_DATA.implRecords)),
+    
+    // 弹窗
+    showWithdrawModal: false,
+    withdrawTarget: null,
+    
+    // Toast
+    toast: { show: false, type: 'success', msg: '' },
+    
+    // Lightbox
+    lightbox: { show: false, images: [], idx: 0 },
+
+    init() {
+      // 初始化
+    },
+    
+    showToast(msg, type='success') {
+      this.toast = { show: true, type, msg };
+      setTimeout(() => { this.toast.show = false; }, 3000);
+    },
+
+    navigate(page) {
+      this.currentPage = page;
+      this.formErrors = {};
+    },
+
+    // ===== 通知相关 =====
+    get filteredNotices() {
+      if (this.noticeActiveTab === 'ALL') return MOCK_DATA.notices;
+      return MOCK_DATA.notices.filter(n => n.status === this.noticeActiveTab);
+    },
+
+    getNoticeStatusLabel(status) {
+      const map = { 'IN_PROGRESS': '进行中', 'NOT_STARTED': '未开始', 'EXPIRED': '已截止' };
+      return map[status] || status;
+    },
+
+    getNoticeStatusTag(status) {
+      const map = { 'IN_PROGRESS': 'tag-green', 'NOT_STARTED': 'tag-blue', 'EXPIRED': 'tag-gray' };
+      return 'status-tag ' + (map[status] || 'tag-gray');
+    },
+
+    hasApplied(noticeId) {
+      return MOCK_DATA.myApplications.some(a => a.noticeId === noticeId && a.status !== 'WITHDRAWN');
+    },
+
+    viewNoticeDetail(notice) {
+      this.selectedNotice = notice;
+      this.navigate('notice-detail');
+    },
+
+    startApply(notice) {
+      this.selectedNotice = notice;
+      this.resetApplyForm(notice.id, null, false);
+      this.navigate('apply-form');
+    },
+
+    startApplyFromDetail() {
+      this.resetApplyForm(this.selectedNotice.id, null, false);
+      this.navigate('apply-form');
+    },
+
+    viewMyApply(notice) {
+      const app = MOCK_DATA.myApplications.find(a => a.noticeId === notice.id && a.status !== 'WITHDRAWN');
+      if (app) { this.viewApplyDetail(app); }
+    },
+
+    // ===== 我的申报相关 =====
+    get filteredMyApplies() {
+      const inReviewStatuses = ['PENDING_PUBLICITY','IN_PUBLICITY','PENDING_STATION_REVIEW','STATION_APPROVED','PENDING_TOWN_REVIEW','TOWN_APPROVED','PENDING_COUNTY_REVIEW'];
+      const approvedStatuses = ['COUNTY_APPROVED','ACCEPTED'];
+      const rejectedStatuses = ['STATION_REJECTED','TOWN_REJECTED','COUNTY_REJECTED'];
+      return MOCK_DATA.myApplications.filter(a => {
+        if (a.status === 'WITHDRAWN') return false;
+        if (this.myApplyActiveTab === 'ALL') return true;
+        if (this.myApplyActiveTab === 'DRAFT') return a.status === 'DRAFT';
+        if (this.myApplyActiveTab === 'IN_REVIEW') return inReviewStatuses.includes(a.status);
+        if (this.myApplyActiveTab === 'APPROVED') return approvedStatuses.includes(a.status);
+        if (this.myApplyActiveTab === 'REJECTED') return rejectedStatuses.includes(a.status);
+        return true;
+      });
+    },
+
+    getApplyStatusLabel(status) {
+      const map = {
+        'DRAFT': '草稿',
+        'PENDING_PUBLICITY': '待公示',
+        'IN_PUBLICITY': '公示中',
+        'PENDING_STATION_REVIEW': '待站审核',
+        'STATION_APPROVED': '站审核通过',
+        'STATION_REJECTED': '站审核退回',
+        'PENDING_TOWN_REVIEW': '待镇审核',
+        'TOWN_APPROVED': '镇审核通过',
+        'TOWN_REJECTED': '镇审核退回',
+        'PENDING_COUNTY_REVIEW': '待县审核',
+        'COUNTY_APPROVED': '县审核通过',
+        'COUNTY_REJECTED': '县审核退回',
+        'ACCEPTED': '验收通过',
+        'WITHDRAWN': '已撤回'
+      };
+      return map[status] || status;
+    },
+
+    getApplyStatusTag(status) {
+      const map = {
+        'DRAFT': 'tag-gray',
+        'PENDING_PUBLICITY': 'tag-blue',
+        'IN_PUBLICITY': 'tag-blue',
+        'PENDING_STATION_REVIEW': 'tag-blue',
+        'STATION_APPROVED': 'tag-blue',
+        'STATION_REJECTED': 'tag-red',
+        'PENDING_TOWN_REVIEW': 'tag-blue',
+        'TOWN_APPROVED': 'tag-blue',
+        'TOWN_REJECTED': 'tag-red',
+        'PENDING_COUNTY_REVIEW': 'tag-blue',
+        'COUNTY_APPROVED': 'tag-green',
+        'COUNTY_REJECTED': 'tag-red',
+        'ACCEPTED': 'tag-darkgreen',
+        'WITHDRAWN': 'tag-gray'
+      };
+      return 'status-tag ' + (map[status] || 'tag-gray');
+    },
+
+    viewApplyDetail(app) {
+      this.selectedApply = app;
+      this.detailExpanded = false;
+      this.navigate('apply-detail');
+    },
+
+    continueApply(app) {
+      this.loadApplyForm(app, false);
+      this.navigate('apply-form');
+    },
+
+    editApply(app) {
+      this.loadApplyForm(app, true);
+      this.navigate('apply-form');
+    },
+
+    loadApplyForm(app, showRejectTip) {
+      this.applyForm = {
+        id: app.id,
+        noticeId: app.noticeId,
+        policyId: app.policyId,
+        policyTitle: app.policyTitle,
+        policyLocked: true,
+        companyName: app.companyName,
+        addressTown: app.addressTown, addressVillage: app.addressVillage, addressGroup: app.addressGroup,
+        farmType: app.farmType,
+        contactName: app.contactName, contactPhone: app.contactPhone,
+        constructionType: app.constructionType,
+        buildStartDate: app.buildStartDate, buildEndDate: app.buildEndDate,
+        designStock: app.designStock, designAnnualOutput: app.designAnnualOutput,
+        newStockAfterBuild: app.newStockAfterBuild, newOutputAfterBuild: app.newOutputAfterBuild,
+        currentStock: app.currentStock,
+        totalRaiseAfterBuild: app.totalRaiseAfterBuild,
+        applicantOpinion: app.applicantOpinion||'',
+        items: app.items.map(i => ({...i, errors: {}})),
+        attachments: JSON.parse(JSON.stringify(MOCK_DATA.attachmentFiles)),
+        showRejectTip,
+        rejectReason: app.rejectReason||''
+      };
+      this.formErrors = {};
+    },
+
+    resetApplyForm(noticeId, policyId, policyLocked) {
+      this.applyForm = {
+        id: null,
+        noticeId,
+        policyId: policyId||'',
+        policyTitle: policyId ? MOCK_DATA.policies.find(p=>p.id===policyId)?.title : '',
+        policyLocked,
+        companyName: MOCK_DATA.currentUser.companyName,
+        addressTown: '', addressVillage: '', addressGroup: '',
+        farmType: '', contactName: '', contactPhone: '',
+        constructionType: '', buildStartDate: '', buildEndDate: '',
+        designStock: null, designAnnualOutput: null,
+        newStockAfterBuild: null, newOutputAfterBuild: null,
+        currentStock: null, totalRaiseAfterBuild: null,
+        applicantOpinion: '',
+        items: [{ subProject: '', buildContent: '', unit: '', quantity: null, unitPrice: null, amount: 0, model: '', remark: '', errors: {} }],
+        attachments: { BUSINESS_LICENSE: [], LAND_RECORD: [], ENV_ASSESSMENT: [], EPIDEMIC_PERMIT: [], CREDIT_RECORD: [], COMMITMENT_LETTER: [] },
+        showRejectTip: false,
+        rejectReason: ''
+      };
+      this.formErrors = {};
+    },
+
+    withdrawApply(app) {
+      this.withdrawTarget = app;
+      this.showWithdrawModal = true;
+    },
+
+    confirmWithdraw() {
+      const idx = MOCK_DATA.myApplications.findIndex(a => a.id === this.withdrawTarget.id);
+      if (idx > -1) {
+        MOCK_DATA.myApplications[idx].status = 'WITHDRAWN';
+      }
+      this.showWithdrawModal = false;
+      if (this.currentPage === 'apply-detail') this.navigate('my-apply-list');
+      this.showToast('申报草稿已撤回');
+    },
+
+    // ===== 审核流程步骤 =====
+    getApplySteps(app) {
+      if (!app) return [];
+      const s = app.status;
+      const inReview = ['PENDING_PUBLICITY','IN_PUBLICITY','PENDING_STATION_REVIEW'];
+      const stationApproved = ['STATION_APPROVED','PENDING_TOWN_REVIEW','TOWN_APPROVED','PENDING_COUNTY_REVIEW','COUNTY_APPROVED','COUNTY_REJECTED','ACCEPTED'];
+      const stationRejected = s === 'STATION_REJECTED';
+      const townApproved = ['TOWN_APPROVED','PENDING_COUNTY_REVIEW','COUNTY_APPROVED','COUNTY_REJECTED','ACCEPTED'];
+      const townRejected = s === 'TOWN_REJECTED';
+      const countyApproved = ['COUNTY_APPROVED','ACCEPTED'];
+      const countyRejected = s === 'COUNTY_REJECTED';
+
+      const step1Done = s !== 'DRAFT';
+      const step2State = stationRejected ? 'rejected' : (stationApproved.includes(s) ? 'done' : (inReview.includes(s) ? 'active' : 'pending'));
+      const step3State = townRejected ? 'rejected' : (townApproved.includes(s) ? 'done' : (s === 'PENDING_TOWN_REVIEW' ? 'active' : 'pending'));
+      const step4State = countyRejected ? 'rejected' : (countyApproved.includes(s) ? 'done' : (s === 'PENDING_COUNTY_REVIEW' ? 'active' : 'pending'));
+      const step5State = ['COUNTY_APPROVED','ACCEPTED'].includes(s) ? 'done' : 'pending';
+
+      const stationLog = app.auditLogs?.find(l => l.node === 'STATION_AUDIT');
+      const townLog = app.auditLogs?.find(l => l.node === 'TOWN_AUDIT');
+      const countyLog = app.auditLogs?.find(l => l.node === 'COUNTY_AUDIT');
+
+      return [
+        { name: '填报提交', state: step1Done ? 'done' : 'active', time: app.applyDate||'', done: step1Done, opinion: '' },
+        { name: '乡镇畜牧兽医站审核', state: step2State, time: stationLog?.time||'', done: step2State==='done', opinion: stationRejected ? stationLog?.opinion : '' },
+        { name: '乡镇政府审核', state: step3State, time: townLog?.time||'', done: step3State==='done', opinion: townRejected ? townLog?.opinion : '' },
+        { name: '县农业农村局审核', state: step4State, time: countyLog?.time||'', done: step4State==='done', opinion: countyRejected ? countyLog?.opinion : '' },
+        { name: '审核完成', state: step5State, time: step5State==='done' ? (countyLog?.time||'') : '', done: step5State==='done', opinion: '' }
+      ];
+    },
+
+    getFarmTypeLabel(type) {
+      const map = { 'NEW_BUILD': '新建', 'RENOVATION': '改建', 'EXPANSION': '扩建' };
+      return map[type] || type;
+    },
+    getFarmTypeLabel2(type) {
+      const map = { 'SELF_BREEDING': '自繁自养场', 'FATTENING': '育肥场', 'PIGLET_BREEDING': '仔猪繁育场' };
+      return map[type] || type;
+    },
+
+    getSubProjectLabel(key) {
+      const sp = MOCK_DATA.subProjects.find(s => s.key === key);
+      return sp ? sp.label : key;
+    },
+
+    downloadPDF() {
+      this.showToast('申请表PDF下载成功（模拟）');
+    },
+
+    // ===== 申报表单交互 =====
+    onPolicySelect() {
+      const p = MOCK_DATA.policies.find(p => p.id == this.applyForm.policyId);
+      if (p) { this.applyForm.policyTitle = p.title; }
+    },
+
+    calcRaise() {
+      const s = parseInt(this.applyForm.designStock) || 0;
+      const o = parseInt(this.applyForm.designAnnualOutput) || 0;
+      this.applyForm.totalRaiseAfterBuild = s + o;
+    },
+
+    getBuildContents(subProject) {
+      return MOCK_DATA.buildContentMap[subProject] || [];
+    },
+
+    onSubProjectChange(idx) {
+      this.applyForm.items[idx].buildContent = '';
+      this.applyForm.items[idx].unit = '';
+      this.applyForm.items[idx].amount = 0;
+    },
+
+    onBuildContentChange(idx) {
+      const item = this.applyForm.items[idx];
+      const contents = MOCK_DATA.buildContentMap[item.subProject] || [];
+      const found = contents.find(c => c.key === item.buildContent);
+      item.unit = found ? found.unit : '';
+      this.calcItemAmount(idx);
+    },
+
+    calcItemAmount(idx) {
+      const item = this.applyForm.items[idx];
+      const q = parseFloat(item.quantity) || 0;
+      const p = parseFloat(item.unitPrice) || 0;
+      item.amount = q * p / 10000;
+    },
+
+    get totalInvestment() {
+      return this.applyForm.items.reduce((sum, i) => sum + (i.amount||0), 0);
+    },
+
+    addItem() {
+      this.applyForm.items.push({ subProject: '', buildContent: '', unit: '', quantity: null, unitPrice: null, amount: 0, model: '', remark: '', errors: {} });
+    },
+
+    removeItem(idx) {
+      if (this.applyForm.items.length > 1) {
+        this.applyForm.items.splice(idx, 1);
+      }
+    },
+
+    // 附件
+    getAttCount(type) { return (this.applyForm.attachments[type]||[]).length; },
+    getAttFiles(type) { return this.applyForm.attachments[type] || []; },
+    onAttFileChange(e, type) {
+      const files = e.target.files;
+      if (!files.length) return;
+      for (const f of files) {
+        if ((this.applyForm.attachments[type]||[]).length >= 5) {
+          this.showToast('该类附件最多上传5个文件', 'error'); break;
+        }
+        if (f.size > 100*1024*1024) { this.showToast('文件大小不能超过100MB', 'error'); continue; }
+        if (!this.applyForm.attachments[type]) this.applyForm.attachments[type] = [];
+        this.applyForm.attachments[type].push({ name: f.name, size: (f.size/1024/1024).toFixed(1)+'MB' });
+      }
+      e.target.value = '';
+    },
+    removeAttFile(type, idx) {
+      this.applyForm.attachments[type].splice(idx, 1);
+    },
+
+    validateApplyForm() {
+      const errors = {};
+      if (!this.applyForm.policyId) errors.policyId = '请选择关联政策';
+      if (!this.applyForm.companyName) errors.companyName = '申请单位名称不能为空';
+      if (!this.applyForm.addressTown) errors.addressTown = '场址-镇不能为空';
+      if (!this.applyForm.addressVillage) errors.addressVillage = '场址-村不能为空';
+      if (!this.applyForm.addressGroup) errors.addressGroup = '场址-社不能为空';
+      if (!this.applyForm.farmType) errors.farmType = '请选择养殖场类型';
+      if (!this.applyForm.contactName) errors.contactName = '联系人不能为空';
+      if (!this.applyForm.contactPhone) errors.contactPhone = '联系电话不能为空';
+      else if (!/^1[3-9]\d{9}$/.test(this.applyForm.contactPhone)) errors.contactPhone = '请输入正确的手机号格式';
+      if (!this.applyForm.constructionType) errors.constructionType = '请选择建设性质';
+      if (!this.applyForm.buildStartDate) errors.buildStartDate = '建设期限开始日期不能为空';
+      if (!this.applyForm.buildEndDate) errors.buildEndDate = '建设期限结束日期不能为空';
+      else if (this.applyForm.buildStartDate && this.applyForm.buildEndDate <= this.applyForm.buildStartDate) errors.buildDate = '建设期限结束日期须晚于开始日期';
+      if (!this.applyForm.designStock || this.applyForm.designStock < 1) errors.designStock = '设计存栏规模须为1-9999999之间的正整数';
+      if (!this.applyForm.designAnnualOutput || this.applyForm.designAnnualOutput < 1) errors.designAnnualOutput = '设计年出栏规模须为1-9999999之间的正整数';
+      if (this.applyForm.newStockAfterBuild === null || this.applyForm.newStockAfterBuild === '') errors.newStockAfterBuild = '建成后新增存栏不能为空';
+      if (this.applyForm.newOutputAfterBuild === null || this.applyForm.newOutputAfterBuild === '') errors.newOutputAfterBuild = '建成后新增出栏不能为空';
+      if (this.applyForm.currentStock === null || this.applyForm.currentStock === '') errors.currentStock = '现存栏不能为空';
+      
+      // 建设内容校验
+      if (!this.applyForm.items.length) errors.items = '请至少添加一条建设内容';
+      this.applyForm.items.forEach((item, idx) => {
+        if (!item.subProject) item.errors.subProject = `第${idx+1}行：请选择子项目`;
+        else delete item.errors.subProject;
+        if (!item.buildContent) item.errors.buildContent = `第${idx+1}行：请选择建设内容`;
+        else delete item.errors.buildContent;
+        if (!item.quantity || item.quantity < 0.01) item.errors.quantity = `第${idx+1}行：数量须在0.01-999999.99之间`;
+        else delete item.errors.quantity;
+        if (!item.unitPrice || item.unitPrice < 0.01) item.errors.unitPrice = `第${idx+1}行：单价须在0.01-99999999.99之间`;
+        else delete item.errors.unitPrice;
+      });
+      
+      // 附件校验
+      for (const att of MOCK_DATA.attachmentTypes) {
+        if (!(this.applyForm.attachments[att.type]||[]).length) {
+          errors['att_'+att.type] = att.label + '附件不能为空，请上传';
+        }
+      }
+      
+      this.formErrors = errors;
+      const itemHasError = this.applyForm.items.some(i => Object.keys(i.errors||{}).length > 0);
+      return Object.keys(errors).length === 0 && !itemHasError;
+    },
+
+    saveDraft() {
+      const newId = MOCK_DATA.myApplications.length > 0 ? Math.max(...MOCK_DATA.myApplications.map(a=>a.id)) + 1 : 2000;
+      const notice = MOCK_DATA.notices.find(n => n.id === this.applyForm.noticeId);
+      MOCK_DATA.myApplications.push({
+        id: newId,
+        noticeId: this.applyForm.noticeId,
+        policyId: this.applyForm.policyId,
+        policyTitle: this.applyForm.policyTitle,
+        projectName: notice?.projectName || '申报项目',
+        companyName: this.applyForm.companyName,
+        applyDate: new Date().toISOString().slice(0,10),
+        addressTown: this.applyForm.addressTown, addressVillage: this.applyForm.addressVillage, addressGroup: this.applyForm.addressGroup,
+        farmType: this.applyForm.farmType,
+        contactName: this.applyForm.contactName, contactPhone: this.applyForm.contactPhone,
+        constructionType: this.applyForm.constructionType,
+        buildStartDate: this.applyForm.buildStartDate, buildEndDate: this.applyForm.buildEndDate,
+        designStock: this.applyForm.designStock, designAnnualOutput: this.applyForm.designAnnualOutput,
+        newStockAfterBuild: this.applyForm.newStockAfterBuild, newOutputAfterBuild: this.applyForm.newOutputAfterBuild,
+        currentStock: this.applyForm.currentStock, totalRaiseAfterBuild: this.applyForm.totalRaiseAfterBuild,
+        totalInvestment: this.totalInvestment.toFixed(4),
+        applicantOpinion: this.applyForm.applicantOpinion,
+        status: 'DRAFT', rejectReason: null,
+        items: this.applyForm.items.map(i => ({...i})),
+        auditLogs: []
+      });
+      this.showToast('草稿已保存');
+      this.navigate('my-apply-list');
+    },
+
+    submitApply() {
+      if (!this.validateApplyForm()) {
+        this.showToast('请检查表单中的错误信息', 'error');
+        return;
+      }
+      const notice = MOCK_DATA.notices.find(n => n.id === this.applyForm.noticeId);
+      if (this.applyForm.id) {
+        // 更新
+        const idx = MOCK_DATA.myApplications.findIndex(a => a.id === this.applyForm.id);
+        if (idx > -1) {
+          MOCK_DATA.myApplications[idx].status = 'PENDING_PUBLICITY';
+          MOCK_DATA.myApplications[idx].rejectReason = null;
+          Object.assign(MOCK_DATA.myApplications[idx], {
+            addressTown: this.applyForm.addressTown,
+            addressVillage: this.applyForm.addressVillage,
+            addressGroup: this.applyForm.addressGroup,
+            farmType: this.applyForm.farmType,
+            contactName: this.applyForm.contactName,
+            contactPhone: this.applyForm.contactPhone,
+            constructionType: this.applyForm.constructionType,
+            items: this.applyForm.items.map(i => ({...i}))
+          });
+          this.selectedApply = MOCK_DATA.myApplications[idx];
+        }
+      } else {
+        const newId = MOCK_DATA.myApplications.length > 0 ? Math.max(...MOCK_DATA.myApplications.map(a=>a.id)) + 1 : 2000;
+        const newApp = {
+          id: newId,
+          noticeId: this.applyForm.noticeId,
+          policyId: this.applyForm.policyId,
+          policyTitle: this.applyForm.policyTitle,
+          projectName: notice?.projectName || '申报项目',
+          companyName: this.applyForm.companyName,
+          applyDate: new Date().toISOString().slice(0,10),
+          addressTown: this.applyForm.addressTown, addressVillage: this.applyForm.addressVillage, addressGroup: this.applyForm.addressGroup,
+          farmType: this.applyForm.farmType,
+          contactName: this.applyForm.contactName, contactPhone: this.applyForm.contactPhone,
+          constructionType: this.applyForm.constructionType,
+          buildStartDate: this.applyForm.buildStartDate, buildEndDate: this.applyForm.buildEndDate,
+          designStock: this.applyForm.designStock, designAnnualOutput: this.applyForm.designAnnualOutput,
+          newStockAfterBuild: this.applyForm.newStockAfterBuild, newOutputAfterBuild: this.applyForm.newOutputAfterBuild,
+          currentStock: this.applyForm.currentStock, totalRaiseAfterBuild: this.applyForm.totalRaiseAfterBuild,
+          totalInvestment: this.totalInvestment.toFixed(4),
+          applicantOpinion: this.applyForm.applicantOpinion,
+          status: 'PENDING_PUBLICITY', rejectReason: null,
+          items: this.applyForm.items.map(i => ({...i})),
+          auditLogs: []
+        };
+        MOCK_DATA.myApplications.push(newApp);
+        this.selectedApply = newApp;
+      }
+      this.showToast('申报提交成功，状态：待公示');
+      this.myApplyActiveTab = 'IN_REVIEW';
+      this.navigate('my-apply-list');
+    },
+
+    // ===== 实施信息 =====
+    goImplementation(app) {
+      this.selectedApply = app;
+      this.implReadOnly = false;
+      this.expandedImplCard = null;
+      this.activeImplStage = 'EARLY';
+      this.navigate('implementation');
+    },
+
+    viewImplementation(app) {
+      this.selectedApply = app;
+      this.implReadOnly = true;
+      this.expandedImplCard = null;
+      this.activeImplStage = 'EARLY';
+      this.navigate('implementation');
+    },
+
+    toggleImplCard(idx) {
+      this.expandedImplCard = this.expandedImplCard === idx ? null : idx;
+      this.activeImplStage = 'EARLY';
+    },
+
+    getImplKey(appId, itemIdx, stage) {
+      return `${appId}_${itemIdx}_${stage}`;
+    },
+
+    getImplRecord(itemIdx, stage) {
+      const key = this.getImplKey(this.selectedApply?.id, itemIdx, stage);
+      if (!this.implRecords[key]) {
+        this.implRecords[key] = { description: '', photos: [], videos: [], saved: false };
+      }
+      return this.implRecords[key];
+    },
+
+    getImplPhotos(itemIdx, stage) {
+      return this.getImplRecord(itemIdx, stage).photos;
+    },
+
+    getImplVideos(itemIdx, stage) {
+      return this.getImplRecord(itemIdx, stage).videos;
+    },
+
+    getImplStageTag(itemIdx, stage) {
+      const rec = this.getImplRecord(itemIdx, stage);
+      const filled = rec.saved && (rec.photos.length > 0 || rec.videos.length > 0 || rec.description);
+      if (stage === 'EARLY') return filled ? 'status-tag tag-green' : 'status-tag tag-gray';
+      if (stage === 'MIDDLE') return filled ? 'status-tag tag-blue' : 'status-tag tag-gray';
+      return filled ? 'status-tag tag-orange' : 'status-tag tag-gray';
+    },
+
+    getFilledCount() {
+      if (!this.selectedApply) return 0;
+      const stages = ['EARLY','MIDDLE','LATER'];
+      let count = 0;
+      (this.selectedApply.items||[]).forEach((item, idx) => {
+        stages.forEach(stage => {
+          const rec = this.getImplRecord(idx, stage);
+          if (rec.saved && (rec.photos.length > 0 || rec.videos.length > 0 || rec.description)) count++;
+        });
+      });
+      return count;
+    },
+
+    getTotalImplCount() {
+      return ((this.selectedApply?.items||[]).length) * 3;
+    },
+
+    onImplPhotoChange(e, itemIdx, stage) {
+      const rec = this.getImplRecord(itemIdx, stage);
+      for (const f of e.target.files) {
+        if (rec.photos.length >= 9) { this.showToast('该阶段最多上传9张照片', 'error'); break; }
+        if (f.size > 10*1024*1024) { this.showToast('图片大小不能超过10MB', 'error'); continue; }
+        const url = URL.createObjectURL(f);
+        rec.photos.push({ url, name: f.name });
+      }
+      e.target.value = '';
+    },
+
+    removeImplPhoto(itemIdx, stage, pIdx) {
+      if (confirm('确认删除该照片吗？删除后不可恢复。')) {
+        const rec = this.getImplRecord(itemIdx, stage);
+        rec.photos.splice(pIdx, 1);
+      }
+    },
+
+    onImplVideoChange(e, itemIdx, stage) {
+      const rec = this.getImplRecord(itemIdx, stage);
+      const f = e.target.files[0];
+      if (!f) return;
+      if (rec.videos.length >= 3) { this.showToast('该阶段最多上传3个视频', 'error'); return; }
+      if (f.size > 200*1024*1024) { this.showToast('视频大小不能超过200MB', 'error'); return; }
+      rec.videos.push({ name: f.name, size: (f.size/1024/1024).toFixed(1)+'MB' });
+      e.target.value = '';
+    },
+
+    removeImplVideo(itemIdx, stage, vIdx) {
+      if (confirm('确认删除该视频吗？删除后不可恢复。')) {
+        const rec = this.getImplRecord(itemIdx, stage);
+        rec.videos.splice(vIdx, 1);
+      }
+    },
+
+    saveImplRecord(itemIdx, stage) {
+      const rec = this.getImplRecord(itemIdx, stage);
+      if (!rec.description && !rec.photos.length && !rec.videos.length) {
+        this.showToast('请至少上传一张照片、一个视频或填写文字说明', 'error'); return;
+      }
+      rec.saved = true;
+      this.showToast('保存成功');
+    },
+
+    openLightbox(images, idx) {
+      this.lightbox = { show: true, images, idx };
+    }
+  };
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,548 @@
+<!--
+  功能名称：档案台账总览
+  对应PRD：doc_prd/WEB/监管端/智慧监管/电子档案管理/WEB监管端-档案台账总览.prd.md
+  所属端口：WEB监管端
+  所属模块：智慧监管 - 电子档案管理
+  制作日期：2026-03-09
+  最后更新：2026-03-09
+  角色说明：县级管理员(county_admin)、县级业务人员(county_staff)、乡镇政府业务人员(town_gov_staff)、乡镇畜牧兽医站(town_vet_station)
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>档案台账总览 - WEB监管端</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    /* SHARED STYLES */
+    [x-cloak] { display: none !important; }
+    body { font-size: 14px; background-color: #f0f2f5; color: #262626; }
+    .sidebar-item.active { background-color: #1677ff; color: #fff; }
+    .sidebar-item:hover:not(.active) { background-color: #e6f4ff; color: #1677ff; }
+    .btn-primary { background-color: #1677ff; color: #fff; border: 1px solid #1677ff; }
+    .btn-primary:hover { background-color: #0958d9; }
+    .btn-default { background-color: #fff; color: #262626; border: 1px solid #d9d9d9; }
+    .btn-default:hover { border-color: #1677ff; color: #1677ff; }
+    .btn-link { background: none; border: none; padding: 0 4px; cursor: pointer; font-size: 13px; }
+    .btn-link.primary { color: #1677ff; }
+    .btn-link.danger { color: #ff4d4f; }
+    .tag { display: inline-flex; align-items: center; padding: 1px 7px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+    .tag-blue { background-color: #e6f7ff; color: #1677ff; border: 1px solid #91d5ff; }
+    .tag-green { background-color: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
+    .tag-orange { background-color: #fff7e6; color: #fa8c16; border: 1px solid #ffd591; }
+    .tag-red { background-color: #fff2f0; color: #ff4d4f; border: 1px solid #ffa39e; }
+    .tag-purple { background-color: #f9f0ff; color: #722ed1; border: 1px solid #d3adf7; }
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background-color: #fafafa; color: #595959; font-weight: 600; text-align: left; padding: 9px 10px; border-bottom: 1px solid #e8e8e8; white-space: nowrap; font-size: 13px; }
+    td { padding: 9px 10px; border-bottom: 1px solid #f0f0f0; color: #262626; white-space: nowrap; font-size: 13px; }
+    tr:nth-child(even) td { background-color: #fafafa; }
+    tr:hover td { background-color: #e6f4ff; }
+    .sticky-col { position: sticky; right: 0; background-color: #fff; box-shadow: -2px 0 4px rgba(0,0,0,0.06); }
+    tr:nth-child(even) .sticky-col { background-color: #fafafa; }
+    tr:hover .sticky-col { background-color: #e6f4ff; }
+    .form-input { padding: 5px 9px; border: 1px solid #d9d9d9; border-radius: 4px; outline: none; font-size: 13px; color: #262626; }
+    .form-input:focus { border-color: #1677ff; box-shadow: 0 0 0 2px rgba(22,119,255,0.1); }
+    .form-label { font-size: 12px; font-weight: 500; color: #595959; margin-bottom: 3px; display: block; }
+    .modal-overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.45); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .modal-box { background: #fff; border-radius: 8px; box-shadow: 0 6px 16px rgba(0,0,0,0.12); width: 100%; max-width: 1200px; max-height: 92vh; display: flex; flex-direction: column; }
+    .modal-box-sm { max-width: 600px; }
+    .modal-header { padding: 14px 20px; border-bottom: 1px solid #e8e8e8; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+    .modal-body { padding: 16px 20px; overflow-y: auto; flex: 1; }
+    .modal-footer { padding: 10px 20px; border-top: 1px solid #e8e8e8; display: flex; justify-content: flex-end; gap: 8px; flex-shrink: 0; }
+    .archive-tab { padding: 7px 13px; cursor: pointer; color: #595959; font-size: 12px; border-bottom: 2px solid transparent; white-space: nowrap; }
+    .archive-tab.active { color: #fff; background-color: #1677ff; border-bottom-color: #1677ff; }
+    .archive-tab:hover:not(.active) { color: #1677ff; background-color: #f0f7ff; }
+    .tab-group-sep { padding: 7px 4px; color: #d9d9d9; font-size: 16px; align-self: center; flex-shrink: 0; }
+    .breadcrumb { font-size: 13px; color: #8c8c8c; }
+    .breadcrumb span { color: #262626; }
+    .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; padding: 8px 20px; border-radius: 6px; font-size: 13px; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .toast-success { background-color: #f6ffed; border: 1px solid #b7eb8f; color: #52c41a; }
+    .toast-error { background-color: #fff2f0; border: 1px solid #ffa39e; color: #ff4d4f; }
+    .toast-info { background-color: #e6f7ff; border: 1px solid #91d5ff; color: #1677ff; }
+    .detail-field label { font-size: 11px; color: #8c8c8c; display: block; }
+    .detail-field p { font-size: 13px; color: #262626; font-weight: 500; margin-top: 1px; }
+    .content-area { display: flex; flex-direction: column; height: 100%; }
+    .list-area { flex: 1; overflow-y: auto; }
+    .pagination-area { flex-shrink: 0; padding: 10px 16px; background: #fff; border-top: 1px solid #e8e8e8; display: flex; align-items: center; justify-content: space-between; }
+  </style>
+</head>
+<body x-data="app()" x-cloak>
+
+<!-- Toast -->
+<div x-show="toast.show" class="toast" :class="{'toast-success':toast.type==='success','toast-error':toast.type==='error','toast-info':toast.type==='info'}" x-text="toast.msg" x-transition></div>
+
+<!-- 顶部导航栏 -->
+<header class="fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 z-50 flex items-center px-4 justify-between shadow-sm">
+  <div class="flex items-center gap-3">
+    <i class="fas fa-pig text-blue-500 text-xl"></i>
+    <span class="font-semibold text-gray-800 text-base">2024年蓬溪县生猪数字化管理平台</span>
+    <span class="text-gray-300">|</span>
+    <span class="text-sm text-gray-500">监管端</span>
+  </div>
+  <div class="flex items-center gap-3">
+    <select x-model="currentRole" @change="onRoleChange()" class="text-sm border border-gray-300 rounded px-2 py-1 text-gray-700 bg-white">
+      <template x-for="u in MOCK_DATA.users" :key="u.role">
+        <option :value="u.role" x-text="`${u.roleName}（${u.username}）`"></option>
+      </template>
+    </select>
+    <div class="flex items-center gap-2 text-sm text-gray-700">
+      <i class="fas fa-user-circle text-gray-400"></i>
+      <span x-text="currentUser().name"></span>
+      <span class="text-xs text-gray-400" x-text="`[${currentUser().roleName}]`"></span>
+    </div>
+    <button @click="showToast('已退出登录','success')" class="text-sm text-gray-500 hover:text-blue-500 transition-colors">
+      <i class="fas fa-sign-out-alt mr-1"></i>退出
+    </button>
+  </div>
+</header>
+
+<!-- 主体布局 -->
+<div class="flex" style="margin-top:56px; height:calc(100vh - 56px);">
+
+  <!-- 侧边菜单 -->
+  <aside class="bg-white border-r border-gray-200 flex-shrink-0 overflow-y-auto" style="width:220px;">
+    <div class="py-2">
+      <div class="px-4 py-1 text-xs text-gray-400 font-medium mt-2 uppercase tracking-wide">智慧监管</div>
+      <div class="sidebar-item px-4 py-2 cursor-pointer flex items-center gap-2 transition-colors text-sm" @click="window.location.href='../养殖企业管理/WEB监管端-养殖企业信息管理.html'">
+        <i class="fas fa-industry w-4 text-center text-gray-400"></i><span>养殖企业信息管理</span>
+      </div>
+      <div class="sidebar-item px-4 py-2 cursor-pointer flex items-center gap-2 transition-colors text-sm" @click="window.location.href='../养殖企业管理/WEB监管端-养殖档案监管.html'">
+        <i class="fas fa-folder-open w-4 text-center text-gray-400"></i><span>养殖档案监管</span>
+      </div>
+      <div class="px-4 py-1 text-xs text-gray-400 font-medium mt-3 uppercase tracking-wide border-t border-gray-100 pt-2">电子档案管理</div>
+      <div class="sidebar-item active px-4 py-2 cursor-pointer flex items-center gap-2 transition-colors text-sm">
+        <i class="fas fa-table w-4 text-center"></i><span>档案台账总览</span>
+      </div>
+      <div class="sidebar-item px-4 py-2 cursor-pointer flex items-center gap-2 transition-colors text-sm" @click="window.location.href='WEB监管端-档案分类检索.html'">
+        <i class="fas fa-search w-4 text-center text-gray-400"></i><span>档案分类检索</span>
+      </div>
+      <div class="sidebar-item px-4 py-2 cursor-pointer flex items-center gap-2 transition-colors text-sm" @click="window.location.href='WEB监管端-档案统计分析.html'">
+        <i class="fas fa-chart-bar w-4 text-center text-gray-400"></i><span>档案统计分析</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 主内容区 -->
+  <main class="flex-1 flex flex-col overflow-hidden">
+
+    <!-- SECTION START: 档案台账总览 -->
+    <div id="feature-overview" class="content-area">
+
+      <!-- 面包屑 + 标题 -->
+      <div class="px-5 pt-3 pb-2 bg-white border-b border-gray-100 flex-shrink-0 flex items-center justify-between">
+        <div>
+          <div class="breadcrumb mb-1">智慧监管 / 电子档案管理 / <span>档案台账总览</span></div>
+          <h1 class="text-base font-semibold text-gray-800">档案台账总览</h1>
+        </div>
+      </div>
+
+      <!-- SECTION START: 筛选区 -->
+      <div id="feature-filter" class="bg-white px-5 py-3 border-b border-gray-100 flex-shrink-0">
+        <div class="flex flex-wrap gap-3 items-end">
+          <div>
+            <label class="form-label">企业名称</label>
+            <input type="text" x-model="filter.entName" class="form-input" style="width:160px" placeholder="模糊搜索" maxlength="100">
+          </div>
+          <div x-show="isCounty()">
+            <label class="form-label">所属乡镇</label>
+            <select x-model="filter.town" class="form-input" style="width:120px">
+              <option value="">全部</option>
+              <template x-for="t in MOCK_DATA.towns" :key="t"><option :value="t" x-text="t"></option></template>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">企业类型</label>
+            <select x-model="filter.type" class="form-input" style="width:110px">
+              <option value="">全部</option>
+              <template x-for="t in MOCK_DATA.entTypes" :key="t"><option :value="t" x-text="t"></option></template>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">时间范围（最近更新）</label>
+            <div class="flex items-center gap-1">
+              <input type="date" x-model="filter.startTime" class="form-input">
+              <span class="text-gray-400 text-xs">至</span>
+              <input type="date" x-model="filter.endTime" class="form-input">
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button @click="doSearch()" class="btn-primary px-3 py-1.5 rounded text-sm">
+              <i class="fas fa-search mr-1"></i>查询
+            </button>
+            <button @click="resetFilter()" class="btn-default px-3 py-1.5 rounded text-sm">
+              <i class="fas fa-redo mr-1"></i>重置
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- SECTION END: 筛选区 -->
+
+      <!-- 工具栏 -->
+      <div class="bg-white px-5 py-2 border-b border-gray-100 flex-shrink-0 flex justify-between items-center">
+        <div class="text-sm text-gray-500">
+          共 <span class="text-blue-500 font-medium" x-text="filtered.length"></span> 家企业
+        </div>
+        <button @click="doExport()" class="btn-default px-3 py-1.5 rounded text-sm">
+          <i class="fas fa-download mr-1"></i>导出
+        </button>
+      </div>
+
+      <!-- SECTION START: 台账列表 -->
+      <div id="feature-list" class="list-area bg-white">
+        <div class="table-container">
+          <table style="min-width:2000px;">
+            <thead>
+              <tr>
+                <th style="width:50px;">序号</th>
+                <th style="min-width:160px;">企业名称</th>
+                <th>所属乡镇</th>
+                <th>企业类型</th>
+                <th>养殖规模(头)</th>
+                <template x-for="(cat, ci) in MOCK_DATA.catLabels" :key="ci">
+                  <th x-text="cat" style="text-align:center;min-width:72px;"></th>
+                </template>
+                <th style="min-width:100px;">最近更新</th>
+                <th class="sticky-col" style="text-align:center;min-width:80px;">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-if="paged.length === 0">
+                <tr><td :colspan="9 + MOCK_DATA.catLabels.length" class="text-center py-16 text-gray-400">
+                  <i class="fas fa-folder-open text-3xl block mb-2 text-gray-200"></i>暂无数据
+                </td></tr>
+              </template>
+              <template x-for="(row, ri) in paged" :key="row.id">
+                <tr>
+                  <td x-text="(currentPage-1)*pageSize + ri + 1"></td>
+                  <td class="font-medium" x-text="row.name"></td>
+                  <td x-text="row.town"></td>
+                  <td x-text="row.type"></td>
+                  <td x-text="row.scale.toLocaleString()"></td>
+                  <template x-for="(k, ki) in MOCK_DATA.catKeys" :key="ki">
+                    <td style="text-align:center;">
+                      <span :class="row.counts[k] > 0 ? 'text-blue-500 cursor-pointer hover:underline font-medium' : 'text-red-500 cursor-pointer font-medium'"
+                            @click="openDetail(row.id, ki)"
+                            x-text="row.counts[k]"></span>
+                    </td>
+                  </template>
+                  <td class="text-gray-500 text-xs" x-text="row.lastUpdate.split(' ')[0]"></td>
+                  <td class="sticky-col text-center">
+                    <button class="btn-link primary" @click="openDetail(row.id, 0)">查看档案</button>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <!-- SECTION END: 台账列表 -->
+
+      <!-- 分页 -->
+      <div class="pagination-area">
+        <span class="text-sm text-gray-500">共 <span x-text="filtered.length" class="text-blue-500 font-medium"></span> 条</span>
+        <div class="flex items-center gap-1">
+          <button @click="changePage(currentPage-1)" :disabled="currentPage<=1" class="px-2 py-1 text-sm border border-gray-300 rounded hover:border-blue-400 disabled:opacity-40 bg-white">
+            <i class="fas fa-chevron-left text-xs"></i>
+          </button>
+          <template x-for="p in totalPages" :key="p">
+            <button @click="changePage(p)" :class="p===currentPage ? 'bg-blue-500 text-white border-blue-500' : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'"
+                    class="w-8 h-8 text-sm border rounded">
+              <span x-text="p"></span>
+            </button>
+          </template>
+          <button @click="changePage(currentPage+1)" :disabled="currentPage>=totalPages" class="px-2 py-1 text-sm border border-gray-300 rounded hover:border-blue-400 disabled:opacity-40 bg-white">
+            <i class="fas fa-chevron-right text-xs"></i>
+          </button>
+        </div>
+      </div>
+
+    </div>
+    <!-- SECTION END: 档案台账总览 -->
+
+  </main>
+</div>
+
+<!-- SECTION START: 企业档案详情弹窗 -->
+<div x-show="detailModal.show" class="modal-overlay" @click.self="detailModal.show=false">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div>
+        <div class="breadcrumb mb-0.5">档案台账总览 / <span x-text="detailModal.ent?.name"></span></div>
+        <h3 class="font-semibold text-gray-800" x-text="'企业档案详情 — ' + (detailModal.ent?.name || '')"></h3>
+      </div>
+      <button @click="detailModal.show=false" class="text-gray-400 hover:text-gray-600 text-lg leading-none">&times;</button>
+    </div>
+    <div class="modal-body">
+      <!-- 企业基本信息摘要 -->
+      <div class="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-4">
+        <div class="grid grid-cols-5 gap-4">
+          <div class="detail-field"><label>企业名称</label><p x-text="detailModal.ent?.name || '—'"></p></div>
+          <div class="detail-field"><label>企业类型</label><p x-text="detailModal.ent?.type || '—'"></p></div>
+          <div class="detail-field"><label>法人代表</label><p x-text="detailModal.ent?.legal || '—'"></p></div>
+          <div class="detail-field"><label>联系电话</label><p x-text="detailModal.ent?.phone || '—'"></p></div>
+          <div class="detail-field"><label>养殖规模(头)</label><p x-text="(detailModal.ent?.scale || 0).toLocaleString()"></p></div>
+        </div>
+      </div>
+      <!-- Tab 页签 -->
+      <div class="flex overflow-x-auto border-b border-gray-200 mb-3" style="scrollbar-width:thin;">
+        <template x-for="(group, gi) in MOCK_DATA.tabGroups" :key="gi">
+          <div class="flex items-stretch flex-shrink-0">
+            <template x-for="(tab, ti) in group.tabs" :key="tab.key">
+              <button class="archive-tab" :class="detailModal.activeTab === tab.key ? 'active' : ''"
+                      @click="detailModal.activeTab = tab.key; loadDetailTab()" x-text="tab.label"></button>
+            </template>
+            <div x-show="gi < MOCK_DATA.tabGroups.length - 1" class="tab-group-sep">|</div>
+          </div>
+        </template>
+      </div>
+      <!-- Tab 内筛选 -->
+      <div class="flex items-center gap-3 mb-3">
+        <span class="text-sm font-medium text-gray-700" x-text="getTabLabel(detailModal.activeTab)"></span>
+        <div class="ml-auto flex items-center gap-2">
+          <label class="text-xs text-gray-500">时间范围</label>
+          <input type="date" x-model="detailModal.startTime" class="form-input text-xs" style="padding:3px 7px;">
+          <span class="text-gray-400 text-xs">至</span>
+          <input type="date" x-model="detailModal.endTime" class="form-input text-xs" style="padding:3px 7px;">
+          <button @click="loadDetailTab()" class="btn-primary px-2 py-1 rounded text-xs"><i class="fas fa-search mr-1"></i>查询</button>
+          <button @click="detailModal.startTime='';detailModal.endTime='';loadDetailTab()" class="btn-default px-2 py-1 rounded text-xs"><i class="fas fa-redo mr-1"></i>重置</button>
+          <button @click="doDetailExport()" class="btn-default px-2 py-1 rounded text-xs"><i class="fas fa-download mr-1"></i>导出</button>
+        </div>
+      </div>
+      <!-- 详情列表 -->
+      <div class="table-container">
+        <table style="min-width:900px;">
+          <thead>
+            <tr>
+              <th>序号</th>
+              <th>圈舍名称</th>
+              <th>统计日期</th>
+              <th>存栏数量(头)</th>
+              <th>公猪数量(头)</th>
+              <th>母猪数量(头)</th>
+              <th>仔猪数量(头)</th>
+              <th>育肥猪数量(头)</th>
+              <th>平均体重(kg)</th>
+              <th>填报人</th>
+              <th>创建时间</th>
+              <th class="sticky-col" style="text-align:center;">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="(r, ri) in detailModal.records" :key="r.id">
+              <tr>
+                <td x-text="ri+1"></td>
+                <td x-text="r.shedName"></td>
+                <td x-text="r.statisticsDate"></td>
+                <td x-text="r.stockQty"></td>
+                <td x-text="r.boarQty"></td>
+                <td x-text="r.sowQty"></td>
+                <td x-text="r.pigletQty"></td>
+                <td x-text="r.fattenQty"></td>
+                <td x-text="r.avgWeight"></td>
+                <td x-text="r.createBy"></td>
+                <td x-text="r.createTime"></td>
+                <td class="sticky-col text-center">
+                  <button class="btn-link primary" @click="openRecordDetail(r)">查看详情</button>
+                </td>
+              </tr>
+            </template>
+            <template x-if="detailModal.records.length === 0">
+              <tr><td colspan="12" class="text-center py-10 text-gray-400">
+                <i class="fas fa-inbox text-2xl block mb-2 text-gray-200"></i>暂无已入库数据
+              </td></tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+      <div class="flex justify-between items-center mt-2">
+        <span class="text-sm text-gray-400">共 <span class="text-blue-500 font-medium" x-text="detailModal.records.length"></span> 条</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button @click="detailModal.show=false" class="btn-default px-4 py-1.5 rounded text-sm">关闭</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 企业档案详情弹窗 -->
+
+<!-- SECTION START: 单条记录详情弹窗 -->
+<div x-show="recordModal.show" class="modal-overlay" style="z-index:1100;" @click.self="recordModal.show=false">
+  <div class="modal-box modal-box-sm">
+    <div class="modal-header">
+      <h3 class="font-semibold text-gray-800">档案记录详情</h3>
+      <button @click="recordModal.show=false" class="text-gray-400 hover:text-gray-600 text-lg leading-none">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid grid-cols-2 gap-4">
+        <template x-for="field in recordModal.fields" :key="field.label">
+          <div class="detail-field">
+            <label x-text="field.label"></label>
+            <p x-text="field.value || '—'"></p>
+          </div>
+        </template>
+      </div>
+      <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-700">
+        <i class="fas fa-info-circle mr-1"></i>实际系统中此处展示完整字段（复用养殖档案监管详情弹窗，仅展示字段，不含审批操作）
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button @click="recordModal.show=false" class="btn-default px-4 py-1.5 rounded text-sm">关闭</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 单条记录详情弹窗 -->
+
+<script>
+function app() {
+  return {
+    MOCK_DATA: {
+      users: [
+        { role: 'county_admin', roleName: '县级管理员', name: '张管理', username: 'county_admin', dataScope: 1 },
+        { role: 'county_staff', roleName: '县级业务人员', name: '李业务', username: 'county_staff', dataScope: 1 },
+        { role: 'town_gov_staff', roleName: '乡镇政府业务人员', name: '王乡镇', username: 'town_gov', town: '蓬南镇', dataScope: 4 },
+        { role: 'town_vet_station', roleName: '乡镇畜牧兽医站', name: '陈兽医', username: 'town_vet', town: '蓬南镇', dataScope: 4 }
+      ],
+      towns: ['蓬南镇','大石镇','吉星镇','板桥乡','新会镇','明月镇','任隆镇','宝梵镇'],
+      entTypes: ['规模养殖场','家庭农场','散养户','合作社'],
+      catKeys: ['breedingInfo','breedingRecords','weaningRecords','entryRecords','transferRecords','outboundRecords','immuneRecords','disinfectRecords','epidemicMonitor','vetDrugPurchase','vetDrugUse','feedPurchase','feedUse','diseaseTreat','deadAnimal','manureHarmless','productionRecords','salesRecords'],
+      catLabels: ['养殖信息','繁育信息','断奶信息','入栏信息','转栏信息','出栏信息','免疫记录','消毒记录','防疫监测','兽药购进','兽药使用','饲料购进','饲料使用','疾病诊疗','病死处理','粪污处理','生产记录','销售记录'],
+      tabGroups: [
+        { group: '养殖管理', tabs: [ {key:'breeding-info',label:'养殖信息'},{key:'breeding-records',label:'繁育信息'},{key:'weaning-records',label:'断奶信息'},{key:'entry-records',label:'入栏信息'},{key:'transfer-records',label:'转栏信息'},{key:'outbound-records',label:'出栏信息'} ] },
+        { group: '防疫免疫', tabs: [ {key:'immune-records',label:'畜禽免疫记录'},{key:'disinfect-records',label:'消毒记录'},{key:'epidemic-monitor-records',label:'防疫监测记录'} ] },
+        { group: '投入品管理', tabs: [ {key:'vet-drug-purchase-records',label:'兽药购进记录'},{key:'vet-drug-use-records',label:'兽药使用记录'},{key:'feed-purchase-records',label:'饲料添加剂购进记录'},{key:'feed-records',label:'配合饲料使用记录'} ] },
+        { group: '疾病与处理', tabs: [ {key:'disease-records',label:'畜禽疾病诊疗记录'},{key:'dead-animal-records',label:'病死畜禽无害化处理记录'},{key:'manure-harmless-records',label:'粪便及污物无害化处理记录'} ] },
+        { group: '生产与销售', tabs: [ {key:'production-records',label:'生产记录'},{key:'sales-records',label:'畜禽及其产品销售记录'} ] }
+      ],
+      enterprises: [
+        { id:1, name:'蓬南鑫源养殖场', town:'蓬南镇', type:'规模养殖场', scale:5000, legal:'李明', phone:'13812345678',
+          counts:{breedingInfo:128,breedingRecords:96,weaningRecords:64,entryRecords:45,transferRecords:32,outboundRecords:87,immuneRecords:234,disinfectRecords:156,epidemicMonitor:12,vetDrugPurchase:67,vetDrugUse:89,feedPurchase:134,feedUse:156,diseaseTreat:8,deadAnimal:5,manureHarmless:48,productionRecords:96,salesRecords:76}, lastUpdate:'2026-03-08 15:30:00' },
+        { id:2, name:'大石家和农场', town:'大石镇', type:'家庭农场', scale:1200, legal:'王建国', phone:'13987654321',
+          counts:{breedingInfo:56,breedingRecords:34,weaningRecords:22,entryRecords:18,transferRecords:15,outboundRecords:41,immuneRecords:98,disinfectRecords:0,epidemicMonitor:6,vetDrugPurchase:23,vetDrugUse:34,feedPurchase:67,feedUse:78,diseaseTreat:3,deadAnimal:2,manureHarmless:19,productionRecords:45,salesRecords:33}, lastUpdate:'2026-03-07 10:20:00' },
+        { id:3, name:'吉星绿源养猪合作社', town:'吉星镇', type:'合作社', scale:3000, legal:'张红梅', phone:'15812345678',
+          counts:{breedingInfo:89,breedingRecords:67,weaningRecords:43,entryRecords:28,transferRecords:21,outboundRecords:63,immuneRecords:145,disinfectRecords:78,epidemicMonitor:9,vetDrugPurchase:45,vetDrugUse:56,feedPurchase:89,feedUse:112,diseaseTreat:6,deadAnimal:4,manureHarmless:34,productionRecords:67,salesRecords:51}, lastUpdate:'2026-03-07 16:45:00' },
+        { id:4, name:'板桥丰收散养场', town:'板桥乡', type:'散养户', scale:300, legal:'陈志强', phone:'13612345678',
+          counts:{breedingInfo:23,breedingRecords:15,weaningRecords:8,entryRecords:0,transferRecords:5,outboundRecords:19,immuneRecords:42,disinfectRecords:28,epidemicMonitor:3,vetDrugPurchase:12,vetDrugUse:0,feedPurchase:34,feedUse:41,diseaseTreat:1,deadAnimal:0,manureHarmless:0,productionRecords:22,salesRecords:17}, lastUpdate:'2026-03-06 09:15:00' },
+        { id:5, name:'新会现代养殖有限公司', town:'新会镇', type:'规模养殖场', scale:8000, legal:'刘雨晴', phone:'13712345678',
+          counts:{breedingInfo:210,breedingRecords:178,weaningRecords:134,entryRecords:89,transferRecords:67,outboundRecords:156,immuneRecords:423,disinfectRecords:267,epidemicMonitor:23,vetDrugPurchase:112,vetDrugUse:145,feedPurchase:234,feedUse:278,diseaseTreat:15,deadAnimal:9,manureHarmless:89,productionRecords:178,salesRecords:134}, lastUpdate:'2026-03-09 08:30:00' },
+        { id:6, name:'明月兴旺家庭农场', town:'明月镇', type:'家庭农场', scale:800, legal:'赵大强', phone:'13512345678',
+          counts:{breedingInfo:34,breedingRecords:0,weaningRecords:0,entryRecords:12,transferRecords:8,outboundRecords:28,immuneRecords:67,disinfectRecords:45,epidemicMonitor:4,vetDrugPurchase:18,vetDrugUse:22,feedPurchase:45,feedUse:52,diseaseTreat:2,deadAnimal:1,manureHarmless:12,productionRecords:31,salesRecords:24}, lastUpdate:'2026-03-05 14:20:00' },
+        { id:7, name:'任隆牧业散养专业户', town:'任隆镇', type:'散养户', scale:200, legal:'孙金龙', phone:'13312345678',
+          counts:{breedingInfo:18,breedingRecords:12,weaningRecords:7,entryRecords:5,transferRecords:0,outboundRecords:14,immuneRecords:32,disinfectRecords:0,epidemicMonitor:2,vetDrugPurchase:8,vetDrugUse:9,feedPurchase:23,feedUse:27,diseaseTreat:0,deadAnimal:0,manureHarmless:0,productionRecords:16,salesRecords:12}, lastUpdate:'2026-03-04 11:30:00' },
+        { id:8, name:'宝梵金猪养殖园', town:'宝梵镇', type:'规模养殖场', scale:4500, legal:'周培培', phone:'13912345678',
+          counts:{breedingInfo:167,breedingRecords:134,weaningRecords:89,entryRecords:67,transferRecords:54,outboundRecords:123,immuneRecords:345,disinfectRecords:198,epidemicMonitor:18,vetDrugPurchase:89,vetDrugUse:112,feedPurchase:178,feedUse:201,diseaseTreat:12,deadAnimal:7,manureHarmless:67,productionRecords:145,salesRecords:112}, lastUpdate:'2026-03-08 17:00:00' }
+      ],
+      detailRecords: [
+        { id:1, shedName:'1号猪舍', statisticsDate:'2026-03-01', stockQty:320, boarQty:12, sowQty:56, pigletQty:120, fattenQty:132, avgWeight:85.5, createBy:'张伟', createTime:'2026-03-01 09:00:00' },
+        { id:2, shedName:'2号猪舍', statisticsDate:'2026-03-01', stockQty:285, boarQty:8, sowQty:44, pigletQty:98, fattenQty:135, avgWeight:92.3, createBy:'张伟', createTime:'2026-03-01 09:30:00' },
+        { id:3, shedName:'3号猪舍', statisticsDate:'2026-02-28', stockQty:410, boarQty:15, sowQty:72, pigletQty:156, fattenQty:167, avgWeight:78.2, createBy:'李明', createTime:'2026-02-28 10:00:00' },
+        { id:4, shedName:'4号猪舍', statisticsDate:'2026-02-28', stockQty:198, boarQty:6, sowQty:38, pigletQty:76, fattenQty:78, avgWeight:88.6, createBy:'李明', createTime:'2026-02-28 10:30:00' },
+        { id:5, shedName:'1号猪舍', statisticsDate:'2026-02-25', stockQty:302, boarQty:12, sowQty:54, pigletQty:108, fattenQty:128, avgWeight:82.1, createBy:'张伟', createTime:'2026-02-25 09:00:00' },
+        { id:6, shedName:'5号猪舍', statisticsDate:'2026-02-20', stockQty:167, boarQty:5, sowQty:28, pigletQty:64, fattenQty:70, avgWeight:95.2, createBy:'王鑫', createTime:'2026-02-20 11:00:00' },
+        { id:7, shedName:'6号猪舍', statisticsDate:'2026-02-20', stockQty:234, boarQty:9, sowQty:45, pigletQty:86, fattenQty:94, avgWeight:76.8, createBy:'王鑫', createTime:'2026-02-20 11:30:00' },
+        { id:8, shedName:'2号猪舍', statisticsDate:'2026-02-15', stockQty:271, boarQty:8, sowQty:42, pigletQty:92, fattenQty:129, avgWeight:89.7, createBy:'张伟', createTime:'2026-02-15 09:30:00' }
+      ]
+    },
+    currentRole: 'county_admin',
+    filter: { entName: '', town: '', type: '', startTime: '', endTime: '' },
+    filtered: [],
+    currentPage: 1,
+    pageSize: 10,
+    detailModal: { show: false, ent: null, activeTab: 'breeding-info', records: [], startTime: '', endTime: '' },
+    recordModal: { show: false, fields: [] },
+    toast: { show: false, msg: '', type: 'info' },
+
+    get paged() { return this.filtered.slice((this.currentPage-1)*this.pageSize, this.currentPage*this.pageSize); },
+    get totalPages() { return Math.max(1, Math.ceil(this.filtered.length / this.pageSize)); },
+
+    currentUser() { return this.MOCK_DATA.users.find(u => u.role === this.currentRole) || this.MOCK_DATA.users[0]; },
+    isCounty() { return ['county_admin','county_staff'].includes(this.currentRole); },
+
+    onRoleChange() {
+      this.doSearch();
+      this.showToast('已切换至：' + this.currentUser().roleName, 'info');
+    },
+
+    doSearch() {
+      const u = this.currentUser();
+      this.filtered = this.MOCK_DATA.enterprises.filter(e => {
+        if (!this.isCounty() && e.town !== u.town) return false;
+        if (this.filter.entName && !e.name.includes(this.filter.entName)) return false;
+        if (this.filter.town && e.town !== this.filter.town) return false;
+        if (this.filter.type && e.type !== this.filter.type) return false;
+        return true;
+      });
+      this.currentPage = 1;
+    },
+
+    resetFilter() {
+      this.filter = { entName: '', town: '', type: '', startTime: '', endTime: '' };
+      this.doSearch();
+    },
+
+    openDetail(entId, tabIdx) {
+      const ent = this.MOCK_DATA.enterprises.find(e => e.id === entId);
+      this.detailModal.ent = ent;
+      const allTabs = this.MOCK_DATA.tabGroups.flatMap(g => g.tabs);
+      this.detailModal.activeTab = allTabs[tabIdx]?.key || 'breeding-info';
+      this.detailModal.records = [...this.MOCK_DATA.detailRecords];
+      this.detailModal.startTime = '';
+      this.detailModal.endTime = '';
+      this.detailModal.show = true;
+    },
+
+    loadDetailTab() {
+      this.detailModal.records = [...this.MOCK_DATA.detailRecords];
+    },
+
+    getTabLabel(key) {
+      const allTabs = this.MOCK_DATA.tabGroups.flatMap(g => g.tabs);
+      return allTabs.find(t => t.key === key)?.label || key;
+    },
+
+    openRecordDetail(r) {
+      this.recordModal.fields = [
+        { label: '圈舍名称', value: r.shedName },
+        { label: '统计日期', value: r.statisticsDate },
+        { label: '存栏数量(头)', value: r.stockQty },
+        { label: '公猪数量(头)', value: r.boarQty },
+        { label: '母猪数量(头)', value: r.sowQty },
+        { label: '仔猪数量(头)', value: r.pigletQty },
+        { label: '育肥猪数量(头)', value: r.fattenQty },
+        { label: '平均体重(kg)', value: r.avgWeight },
+        { label: '填报人', value: r.createBy },
+        { label: '创建时间', value: r.createTime }
+      ];
+      this.recordModal.show = true;
+    },
+
+    doExport() {
+      const ts = new Date().toISOString().replace(/[-:T]/g,'').slice(0,15);
+      this.showToast(`导出成功：档案台账总览_${ts}.xlsx`, 'success');
+    },
+
+    doDetailExport() {
+      const catName = this.getTabLabel(this.detailModal.activeTab);
+      const ts = new Date().toISOString().replace(/[-:T]/g,'').slice(0,15);
+      this.showToast(`导出成功：${this.detailModal.ent?.name}_${catName}_${ts}.xlsx`, 'success');
+    },
+
+    changePage(p) {
+      if (p < 1 || p > this.totalPages) return;
+      this.currentPage = p;
+    },
+
+    showToast(msg, type = 'info') {
+      this.toast = { show: true, msg, type };
+      setTimeout(() => { this.toast.show = false; }, 3000);
+    },
+
+    init() { this.doSearch(); }
+  };
+}
+</script>
+</body>
+</html>

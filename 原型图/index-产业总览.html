@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2024年蓬溪县生猪数字化管理平台 - 产业驾驶舱原型导航</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; color: #262626; min-height: 100vh; }
+
+    .header {
+      background: linear-gradient(135deg, #0d1b2a 0%, #1b3a5c 100%);
+      color: #e0e6ed;
+      padding: 24px 32px;
+      border-bottom: 3px solid #00d4ff;
+    }
+    .header h1 { font-size: 22px; font-weight: 700; letter-spacing: 2px; margin-bottom: 6px; }
+    .header .meta { font-size: 13px; color: #8899aa; }
+
+    .container { max-width: 960px; margin: 0 auto; padding: 28px 24px; }
+
+    .role-section {
+      background: #fff;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      border: 1px solid #e8e8e8;
+    }
+
+    .role-section h3 { font-size: 14px; font-weight: 600; color: #262626; margin-bottom: 12px; }
+
+    .role-list { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    .role-badge {
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid;
+    }
+
+    .role-badge.admin { background: rgba(24,144,255,0.08); border-color: #1890ff; color: #1890ff; }
+    .role-badge.staff { background: rgba(82,196,26,0.08); border-color: #52c41a; color: #52c41a; }
+
+    .module-card {
+      background: #fff;
+      border-radius: 8px;
+      border: 1px solid #e8e8e8;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .module-header {
+      background: linear-gradient(90deg, #0d1b2a, #1b3a5c);
+      color: #e0e6ed;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .module-header i { color: #00d4ff; }
+
+    .page-list { padding: 0; }
+
+    .page-item {
+      display: flex;
+      align-items: flex-start;
+      padding: 14px 20px;
+      border-bottom: 1px solid #f0f0f0;
+      gap: 14px;
+      transition: background 0.15s;
+    }
+    .page-item:last-child { border-bottom: none; }
+    .page-item:hover { background: #fafafa; }
+
+    .page-status {
+      font-size: 15px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .page-info { flex: 1; }
+
+    .page-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #262626;
+      margin-bottom: 4px;
+    }
+
+    .page-name a {
+      color: #1677ff;
+      text-decoration: none;
+    }
+    .page-name a:hover { text-decoration: underline; }
+
+    .page-prd {
+      font-size: 12px;
+      color: #8c8c8c;
+      margin-bottom: 4px;
+      font-family: monospace;
+    }
+
+    .page-desc {
+      font-size: 12px;
+      color: #595959;
+      line-height: 1.6;
+    }
+
+    .page-meta {
+      font-size: 11px;
+      color: #bfbfbf;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .feature-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+    .ftag {
+      padding: 2px 8px;
+      background: rgba(22,119,255,0.06);
+      border: 1px solid rgba(22,119,255,0.15);
+      color: #1677ff;
+      border-radius: 10px;
+      font-size: 11px;
+    }
+    .ftag.green { background: rgba(82,196,26,0.06); border-color: rgba(82,196,26,0.15); color: #52c41a; }
+    .ftag.orange { background: rgba(250,173,20,0.06); border-color: rgba(250,173,20,0.15); color: #d48806; }
+    .ftag.dark { background: rgba(13,27,42,0.06); border-color: rgba(13,27,42,0.15); color: #0d1b2a; }
+
+    .stats-bar {
+      background: #fff;
+      border-radius: 8px;
+      border: 1px solid #e8e8e8;
+      padding: 14px 20px;
+      margin-top: 20px;
+      display: flex;
+      gap: 32px;
+      align-items: center;
+      font-size: 13px;
+      color: #595959;
+    }
+    .stats-bar strong { color: #1677ff; font-size: 16px; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+  <h1><i class="fa fa-tv" style="color:#00d4ff; margin-right:10px;"></i>2024年蓬溪县生猪数字化管理平台 · 产业驾驶舱原型</h1>
+  <div class="meta">
+    模块：产业驾驶舱 > 产业总览 / 大屏配置 &nbsp;|&nbsp;
+    最后更新：2026-03-10 &nbsp;|&nbsp;
+    版本：v1.1 &nbsp;|&nbsp;
+    端口：WEB监管端
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- 角色说明 -->
+  <div class="role-section">
+    <h3><i class="fa fa-users" style="color:#1677ff; margin-right:6px;"></i>本模块涉及角色</h3>
+    <div class="role-list">
+      <div class="role-badge admin"><i class="fa fa-crown" style="margin-right:4px;"></i>super_admin · 超级管理员</div>
+      <div class="role-badge admin"><i class="fa fa-user-shield" style="margin-right:4px;"></i>county_admin · 县级管理员</div>
+      <div class="role-badge staff"><i class="fa fa-user" style="margin-right:4px;"></i>county_staff · 县级业务人员</div>
+    </div>
+    <p style="margin-top:10px; font-size:12px; color:#8c8c8c;">
+      产业总览大屏及大屏配置管理仅对县级及以上角色开放，乡镇角色不配置大屏相关权限。
+      大屏配置管理（创建/编辑/发布/删除）需 <code>admin:screen:config</code> 权限（super_admin / county_admin）；
+      查看已发布看板需 <code>admin:screen:view</code> 权限（含 county_staff）。
+    </p>
+  </div>
+
+  <!-- 功能模块 1：产业总览 -->
+  <div class="module-card">
+    <div class="module-header">
+      <i class="fa fa-industry"></i>
+      WEB监管端 · 产业驾驶舱 · 产业总览
+    </div>
+    <div class="page-list">
+
+      <div class="page-item">
+        <div class="page-status">✅</div>
+        <div class="page-info">
+          <div class="page-name">
+            <a href="监管端/产业驾驶舱/产业总览/WEB监管端-产业总览大屏.html" target="_blank">
+              <i class="fa fa-external-link-alt" style="font-size:11px; margin-right:4px;"></i>
+              产业总览大屏
+            </a>
+          </div>
+          <div class="page-prd">PRD: doc_prd/WEB/监管端/产业驾驶舱/产业总览/WEB监管端-产业总览大屏.prd.md</div>
+          <div class="page-desc">
+            全屏深色主题驾驶舱大屏，左-中-右三栏布局。左侧展示核心指标卡片（企业总数/存栏/母猪/出栏）、养殖结构环形图、规模Top5横向柱状图；
+            中央展示蓬溪县养殖分布散点地图（含企业点位标注/图例切换/点击弹窗）和近12月存栏出栏趋势面积图；
+            右侧展示市场行情速览（4品种价格+迷你sparkline+猪粮比）、检验检疫概况（检疫总量/合格率/免疫覆盖率进度条/病死猪迷你饼图）、预警事件自动滚动列表；
+            底部显示数据更新时间和滚动播报。支持进入动效、呼吸灯常驻动效、ESC退出、企业弹窗视频跳转。
+          </div>
+          <div class="feature-tags">
+            <span class="ftag dark">深色大屏</span>
+            <span class="ftag">ECharts图表</span>
+            <span class="ftag green">企业散点地图</span>
+            <span class="ftag">企业弹窗</span>
+            <span class="ftag orange">预警滚动</span>
+            <span class="ftag">市场行情</span>
+            <span class="ftag">检验检疫</span>
+            <span class="ftag green">进入动效</span>
+            <span class="ftag">数字countUp</span>
+            <span class="ftag">图例切换</span>
+          </div>
+        </div>
+        <div class="page-meta">
+          2026-03-10<br>
+          <span style="color:#52c41a;">已完成</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 功能模块 2：大屏配置 -->
+  <div class="module-card">
+    <div class="module-header">
+      <i class="fa fa-sliders-h"></i>
+      WEB监管端 · 产业驾驶舱 · 大屏配置
+    </div>
+    <div class="page-list">
+
+      <div class="page-item">
+        <div class="page-status">✅</div>
+        <div class="page-info">
+          <div class="page-name">
+            <a href="监管端/产业驾驶舱/大屏配置/WEB监管端-大屏配置.html" target="_blank">
+              <i class="fa fa-external-link-alt" style="font-size:11px; margin-right:4px;"></i>
+              大屏配置
+            </a>
+          </div>
+          <div class="page-prd">PRD: doc_prd/WEB/监管端/产业驾驶舱/大屏配置/WEB监管端-大屏配置.prd.md</div>
+          <div class="page-desc">
+            可视化拖拽式大屏编辑器。包含：项目列表（卡片网格，支持搜索/新建/克隆/发布/取消发布/设置/删除，卡片悬停动效，操作下拉菜单按项目状态联动）；
+            画布编辑器（全屏三栏布局：左侧组件库/图层/数据源面板，中央画布拖拽编辑区域，右侧属性面板；支持组件拖拽移动、网格吸附、图层管理、属性实时编辑、撤销重做、自动保存、快捷键）；
+            数据源管理（SQL查询/系统接口，安全校验，在线测试）；资源管理（图标/修饰条/背景图三分类，上传/预览/删除）；
+            项目设置弹窗（基本信息/权限分配/链接管理三Tab）；发布弹窗（生成看板链接，配置有效期）；多角色权限控制（county_staff无管理权限）。
+          </div>
+          <div class="feature-tags">
+            <span class="ftag dark">拖拽编辑器</span>
+            <span class="ftag">21种组件库</span>
+            <span class="ftag green">图层管理</span>
+            <span class="ftag">数据源绑定</span>
+            <span class="ftag orange">SQL安全校验</span>
+            <span class="ftag">资源管理</span>
+            <span class="ftag">权限分配</span>
+            <span class="ftag green">发布/链接</span>
+            <span class="ftag">多角色</span>
+            <span class="ftag">自动保存</span>
+          </div>
+        </div>
+        <div class="page-meta">
+          2026-03-10<br>
+          <span style="color:#52c41a;">已完成</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 统计 -->
+  <div class="stats-bar">
+    <div>本次制作总计：<strong>2</strong> 个文件</div>
+    <div>✅ 已完成：<strong>2</strong> 个</div>
+    <div>🚧 制作中：<strong>0</strong> 个</div>
+    <div>📋 待制作：<strong>0</strong> 个</div>
+  </div>
+
+  <div style="text-align:center; margin-top:24px; font-size:12px; color:#bfbfbf;">
+    2024年蓬溪县生猪数字化管理平台 · 原型导航 · 最后更新于 2026-03-10
+  </div>
+
+</div>
+
+</body>
+</html>

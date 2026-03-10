@@ -1,0 +1,1390 @@
+<!--
+  功能名称：市场贸易分析
+  对应PRD：doc_prd/WEB/监管端/决策分析/市场贸易分析/WEB监管端-市场贸易分析.prd.md
+  所属端口：WEB监管端
+  所属模块：决策分析 / 市场贸易分析
+  制作日期：2026-03-10
+  最后更新：2026-03-10
+  角色说明：县级管理员(county_admin)、县级业务人员(county_staff)、乡镇政府业务人员(town_gov_staff)、乡镇畜牧兽医站(town_vet_station)
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>市场贸易分析 - 2024年蓬溪县生猪数字化管理平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/extension/bmap.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f2f5; color: #262626; font-size: 14px; }
+    
+    /* 顶部导航 */
+    .top-nav { position: fixed; top: 0; left: 0; right: 0; height: 60px; background: #001529; z-index: 1000; display: flex; align-items: center; padding: 0 20px; gap: 16px; }
+    .nav-logo { display: flex; align-items: center; gap: 10px; color: white; font-size: 16px; font-weight: 700; min-width: 220px; }
+    .nav-logo-icon { width: 32px; height: 32px; background: #1677ff; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .nav-right { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+    .nav-user { display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,0.85); cursor: pointer; padding: 6px 12px; border-radius: 6px; transition: background 0.2s; position: relative; }
+    .nav-user:hover { background: rgba(255,255,255,0.1); }
+    .nav-user-avatar { width: 28px; height: 28px; border-radius: 50%; background: #1677ff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: white; }
+    .role-dropdown { position: absolute; top: 44px; right: 0; background: white; border-radius: 8px; box-shadow: 0 6px 24px rgba(0,0,0,0.15); min-width: 180px; z-index: 9999; display: none; }
+    .role-dropdown.show { display: block; }
+    .role-dropdown-item { padding: 10px 16px; cursor: pointer; font-size: 13px; color: #262626; display: flex; align-items: center; gap: 8px; }
+    .role-dropdown-item:hover { background: #f5f5f5; }
+    .role-dropdown-item.active { color: #1677ff; background: #e6f4ff; }
+    .role-dropdown-divider { border-top: 1px solid #f0f0f0; margin: 4px 0; }
+    .btn-logout { color: #ff4d4f; }
+
+    /* 侧边菜单 */
+    .sidebar { position: fixed; left: 0; top: 60px; bottom: 0; width: 240px; background: #001529; overflow-y: auto; z-index: 900; }
+    .sidebar-menu { padding: 8px 0; }
+    .menu-group-title { padding: 12px 16px 6px; font-size: 11px; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.5px; }
+    .menu-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; color: rgba(255,255,255,0.65); cursor: pointer; transition: all 0.2s; font-size: 13px; }
+    .menu-item:hover { color: white; background: rgba(255,255,255,0.08); }
+    .menu-item.active { color: #1677ff; background: rgba(22,119,255,0.15); border-right: 3px solid #1677ff; }
+    .menu-item i { width: 16px; text-align: center; font-size: 14px; }
+    .menu-sub { padding-left: 8px; }
+    .menu-sub .menu-item { padding: 8px 16px 8px 32px; font-size: 13px; }
+
+    /* 内容区 */
+    .main-content { margin-left: 240px; margin-top: 60px; min-height: calc(100vh - 60px); }
+    
+    /* 面包屑 */
+    .breadcrumb { padding: 12px 20px; background: white; border-bottom: 1px solid #e8e8e8; font-size: 13px; color: #8c8c8c; }
+    .breadcrumb span { color: #595959; }
+    .breadcrumb .sep { margin: 0 8px; }
+
+    /* 全局筛选栏 */
+    .filter-bar { position: sticky; top: 60px; z-index: 800; background: white; border-bottom: 1px solid #e8e8e8; padding: 12px 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .filter-label { font-size: 13px; color: #595959; white-space: nowrap; }
+    .quick-btn-group { display: flex; gap: 4px; }
+    .quick-btn { padding: 4px 10px; border: 1px solid #d9d9d9; border-radius: 4px; background: white; font-size: 12px; color: #595959; cursor: pointer; transition: all 0.2s; }
+    .quick-btn:hover { border-color: #1677ff; color: #1677ff; }
+    .quick-btn.active { background: #1677ff; border-color: #1677ff; color: white; }
+    .filter-input { height: 32px; border: 1px solid #d9d9d9; border-radius: 4px; padding: 0 10px; font-size: 13px; color: #262626; outline: none; }
+    .filter-input:focus { border-color: #1677ff; box-shadow: 0 0 0 2px rgba(22,119,255,0.1); }
+    .filter-select { height: 32px; border: 1px solid #d9d9d9; border-radius: 4px; padding: 0 10px; font-size: 13px; color: #262626; outline: none; background: white; cursor: pointer; }
+    .filter-select:focus { border-color: #1677ff; }
+    .filter-divider { width: 1px; height: 24px; background: #e8e8e8; margin: 0 4px; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 4px; font-size: 13px; cursor: pointer; border: none; transition: all 0.2s; font-family: inherit; }
+    .btn-primary { background: #1677ff; color: white; }
+    .btn-primary:hover { background: #0958d9; }
+    .btn-default { background: white; color: #595959; border: 1px solid #d9d9d9; }
+    .btn-default:hover { border-color: #1677ff; color: #1677ff; }
+    .btn-link { background: transparent; color: #1677ff; padding: 6px 8px; }
+    .btn-link:hover { color: #0958d9; }
+    .btn-danger { background: white; color: #ff4d4f; border: 1px solid #ff4d4f; }
+    .btn-danger:hover { background: #ff4d4f; color: white; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* 内容区域 */
+    .content-area { padding: 16px 20px; }
+
+    /* 分析卡片 */
+    .analysis-card { background: white; border-radius: 8px; border: 1px solid #e8e8e8; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); overflow: hidden; }
+    .card-header { padding: 14px 20px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: space-between; }
+    .card-title { font-size: 15px; font-weight: 600; color: #262626; display: flex; align-items: center; gap: 8px; }
+    .card-title-icon { width: 20px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+    .card-body { padding: 16px 20px; }
+    
+    /* 行情速览卡片 */
+    .market-cards-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .market-card { background: white; border: 1px solid #e8e8e8; border-radius: 8px; padding: 16px; position: relative; overflow: hidden; }
+    .market-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+    .market-card.pig::before { background: #1677ff; }
+    .market-card.corn::before { background: #faad14; }
+    .market-card.soybean::before { background: #52c41a; }
+    .market-card.pork::before { background: #722ed1; }
+    .market-card-label { font-size: 12px; color: #8c8c8c; margin-bottom: 8px; }
+    .market-card-price { font-size: 28px; font-weight: 700; color: #262626; line-height: 1; }
+    .market-card-unit { font-size: 12px; color: #8c8c8c; margin-top: 4px; }
+    .market-card-change { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; }
+    .change-up { color: #f5222d; }
+    .change-down { color: #52c41a; }
+    .change-flat { color: #8c8c8c; }
+    .sparkline-wrap { margin-top: 10px; }
+    .weekly-rate { font-size: 12px; margin-top: 4px; }
+    
+    /* 图表区域 */
+    .chart-container { width: 100%; min-height: 300px; }
+    .chart-map { width: 100%; min-height: 500px; }
+    
+    /* 两栏布局 */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    /* 数据表格 */
+    .data-table-wrap { margin-top: 12px; border-top: 1px solid #f0f0f0; }
+    .table-toggle-btn { display: flex; align-items: center; gap: 6px; padding: 10px 0; font-size: 13px; color: #1677ff; cursor: pointer; user-select: none; }
+    .table-toggle-btn:hover { color: #0958d9; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th { background: #fafafa; padding: 10px 12px; text-align: left; font-weight: 500; color: #595959; border-bottom: 1px solid #e8e8e8; white-space: nowrap; }
+    tbody tr:nth-child(even) { background: #fafafa; }
+    tbody tr:hover { background: #e6f4ff; }
+    tbody td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; color: #262626; white-space: nowrap; }
+    .td-up { color: #f5222d; font-weight: 500; }
+    .td-down { color: #52c41a; font-weight: 500; }
+    .td-flat { color: #8c8c8c; }
+    .pagination { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 12px 0 0; }
+    .pagination .page-info { font-size: 13px; color: #595959; }
+    .page-btn { width: 28px; height: 28px; border: 1px solid #d9d9d9; border-radius: 4px; background: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #595959; }
+    .page-btn:hover { border-color: #1677ff; color: #1677ff; }
+    .page-btn.active { background: #1677ff; border-color: #1677ff; color: white; }
+
+    /* Tag/Badge */
+    .tag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 500; }
+    .tag-success { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; }
+    .tag-warning { background: #fffbe6; color: #d48806; border: 1px solid #ffe58f; }
+    .tag-error { background: #fff2f0; color: #cf1322; border: 1px solid #ffccc7; }
+    .tag-default { background: #fafafa; color: #595959; border: 1px solid #d9d9d9; }
+    .tag-blue { background: #e6f4ff; color: #0958d9; border: 1px solid #91caff; }
+
+    /* 猪粮比当前值 */
+    .ratio-current { font-size: 24px; font-weight: 700; }
+    .ratio-warning { font-size: 13px; margin-top: 8px; padding: 8px 12px; border-radius: 6px; }
+    .ratio-warning.loss { background: #fff2f0; color: #cf1322; border-left: 3px solid #ff4d4f; }
+    .ratio-warning.high { background: #fff7e6; color: #d48806; border-left: 3px solid #faad14; }
+
+    /* 抽屉面板 */
+    .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 2000; display: none; }
+    .drawer-overlay.show { display: block; }
+    .drawer { position: fixed; top: 0; right: -640px; bottom: 0; width: 640px; background: white; z-index: 2001; box-shadow: -4px 0 16px rgba(0,0,0,0.1); transition: right 0.3s ease; overflow-y: auto; }
+    .drawer.show { right: 0; }
+    .drawer-header { padding: 16px 20px; border-bottom: 1px solid #e8e8e8; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: white; z-index: 1; }
+    .drawer-title { font-size: 16px; font-weight: 600; color: #262626; }
+    .drawer-close { width: 28px; height: 28px; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #8c8c8c; border-radius: 4px; font-size: 18px; }
+    .drawer-close:hover { background: #f5f5f5; color: #262626; }
+    .drawer-body { padding: 16px 20px; }
+
+    /* 确认弹窗 */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 3000; display: none; align-items: center; justify-content: center; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: white; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); width: 420px; max-width: calc(100vw - 32px); }
+    .modal-header { padding: 16px 20px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: space-between; }
+    .modal-title { font-size: 16px; font-weight: 600; color: #262626; }
+    .modal-close { width: 28px; height: 28px; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #8c8c8c; border-radius: 4px; font-size: 18px; }
+    .modal-close:hover { background: #f5f5f5; }
+    .modal-body { padding: 16px 20px; }
+    .modal-footer { padding: 12px 20px; border-top: 1px solid #f0f0f0; display: flex; justify-content: flex-end; gap: 8px; }
+
+    /* 结果提示 */
+    .result-tip { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 5000; padding: 10px 20px; border-radius: 6px; font-size: 14px; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .result-tip.show { display: flex; align-items: center; gap: 8px; }
+    .result-tip.success { background: #f6ffed; border: 1px solid #b7eb8f; color: #389e0d; }
+    .result-tip.error { background: #fff2f0; border: 1px solid #ffccc7; color: #cf1322; }
+    .result-tip.warning { background: #fffbe6; border: 1px solid #ffe58f; color: #d48806; }
+
+    /* loading状态 */
+    .card-loading { display: flex; align-items: center; justify-content: center; min-height: 200px; gap: 10px; color: #8c8c8c; font-size: 14px; }
+    .card-error { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; gap: 12px; color: #8c8c8c; font-size: 14px; }
+
+    /* 地图图例 */
+    .map-legend { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); }
+
+    /* 数据更新时间 */
+    .update-time { font-size: 12px; color: #8c8c8c; }
+    .update-time.error { color: #f5222d; }
+
+    /* 滚动条美化 */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f0f0f0; }
+    ::-webkit-scrollbar-thumb { background: #bfbfbf; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #8c8c8c; }
+
+    /* 倒计时样式 */
+    .countdown-text { font-size: 11px; color: #8c8c8c; }
+
+    /* 采集日志筛选 */
+    .log-filter { display: flex; gap: 10px; margin-bottom: 14px; align-items: center; flex-wrap: wrap; }
+
+    /* 更新时间异常提示 */
+    .exception-tip { background: #fff2f0; border: 1px solid #ffccc7; color: #cf1322; border-radius: 4px; padding: 4px 10px; font-size: 12px; margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+<script>
+const MOCK_DATA = {
+  // 当前登录用户（可切换）
+  currentUser: {
+    id: 1,
+    username: 'admin001',
+    password: '123456',
+    name: '李建国',
+    role: 'county_admin',
+    roleName: '县级管理员',
+    deptName: '蓬溪县农业农村局'
+  },
+
+  users: [
+    { id: 1, username: 'admin001', password: '123456', name: '李建国', role: 'county_admin', roleName: '县级管理员', deptName: '蓬溪县农业农村局' },
+    { id: 2, username: 'staff001', password: '123456', name: '王秀梅', role: 'county_staff', roleName: '县级业务人员', deptName: '蓬溪县畜牧中心' },
+    { id: 3, username: 'town001', password: '123456', name: '张明辉', role: 'town_gov_staff', roleName: '乡镇政府业务人员', deptName: '蓬溪镇政府' },
+    { id: 4, username: 'vet001', password: '123456', name: '刘芳', role: 'town_vet_station', roleName: '乡镇畜牧兽医站', deptName: '新会镇畜牧兽医站' }
+  ],
+
+  // 今日行情速览数据
+  todayMarket: {
+    updateTime: '2026-03-10 14:02',
+    dataException: false,
+    items: [
+      {
+        productCode: 'pig_outer', productName: '生猪（外三元）', price: 15.62, priceUnit: '元/公斤',
+        dailyChange: 0.24, weeklyChangeRate: 1.85,
+        sparklineData: [14.98, 15.12, 15.38, 15.20, 15.45, 15.38, 15.62]
+      },
+      {
+        productCode: 'corn', productName: '玉米（14%水分）', price: 2380.00, priceUnit: '元/吨',
+        dailyChange: -15.00, weeklyChangeRate: -0.72,
+        sparklineData: [2420, 2410, 2405, 2398, 2395, 2385, 2380]
+      },
+      {
+        productCode: 'soybean_meal', productName: '豆粕（43%蛋白）', price: 3150.00, priceUnit: '元/吨',
+        dailyChange: 30.00, weeklyChangeRate: 1.15,
+        sparklineData: [3080, 3095, 3100, 3110, 3120, 3135, 3150]
+      },
+      {
+        productCode: 'pork', productName: '白条猪肉', price: 21.35, priceUnit: '元/公斤',
+        dailyChange: 0.00, weeklyChangeRate: 0.47,
+        sparklineData: [21.10, 21.20, 21.30, 21.25, 21.30, 21.35, 21.35]
+      }
+    ]
+  },
+
+  // 生猪趋势数据（近半年，每周一个点，26周）
+  pigTrend: {
+    priceUnit: '元/公斤',
+    hasLocalData: true,
+    costLine: 14.20,
+    maxPoint: { date: '2025-12-15', price: 16.80 },
+    minPoint: { date: '2025-09-22', price: 13.45 },
+    items: (() => {
+      const start = new Date('2025-09-10');
+      const data = [];
+      let nationalBase = 13.85, sichuanBase = 13.60, localBase = 13.50;
+      for (let i = 0; i < 26; i++) {
+        const d = new Date(start);
+        d.setDate(d.getDate() + i * 7);
+        const dateStr = d.toISOString().slice(0, 10);
+        const n = parseFloat((nationalBase + Math.sin(i * 0.4) * 1.2 + i * 0.06).toFixed(2));
+        const s = parseFloat((sichuanBase + Math.sin(i * 0.4 + 0.2) * 1.0 + i * 0.055).toFixed(2));
+        const l = i > 5 ? parseFloat((localBase + Math.sin(i * 0.35) * 0.9 + i * 0.05).toFixed(2)) : null;
+        const dc = i === 0 ? null : parseFloat((n - data[i-1].nationalPrice).toFixed(2));
+        const wc = i < 4 ? null : parseFloat(((n - data[i-4].nationalPrice) / data[i-4].nationalPrice * 100).toFixed(2));
+        data.push({ date: dateStr, nationalPrice: n, sichuanPrice: s, localPrice: l, dailyChange: dc, weeklyChangeRate: wc });
+      }
+      return data;
+    })()
+  },
+
+  // 玉米趋势数据
+  cornTrend: {
+    priceUnit: '元/吨',
+    items: (() => {
+      const start = new Date('2025-09-10');
+      const data = [];
+      for (let i = 0; i < 26; i++) {
+        const d = new Date(start);
+        d.setDate(d.getDate() + i * 7);
+        const dateStr = d.toISOString().slice(0, 10);
+        const n = parseFloat((2550 - i * 8 + Math.sin(i * 0.5) * 40).toFixed(2));
+        const s = parseFloat((2590 - i * 8.5 + Math.sin(i * 0.5 + 0.3) * 35).toFixed(2));
+        const dc = i === 0 ? null : parseFloat((n - data[i-1].nationalPrice).toFixed(2));
+        const wc = i < 4 ? null : parseFloat(((n - data[i-4].nationalPrice) / data[i-4].nationalPrice * 100).toFixed(2));
+        data.push({ date: dateStr, nationalPrice: n, sichuanPrice: s, dailyChange: dc, weeklyChangeRate: wc });
+      }
+      return data;
+    })()
+  },
+
+  // 豆粕趋势数据
+  soybeanTrend: {
+    priceUnit: '元/吨',
+    items: (() => {
+      const start = new Date('2025-09-10');
+      const data = [];
+      for (let i = 0; i < 26; i++) {
+        const d = new Date(start);
+        d.setDate(d.getDate() + i * 7);
+        const dateStr = d.toISOString().slice(0, 10);
+        const n = parseFloat((3020 + i * 5 + Math.cos(i * 0.45) * 60).toFixed(2));
+        const s = parseFloat((3060 + i * 5.2 + Math.cos(i * 0.45 + 0.2) * 55).toFixed(2));
+        const dc = i === 0 ? null : parseFloat((n - data[i-1].nationalPrice).toFixed(2));
+        const wc = i < 4 ? null : parseFloat(((n - data[i-4].nationalPrice) / data[i-4].nationalPrice * 100).toFixed(2));
+        data.push({ date: dateStr, nationalPrice: n, sichuanPrice: s, dailyChange: dc, weeklyChangeRate: wc });
+      }
+      return data;
+    })()
+  },
+
+  // 白条猪肉趋势数据
+  porkTrend: {
+    priceUnit: '元/公斤',
+    items: (() => {
+      const start = new Date('2025-09-10');
+      const data = [];
+      for (let i = 0; i < 26; i++) {
+        const d = new Date(start);
+        d.setDate(d.getDate() + i * 7);
+        const dateStr = d.toISOString().slice(0, 10);
+        const n = parseFloat((20.20 + i * 0.04 + Math.sin(i * 0.5) * 0.6).toFixed(2));
+        const s = parseFloat((19.80 + i * 0.038 + Math.sin(i * 0.5 + 0.3) * 0.5).toFixed(2));
+        const dc = i === 0 ? null : parseFloat((n - data[i-1].nationalPrice).toFixed(2));
+        const wc = i < 4 ? null : parseFloat(((n - data[i-4].nationalPrice) / data[i-4].nationalPrice * 100).toFixed(2));
+        data.push({ date: dateStr, nationalPrice: n, sichuanPrice: s, dailyChange: dc, weeklyChangeRate: wc });
+      }
+      return data;
+    })()
+  },
+
+  // 猪粮比数据
+  pigGrainRatio: {
+    currentRatio: 6.57,
+    warningStatus: 'normal',
+    warningMessage: '',
+    thresholds: { lossLine: 5, balanceLine: 6, highLine: 12 },
+    items: (() => {
+      const start = new Date('2025-09-10');
+      const data = [];
+      for (let i = 0; i < 26; i++) {
+        const d = new Date(start);
+        d.setDate(d.getDate() + i * 7);
+        const dateStr = d.toISOString().slice(0, 10);
+        const pig = parseFloat((13.85 + Math.sin(i * 0.4) * 1.2 + i * 0.06).toFixed(2));
+        const corn = parseFloat(((2550 - i * 8 + Math.sin(i * 0.5) * 40) / 1000).toFixed(4));
+        const ratio = parseFloat((pig / corn).toFixed(2));
+        data.push({ date: dateStr, ratio, pigPrice: pig, cornPrice: corn });
+      }
+      return data;
+    })()
+  },
+
+  // 全国各省猪肉价格
+  provincePrice: {
+    priceDate: '2026-03-08',
+    minPrice: 19.20,
+    maxPrice: 24.80,
+    items: [
+      { provinceCode: '110000', provinceName: '北京', porkPrice: 23.50, weeklyChange: 0.30 },
+      { provinceCode: '120000', provinceName: '天津', porkPrice: 22.80, weeklyChange: -0.20 },
+      { provinceCode: '130000', provinceName: '河北', porkPrice: 21.60, weeklyChange: 0.10 },
+      { provinceCode: '140000', provinceName: '山西', porkPrice: 20.90, weeklyChange: 0.00 },
+      { provinceCode: '150000', provinceName: '内蒙古', porkPrice: 20.40, weeklyChange: -0.15 },
+      { provinceCode: '210000', provinceName: '辽宁', porkPrice: 21.20, weeklyChange: 0.25 },
+      { provinceCode: '220000', provinceName: '吉林', porkPrice: 20.80, weeklyChange: 0.10 },
+      { provinceCode: '230000', provinceName: '黑龙江', porkPrice: 19.90, weeklyChange: -0.30 },
+      { provinceCode: '310000', provinceName: '上海', porkPrice: 24.80, weeklyChange: 0.40 },
+      { provinceCode: '320000', provinceName: '江苏', porkPrice: 23.10, weeklyChange: 0.20 },
+      { provinceCode: '330000', provinceName: '浙江', porkPrice: 24.20, weeklyChange: 0.35 },
+      { provinceCode: '340000', provinceName: '安徽', porkPrice: 21.50, weeklyChange: 0.05 },
+      { provinceCode: '350000', provinceName: '福建', porkPrice: 23.80, weeklyChange: 0.30 },
+      { provinceCode: '360000', provinceName: '江西', porkPrice: 21.80, weeklyChange: 0.15 },
+      { provinceCode: '370000', provinceName: '山东', porkPrice: 22.10, weeklyChange: -0.10 },
+      { provinceCode: '410000', provinceName: '河南', porkPrice: 21.30, weeklyChange: 0.20 },
+      { provinceCode: '420000', provinceName: '湖北', porkPrice: 21.60, weeklyChange: 0.10 },
+      { provinceCode: '430000', provinceName: '湖南', porkPrice: 21.90, weeklyChange: 0.25 },
+      { provinceCode: '440000', provinceName: '广东', porkPrice: 24.50, weeklyChange: 0.45 },
+      { provinceCode: '450000', provinceName: '广西', porkPrice: 22.30, weeklyChange: 0.20 },
+      { provinceCode: '460000', provinceName: '海南', porkPrice: 23.60, weeklyChange: -0.15 },
+      { provinceCode: '500000', provinceName: '重庆', porkPrice: 20.80, weeklyChange: 0.10 },
+      { provinceCode: '510000', provinceName: '四川', porkPrice: 20.50, weeklyChange: 0.05 },
+      { provinceCode: '520000', provinceName: '贵州', porkPrice: 21.10, weeklyChange: 0.15 },
+      { provinceCode: '530000', provinceName: '云南', porkPrice: 20.70, weeklyChange: 0.00 },
+      { provinceCode: '540000', provinceName: '西藏', porkPrice: null, weeklyChange: null },
+      { provinceCode: '610000', provinceName: '陕西', porkPrice: 20.60, weeklyChange: -0.05 },
+      { provinceCode: '620000', provinceName: '甘肃', porkPrice: 19.80, weeklyChange: -0.20 },
+      { provinceCode: '630000', provinceName: '青海', porkPrice: 19.20, weeklyChange: -0.30 },
+      { provinceCode: '640000', provinceName: '宁夏', porkPrice: 20.10, weeklyChange: 0.00 },
+      { provinceCode: '650000', provinceName: '新疆', porkPrice: 19.50, weeklyChange: -0.10 }
+    ]
+  },
+
+  // 采集日志
+  fetchLogs: [
+    { id: 101, batchNo: '20260310_140201_482', fetchType: 'daily_price', fetchTypeName: '日报价格', triggerType: '0', triggerTypeName: '定时任务', fetchStatus: '0', fetchStatusName: '成功', parsedCount: 8, promptTokens: 487, completionTokens: 1923, apiDurationMs: 8420, errorMessage: null, createTime: '2026-03-10 14:02:01' },
+    { id: 100, batchNo: '20260310_090118_231', fetchType: 'daily_price', fetchTypeName: '日报价格', triggerType: '0', triggerTypeName: '定时任务', fetchStatus: '0', fetchStatusName: '成功', parsedCount: 8, promptTokens: 485, completionTokens: 1918, apiDurationMs: 7350, errorMessage: null, createTime: '2026-03-10 09:01:18' },
+    { id: 99, batchNo: '20260309_140023_795', fetchType: 'daily_price', fetchTypeName: '日报价格', triggerType: '0', triggerTypeName: '定时任务', fetchStatus: '3', fetchStatusName: '部分成功', parsedCount: 6, promptTokens: 490, completionTokens: 1845, apiDurationMs: 9120, errorMessage: '玉米四川省价格2563.5超出合理范围[1500,4000]内但校验逻辑触发异常，2条数据丢弃', createTime: '2026-03-09 14:00:23' },
+    { id: 98, batchNo: '20260309_090041_112', fetchType: 'daily_price', fetchTypeName: '日报价格', triggerType: '0', triggerTypeName: '定时任务', fetchStatus: '0', fetchStatusName: '成功', parsedCount: 8, promptTokens: 483, completionTokens: 1902, apiDurationMs: 7680, errorMessage: null, createTime: '2026-03-09 09:00:41' },
+    { id: 97, batchNo: '20260308_100005_334', fetchType: 'province_price', fetchTypeName: '省份价格', triggerType: '0', triggerTypeName: '定时任务', fetchStatus: '0', fetchStatusName: '成功', parsedCount: 30, promptTokens: 612, completionTokens: 2840, apiDurationMs: 12350, errorMessage: null, createTime: '2026-03-08 10:00:05' },
+    { id: 96, batchNo: '20260308_090012_889', fetchType: 'daily_price', fetchTypeName: '日报价格', triggerType: '0', triggerTypeName: '定时任务', fetchStatus: '1', fetchStatusName: 'API调用失败', parsedCount: 0, promptTokens: null, completionTokens: null, apiDurationMs: 60000, errorMessage: 'DeepSeek API连接超时(60000ms)，可能因网络异常或API服务繁忙', createTime: '2026-03-08 09:00:12' },
+    { id: 95, batchNo: '20260307_140118_567', fetchType: 'daily_price', fetchTypeName: '日报价格', triggerType: '1', triggerTypeName: '手动触发', fetchStatus: '0', fetchStatusName: '成功', parsedCount: 8, promptTokens: 488, completionTokens: 1930, apiDurationMs: 8840, errorMessage: null, createTime: '2026-03-07 14:01:18' },
+    { id: 94, batchNo: '20260307_090031_223', fetchType: 'daily_price', fetchTypeName: '日报价格', triggerType: '0', triggerTypeName: '定时任务', fetchStatus: '0', fetchStatusName: '成功', parsedCount: 8, promptTokens: 482, completionTokens: 1910, apiDurationMs: 7210, errorMessage: null, createTime: '2026-03-07 09:00:31' },
+    { id: 93, batchNo: '20260306_140205_441', fetchType: 'daily_price', fetchTypeName: '日报价格', triggerType: '0', triggerTypeName: '定时任务', fetchStatus: '2', fetchStatusName: '数据解析失败', parsedCount: 0, promptTokens: 491, completionTokens: 856, apiDurationMs: 5340, errorMessage: 'JSON解析错误：大模型返回的content包含非JSON格式文本，无法解析为结构化数据', createTime: '2026-03-06 14:02:05' },
+    { id: 92, batchNo: '20260305_100018_778', fetchType: 'province_price', fetchTypeName: '省份价格', triggerType: '0', triggerTypeName: '定时任务', fetchStatus: '0', fetchStatusName: '成功', parsedCount: 31, promptTokens: 608, completionTokens: 2795, apiDurationMs: 11820, errorMessage: null, createTime: '2026-03-05 10:00:18' }
+  ]
+};
+</script>
+
+<!-- 顶部导航栏 -->
+<div class="top-nav">
+  <div class="nav-logo">
+    <div class="nav-logo-icon">🐷</div>
+    <span style="font-size:14px;">蓬溪县生猪数字化管理平台</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;margin-left:20px;font-size:13px;color:rgba(255,255,255,0.5);">
+    <i class="fas fa-home"></i>
+    <span>首页</span>
+    <span style="margin:0 6px;">·</span>
+    <i class="fas fa-chart-bar"></i>
+    <span>决策分析</span>
+    <span style="margin:0 6px;">·</span>
+    <span style="color:rgba(255,255,255,0.85);">市场贸易分析</span>
+  </div>
+  <div class="nav-right">
+    <div class="nav-user" onclick="toggleRoleDropdown()" id="nav-user-btn">
+      <div class="nav-user-avatar" id="user-avatar">李</div>
+      <span id="nav-user-name">李建国</span>
+      <span id="nav-role-badge" style="font-size:11px;background:rgba(22,119,255,0.3);padding:2px 8px;border-radius:10px;color:#91caff;">县级管理员</span>
+      <i class="fas fa-chevron-down" style="font-size:10px;color:rgba(255,255,255,0.4);"></i>
+      <div class="role-dropdown" id="role-dropdown">
+        <div style="padding:10px 16px 6px;font-size:11px;color:#8c8c8c;text-transform:uppercase;letter-spacing:0.5px;">切换角色</div>
+        <div class="role-dropdown-item active" onclick="switchRole(1)" id="role-item-1"><i class="fas fa-user-shield"></i> 县级管理员 · 李建国</div>
+        <div class="role-dropdown-item" onclick="switchRole(2)" id="role-item-2"><i class="fas fa-user-tie"></i> 县级业务人员 · 王秀梅</div>
+        <div class="role-dropdown-item" onclick="switchRole(3)" id="role-item-3"><i class="fas fa-user"></i> 乡镇政府业务人员 · 张明辉</div>
+        <div class="role-dropdown-item" onclick="switchRole(4)" id="role-item-4"><i class="fas fa-user-md"></i> 乡镇畜牧兽医站 · 刘芳</div>
+        <div class="role-dropdown-divider"></div>
+        <div class="role-dropdown-item btn-logout" onclick="alert('已退出登录')"><i class="fas fa-sign-out-alt"></i> 退出登录</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 侧边菜单 -->
+<div class="sidebar">
+  <div class="sidebar-menu">
+    <div class="menu-group-title">产业总览</div>
+    <div class="menu-item"><i class="fas fa-tachometer-alt"></i> 产业驾驶舱</div>
+    <div class="menu-group-title">智慧监管</div>
+    <div class="menu-item"><i class="fas fa-building"></i> 养殖企业管理</div>
+    <div class="menu-item"><i class="fas fa-file-alt"></i> 电子档案管理</div>
+    <div class="menu-item"><i class="fas fa-video"></i> 视频监管</div>
+    <div class="menu-group-title">决策分析</div>
+    <div class="menu-item"><i class="fas fa-chart-line"></i> 养殖分析</div>
+    <div class="menu-item active"><i class="fas fa-store"></i> 市场贸易分析</div>
+    <div class="menu-item"><i class="fas fa-flask"></i> 检验检疫分析</div>
+    <div class="menu-group-title">系统管理</div>
+    <div class="menu-item"><i class="fas fa-users-cog"></i> 用户管理</div>
+    <div class="menu-item"><i class="fas fa-cog"></i> 参数设置</div>
+  </div>
+</div>
+
+<!-- 主内容区 -->
+<div class="main-content">
+  <!-- 面包屑 -->
+  <div class="breadcrumb">
+    <i class="fas fa-home" style="color:#8c8c8c;"></i>
+    <span class="sep">/</span>决策分析<span class="sep">/</span><span>市场贸易分析</span>
+  </div>
+
+  <!-- SECTION START: 全局筛选栏 -->
+  <div class="filter-bar" id="feature-filter">
+    <span class="filter-label">时间范围：</span>
+    <div class="quick-btn-group">
+      <button class="quick-btn" onclick="setDateRange('week')">近一周</button>
+      <button class="quick-btn" onclick="setDateRange('month')">近一月</button>
+      <button class="quick-btn" onclick="setDateRange('quarter')">近一季</button>
+      <button class="quick-btn active" id="btn-halfyear" onclick="setDateRange('halfyear')">近半年</button>
+      <button class="quick-btn" onclick="setDateRange('year')">近一年</button>
+    </div>
+    <input type="date" class="filter-input" id="filter-start" value="2025-09-10" style="width:130px;" onchange="onFilterChange()">
+    <span style="color:#8c8c8c;">至</span>
+    <input type="date" class="filter-input" id="filter-end" value="2026-03-10" style="width:130px;" onchange="onFilterChange()">
+    <div class="filter-divider"></div>
+    <span class="filter-label">价格区域：</span>
+    <select class="filter-select" id="filter-region" onchange="onFilterChange()" style="width:120px;">
+      <option value="national">全国</option>
+      <option value="sichuan">四川省</option>
+      <option value="chuandongbei">川东北片区</option>
+    </select>
+    <div class="filter-divider"></div>
+    <!-- 仅 county_admin 可见 -->
+    <button class="btn btn-default" id="btn-fetch" onclick="showFetchModal()" style="display:none;">
+      <i class="fas fa-cloud-download-alt"></i> 手动采集数据
+    </button>
+    <span id="countdown-wrap" style="display:none;" class="countdown-text"></span>
+    <button class="btn btn-link" id="btn-log" onclick="openLogDrawer()" style="display:none;">
+      <i class="fas fa-list-alt"></i> 采集日志
+    </button>
+    <!-- 仅 county_admin 和 county_staff 可见 -->
+    <button class="btn btn-primary" id="btn-export" onclick="exportReport()" style="display:none;margin-left:auto;">
+      <i class="fas fa-file-excel"></i> 导出市场分析报告
+    </button>
+  </div>
+  <!-- SECTION END: 全局筛选栏 -->
+
+  <div class="content-area">
+
+    <!-- SECTION START: 今日市场行情速览 -->
+    <div class="analysis-card" id="feature-today-market">
+      <div class="card-header">
+        <div class="card-title">
+          <i class="fas fa-fire" style="color:#f5222d;"></i>
+          今日市场行情速览
+          <span class="tag tag-default" style="font-size:11px;margin-left:4px;">全国数据·不受筛选影响</span>
+        </div>
+        <div id="update-time-wrap">
+          <span class="update-time" id="update-time-text">数据更新：2026-03-10 14:02</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="market-cards-row" id="today-cards">
+          <!-- 由JS渲染 -->
+        </div>
+      </div>
+    </div>
+    <!-- SECTION END: 今日市场行情速览 -->
+
+    <!-- SECTION START: 生猪交易趋势 -->
+    <div class="analysis-card" id="feature-pig-trend">
+      <div class="card-header">
+        <div class="card-title">
+          <i class="fas fa-chart-line" style="color:#1677ff;"></i>
+          生猪（外三元）交易趋势
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:12px;color:#8c8c8c;">全国均价：<span id="pig-current" style="color:#1677ff;font-weight:600;">15.62 元/公斤</span></span>
+          <button class="btn btn-link" style="padding:4px 8px;font-size:12px;" onclick="toggleTable('pig-table-wrap', this)">
+            <i class="fas fa-table"></i> 展开数据
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div id="chart-pig" class="chart-container" style="height:360px;"></div>
+        <div id="pig-table-wrap" class="data-table-wrap" style="display:none;">
+          <div style="overflow-x:auto;max-height:320px;overflow-y:auto;">
+            <table>
+              <thead><tr>
+                <th>日期</th><th>全国均价（元/kg）</th><th>四川省均价（元/kg）</th><th>本县价格（元/kg）</th><th>日涨跌</th><th>周涨跌幅</th>
+              </tr></thead>
+              <tbody id="pig-tbody"></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="pig-pagination"></div>
+        </div>
+      </div>
+    </div>
+    <!-- SECTION END: 生猪交易趋势 -->
+
+    <!-- SECTION START: 玉米+豆粕趋势 -->
+    <div class="two-col">
+      <div class="analysis-card" id="feature-corn-trend">
+        <div class="card-header">
+          <div class="card-title"><i class="fas fa-seedling" style="color:#faad14;"></i> 玉米（14%水分）交易趋势</div>
+          <button class="btn btn-link" style="padding:4px 8px;font-size:12px;" onclick="toggleTable('corn-table-wrap', this)">
+            <i class="fas fa-table"></i> 展开数据
+          </button>
+        </div>
+        <div class="card-body">
+          <div id="chart-corn" class="chart-container" style="height:280px;"></div>
+          <div id="corn-table-wrap" class="data-table-wrap" style="display:none;">
+            <div style="overflow-x:auto;max-height:260px;overflow-y:auto;">
+              <table>
+                <thead><tr><th>日期</th><th>全国均价（元/吨）</th><th>四川省均价（元/吨）</th><th>日涨跌</th><th>周涨跌幅</th></tr></thead>
+                <tbody id="corn-tbody"></tbody>
+              </table>
+            </div>
+            <div class="pagination" id="corn-pagination"></div>
+          </div>
+        </div>
+      </div>
+      <div class="analysis-card" id="feature-soybean-trend">
+        <div class="card-header">
+          <div class="card-title"><i class="fas fa-leaf" style="color:#52c41a;"></i> 豆粕（43%蛋白）交易趋势</div>
+          <button class="btn btn-link" style="padding:4px 8px;font-size:12px;" onclick="toggleTable('soybean-table-wrap', this)">
+            <i class="fas fa-table"></i> 展开数据
+          </button>
+        </div>
+        <div class="card-body">
+          <div id="chart-soybean" class="chart-container" style="height:280px;"></div>
+          <div id="soybean-table-wrap" class="data-table-wrap" style="display:none;">
+            <div style="overflow-x:auto;max-height:260px;overflow-y:auto;">
+              <table>
+                <thead><tr><th>日期</th><th>全国均价（元/吨）</th><th>四川省均价（元/吨）</th><th>日涨跌</th><th>周涨跌幅</th></tr></thead>
+                <tbody id="soybean-tbody"></tbody>
+              </table>
+            </div>
+            <div class="pagination" id="soybean-pagination"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- SECTION END: 玉米+豆粕趋势 -->
+
+    <!-- SECTION START: 白条猪肉+猪粮比 -->
+    <div class="two-col">
+      <div class="analysis-card" id="feature-pork-trend">
+        <div class="card-header">
+          <div class="card-title"><i class="fas fa-drumstick-bite" style="color:#722ed1;"></i> 白条猪肉交易趋势</div>
+          <button class="btn btn-link" style="padding:4px 8px;font-size:12px;" onclick="toggleTable('pork-table-wrap', this)">
+            <i class="fas fa-table"></i> 展开数据
+          </button>
+        </div>
+        <div class="card-body">
+          <div id="chart-pork" class="chart-container" style="height:280px;"></div>
+          <div id="pork-table-wrap" class="data-table-wrap" style="display:none;">
+            <div style="overflow-x:auto;max-height:260px;overflow-y:auto;">
+              <table>
+                <thead><tr><th>日期</th><th>全国批发均价（元/kg）</th><th>四川省批发均价（元/kg）</th><th>日涨跌</th><th>周涨跌幅</th></tr></thead>
+                <tbody id="pork-tbody"></tbody>
+              </table>
+            </div>
+            <div class="pagination" id="pork-pagination"></div>
+          </div>
+        </div>
+      </div>
+      <div class="analysis-card" id="feature-pig-grain-ratio">
+        <div class="card-header">
+          <div class="card-title"><i class="fas fa-balance-scale" style="color:#1677ff;"></i> 猪粮比价分析</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span id="current-ratio-label" class="ratio-current" style="color:#1677ff;">6.57:1</span>
+            <span style="font-size:12px;color:#8c8c8c;">当前猪粮比</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="chart-ratio" class="chart-container" style="height:260px;"></div>
+          <div id="ratio-warning" style="margin-top:8px;"></div>
+        </div>
+      </div>
+    </div>
+    <!-- SECTION END: 白条猪肉+猪粮比 -->
+
+    <!-- SECTION START: 全国猪肉价格地图 -->
+    <div class="analysis-card" id="feature-price-map">
+      <div class="card-header">
+        <div class="card-title"><i class="fas fa-map-marked-alt" style="color:#1677ff;"></i> 全国猪肉批发价格地图</div>
+        <div style="font-size:12px;color:#8c8c8c;">
+          数据更新日期：2026-03-08 &nbsp;|&nbsp; 更新频率：每周
+        </div>
+      </div>
+      <div class="card-body" style="position:relative;">
+        <div id="chart-map" style="height:520px;width:100%;"></div>
+      </div>
+    </div>
+    <!-- SECTION END: 全国猪肉价格地图 -->
+
+    <!-- SECTION START: 价格对比分析 -->
+    <div class="analysis-card" id="feature-price-compare">
+      <div class="card-header">
+        <div class="card-title"><i class="fas fa-chart-area" style="color:#722ed1;"></i> 价格对比分析</div>
+        <span style="font-size:12px;color:#8c8c8c;">以所选时间范围首日价格为基准（100%），展示各品种相对涨跌幅</span>
+      </div>
+      <div class="card-body">
+        <div id="chart-compare" class="chart-container" style="height:320px;"></div>
+      </div>
+    </div>
+    <!-- SECTION END: 价格对比分析 -->
+
+  </div>
+</div>
+
+<!-- 手动采集确认弹窗 -->
+<!-- SECTION START: 手动采集弹窗 -->
+<div class="modal-overlay" id="feature-fetch-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title"><i class="fas fa-cloud-download-alt" style="color:#1677ff;margin-right:8px;"></i>手动触发数据采集</span>
+      <button class="modal-close" onclick="closeFetchModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;gap:12px;margin-bottom:16px;">
+        <i class="fas fa-info-circle" style="color:#1677ff;font-size:20px;margin-top:2px;flex-shrink:0;"></i>
+        <div>
+          <div style="font-size:14px;color:#262626;margin-bottom:6px;font-weight:500;">确认立即触发一次市场行情数据采集？</div>
+          <div style="font-size:13px;color:#595959;">通过 DeepSeek AI 联网搜索获取最新行情数据，采集过程约需 8-15 秒。</div>
+        </div>
+      </div>
+      <div style="background:#fafafa;border-radius:6px;padding:12px 14px;margin-top:4px;">
+        <div style="font-size:12px;color:#8c8c8c;margin-bottom:8px;font-weight:500;">采集类型</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+            <input type="radio" name="fetchType" value="daily_price" checked> 日报价格采集（四品种全国/四川价格）
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+            <input type="radio" name="fetchType" value="province_price"> 省份价格采集（全国各省猪肉批发价格）
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeFetchModal()">取消</button>
+      <button class="btn btn-primary" id="btn-confirm-fetch" onclick="confirmFetch()">
+        <i class="fas fa-play"></i> 确认采集
+      </button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 手动采集弹窗 -->
+
+<!-- 采集日志抽屉 -->
+<!-- SECTION START: 采集日志抽屉 -->
+<div class="drawer-overlay" id="log-overlay" onclick="closeLogDrawer()"></div>
+<div class="drawer" id="feature-log-drawer">
+  <div class="drawer-header">
+    <span class="drawer-title"><i class="fas fa-list-alt" style="color:#1677ff;margin-right:8px;"></i>数据采集日志</span>
+    <button class="drawer-close" onclick="closeLogDrawer()">×</button>
+  </div>
+  <div class="drawer-body">
+    <div class="log-filter">
+      <span style="font-size:13px;color:#595959;">状态筛选：</span>
+      <select class="filter-select" id="log-status-filter" onchange="renderLogTable()" style="width:110px;">
+        <option value="">全部</option>
+        <option value="0">成功</option>
+        <option value="1">API调用失败</option>
+        <option value="2">解析失败</option>
+        <option value="3">部分成功</option>
+      </select>
+      <span style="font-size:13px;color:#595959;margin-left:8px;">时间：</span>
+      <input type="date" class="filter-input" id="log-start" style="width:120px;" onchange="renderLogTable()">
+      <span style="color:#8c8c8c;">至</span>
+      <input type="date" class="filter-input" id="log-end" style="width:120px;" onchange="renderLogTable()">
+    </div>
+    <div style="overflow-x:auto;">
+      <table id="log-table">
+        <thead><tr>
+          <th>采集时间</th><th>采集类型</th><th>触发方式</th><th>状态</th><th>入库条数</th><th>Token消耗</th><th>API耗时</th>
+        </tr></thead>
+        <tbody id="log-tbody"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="log-pagination" style="margin-top:12px;"></div>
+  </div>
+</div>
+<!-- SECTION END: 采集日志抽屉 -->
+
+<!-- 操作结果提示 -->
+<div class="result-tip" id="result-tip"></div>
+
+<script>
+// ===== 角色权限控制 =====
+function updatePermissions() {
+  const role = MOCK_DATA.currentUser.role;
+  const isCountyAdmin = role === 'county_admin';
+  const isCountyLevel = role === 'county_admin' || role === 'county_staff';
+  document.getElementById('btn-fetch').style.display = isCountyAdmin ? '' : 'none';
+  document.getElementById('btn-log').style.display = isCountyAdmin ? '' : 'none';
+  document.getElementById('btn-export').style.display = isCountyLevel ? '' : 'none';
+}
+
+function toggleRoleDropdown() {
+  document.getElementById('role-dropdown').classList.toggle('show');
+}
+document.addEventListener('click', function(e) {
+  if (!document.getElementById('nav-user-btn').contains(e.target)) {
+    document.getElementById('role-dropdown').classList.remove('show');
+  }
+});
+
+function switchRole(userId) {
+  const u = MOCK_DATA.users.find(x => x.id === userId);
+  if (!u) return;
+  MOCK_DATA.currentUser = u;
+  document.getElementById('nav-user-name').textContent = u.name;
+  document.getElementById('nav-role-badge').textContent = u.roleName;
+  document.getElementById('user-avatar').textContent = u.name[0];
+  document.querySelectorAll('[id^="role-item-"]').forEach(el => el.classList.remove('active'));
+  document.getElementById('role-item-' + userId).classList.add('active');
+  document.getElementById('role-dropdown').classList.remove('show');
+  updatePermissions();
+  showTip('success', '已切换角色：' + u.roleName + ' · ' + u.name);
+}
+
+// ===== 日期筛选 =====
+const quickBtns = { week: 7, month: 30, quarter: 90, halfyear: 183, year: 365 };
+const quickBtnIds = { week: null, month: null, quarter: null, halfyear: 'btn-halfyear', year: null };
+
+function setDateRange(type) {
+  const days = quickBtns[type];
+  const end = new Date('2026-03-10');
+  const start = new Date(end);
+  start.setDate(start.getDate() - days);
+  document.getElementById('filter-start').value = start.toISOString().slice(0, 10);
+  document.getElementById('filter-end').value = end.toISOString().slice(0, 10);
+  document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  onFilterChange();
+}
+
+function onFilterChange() {
+  const start = document.getElementById('filter-start').value;
+  const end = document.getElementById('filter-end').value;
+  if (start && end && start > end) {
+    showTip('error', '开始时间不能晚于结束时间');
+    return;
+  }
+  // 模拟刷新所有图表
+  renderAllCharts();
+}
+
+// ===== 今日行情速览 =====
+function renderTodayMarket() {
+  const { items, updateTime, dataException } = MOCK_DATA.todayMarket;
+  const icons = { pig_outer: '🐷', corn: '🌽', soybean_meal: '🫘', pork: '🥩' };
+  const classes = { pig_outer: 'pig', corn: 'corn', soybean_meal: 'soybean', pork: 'pork' };
+  
+  const utEl = document.getElementById('update-time-text');
+  if (dataException) {
+    utEl.classList.add('error');
+    utEl.textContent = '数据更新：' + updateTime;
+    document.getElementById('update-time-wrap').insertAdjacentHTML('beforeend', '<div class="exception-tip">数据更新异常，展示最近可用数据</div>');
+  } else {
+    utEl.textContent = '数据更新：' + updateTime;
+  }
+
+  document.getElementById('today-cards').innerHTML = items.map(item => {
+    const isUp = item.dailyChange > 0, isDown = item.dailyChange < 0;
+    const changeClass = isUp ? 'change-up' : (isDown ? 'change-down' : 'change-flat');
+    const arrow = isUp ? '↑' : (isDown ? '↓' : '—');
+    const changeSign = isUp ? '+' : '';
+    const weekSign = item.weeklyChangeRate > 0 ? '+' : '';
+    const weekClass = item.weeklyChangeRate > 0 ? 'td-up' : (item.weeklyChangeRate < 0 ? 'td-down' : 'td-flat');
+    const sparkSvg = renderSparkline(item.sparklineData, isUp ? '#f5222d' : (isDown ? '#52c41a' : '#8c8c8c'));
+    return `
+      <div class="market-card ${classes[item.productCode]}">
+        <div class="market-card-label">${icons[item.productCode]} ${item.productName}</div>
+        <div class="market-card-price ${changeClass}">${item.price.toFixed(2)}</div>
+        <div class="market-card-unit">${item.priceUnit}</div>
+        <div class="market-card-change">
+          <span class="${changeClass}">${arrow} ${changeSign}${item.dailyChange.toFixed(2)}</span>
+          <span class="weekly-rate ${weekClass}">${weekSign}${item.weeklyChangeRate.toFixed(2)}%/周</span>
+        </div>
+        <div class="sparkline-wrap">${sparkSvg}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderSparkline(data, color) {
+  const w = 120, h = 30, pad = 2;
+  const vals = data.filter(v => v !== null);
+  if (vals.length < 2) return '<svg width="' + w + '" height="' + h + '"></svg>';
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const range = max - min || 1;
+  const pts = data.map((v, i) => {
+    const x = pad + (i / (data.length - 1)) * (w - pad * 2);
+    const y = h - pad - ((v - min) / range) * (h - pad * 2);
+    return x + ',' + y;
+  });
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    <polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  </svg>`;
+}
+
+// ===== 表格折叠 =====
+function toggleTable(wrapId, btn) {
+  const wrap = document.getElementById(wrapId);
+  const isHidden = wrap.style.display === 'none';
+  wrap.style.display = isHidden ? 'block' : 'none';
+  btn.innerHTML = isHidden
+    ? '<i class="fas fa-table"></i> 收起数据'
+    : '<i class="fas fa-table"></i> 展开数据';
+}
+
+// ===== 渲染数据表格 =====
+let tablePagination = { pig: 1, corn: 1, soybean: 1, pork: 1 };
+const PAGE_SIZE = 30;
+
+function renderDataTable(key, data, tbodyId, paginationId, cols) {
+  const page = tablePagination[key] || 1;
+  const start = (page - 1) * PAGE_SIZE;
+  const pageData = data.slice(start, start + PAGE_SIZE);
+  document.getElementById(tbodyId).innerHTML = pageData.map(row => {
+    return '<tr>' + cols.map(c => {
+      if (c === 'dailyChange') {
+        if (row.dailyChange === null) return '<td class="td-flat">—</td>';
+        const s = row.dailyChange > 0 ? '+' : '';
+        const cls = row.dailyChange > 0 ? 'td-up' : (row.dailyChange < 0 ? 'td-down' : 'td-flat');
+        return `<td class="${cls}">${s}${row.dailyChange.toFixed(2)}</td>`;
+      }
+      if (c === 'weeklyChangeRate') {
+        if (row.weeklyChangeRate === null) return '<td class="td-flat">—</td>';
+        const s = row.weeklyChangeRate > 0 ? '+' : '';
+        const cls = row.weeklyChangeRate > 0 ? 'td-up' : (row.weeklyChangeRate < 0 ? 'td-down' : 'td-flat');
+        return `<td class="${cls}">${s}${row.weeklyChangeRate.toFixed(2)}%</td>`;
+      }
+      if (c === 'localPrice') return `<td>${row.localPrice !== null ? row.localPrice.toFixed(2) : '—'}</td>`;
+      if (c === 'date') return `<td>${row.date}</td>`;
+      const val = row[c];
+      return `<td>${val !== null && val !== undefined ? (typeof val === 'number' ? val.toFixed(2) : val) : '—'}</td>`;
+    }).join('') + '</tr>';
+  }).join('');
+  renderPagination(paginationId, data.length, page, key);
+}
+
+function renderPagination(paginationId, total, current, key) {
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  if (totalPages <= 1) { document.getElementById(paginationId).innerHTML = ''; return; }
+  let html = `<span class="page-info">共 ${total} 条</span>`;
+  html += `<button class="page-btn" onclick="changePage('${key}','${paginationId}',${current - 1})" ${current <= 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>`;
+  for (let i = Math.max(1, current - 2); i <= Math.min(totalPages, current + 2); i++) {
+    html += `<button class="page-btn ${i === current ? 'active' : ''}" onclick="changePage('${key}','${paginationId}',${i})">${i}</button>`;
+  }
+  html += `<button class="page-btn" onclick="changePage('${key}','${paginationId}',${current + 1})" ${current >= totalPages ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
+  document.getElementById(paginationId).innerHTML = html;
+}
+
+function changePage(key, paginationId, page) {
+  tablePagination[key] = page;
+  if (key === 'pig') renderDataTable('pig', MOCK_DATA.pigTrend.items, 'pig-tbody', 'pig-pagination', ['date','nationalPrice','sichuanPrice','localPrice','dailyChange','weeklyChangeRate']);
+  if (key === 'corn') renderDataTable('corn', MOCK_DATA.cornTrend.items, 'corn-tbody', 'corn-pagination', ['date','nationalPrice','sichuanPrice','dailyChange','weeklyChangeRate']);
+  if (key === 'soybean') renderDataTable('soybean', MOCK_DATA.soybeanTrend.items, 'soybean-tbody', 'soybean-pagination', ['date','nationalPrice','sichuanPrice','dailyChange','weeklyChangeRate']);
+  if (key === 'pork') renderDataTable('pork', MOCK_DATA.porkTrend.items, 'pork-tbody', 'pork-pagination', ['date','nationalPrice','sichuanPrice','dailyChange','weeklyChangeRate']);
+}
+
+// ===== ECharts 图表渲染 =====
+let charts = {};
+
+function initCharts() {
+  charts.pig = echarts.init(document.getElementById('chart-pig'));
+  charts.corn = echarts.init(document.getElementById('chart-corn'));
+  charts.soybean = echarts.init(document.getElementById('chart-soybean'));
+  charts.pork = echarts.init(document.getElementById('chart-pork'));
+  charts.ratio = echarts.init(document.getElementById('chart-ratio'));
+  charts.compare = echarts.init(document.getElementById('chart-compare'));
+}
+
+function renderAllCharts() {
+  renderPigChart();
+  renderCornChart();
+  renderSoybeanChart();
+  renderPorkChart();
+  renderRatioChart();
+  renderCompareChart();
+  // 重新渲染数据表格
+  renderDataTable('pig', MOCK_DATA.pigTrend.items, 'pig-tbody', 'pig-pagination', ['date','nationalPrice','sichuanPrice','localPrice','dailyChange','weeklyChangeRate']);
+  renderDataTable('corn', MOCK_DATA.cornTrend.items, 'corn-tbody', 'corn-pagination', ['date','nationalPrice','sichuanPrice','dailyChange','weeklyChangeRate']);
+  renderDataTable('soybean', MOCK_DATA.soybeanTrend.items, 'soybean-tbody', 'soybean-pagination', ['date','nationalPrice','sichuanPrice','dailyChange','weeklyChangeRate']);
+  renderDataTable('pork', MOCK_DATA.porkTrend.items, 'pork-tbody', 'pork-pagination', ['date','nationalPrice','sichuanPrice','dailyChange','weeklyChangeRate']);
+}
+
+function renderPigChart() {
+  const data = MOCK_DATA.pigTrend;
+  const dates = data.items.map(d => d.date);
+  const national = data.items.map(d => d.nationalPrice);
+  const sichuan = data.items.map(d => d.sichuanPrice);
+  const local = data.items.map(d => d.localPrice);
+  const costLine = data.costLine;
+  const cornPricesPerKg = MOCK_DATA.cornTrend.items.map(d => +(d.nationalPrice / 1000).toFixed(4));
+  const ratio6Line = MOCK_DATA.cornTrend.items.map((d, i) => +(d.nationalPrice / 1000 * 6).toFixed(2));
+
+  // 找最高最低点
+  const maxIdx = national.indexOf(Math.max(...national));
+  const minIdx = national.indexOf(Math.min(...national));
+
+  const option = {
+    tooltip: { trigger: 'axis', formatter: function(params) {
+      let html = `<b>${params[0].axisValue}</b><br>`;
+      params.forEach(p => { html += `${p.marker}${p.seriesName}：${p.value !== null && p.value !== undefined ? p.value.toFixed(2) + ' 元/kg' : '—'}<br>`; });
+      return html;
+    }},
+    legend: { top: 5, data: ['全国均价', '四川省均价', '本县收购价', '养殖成本线', '猪粮比6:1参考线'], textStyle: { fontSize: 12 } },
+    grid: { top: 50, right: 20, bottom: 50, left: 60 },
+    xAxis: { type: 'category', data: dates, axisLabel: { fontSize: 11, rotate: 30 } },
+    yAxis: { type: 'value', name: '元/公斤', axisLabel: { fontSize: 11 }, splitLine: { lineStyle: { color: '#f0f0f0' } } },
+    series: [
+      {
+        name: '全国均价', type: 'line', data: national, smooth: true,
+        lineStyle: { color: '#1890ff', width: 2 }, itemStyle: { color: '#1890ff' },
+        markPoint: {
+          data: [
+            { name: '最高点', coord: [dates[maxIdx], national[maxIdx]], label: { formatter: national[maxIdx].toFixed(2), color: '#1890ff', fontSize: 11 }, itemStyle: { color: '#1890ff' }, symbol: 'circle', symbolSize: 10 },
+            { name: '最低点', coord: [dates[minIdx], national[minIdx]], label: { formatter: national[minIdx].toFixed(2), color: '#ff4d4f', fontSize: 11 }, itemStyle: { color: '#ff4d4f' }, symbol: 'circle', symbolSize: 10 }
+          ]
+        }
+      },
+      { name: '四川省均价', type: 'line', data: sichuan, smooth: true, lineStyle: { color: '#fa8c16', width: 1.5, type: 'dashed' }, itemStyle: { color: '#fa8c16' }, showSymbol: false },
+      { name: '本县收购价', type: 'line', data: local, smooth: true, lineStyle: { color: '#52c41a', width: 1.5, type: 'dashed' }, itemStyle: { color: '#52c41a' }, showSymbol: false, connectNulls: false },
+      {
+        name: '养殖成本线', type: 'line',
+        data: dates.map(() => costLine),
+        lineStyle: { color: '#f5222d', width: 1, type: 'dashed' },
+        itemStyle: { color: '#f5222d' }, showSymbol: false,
+        markArea: {
+          silent: true,
+          data: [[{ yAxis: 0 }, { yAxis: costLine }]],
+          itemStyle: { color: 'rgba(245,34,45,0.05)' }
+        }
+      },
+      {
+        name: '猪粮比6:1参考线', type: 'line',
+        data: ratio6Line,
+        lineStyle: { color: '#bfbfbf', width: 1, type: 'dashed' },
+        itemStyle: { color: '#bfbfbf' }, showSymbol: false
+      }
+    ]
+  };
+  charts.pig.setOption(option);
+}
+
+function renderSimpleTrendChart(chartKey, data, unit, color1, color2) {
+  const dates = data.items.map(d => d.date);
+  const national = data.items.map(d => d.nationalPrice);
+  const sichuan = data.items.map(d => d.sichuanPrice);
+  const option = {
+    tooltip: { trigger: 'axis', formatter: function(params) {
+      let html = `<b>${params[0].axisValue}</b><br>`;
+      params.forEach(p => { html += `${p.marker}${p.seriesName}：${p.value !== null ? p.value.toFixed(2) + ' ' + unit : '—'}<br>`; });
+      return html;
+    }},
+    legend: { top: 5, data: ['全国均价', '四川省均价'], textStyle: { fontSize: 12 } },
+    grid: { top: 40, right: 20, bottom: 50, left: 70 },
+    xAxis: { type: 'category', data: dates, axisLabel: { fontSize: 10, rotate: 30 } },
+    yAxis: { type: 'value', name: unit, axisLabel: { fontSize: 10 }, splitLine: { lineStyle: { color: '#f0f0f0' } } },
+    series: [
+      { name: '全国均价', type: 'line', data: national, smooth: true, lineStyle: { color: color1, width: 2 }, itemStyle: { color: color1 }, showSymbol: false },
+      { name: '四川省均价', type: 'line', data: sichuan, smooth: true, lineStyle: { color: color2, width: 1.5, type: 'dashed' }, itemStyle: { color: color2 }, showSymbol: false }
+    ]
+  };
+  charts[chartKey].setOption(option);
+}
+
+function renderCornChart() {
+  renderSimpleTrendChart('corn', MOCK_DATA.cornTrend, '元/吨', '#1890ff', '#fa8c16');
+}
+function renderSoybeanChart() {
+  renderSimpleTrendChart('soybean', MOCK_DATA.soybeanTrend, '元/吨', '#1890ff', '#fa8c16');
+}
+function renderPorkChart() {
+  renderSimpleTrendChart('pork', MOCK_DATA.porkTrend, '元/公斤', '#722ed1', '#fa8c16');
+}
+
+function renderRatioChart() {
+  const d = MOCK_DATA.pigGrainRatio;
+  const { lossLine, balanceLine, highLine } = d.thresholds;
+  const dates = d.items.map(i => i.date);
+  const ratios = d.items.map(i => i.ratio);
+  const allVals = [...ratios, lossLine, balanceLine, highLine];
+  const minY = Math.max(0, Math.min(...allVals) - 0.5);
+  const maxY = Math.max(...allVals) + 1;
+
+  const option = {
+    tooltip: { trigger: 'axis', formatter: function(params) {
+      return `<b>${params[0].axisValue}</b><br>${params[0].marker}猪粮比：${params[0].value.toFixed(2)}:1`;
+    }},
+    grid: { top: 20, right: 20, bottom: 50, left: 50 },
+    xAxis: { type: 'category', data: dates, axisLabel: { fontSize: 10, rotate: 30 } },
+    yAxis: { type: 'value', min: minY, max: maxY, axisLabel: { fontSize: 10, formatter: v => v.toFixed(1) + ':1' }, splitLine: { lineStyle: { color: '#f0f0f0' } } },
+    visualMap: { show: false, pieces: [
+      { lte: lossLine, color: 'rgba(245,34,45,0.5)' },
+      { gt: lossLine, lte: balanceLine, color: 'rgba(250,173,20,0.5)' },
+      { gt: balanceLine, lte: 9, color: 'rgba(82,196,26,0.5)' },
+      { gt: 9, lte: highLine, color: 'rgba(24,144,255,0.3)' },
+      { gt: highLine, color: 'rgba(255,77,79,0.3)' }
+    ], outOfRange: { color: '#8c8c8c' } },
+    series: [
+      {
+        name: '猪粮比', type: 'line', data: ratios, smooth: true,
+        lineStyle: { color: '#1890ff', width: 2 }, itemStyle: { color: '#1890ff' },
+        areaStyle: { opacity: 0.15, color: '#1890ff' },
+        markLine: {
+          silent: true, symbol: 'none',
+          data: [
+            { yAxis: lossLine, lineStyle: { color: '#bfbfbf', type: 'dashed', width: 1 }, label: { formatter: `${lossLine}:1 亏损线`, color: '#bfbfbf', fontSize: 10 } },
+            { yAxis: balanceLine, lineStyle: { color: '#bfbfbf', type: 'dashed', width: 1 }, label: { formatter: `${balanceLine}:1 平衡线`, color: '#bfbfbf', fontSize: 10 } },
+            { yAxis: 9, lineStyle: { color: '#bfbfbf', type: 'dashed', width: 1 }, label: { formatter: '9:1', color: '#bfbfbf', fontSize: 10 } },
+            { yAxis: highLine, lineStyle: { color: '#bfbfbf', type: 'dashed', width: 1 }, label: { formatter: `${highLine}:1 过盈线`, color: '#bfbfbf', fontSize: 10 } }
+          ]
+        }
+      }
+    ]
+  };
+  charts.ratio.setOption(option);
+
+  // 预警提示
+  const ratio = d.currentRatio;
+  let warningHtml = '';
+  if (ratio < balanceLine) {
+    warningHtml = `<div class="ratio-warning loss"><i class="fas fa-exclamation-triangle" style="margin-right:6px;"></i>当前猪粮比低于盈亏平衡线（${balanceLine}:1），养殖企业面临亏损风险</div>`;
+  } else if (ratio > highLine) {
+    warningHtml = `<div class="ratio-warning high"><i class="fas fa-exclamation-triangle" style="margin-right:6px;"></i>当前猪粮比偏高，需关注产能扩张过快风险</div>`;
+  }
+  document.getElementById('ratio-warning').innerHTML = warningHtml;
+}
+
+function renderCompareChart() {
+  const pigItems = MOCK_DATA.pigTrend.items;
+  const cornItems = MOCK_DATA.cornTrend.items;
+  const soybeanItems = MOCK_DATA.soybeanTrend.items;
+  const porkItems = MOCK_DATA.porkTrend.items;
+
+  const dates = pigItems.map(d => d.date);
+  const basePig = pigItems[0].nationalPrice;
+  const baseCorn = cornItems[0].nationalPrice;
+  const baseSoybean = soybeanItems[0].nationalPrice;
+  const basePork = porkItems[0].nationalPrice;
+
+  const toRate = (arr, base) => arr.map(d => +((d.nationalPrice - base) / base * 100).toFixed(2));
+
+  const option = {
+    tooltip: { trigger: 'axis', formatter: function(params) {
+      let html = `<b>${params[0].axisValue}</b><br>`;
+      params.forEach(p => { html += `${p.marker}${p.seriesName}：${p.value >= 0 ? '+' : ''}${p.value.toFixed(2)}%<br>`; });
+      return html;
+    }},
+    legend: { top: 5, data: ['生猪（外三元）', '玉米（14%水分）', '豆粕（43%蛋白）', '白条猪肉'], textStyle: { fontSize: 12 } },
+    grid: { top: 40, right: 20, bottom: 50, left: 60 },
+    xAxis: { type: 'category', data: dates, axisLabel: { fontSize: 11, rotate: 30 } },
+    yAxis: { type: 'value', name: '涨跌幅(%)', axisLabel: { fontSize: 11, formatter: v => v + '%' }, splitLine: { lineStyle: { color: '#f0f0f0' } } },
+    series: [
+      { name: '生猪（外三元）', type: 'line', data: toRate(pigItems, basePig), smooth: true, lineStyle: { color: '#1890ff', width: 2 }, itemStyle: { color: '#1890ff' }, showSymbol: false,
+        markLine: { silent: true, symbol: 'none', data: [{ yAxis: 0, lineStyle: { color: '#000', width: 0.5 } }] } },
+      { name: '玉米（14%水分）', type: 'line', data: toRate(cornItems, baseCorn), smooth: true, lineStyle: { color: '#52c41a', width: 1.5 }, itemStyle: { color: '#52c41a' }, showSymbol: false },
+      { name: '豆粕（43%蛋白）', type: 'line', data: toRate(soybeanItems, baseSoybean), smooth: true, lineStyle: { color: '#fa8c16', width: 1.5 }, itemStyle: { color: '#fa8c16' }, showSymbol: false },
+      { name: '白条猪肉', type: 'line', data: toRate(porkItems, basePork), smooth: true, lineStyle: { color: '#722ed1', width: 1.5 }, itemStyle: { color: '#722ed1' }, showSymbol: false }
+    ]
+  };
+  charts.compare.setOption(option);
+}
+
+// ===== 中国地图 =====
+function renderMapChart() {
+  fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json')
+    .then(r => r.json())
+    .then(geoJson => {
+      echarts.registerMap('china', geoJson);
+      const mapChart = echarts.init(document.getElementById('chart-map'));
+      charts.map = mapChart;
+
+      const provinceData = MOCK_DATA.provincePrice;
+      const mapData = provinceData.items.map(p => ({
+        name: p.provinceName,
+        value: p.porkPrice,
+        weeklyChange: p.weeklyChange
+      }));
+
+      const option = {
+        tooltip: {
+          trigger: 'item',
+          formatter: function(params) {
+            if (!params.data || params.data.value === null || params.data.value === undefined) {
+              return `<b>${params.name}</b><br>暂无数据`;
+            }
+            const d = params.data;
+            const wc = d.weeklyChange;
+            const wcStr = wc === null ? '—' : (wc >= 0 ? '<span style="color:#f5222d">+' + wc.toFixed(2) + '</span>' : '<span style="color:#52c41a">' + wc.toFixed(2) + '</span>');
+            return `<b>${params.name}</b><br>猪肉批发均价：${d.value.toFixed(2)} 元/公斤<br>较上周涨跌：${wcStr} 元/公斤`;
+          }
+        },
+        visualMap: {
+          min: provinceData.minPrice,
+          max: provinceData.maxPrice,
+          left: 'right',
+          top: 'center',
+          text: [provinceData.maxPrice.toFixed(2) + '元', provinceData.minPrice.toFixed(2) + '元'],
+          inRange: { color: ['#e6f7ff', '#003a8c'] },
+          calculable: true,
+          textStyle: { fontSize: 11 },
+          orient: 'vertical',
+          itemHeight: 200
+        },
+        series: [{
+          name: '猪肉批发均价',
+          type: 'map',
+          map: 'china',
+          roam: true,
+          data: mapData,
+          itemStyle: {
+            borderColor: '#e8e8e8',
+            borderWidth: 0.5
+          },
+          select: { disabled: true },
+          emphasis: {
+            itemStyle: { areaColor: '#bae0ff', borderColor: '#1677ff', borderWidth: 1 },
+            label: { show: true, color: '#262626', fontSize: 11 }
+          },
+          // 四川高亮
+          regions: [{
+            name: '四川',
+            itemStyle: { borderColor: '#f5222d', borderWidth: 2 },
+            emphasis: { itemStyle: { borderColor: '#f5222d', borderWidth: 2 } }
+          }]
+        }]
+      };
+      mapChart.setOption(option);
+    })
+    .catch(() => {
+      document.getElementById('chart-map').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#8c8c8c;flex-direction:column;gap:12px;"><i class="fas fa-exclamation-triangle" style="font-size:32px;color:#faad14;"></i><div>地图资源加载失败（需要网络连接）</div><div style="font-size:12px;">省份价格数据如下：</div></div>';
+      // 降级展示省份价格表格
+      const fallbackTable = document.createElement('div');
+      fallbackTable.style.padding = '16px';
+      fallbackTable.innerHTML = `<table><thead><tr><th>省份</th><th>猪肉批发均价（元/公斤）</th><th>较上周涨跌</th></tr></thead><tbody>
+        ${MOCK_DATA.provincePrice.items.slice(0, 15).map(p => {
+          const wc = p.weeklyChange;
+          const wcStr = p.porkPrice === null ? '—' : (wc === null ? '—' : (wc >= 0 ? `<span class="td-up">+${wc.toFixed(2)}</span>` : `<span class="td-down">${wc.toFixed(2)}</span>`));
+          return `<tr><td>${p.provinceName}</td><td>${p.porkPrice !== null ? p.porkPrice.toFixed(2) : '暂无数据'}</td><td>${wcStr}</td></tr>`;
+        }).join('')}
+      </tbody></table><div style="text-align:center;color:#8c8c8c;font-size:12px;padding:8px;">（仅展示前15条，完整数据见地图）</div>`;
+      document.getElementById('chart-map').parentNode.appendChild(fallbackTable);
+    });
+}
+
+// ===== 手动采集 =====
+function showFetchModal() {
+  document.getElementById('feature-fetch-modal').classList.add('show');
+}
+function closeFetchModal() {
+  document.getElementById('feature-fetch-modal').classList.remove('show');
+}
+let fetchCooldown = false;
+function confirmFetch() {
+  const fetchType = document.querySelector('input[name="fetchType"]:checked').value;
+  const btn = document.getElementById('btn-confirm-fetch');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在采集...';
+  
+  setTimeout(() => {
+    closeFetchModal();
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-play"></i> 确认采集';
+    
+    const success = Math.random() > 0.2;
+    if (success) {
+      showTip('success', '数据采集成功，本次入库 8 条记录');
+      // 添加新日志记录
+      MOCK_DATA.fetchLogs.unshift({
+        id: 999, batchNo: '20260310_' + Date.now(), fetchType: fetchType,
+        fetchTypeName: fetchType === 'daily_price' ? '日报价格' : '省份价格',
+        triggerType: '1', triggerTypeName: '手动触发',
+        fetchStatus: '0', fetchStatusName: '成功', parsedCount: fetchType === 'daily_price' ? 8 : 31,
+        promptTokens: 487, completionTokens: 1930, apiDurationMs: 8640, errorMessage: null,
+        createTime: new Date().toLocaleString('zh-CN').replace(/\//g, '-')
+      });
+      // 启动冷却倒计时（5分钟）
+      startFetchCooldown();
+    } else {
+      showTip('error', '数据采集失败：DeepSeek API 连接超时，请稍后重试');
+    }
+  }, 1800);
+}
+
+function startFetchCooldown() {
+  const btn = document.getElementById('btn-fetch');
+  const countdownWrap = document.getElementById('countdown-wrap');
+  btn.disabled = true;
+  let remaining = 300;
+  const timer = setInterval(() => {
+    remaining--;
+    const m = Math.floor(remaining / 60);
+    const s = remaining % 60;
+    countdownWrap.style.display = '';
+    countdownWrap.textContent = `${m}分${s < 10 ? '0' + s : s}秒后可再次采集`;
+    if (remaining <= 0) {
+      clearInterval(timer);
+      btn.disabled = false;
+      countdownWrap.style.display = 'none';
+    }
+  }, 1000);
+}
+
+// ===== 采集日志 =====
+let logPage = 1;
+function openLogDrawer() {
+  document.getElementById('log-overlay').classList.add('show');
+  document.getElementById('feature-log-drawer').classList.add('show');
+  renderLogTable();
+}
+function closeLogDrawer() {
+  document.getElementById('log-overlay').classList.remove('show');
+  document.getElementById('feature-log-drawer').classList.remove('show');
+}
+function renderLogTable() {
+  const statusFilter = document.getElementById('log-status-filter').value;
+  const logStart = document.getElementById('log-start').value;
+  const logEnd = document.getElementById('log-end').value;
+  
+  let filtered = MOCK_DATA.fetchLogs.filter(l => {
+    if (statusFilter && l.fetchStatus !== statusFilter) return false;
+    if (logStart && l.createTime < logStart) return false;
+    if (logEnd && l.createTime.slice(0, 10) > logEnd) return false;
+    return true;
+  });
+
+  const LOG_PAGE_SIZE = 10;
+  const total = filtered.length;
+  const pageData = filtered.slice((logPage - 1) * LOG_PAGE_SIZE, logPage * LOG_PAGE_SIZE);
+
+  const statusTagMap = {
+    '0': ['tag-success', '成功'],
+    '1': ['tag-error', 'API失败'],
+    '2': ['tag-error', '解析失败'],
+    '3': ['tag-warning', '部分成功']
+  };
+  const triggerTagMap = {
+    '0': ['tag-default', '定时任务'],
+    '1': ['tag-blue', '手动触发']
+  };
+
+  document.getElementById('log-tbody').innerHTML = pageData.length === 0
+    ? '<tr><td colspan="7" style="text-align:center;padding:32px;color:#8c8c8c;">暂无数据</td></tr>'
+    : pageData.map(l => {
+      const [stCls, stLabel] = statusTagMap[l.fetchStatus] || ['tag-default', '未知'];
+      const [trCls, trLabel] = triggerTagMap[l.triggerType] || ['tag-default', '未知'];
+      const tokenStr = (l.promptTokens !== null && l.promptTokens !== undefined)
+        ? `输入${l.promptTokens}/输出${l.completionTokens}` : '—';
+      const durationStr = l.apiDurationMs !== null ? (l.apiDurationMs / 1000).toFixed(1) + 's' : '—';
+      const errStr = l.errorMessage ? `<div title="${l.errorMessage}" style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#ff4d4f;font-size:12px;">${l.errorMessage.slice(0, 30)}...</div>` : '';
+      return `<tr>
+        <td style="white-space:nowrap;font-size:12px;">${l.createTime}</td>
+        <td>${l.fetchTypeName}</td>
+        <td><span class="tag ${trCls}">${trLabel}</span></td>
+        <td><span class="tag ${stCls}">${stLabel}</span>${errStr}</td>
+        <td>${l.parsedCount}</td>
+        <td style="font-size:12px;">${tokenStr}</td>
+        <td>${durationStr}</td>
+      </tr>`;
+    }).join('');
+
+  // 分页
+  const totalPages = Math.ceil(total / LOG_PAGE_SIZE);
+  let paginationHtml = `<span class="page-info">共 ${total} 条</span>`;
+  if (totalPages > 1) {
+    paginationHtml += `<button class="page-btn" onclick="changeLogPage(${logPage - 1})" ${logPage <= 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>`;
+    for (let i = Math.max(1, logPage - 2); i <= Math.min(totalPages, logPage + 2); i++) {
+      paginationHtml += `<button class="page-btn ${i === logPage ? 'active' : ''}" onclick="changeLogPage(${i})">${i}</button>`;
+    }
+    paginationHtml += `<button class="page-btn" onclick="changeLogPage(${logPage + 1})" ${logPage >= totalPages ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
+  }
+  document.getElementById('log-pagination').innerHTML = paginationHtml;
+}
+function changeLogPage(page) {
+  logPage = page;
+  renderLogTable();
+}
+
+// ===== 导出 =====
+function exportReport() {
+  showTip('success', '导出成功：市场贸易分析_2025-09-10至2026-03-10_20260310_' + new Date().toTimeString().slice(0, 8).replace(/:/g, '') + '.xlsx（模拟下载，共7个Sheet页）');
+}
+
+// ===== 提示 =====
+function showTip(type, msg) {
+  const tip = document.getElementById('result-tip');
+  const icons = { success: 'fas fa-check-circle', error: 'fas fa-times-circle', warning: 'fas fa-exclamation-triangle' };
+  tip.className = `result-tip show ${type}`;
+  tip.innerHTML = `<i class="${icons[type] || 'fas fa-info-circle'}"></i>${msg}`;
+  setTimeout(() => { tip.className = 'result-tip'; }, 4000);
+}
+
+// ===== 窗口大小变化时重置图表 =====
+window.addEventListener('resize', () => {
+  Object.values(charts).forEach(c => c && c.resize && c.resize());
+});
+
+// ===== 初始化 =====
+document.addEventListener('DOMContentLoaded', function() {
+  updatePermissions();
+  renderTodayMarket();
+  renderDataTable('pig', MOCK_DATA.pigTrend.items, 'pig-tbody', 'pig-pagination', ['date','nationalPrice','sichuanPrice','localPrice','dailyChange','weeklyChangeRate']);
+  renderDataTable('corn', MOCK_DATA.cornTrend.items, 'corn-tbody', 'corn-pagination', ['date','nationalPrice','sichuanPrice','dailyChange','weeklyChangeRate']);
+  renderDataTable('soybean', MOCK_DATA.soybeanTrend.items, 'soybean-tbody', 'soybean-pagination', ['date','nationalPrice','sichuanPrice','dailyChange','weeklyChangeRate']);
+  renderDataTable('pork', MOCK_DATA.porkTrend.items, 'pork-tbody', 'pork-pagination', ['date','nationalPrice','sichuanPrice','dailyChange','weeklyChangeRate']);
+  
+  setTimeout(() => {
+    initCharts();
+    renderAllCharts();
+    renderMapChart();
+  }, 100);
+});
+</script>
+</body>
+</html>

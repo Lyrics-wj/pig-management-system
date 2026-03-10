@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2024年蓬溪县生猪数字化管理平台 - 实时监测原型导航</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body { background: #f0f2f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    .card { background: #fff; border-radius: 8px; border: 1px solid #e8e8e8; }
+    .page-link { display: flex; align-items: center; gap-3; padding: 12px 16px; border-radius: 6px; text-decoration: none; color: #262626; border: 1px solid #e8e8e8; background: #fafafa; transition: all 0.2s; }
+    .page-link:hover { background: #e6f4ff; border-color: #91caff; color: #1677ff; box-shadow: 0 2px 8px rgba(22,119,255,0.1); }
+    .badge-done { background: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+    .badge-wip { background: #fffbe6; color: #faad14; border: 1px solid #ffe58f; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+    .badge-todo { background: #f5f5f5; color: #8c8c8c; border: 1px solid #d9d9d9; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+  </style>
+</head>
+<body class="p-8">
+  <div class="max-w-4xl mx-auto">
+
+    <!-- 项目信息头部 -->
+    <div class="card p-6 mb-6">
+      <div class="flex items-start justify-between">
+        <div>
+          <div class="flex items-center gap-3 mb-2">
+            <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+              <i class="fa fa-piggy-bank text-white text-lg"></i>
+            </div>
+            <div>
+              <h1 class="text-xl font-bold text-gray-800">2024年蓬溪县生猪数字化管理平台</h1>
+              <div class="text-sm text-gray-400">可交互 HTML 原型导航 · 实时监测模块</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-4 text-sm text-gray-500 mt-3">
+            <span><i class="fa fa-calendar-alt mr-1"></i> 制作日期：2026-03-09</span>
+            <span><i class="fa fa-tag mr-1"></i> 版本：v1.0</span>
+          </div>
+        </div>
+        <div class="text-right text-sm text-gray-400">
+          <div class="text-2xl font-bold text-blue-600">1</div>
+          <div>已完成</div>
+          <div class="text-gray-300 text-xs mt-1">共 1 个文件</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 角色说明 -->
+    <div class="card p-5 mb-6 border-l-4 border-blue-500">
+      <h2 class="font-semibold text-gray-700 mb-3"><i class="fa fa-users text-blue-500 mr-2"></i>系统角色说明</h2>
+      <div class="grid grid-cols-2 gap-4 text-sm">
+        <div class="bg-blue-50 rounded-lg p-3">
+          <div class="font-medium text-blue-700 mb-1"><i class="fa fa-user-tie mr-1"></i> 企业管理员（ent_admin）</div>
+          <div class="text-gray-500 text-xs">账号：ent_admin001 / 密码：123456</div>
+          <div class="text-gray-500 text-xs mt-1">可查看温湿度监测和料仓物位监测</div>
+        </div>
+        <div class="bg-green-50 rounded-lg p-3">
+          <div class="font-medium text-green-700 mb-1"><i class="fa fa-user mr-1"></i> 企业填报员（ent_reporter）</div>
+          <div class="text-gray-500 text-xs">账号：ent_reporter001 / 密码：123456</div>
+          <div class="text-gray-500 text-xs mt-1">可查看温湿度监测和料仓物位监测</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 功能模块导航 -->
+    <div class="card p-5 mb-6">
+      <h2 class="font-semibold text-gray-700 mb-4">
+        <i class="fa fa-desktop text-blue-500 mr-2"></i>WEB 企业端
+        <span class="text-xs font-normal text-gray-400 ml-2">企业信息管理 / 实时监测</span>
+      </h2>
+
+      <div class="mb-3">
+        <div class="flex items-center gap-2 text-sm font-medium text-gray-600 mb-3 px-1">
+          <i class="fa fa-folder-open text-orange-400"></i> 企业信息管理 → 实时监测
+        </div>
+        <div class="space-y-2">
+          <a href="企业端/企业信息管理/实时监测/WEB企业端-企业信息管理-实时监测.html" class="page-link" target="_blank">
+            <div class="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+              <i class="fa fa-wifi text-blue-500"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="font-medium">企业信息管理 - 实时监测</span>
+                <span class="badge-done">✅ 已完成</span>
+              </div>
+              <div class="text-xs text-gray-400 mt-0.5">
+                猪舍温湿度实时监测 + 料仓物位实时监测（双 Tab）
+              </div>
+              <div class="text-xs text-gray-300 mt-0.5 font-mono">
+                WEB企业端-企业信息管理-实时监测.prd.md
+              </div>
+            </div>
+            <i class="fa fa-external-link-alt text-gray-300 text-xs flex-shrink-0"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 功能清单说明 -->
+    <div class="card p-5 mb-6">
+      <h2 class="font-semibold text-gray-700 mb-4"><i class="fa fa-list-check text-green-500 mr-2"></i>本次原型涵盖功能清单</h2>
+      <div class="grid grid-cols-2 gap-3 text-sm">
+        <div class="flex items-start gap-2">
+          <i class="fa fa-check-circle text-green-400 mt-0.5 flex-shrink-0"></i>
+          <span>圈舍温湿度卡片概览（设备状态、温湿度值、告警标记）</span>
+        </div>
+        <div class="flex items-start gap-2">
+          <i class="fa fa-check-circle text-green-400 mt-0.5 flex-shrink-0"></i>
+          <span>温湿度告警样式（温度/湿度/双重告警左边框颜色区分）</span>
+        </div>
+        <div class="flex items-start gap-2">
+          <i class="fa fa-check-circle text-green-400 mt-0.5 flex-shrink-0"></i>
+          <span>设备离线/异常灰化处理（--.--.-- 占位展示）</span>
+        </div>
+        <div class="flex items-start gap-2">
+          <i class="fa fa-check-circle text-green-400 mt-0.5 flex-shrink-0"></i>
+          <span>筛选区（圈舍类型下拉 + 名称搜索 + 查询/重置）</span>
+        </div>
+        <div class="flex items-start gap-2">
+          <i class="fa fa-check-circle text-green-400 mt-0.5 flex-shrink-0"></i>
+          <span>温湿度历史趋势图（双轴折线图 + 阈值参考线）</span>
+        </div>
+        <div class="flex items-start gap-2">
+          <i class="fa fa-check-circle text-green-400 mt-0.5 flex-shrink-0"></i>
+          <span>历史图时间范围 Tab（近1小时/近24小时/近7天）</span>
+        </div>
+        <div class="flex items-start gap-2">
+          <i class="fa fa-check-circle text-green-400 mt-0.5 flex-shrink-0"></i>
+          <span>料仓物位卡片（进度条颜色规则 + 剩余量估算）</span>
+        </div>
+        <div class="flex items-start gap-2">
+          <i class="fa fa-check-circle text-green-400 mt-0.5 flex-shrink-0"></i>
+          <span>低料位告警（≤20% 红色左边框 + 告警标记）</span>
+        </div>
+        <div class="flex items-start gap-2">
+          <i class="fa fa-check-circle text-green-400 mt-0.5 flex-shrink-0"></i>
+          <span>物位历史折线图（低料位阈值红色虚线参考线）</span>
+        </div>
+        <div class="flex items-start gap-2">
+          <i class="fa fa-check-circle text-green-400 mt-0.5 flex-shrink-0"></i>
+          <span>数据自动刷新模拟（温湿度30秒/料仓60秒）</span>
+        </div>
+        <div class="flex items-start gap-2">
+          <i class="fa fa-check-circle text-green-400 mt-0.5 flex-shrink-0"></i>
+          <span>多角色切换（企业管理员 / 企业填报员）</span>
+        </div>
+        <div class="flex items-start gap-2">
+          <i class="fa fa-check-circle text-green-400 mt-0.5 flex-shrink-0"></i>
+          <span>骨架屏加载 + 空状态提示</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 制作统计 -->
+    <div class="card p-4 flex items-center justify-between text-sm text-gray-500">
+      <div>
+        <span class="mr-4">总计：<strong class="text-gray-700">1</strong> 个文件</span>
+        <span class="mr-4 text-green-600">✅ 已完成：<strong>1</strong></span>
+        <span class="text-yellow-600">🚧 制作中：<strong>0</strong></span>
+      </div>
+      <div class="text-xs text-gray-300">最后更新：2026-03-09</div>
+    </div>
+
+  </div>
+</body>
+</html>

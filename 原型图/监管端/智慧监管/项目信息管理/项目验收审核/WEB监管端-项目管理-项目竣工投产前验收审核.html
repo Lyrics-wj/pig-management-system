@@ -1,0 +1,1475 @@
+<!--
+  功能名称：项目竣工投产前验收审核（功能一：站核实 / 功能二：镇政府审核 / 功能三：县局审核 / 功能四：PDF生成与下载）
+  对应PRD：doc_prd/WEB/监管端/智慧监管/项目信息管理/项目验收审核/WEB监管端-项目管理-项目竣工投产前验收审核.prd.md
+  所属端口：WEB监管端
+  所属模块：智慧监管 - 项目信息管理 - 项目验收审核
+  制作日期：2026-03-06
+  最后更新：2026-03-06
+  角色说明：乡镇畜牧兽医站（town_vet_station）、乡镇政府业务人员（town_gov_staff）、县级业务人员（county_staff）
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>项目竣工投产前验收审核 - 监管端</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    /* SHARED STYLES */
+    [x-cloak] { display: none !important; }
+    body { font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif; background: #f0f2f5; }
+
+    /* ── 布局 ── */
+    .sidebar { width: 220px; min-width: 220px; transition: width 0.2s; }
+    .sidebar.collapsed { width: 60px; min-width: 60px; }
+    .main-content { flex: 1; min-width: 0; }
+
+    /* ── 表格 ── */
+    .table-wrap { overflow-x: auto; }
+    .table-wrap table { min-width: 860px; border-collapse: collapse; width: 100%; }
+    thead th { background: #f8f9fa; font-weight: 600; white-space: nowrap;
+      padding: 11px 14px; text-align: left; color: #595959;
+      border-bottom: 2px solid #e8e8e8; font-size: 13px; }
+    tbody td { padding: 11px 14px; white-space: nowrap; color: #262626;
+      border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+    tbody tr:hover td { background: #f0f7ff !important; }
+    tbody tr:hover td.op-col { background: #f0f7ff !important; }
+    .op-col { position: sticky; right: 0; background: #fff;
+      box-shadow: -3px 0 6px rgba(0,0,0,0.06); }
+
+    /* ── 徽标 ── */
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px;
+      border-radius: 20px; font-size: 12px; font-weight: 500; white-space: nowrap; }
+    .badge-gray   { background: #f5f5f5; color: #8c8c8c; border: 1px solid #d9d9d9; }
+    .badge-blue   { background: #e6f4ff; color: #1677ff; border: 1px solid #91caff; }
+    .badge-green  { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; }
+    .badge-orange { background: #fff7e6; color: #d46b08; border: 1px solid #ffd591; }
+    .badge-red    { background: #fff1f0; color: #cf1322; border: 1px solid #ffa39e; }
+    .badge-purple { background: #f9f0ff; color: #531dab; border: 1px solid #d3adf7; }
+
+    /* ── 步骤条 ── */
+    .step-bar { display: flex; align-items: flex-start; }
+    .step-item { display: flex; flex-direction: column; align-items: center;
+      flex: 1; position: relative; }
+    .step-item:not(:last-child)::after {
+      content: ''; position: absolute; top: 18px; left: calc(50% + 20px);
+      width: calc(100% - 40px); height: 2px; background: #e8e8e8; z-index: 0;
+    }
+    .step-item.s-done:not(:last-child)::after  { background: #52c41a; }
+    .step-item.s-reject:not(:last-child)::after { background: #ff4d4f; }
+    .step-icon { width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; z-index: 1; box-shadow: 0 2px 6px rgba(0,0,0,0.12); }
+    .step-icon.s-done   { background: #52c41a; color: #fff; }
+    .step-icon.s-active { background: #1677ff; color: #fff; animation: pulse 1.8s infinite; }
+    .step-icon.s-reject { background: #ff4d4f; color: #fff; }
+    .step-icon.s-wait   { background: #fff; color: #bfbfbf; border: 2px solid #d9d9d9; box-shadow: none; }
+    @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(22,119,255,0.4)} 50%{box-shadow:0 0 0 6px rgba(22,119,255,0)} }
+    .step-label { font-size: 12px; color: #595959; margin-top: 8px; text-align: center; line-height: 1.4; }
+    .step-label.s-done   { color: #389e0d; font-weight: 600; }
+    .step-label.s-active { color: #1677ff; font-weight: 600; }
+    .step-label.s-reject { color: #cf1322; font-weight: 600; }
+    .step-time    { font-size: 11px; color: #8c8c8c; margin-top: 3px; text-align: center; }
+    .step-opinion { font-size: 11px; color: #cf1322; margin-top: 3px; text-align: center;
+      max-width: 110px; white-space: normal; line-height: 1.3; }
+
+    /* ── 照片 ── */
+    .photo-thumb { width: 88px; height: 88px; object-fit: cover; border-radius: 6px;
+      border: 1px solid #e8e8e8; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+    .photo-thumb:hover { transform: scale(1.04); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+
+    /* ── 弹层 ── */
+    .modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999;
+      display: flex; align-items: center; justify-content: center; }
+    .modal-box { background: #fff; border-radius: 8px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.2); min-width: 440px;
+      max-width: 90vw; max-height: 90vh; overflow-y: auto; }
+    .modal-header { padding: 16px 24px; border-bottom: 1px solid #f0f0f0;
+      display: flex; justify-content: space-between; align-items: center; }
+    .modal-body   { padding: 24px; }
+    .modal-footer { padding: 12px 24px; border-top: 1px solid #f0f0f0;
+      display: flex; justify-content: flex-end; gap: 8px; }
+
+    /* ── 表单 ── */
+    .form-input { border: 1px solid #d9d9d9; border-radius: 6px; padding: 8px 12px;
+      width: 100%; outline: none; color: #262626; transition: border-color 0.2s, box-shadow 0.2s;
+      background: #fff; }
+    .form-input:focus { border-color: #1677ff; box-shadow: 0 0 0 2px rgba(22,119,255,0.12); }
+    .form-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 10px center; background-size: 16px;
+      padding-right: 32px; }
+    .form-error { color: #ff4d4f; font-size: 12px; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+
+    /* ── 按钮 ── */
+    .btn-primary { background: #1677ff; color: #fff; border: 1px solid #1677ff;
+      border-radius: 6px; padding: 8px 18px; cursor: pointer; font-size: 14px;
+      transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-primary:hover { background: #4096ff; border-color: #4096ff; }
+    .btn-default { background: #fff; color: #262626; border: 1px solid #d9d9d9;
+      border-radius: 6px; padding: 8px 18px; cursor: pointer; font-size: 14px;
+      transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-default:hover { border-color: #1677ff; color: #1677ff; }
+    .btn-danger { background: #fff; color: #ff4d4f; border: 1px solid #ff4d4f;
+      border-radius: 6px; padding: 8px 18px; cursor: pointer; font-size: 14px;
+      transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-danger:hover { background: #ff4d4f; color: #fff; }
+    .btn-success { background: #52c41a; color: #fff; border: 1px solid #52c41a;
+      border-radius: 6px; padding: 8px 18px; cursor: pointer; font-size: 14px;
+      transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-success:hover { background: #73d13d; border-color: #73d13d; }
+    .btn-text-blue { background: none; border: none; color: #1677ff; cursor: pointer;
+      font-size: 13px; padding: 2px 6px; border-radius: 4px; transition: background 0.15s; }
+    .btn-text-blue:hover { background: #e6f4ff; }
+    .btn-text-gray { background: none; border: none; color: #8c8c8c; cursor: pointer;
+      font-size: 13px; padding: 2px 6px; border-radius: 4px; transition: background 0.15s; }
+    .btn-text-gray:hover { background: #f5f5f5; color: #595959; }
+    .btn-text-red { background: none; border: none; color: #ff4d4f; cursor: pointer;
+      font-size: 13px; padding: 2px 6px; border-radius: 4px; transition: background 0.15s; }
+    .btn-text-red:hover { background: #fff1f0; }
+
+    /* ── 提示框 ── */
+    .info-box { border-radius: 6px; padding: 10px 14px; font-size: 13px;
+      display: flex; align-items: flex-start; gap: 8px; }
+    .info-box-blue   { background: #e6f4ff; border: 1px solid #91caff; color: #1677ff; }
+    .info-box-orange { background: #fff7e6; border: 1px solid #ffd591; color: #d46b08; }
+    .info-box-green  { background: #f6ffed; border: 1px solid #b7eb8f; color: #389e0d; }
+    .info-box-red    { background: #fff1f0; border: 1px solid #ffa39e; color: #cf1322; }
+
+    /* ── 只读区域 ── */
+    .readonly-area { background: #fafafa; border: 1px solid #f0f0f0;
+      border-radius: 8px; padding: 16px 20px; }
+    .readonly-row { display: flex; padding: 5px 0; border-bottom: 1px dashed #f0f0f0; }
+    .readonly-row:last-child { border-bottom: none; }
+    .readonly-row .rl { color: #8c8c8c; min-width: 148px; flex-shrink: 0; font-size: 13px; }
+    .readonly-row .rv { color: #262626; font-size: 13px; }
+
+    /* ── 折叠卡片 ── */
+    .collapse-card { border: 1px solid #e8e8e8; border-radius: 8px;
+      margin-bottom: 10px; overflow: hidden; }
+    .collapse-hd { padding: 13px 18px; background: #fafafa; cursor: pointer;
+      display: flex; align-items: center; justify-content: space-between;
+      font-weight: 500; color: #262626; transition: background 0.15s; }
+    .collapse-hd:hover { background: #f0f7ff; }
+    .collapse-bd { padding: 18px; border-top: 1px solid #e8e8e8; }
+
+    /* ── Tab ── */
+    .tab-bar { display: flex; border-bottom: 2px solid #e8e8e8; margin-bottom: 16px; gap: 0; }
+    .tab-item { padding: 10px 22px; cursor: pointer; color: #8c8c8c;
+      border-bottom: 2px solid transparent; margin-bottom: -2px;
+      transition: all 0.18s; white-space: nowrap; font-size: 14px; }
+    .tab-item:hover { color: #1677ff; background: #f0f7ff; }
+    .tab-item.active { color: #1677ff; border-bottom-color: #1677ff; font-weight: 600; }
+    .tab-count { display: inline-flex; align-items: center; justify-content: center;
+      min-width: 18px; height: 18px; border-radius: 9px; font-size: 11px;
+      padding: 0 5px; margin-left: 5px; background: #f0f0f0; color: #8c8c8c; }
+    .tab-item.active .tab-count { background: #1677ff; color: #fff; }
+
+    /* ── 分页 ── */
+    .pagination { display: flex; align-items: center; gap: 4px; }
+    .page-btn { padding: 5px 11px; border: 1px solid #d9d9d9; border-radius: 4px;
+      cursor: pointer; background: #fff; color: #262626; font-size: 13px;
+      transition: all 0.15s; }
+    .page-btn.active { background: #1677ff; color: #fff; border-color: #1677ff; }
+    .page-btn:hover:not(.active) { border-color: #1677ff; color: #1677ff; }
+    .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Lightbox ── */
+    .lightbox-mask { position: fixed; inset: 0; background: rgba(0,0,0,0.88);
+      z-index: 9999; display: flex; align-items: center; justify-content: center; }
+    .lightbox-img { max-width: 90vw; max-height: 90vh; border-radius: 6px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5); }
+
+    /* ── 审核日志 ── */
+    .audit-log { border-left: 3px solid #e8e8e8; padding: 10px 14px;
+      margin-bottom: 10px; border-radius: 0 6px 6px 0; background: #fafafa; }
+    .audit-log.log-approved { border-left-color: #52c41a; background: #f6ffed; }
+    .audit-log.log-rejected { border-left-color: #ff4d4f; background: #fff1f0; }
+
+    /* ── 审核操作面板（底部浮动卡片） ── */
+    .audit-panel { background: #fff; border: 1.5px solid #1677ff;
+      border-radius: 10px; padding: 20px 24px; position: relative;
+      box-shadow: 0 4px 20px rgba(22,119,255,0.12); }
+    .audit-panel-title { position: absolute; top: -11px; left: 20px;
+      background: #1677ff; color: #fff; font-size: 12px; font-weight: 600;
+      padding: 2px 12px; border-radius: 10px; }
+
+    /* ── 角色切换器 ── */
+    .role-switcher { background: rgba(255,255,255,0.15); border-radius: 8px; padding: 3px; display: flex; gap: 2px; }
+    .role-btn { padding: 5px 14px; border-radius: 6px; cursor: pointer; font-size: 13px;
+      color: rgba(255,255,255,0.75); transition: all 0.2s; white-space: nowrap; }
+    .role-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+    .role-btn.active { background: #fff; color: #1677ff; font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+
+    /* ── 空状态 ── */
+    .empty-state { text-align: center; padding: 48px 0; }
+    .empty-state i { font-size: 36px; color: #d9d9d9; display: block; margin-bottom: 10px; }
+    .empty-state p { color: #8c8c8c; font-size: 14px; }
+
+    /* ── 统计卡片 ── */
+    .stat-card { background: #fff; border-radius: 10px; padding: 16px 20px;
+      border: 1px solid #f0f0f0; display: flex; align-items: center; gap: 14px; }
+    .stat-icon { width: 44px; height: 44px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; font-size: 20px; }
+    .stat-num { font-size: 24px; font-weight: 700; line-height: 1; }
+    .stat-label { font-size: 12px; color: #8c8c8c; margin-top: 3px; }
+
+    /* 分隔线 */
+    .section-divider { display: flex; align-items: center; gap: 8px; margin: 24px 0 16px;
+      font-size: 14px; font-weight: 600; color: #262626; }
+    .section-divider::before, .section-divider::after {
+      content: ''; flex: 1; height: 1px; background: #f0f0f0; }
+    .section-divider::before { flex: 0 0 4px; background: currentColor; border-radius: 2px; height: 14px; width: 4px; }
+    .section-divider::after { flex: 1; }
+  </style>
+</head>
+<body x-data="appData()">
+
+<!-- ══════════════════════════════════════════════
+     顶部导航栏
+══════════════════════════════════════════════ -->
+<!-- SECTION START: 顶部导航栏 -->
+<header class="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-5"
+  style="height:60px; background:linear-gradient(90deg,#1a56db 0%,#1677ff 100%); box-shadow:0 2px 8px rgba(22,119,255,0.25);">
+
+  <div class="flex items-center gap-3">
+    <button @click="sidebarCollapsed = !sidebarCollapsed" class="text-white/70 hover:text-white p-1.5 rounded transition">
+      <i class="fa fa-bars text-base"></i>
+    </button>
+    <div class="flex items-center gap-2">
+      <div class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
+        <i class="fa fa-shield-alt text-white text-sm"></i>
+      </div>
+      <span class="font-bold text-white text-base">蓬溪县生猪数字化管理平台</span>
+      <span class="text-white/60 text-xs px-2 py-0.5 bg-white/10 rounded-full">监管端</span>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <!-- 角色切换 -->
+    <div class="role-switcher">
+      <template x-for="r in roles" :key="r.key">
+        <div class="role-btn" :class="currentRole === r.key ? 'active' : ''"
+          @click="switchRole(r.key)">
+          <i :class="r.icon" class="mr-1"></i>
+          <span x-text="r.label"></span>
+        </div>
+      </template>
+    </div>
+
+    <!-- 用户信息 -->
+    <div class="flex items-center gap-2 cursor-pointer">
+      <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold"
+        :style="'background:' + currentRoleUser.color" x-text="currentRoleUser.name[0]"></div>
+      <div class="text-right">
+        <div class="text-white text-sm font-medium" x-text="currentRoleUser.name"></div>
+        <div class="text-white/60 text-xs" x-text="currentRoleUser.roleName"></div>
+      </div>
+    </div>
+  </div>
+</header>
+<!-- SECTION END: 顶部导航栏 -->
+
+<div class="flex" style="padding-top:60px; min-height:100vh;">
+
+  <!-- ══════════════════════════════════════════════
+       侧边菜单
+  ══════════════════════════════════════════════ -->
+  <!-- SECTION START: 侧边菜单 -->
+  <aside class="sidebar fixed left-0 bottom-0 bg-white border-r border-gray-200 overflow-y-auto z-40"
+    :class="sidebarCollapsed ? 'collapsed' : ''" style="top:60px;">
+    <nav class="py-3">
+      <template x-for="menu in currentSideMenus" :key="menu.group">
+        <div class="mb-2">
+          <div class="px-4 pt-2 pb-1 text-gray-400 text-xs font-semibold tracking-wide uppercase"
+            x-show="!sidebarCollapsed" x-text="menu.group"></div>
+          <template x-for="item in menu.items" :key="item.key">
+            <div @click="activeMenu = item.key; if(item.key === 'acceptance-audit') currentView = 'list'"
+              class="flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg cursor-pointer transition-all mb-0.5"
+              :class="activeMenu === item.key
+                ? 'bg-blue-50 text-blue-600 font-medium'
+                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'">
+              <i :class="item.icon" class="w-4 text-center flex-shrink-0"
+                :class="activeMenu === item.key ? 'text-blue-500' : 'text-gray-400'"></i>
+              <span x-show="!sidebarCollapsed" x-text="item.label" class="text-sm"></span>
+              <span x-show="!sidebarCollapsed && item.badge" class="ml-auto text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full" x-text="item.badge"></span>
+            </div>
+          </template>
+        </div>
+      </template>
+    </nav>
+  </aside>
+  <!-- SECTION END: 侧边菜单 -->
+
+  <!-- 主内容区 -->
+  <main class="main-content flex flex-col min-h-screen"
+    :class="sidebarCollapsed ? 'ml-16' : 'ml-56'" style="transition: margin-left 0.2s;">
+
+    <!-- ══════════════════════════════════════════════
+         列表页
+    ══════════════════════════════════════════════ -->
+    <!-- SECTION START: 验收申请列表页 -->
+    <div x-show="currentView === 'list'" class="p-6 space-y-4">
+
+      <!-- 面包屑 -->
+      <div class="flex items-center gap-1.5 text-sm">
+        <i class="fa fa-home text-gray-400"></i>
+        <span class="text-gray-400">智慧监管</span>
+        <i class="fa fa-chevron-right text-gray-300 text-xs"></i>
+        <span class="text-gray-400">项目信息管理</span>
+        <i class="fa fa-chevron-right text-gray-300 text-xs"></i>
+        <span class="text-gray-700 font-medium">项目验收审核</span>
+      </div>
+
+      <!-- 统计卡片行（按当前角色可见数据统计） -->
+      <div class="grid grid-cols-4 gap-4">
+        <div class="stat-card">
+          <div class="stat-icon bg-blue-50">
+            <i class="fa fa-hourglass-half text-blue-500"></i>
+          </div>
+          <div>
+            <div class="stat-num text-blue-600" x-text="getStatCount('pending')"></div>
+            <div class="stat-label">待审核</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon bg-green-50">
+            <i class="fa fa-check-circle text-green-500"></i>
+          </div>
+          <div>
+            <div class="stat-num text-green-600" x-text="getStatCount('approved')"></div>
+            <div class="stat-label">已通过</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon bg-red-50">
+            <i class="fa fa-times-circle text-red-400"></i>
+          </div>
+          <div>
+            <div class="stat-num text-red-500" x-text="getStatCount('rejected')"></div>
+            <div class="stat-label">已退回</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon bg-purple-50">
+            <i class="fa fa-file-pdf text-purple-500"></i>
+          </div>
+          <div>
+            <div class="stat-num text-purple-600" x-text="getStatCount('pdf')"></div>
+            <div class="stat-label">已生成PDF</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 县局：高级筛选栏 -->
+      <template x-if="currentRole === 'county_staff'">
+        <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+          <div class="flex flex-wrap items-end gap-3">
+            <div>
+              <label class="text-xs text-gray-500 mb-1.5 block font-medium">所属乡镇</label>
+              <select class="form-input form-select text-sm" style="width:148px" x-model="filterTown">
+                <option value="">全部乡镇</option>
+                <option value="蓬南镇">蓬南镇</option>
+                <option value="吉星镇">吉星镇</option>
+                <option value="赤城镇">赤城镇</option>
+                <option value="明月镇">明月镇</option>
+                <option value="罗戈乡">罗戈乡</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs text-gray-500 mb-1.5 block font-medium">申请时间（起）</label>
+              <input type="date" class="form-input text-sm" style="width:152px" x-model="filterDateStart">
+            </div>
+            <div>
+              <label class="text-xs text-gray-500 mb-1.5 block font-medium">申请时间（止）</label>
+              <input type="date" class="form-input text-sm" style="width:152px" x-model="filterDateEnd">
+            </div>
+            <div class="flex-1" style="min-width:180px">
+              <label class="text-xs text-gray-500 mb-1.5 block font-medium">申请单位名称</label>
+              <div class="relative">
+                <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-sm"></i>
+                <input type="text" class="form-input text-sm pl-8" placeholder="输入关键词搜索" x-model="filterCompany">
+              </div>
+            </div>
+            <div class="flex gap-2 pb-0.5">
+              <button class="btn-primary text-sm" @click="doSearch()">
+                <i class="fa fa-search"></i>查询
+              </button>
+              <button class="btn-default text-sm" @click="resetFilter()">
+                <i class="fa fa-redo"></i>重置
+              </button>
+            </div>
+          </div>
+          <div class="info-box info-box-red mt-3 text-xs" x-show="filterError">
+            <i class="fa fa-exclamation-circle flex-shrink-0"></i>
+            <span x-text="filterError"></span>
+          </div>
+        </div>
+      </template>
+
+      <!-- 主表格卡片 -->
+      <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <!-- 卡片头 -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h2 class="font-semibold text-gray-800 flex items-center gap-2">
+            <i class="fa fa-clipboard-check text-blue-500"></i>
+            <span x-text="listTitle"></span>
+          </h2>
+          <div class="flex gap-2">
+            <button x-show="currentRole === 'county_staff'" class="btn-default text-sm">
+              <i class="fa fa-file-excel text-green-600"></i>导出Excel
+            </button>
+          </div>
+        </div>
+
+        <!-- Tab -->
+        <div class="px-6 pt-4">
+          <div class="tab-bar">
+            <template x-for="tab in currentTabs" :key="tab.key">
+              <div class="tab-item" :class="activeTab === tab.key ? 'active' : ''"
+                @click="activeTab = tab.key; listPage = 1">
+                <span x-text="tab.label"></span>
+                <span class="tab-count" x-text="computeTabCount(tab.key)"></span>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- 表格 -->
+        <div class="table-wrap px-0">
+          <table>
+            <thead>
+              <tr>
+                <th class="pl-6" style="width:52px">序号</th>
+                <th>申请单位名称</th>
+                <template x-if="currentRole === 'county_staff'">
+                  <th>所属乡镇</th>
+                </template>
+                <th>关联项目名称</th>
+                <th>验收申请时间</th>
+                <th>场址</th>
+                <template x-if="currentRole === 'town_gov_staff'">
+                  <th>站核实时间</th>
+                </template>
+                <template x-if="currentRole === 'county_staff'">
+                  <th>镇政府审核时间</th>
+                </template>
+                <th>当前状态</th>
+                <th class="op-col pr-6" style="min-width:130px">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="(item, idx) in paginatedList" :key="item.id">
+                <tr class="cursor-pointer" @click="openDetail(item, false)">
+                  <td class="pl-6 text-gray-400" x-text="(listPage-1)*pageSize+idx+1"></td>
+                  <td class="font-medium" x-text="item.company"></td>
+                  <template x-if="currentRole === 'county_staff'">
+                    <td>
+                      <span class="badge badge-gray text-xs" x-text="item.town"></span>
+                    </td>
+                  </template>
+                  <td class="text-blue-600 font-medium" x-text="item.projectName"></td>
+                  <td class="text-gray-500" x-text="item.applyDate"></td>
+                  <td class="text-gray-500" x-text="item.address"></td>
+                  <template x-if="currentRole === 'town_gov_staff'">
+                    <td class="text-gray-500" x-text="item.stationAuditDate || '——'"></td>
+                  </template>
+                  <template x-if="currentRole === 'county_staff'">
+                    <td class="text-gray-500" x-text="item.townAuditDate || '——'"></td>
+                  </template>
+                  <td>
+                    <span class="badge" :class="item.statusBadge">
+                      <i :class="getStatusIcon(item.acceptanceStatus)"></i>
+                      <span x-text="item.statusLabel"></span>
+                    </span>
+                  </td>
+                  <td class="op-col pr-6" @click.stop>
+                    <div class="flex items-center gap-1">
+                      <button class="btn-text-blue" x-show="isAuditStatus(item)"
+                        @click="openDetail(item, true)">
+                        <i class="fa fa-pen-to-square text-xs"></i>
+                        <span x-text="currentRole === 'town_vet_station' ? '核实' : '审核'"></span>
+                      </button>
+                      <button class="btn-text-gray" @click="openDetail(item, false)">
+                        <i class="fa fa-eye text-xs"></i>查看
+                      </button>
+                      <button class="btn-text-blue"
+                        x-show="currentRole === 'town_vet_station' && item.acceptanceStatus === 'ACCEPTANCE_APPROVED' && item.pdfStatus === 'GENERATED'"
+                        @click="downloadPDF(item)">
+                        <i class="fa fa-download text-xs"></i>PDF
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+          <!-- 空状态 -->
+          <div class="empty-state" x-show="filteredList.length === 0">
+            <i class="fa fa-inbox"></i>
+            <p>当前暂无<span x-text="activeTab === 'PENDING' ? '待审核' : activeTab === 'APPROVED' ? '已通过' : '已退回'"></span>记录</p>
+          </div>
+        </div>
+
+        <!-- 分页 -->
+        <div class="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50/50">
+          <span class="text-sm text-gray-400">
+            共 <strong class="text-gray-700" x-text="filteredList.length"></strong> 条 ·
+            第 <strong class="text-gray-700" x-text="listPage"></strong> /
+            <strong class="text-gray-700" x-text="Math.max(1, Math.ceil(filteredList.length/pageSize))"></strong> 页
+          </span>
+          <div class="pagination">
+            <button class="page-btn" @click="listPage > 1 && listPage--"
+              :disabled="listPage <= 1">
+              <i class="fa fa-chevron-left text-xs"></i>
+            </button>
+            <template x-for="p in Math.max(1, Math.ceil(filteredList.length/pageSize))" :key="p">
+              <button class="page-btn" :class="listPage === p ? 'active' : ''"
+                @click="listPage = p" x-text="p"></button>
+            </template>
+            <button class="page-btn" @click="listPage < Math.ceil(filteredList.length/pageSize) && listPage++"
+              :disabled="listPage >= Math.ceil(filteredList.length/pageSize)">
+              <i class="fa fa-chevron-right text-xs"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- SECTION END: 验收申请列表页 -->
+
+
+    <!-- ══════════════════════════════════════════════
+         详情页
+    ══════════════════════════════════════════════ -->
+    <!-- SECTION START: 验收申请详情页 -->
+    <div x-show="currentView === 'detail'" class="p-6 space-y-4">
+
+      <!-- 面包屑 -->
+      <div class="flex items-center gap-1.5 text-sm">
+        <i class="fa fa-home text-gray-400"></i>
+        <span class="text-gray-400">智慧监管</span>
+        <i class="fa fa-chevron-right text-gray-300 text-xs"></i>
+        <span class="text-gray-400 cursor-pointer hover:text-blue-600" @click="currentView='list'">项目验收审核</span>
+        <i class="fa fa-chevron-right text-gray-300 text-xs"></i>
+        <span class="text-gray-700 font-medium">验收申请详情</span>
+      </div>
+
+      <div x-show="selectedItem" class="space-y-4">
+
+        <!-- 顶部信息条 -->
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-6 py-4 flex items-center justify-between">
+          <div>
+            <h2 class="font-bold text-gray-800 text-base" x-text="selectedItem?.projectName"></h2>
+            <div class="flex items-center gap-3 mt-1.5 text-sm text-gray-500">
+              <span><i class="fa fa-building mr-1 text-gray-300"></i><span x-text="selectedItem?.company"></span></span>
+              <span class="text-gray-200">|</span>
+              <span><i class="fa fa-calendar mr-1 text-gray-300"></i>申请于 <span x-text="selectedItem?.applyDate"></span></span>
+              <span class="text-gray-200">|</span>
+              <span><i class="fa fa-map-marker-alt mr-1 text-gray-300"></i><span x-text="selectedItem?.address"></span></span>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="badge text-sm" :class="selectedItem?.statusBadge">
+              <i :class="getStatusIcon(selectedItem?.acceptanceStatus)"></i>
+              <span x-text="selectedItem?.statusLabel"></span>
+            </span>
+            <button class="btn-default text-sm" @click="currentView='list'">
+              <i class="fa fa-arrow-left"></i>返回列表
+            </button>
+          </div>
+        </div>
+
+        <!-- 审核流程进度轴 -->
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-8 py-6">
+          <div class="section-divider text-blue-600 mb-6">
+            <span>审核流程进度</span>
+          </div>
+          <div class="step-bar py-2 px-4">
+            <template x-for="step in getSteps(selectedItem)" :key="step.label">
+              <div class="step-item" :class="step.cls">
+                <div class="step-icon" :class="step.iconCls">
+                  <i :class="step.icon"></i>
+                </div>
+                <div class="step-label mt-2" :class="step.labelCls" x-text="step.label"></div>
+                <div class="step-time" x-show="step.time" x-text="step.time"></div>
+                <div class="step-auditor text-xs text-center mt-1" x-show="step.auditor"
+                  style="color:#8c8c8c" x-text="step.auditor"></div>
+                <div class="step-opinion" x-show="step.opinion" x-text="step.opinion"></div>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- 申报基本信息（只读） -->
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-6 py-5">
+          <div class="section-divider text-gray-500 mb-4">
+            <span>申报基本信息</span>
+            <span class="ml-2 text-xs text-gray-400 font-normal">(只读，来源：企业端申报记录)</span>
+          </div>
+          <div class="readonly-area">
+            <div class="grid grid-cols-2">
+              <div class="readonly-row"><span class="rl">申请单位名称：</span><span class="rv font-medium" x-text="selectedItem?.company"></span></div>
+              <div class="readonly-row"><span class="rl">申请时间：</span><span class="rv" x-text="selectedItem?.applyDate"></span></div>
+              <div class="readonly-row"><span class="rl">场址（镇）：</span><span class="rv" x-text="selectedItem?.town"></span></div>
+              <div class="readonly-row"><span class="rl">场址（村/社）：</span><span class="rv">中坝村3社</span></div>
+              <div class="readonly-row"><span class="rl">养殖场类型：</span><span class="rv">自繁自养场</span></div>
+              <div class="readonly-row"><span class="rl">联系人：</span><span class="rv">张三丰</span></div>
+              <div class="readonly-row"><span class="rl">联系电话：</span><span class="rv">13812345678</span></div>
+              <div class="readonly-row"><span class="rl">建设性质：</span>
+                <span class="rv"><span class="badge badge-blue text-xs">新建</span></span>
+              </div>
+              <div class="readonly-row"><span class="rl">建设期限：</span><span class="rv">2024-01-01 至 2025-12-31</span></div>
+              <div class="readonly-row"><span class="rl">设计存栏规模（头）：</span><span class="rv font-semibold text-blue-600">500</span></div>
+              <div class="readonly-row"><span class="rl">设计年出栏规模（头）：</span><span class="rv font-semibold text-blue-600">1200</span></div>
+              <div class="readonly-row"><span class="rl">建成后新增存栏（头）：</span><span class="rv">300</span></div>
+              <div class="readonly-row"><span class="rl">建成后新增出栏（头）：</span><span class="rv">700</span></div>
+              <div class="readonly-row"><span class="rl">建成后饲养量（头）：</span><span class="rv">800</span></div>
+              <div class="readonly-row"><span class="rl">现存栏（头）：</span><span class="rv">200</span></div>
+            </div>
+            <div class="readonly-row">
+              <span class="rl">养殖场资质附件：</span>
+              <div class="rv flex flex-wrap gap-1.5">
+                <template x-for="cert in ['动物防疫条件合格证','营业执照（三证合一）','环评审批文件','土地使用权属证明','不在禁养区证明','粪污处理设施达标证明']" :key="cert">
+                  <span class="badge badge-green text-xs cursor-pointer hover:opacity-80" x-text="cert">
+                    <i class="fa fa-file-alt mr-1"></i>
+                  </span>
+                </template>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 建设内容明细 -->
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-6 py-5">
+          <div class="section-divider text-gray-500 mb-4">
+            <span>申请建设内容明细</span>
+            <span class="ml-2 text-xs text-gray-400 font-normal">(只读)</span>
+          </div>
+          <div class="table-wrap rounded-lg border border-gray-200">
+            <table>
+              <thead>
+                <tr>
+                  <th>子项目</th><th>建设内容</th><th>单位</th>
+                  <th class="text-right">数量</th><th class="text-right">单价（元）</th>
+                  <th class="text-right">金额（万元）</th><th>型号</th><th>备注</th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="it in buildItems" :key="it.id">
+                  <tr>
+                    <td><span class="badge badge-blue text-xs" x-text="it.sub"></span></td>
+                    <td x-text="it.content"></td>
+                    <td class="text-gray-500" x-text="it.unit"></td>
+                    <td class="text-right font-medium" x-text="it.qty"></td>
+                    <td class="text-right text-gray-500" x-text="it.price.toLocaleString()"></td>
+                    <td class="text-right font-semibold text-blue-600" x-text="it.amount + ' 万'"></td>
+                    <td class="text-gray-500" x-text="it.model || '——'"></td>
+                    <td class="text-gray-500" x-text="it.remark || '——'"></td>
+                  </tr>
+                </template>
+                <tr style="background:#f0f7ff">
+                  <td colspan="5" class="font-semibold text-gray-700">合计投资金额</td>
+                  <td class="text-right font-bold text-blue-700 text-base">218.5 万</td>
+                  <td colspan="2"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 实施信息照片（折叠，默认展开） -->
+        <div class="collapse-card shadow-sm">
+          <div class="collapse-hd" @click="showImplSection = !showImplSection">
+            <div class="flex items-center gap-2">
+              <i class="fa fa-images text-blue-500"></i>
+              <span>实施信息照片</span>
+              <span class="badge badge-blue text-xs">只读引用</span>
+            </div>
+            <i class="fa text-gray-400 transition-transform duration-200"
+              :class="showImplSection ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+          </div>
+          <div class="collapse-bd" x-show="showImplSection" x-transition>
+            <div class="info-box info-box-blue mb-4 text-sm">
+              <i class="fa fa-info-circle flex-shrink-0 mt-0.5"></i>
+              <span>以下为项目实施过程中企业端已填报的照片和视频（按建设内容分项 + 阶段展示），仅供审核参考，不可修改。</span>
+            </div>
+            <template x-for="impl in implPhotos" :key="impl.id">
+              <div class="collapse-card mb-3">
+                <div class="collapse-hd text-sm bg-white" @click="impl.open = !impl.open">
+                  <div class="flex items-center gap-2">
+                    <i class="fa fa-layer-group text-gray-400 text-xs"></i>
+                    <span class="text-gray-700 font-medium" x-text="impl.title"></span>
+                  </div>
+                  <i class="fa text-gray-300 text-xs"
+                    :class="impl.open ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                </div>
+                <div class="collapse-bd" x-show="impl.open" x-transition>
+                  <div class="grid grid-cols-3 gap-4">
+                    <template x-for="stage in impl.stages" :key="stage.name">
+                      <div class="border border-gray-100 rounded-lg p-3 bg-gray-50">
+                        <p class="text-xs font-semibold text-gray-600 mb-2 flex items-center gap-1">
+                          <span class="w-2 h-2 rounded-full inline-block"
+                            :class="stage.name === '前期阶段' ? 'bg-orange-400' : stage.name === '中期阶段' ? 'bg-blue-400' : 'bg-green-400'"></span>
+                          <span x-text="stage.name"></span>
+                        </p>
+                        <template x-if="stage.photos && stage.photos.length > 0">
+                          <div>
+                            <div class="flex flex-wrap gap-2">
+                              <img :src="ph" class="photo-thumb"
+                                @click="lightboxSrc = ph; showLightbox = true" alt=""
+                                x-for="ph in stage.photos">
+                            </div>
+                            <p x-show="stage.desc" class="text-xs text-gray-500 mt-2 leading-relaxed" x-text="stage.desc"></p>
+                          </div>
+                        </template>
+                        <template x-if="!stage.photos || stage.photos.length === 0">
+                          <div class="text-center py-4 text-gray-300">
+                            <i class="fa fa-image block text-2xl mb-1"></i>
+                            <p class="text-xs">未填报实施信息</p>
+                          </div>
+                        </template>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- 验收补充材料照片（折叠） -->
+        <div class="collapse-card shadow-sm">
+          <div class="collapse-hd" @click="showSupplementSection = !showSupplementSection">
+            <div class="flex items-center gap-2">
+              <i class="fa fa-photo-film text-green-500"></i>
+              <span>验收补充材料照片</span>
+              <span class="badge badge-gray text-xs" x-text="getTotalSuppCount() + ' 张'"></span>
+            </div>
+            <i class="fa text-gray-400 transition-transform duration-200"
+              :class="showSupplementSection ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+          </div>
+          <div class="collapse-bd" x-show="showSupplementSection" x-transition>
+            <template x-if="suppPhotos.some(c => c.photos.length > 0)">
+              <div class="space-y-4">
+                <template x-for="cat in suppPhotos.filter(c => c.photos.length > 0)" :key="cat.key">
+                  <div>
+                    <p class="text-sm font-medium text-gray-600 mb-2 flex items-center gap-1.5">
+                      <i class="fa fa-folder-open text-yellow-500 text-xs"></i>
+                      <span x-text="cat.label"></span>
+                      <span class="text-gray-400 text-xs" x-text="'(' + cat.photos.length + ' 张)'"></span>
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                      <img :src="ph" class="photo-thumb"
+                        @click="lightboxSrc = ph; showLightbox = true" alt=""
+                        x-for="ph in cat.photos">
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </template>
+            <template x-if="!suppPhotos.some(c => c.photos.length > 0)">
+              <div class="text-center py-6 text-gray-400">
+                <i class="fa fa-image block text-3xl mb-2 opacity-30"></i>
+                <p class="text-sm">企业端未上传补充材料照片</p>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- 申报单位意见 + 历史审核意见（并排两列） -->
+        <div class="grid grid-cols-2 gap-4">
+          <!-- 申报单位意见 -->
+          <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-6 py-5">
+            <div class="section-divider text-gray-500 mb-3">
+              <span>申报单位意见</span>
+            </div>
+            <div class="readonly-area text-gray-600 text-sm leading-relaxed">
+              本单位承诺以上填报内容真实、准确，圈舍建设已完全竣工，各项设施设备均已安装到位并正常运行，请予以验收通过。
+            </div>
+          </div>
+
+          <!-- 历史审核意见 -->
+          <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-6 py-5">
+            <div class="section-divider text-gray-500 mb-3">
+              <span>历史审核意见</span>
+              <span x-show="selectedItem?.auditLogs?.length"
+                class="ml-1 text-xs text-gray-400 font-normal"
+                x-text="'（共 ' + selectedItem.auditLogs.length + ' 条记录）'"></span>
+            </div>
+            <template x-if="selectedItem?.auditLogs?.length > 0">
+              <div class="space-y-2 max-h-64 overflow-y-auto pr-1">
+                <template x-for="log in (selectedItem?.auditLogs || []).slice().reverse()" :key="log.time">
+                  <div class="audit-log" :class="log.result === 'APPROVED' ? 'log-approved' : 'log-rejected'">
+                    <div class="flex items-center justify-between mb-1">
+                      <div class="flex items-center gap-2">
+                        <span class="badge text-xs" :class="log.result === 'APPROVED' ? 'badge-green' : 'badge-red'">
+                          <i :class="log.result === 'APPROVED' ? 'fa fa-check' : 'fa fa-times'"></i>
+                          <span x-text="log.result === 'APPROVED' ? '通过' : '退回'"></span>
+                        </span>
+                        <span class="text-sm font-medium text-gray-700" x-text="log.node"></span>
+                      </div>
+                      <span class="text-xs text-gray-400" x-text="log.time"></span>
+                    </div>
+                    <div class="text-xs text-gray-500 mb-1">
+                      <i class="fa fa-user-tie mr-1 opacity-60"></i>
+                      <span x-text="log.auditor"></span>
+                    </div>
+                    <p class="text-sm text-gray-700 leading-relaxed" x-text="log.opinion || '（未填写意见）'"></p>
+                  </div>
+                </template>
+              </div>
+            </template>
+            <template x-if="!selectedItem?.auditLogs?.length">
+              <div class="text-center py-6 text-gray-400">
+                <i class="fa fa-comment-slash block text-2xl mb-2 opacity-30"></i>
+                <p class="text-sm">暂无审核记录</p>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- 审核操作区（仅待审核状态显示，作为突出的底部卡片） -->
+        <div x-show="canAudit" class="audit-panel">
+          <span class="audit-panel-title">
+            <i class="fa fa-gavel mr-1"></i>
+            <span x-text="currentRole === 'town_vet_station' ? '核实操作' : '审核操作'"></span>
+          </span>
+          <div class="mt-2 space-y-4">
+            <div>
+              <label class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1.5">
+                <i class="fa fa-pen text-blue-400 text-xs"></i>
+                <span x-text="currentRole === 'town_vet_station' ? '核实意见' : '审核意见'"></span>
+                <span class="text-red-500 text-xs ml-1">（退回时必填）</span>
+                <span class="ml-auto text-gray-400 font-normal text-xs" x-text="auditOpinion.length + '/500 字'"></span>
+              </label>
+              <textarea class="form-input" rows="3" maxlength="500" x-model="auditOpinion"
+                :placeholder="currentRole === 'town_vet_station' ? '请填写核实意见（退回时必填，通过时可留空）' : '请填写审核意见（退回时必填，通过时可留空）'"
+                style="resize:vertical; min-height:80px"></textarea>
+              <div class="form-error" x-show="auditError">
+                <i class="fa fa-exclamation-circle"></i>
+                <span x-text="auditError"></span>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <button class="btn-danger" @click="doAudit('REJECTED')">
+                <i class="fa fa-times-circle"></i>
+                <span x-text="currentRole === 'town_vet_station' ? '核实退回' : '审核退回'"></span>
+              </button>
+              <button class="btn-success" @click="doAudit('APPROVED')">
+                <i class="fa fa-check-circle"></i>
+                <span x-text="currentRole === 'town_vet_station' ? '核实通过' : '审核通过'"></span>
+              </button>
+              <span class="text-gray-400 text-xs ml-2">
+                <i class="fa fa-info-circle mr-1"></i>
+                <span x-text="currentRole === 'town_vet_station'
+                  ? '通过后自动流转至乡镇政府审核'
+                  : currentRole === 'town_gov_staff'
+                    ? '通过后自动流转至县农业农村局审核'
+                    : '通过后验收流程完成，申报状态联动更新为「已验收」'"></span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- PDF操作区（功能四：验收通过后，站核实角色） -->
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-6 py-5"
+          x-show="selectedItem?.acceptanceStatus === 'ACCEPTANCE_APPROVED' && currentRole === 'town_vet_station'">
+          <div class="section-divider text-purple-600 mb-4">
+            <span>验收申请书PDF（功能四）</span>
+          </div>
+
+          <template x-if="selectedItem?.pdfStatus === 'NOT_GENERATED'">
+            <div class="flex items-center gap-4">
+              <div class="info-box info-box-blue flex-1 text-sm">
+                <i class="fa fa-info-circle flex-shrink-0"></i>
+                <span>验收已通过，可生成《蓬溪县新/改/扩建项目竣工投产前验收申请书》PDF文件，供存档和上报使用。</span>
+              </div>
+              <button class="btn-primary flex-shrink-0" @click="generatePDF()">
+                <i class="fa fa-file-pdf"></i>生成验收申请书PDF
+              </button>
+            </div>
+          </template>
+
+          <template x-if="selectedItem?.pdfStatus === 'GENERATING'">
+            <div class="flex items-center gap-3 text-blue-600 py-2">
+              <i class="fa fa-spinner fa-spin text-xl"></i>
+              <div>
+                <p class="font-medium">PDF生成中，请稍候...</p>
+                <p class="text-sm text-gray-400 mt-0.5">预计需要10~30秒，生成完成后将自动刷新。</p>
+              </div>
+            </div>
+          </template>
+
+          <template x-if="selectedItem?.pdfStatus === 'GENERATED'">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center">
+                  <i class="fa fa-file-pdf text-red-500 text-xl"></i>
+                </div>
+                <div>
+                  <p class="font-medium text-gray-800" x-text="(selectedItem?.company || '') + '-竣工投产前验收申请书.pdf'"></p>
+                  <p class="text-xs text-gray-400 mt-0.5" x-text="'生成时间：' + (selectedItem?.pdfGenerateTime || '——')"></p>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <button class="btn-default" @click="if(confirm('重新生成将覆盖之前的PDF文件，是否确认？')) generatePDF()">
+                  <i class="fa fa-redo"></i>重新生成
+                </button>
+                <button class="btn-primary" @click="downloadPDF(selectedItem)">
+                  <i class="fa fa-download"></i>下载PDF
+                </button>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <!-- 底部操作栏 -->
+        <div class="flex items-center gap-3 py-2">
+          <button class="btn-default" @click="currentView='list'">
+            <i class="fa fa-arrow-left"></i>返回列表
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- SECTION END: 验收申请详情页 -->
+
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     Lightbox 图片预览
+══════════════════════════════════════════════ -->
+<!-- SECTION START: Lightbox -->
+<div class="lightbox-mask" x-show="showLightbox" x-cloak @click="showLightbox = false">
+  <img :src="lightboxSrc" class="lightbox-img" @click.stop alt="预览">
+  <button class="absolute top-5 right-8 text-white/80 hover:text-white text-4xl leading-none" @click="showLightbox = false">&times;</button>
+  <div class="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/50 text-xs">点击任意区域关闭</div>
+</div>
+<!-- SECTION END: Lightbox -->
+
+<!-- ══════════════════════════════════════════════
+     全局 Toast
+══════════════════════════════════════════════ -->
+<!-- SECTION START: Toast -->
+<div x-show="toast.show" x-cloak
+  class="fixed bottom-8 right-8 z-50 px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 text-sm font-medium"
+  :class="{
+    'bg-green-500 text-white': toast.type === 'success',
+    'bg-red-500 text-white':   toast.type === 'error',
+    'bg-blue-500 text-white':  toast.type === 'info'
+  }"
+  x-transition:enter="transition ease-out duration-200"
+  x-transition:enter-start="opacity-0 translate-y-2"
+  x-transition:enter-end="opacity-100 translate-y-0"
+  x-transition:leave="transition ease-in duration-150"
+  x-transition:leave-start="opacity-100"
+  x-transition:leave-end="opacity-0">
+  <i :class="{
+    'fa fa-check-circle': toast.type === 'success',
+    'fa fa-times-circle': toast.type === 'error',
+    'fa fa-info-circle':  toast.type === 'info'
+  }" class="text-base"></i>
+  <span x-text="toast.msg"></span>
+</div>
+<!-- SECTION END: Toast -->
+
+<script>
+const MOCK_DATA = {
+  roles: [
+    { key: 'town_vet_station', label: '畜牧兽医站', icon: 'fa fa-stethoscope',
+      name: '李建国', roleName: '乡镇畜牧兽医站', town: '蓬南镇', color: '#fa8c16' },
+    { key: 'town_gov_staff',   label: '镇政府',    icon: 'fa fa-landmark',
+      name: '王行政',  roleName: '乡镇政府业务人员', town: '蓬南镇', color: '#52c41a' },
+    { key: 'county_staff',     label: '县农业局',  icon: 'fa fa-university',
+      name: '陈主任',  roleName: '县级业务人员', town: '全县', color: '#722ed1' },
+  ],
+  sideMenus: {
+    town_vet_station: [
+      { group: '项目信息管理', items: [
+        { key: 'acceptance-audit', label: '项目验收审核', icon: 'fa fa-clipboard-check', badge: 2 },
+        { key: 'project-audit',    label: '项目申报审核', icon: 'fa fa-file-alt' },
+      ]},
+      { group: '智慧监管', items: [
+        { key: 'farm-mgmt', label: '养殖企业管理', icon: 'fa fa-building' },
+        { key: 'archive',   label: '电子档案管理', icon: 'fa fa-folder-open' },
+      ]}
+    ],
+    town_gov_staff: [
+      { group: '项目信息管理', items: [
+        { key: 'acceptance-audit', label: '项目验收审核', icon: 'fa fa-clipboard-check', badge: 1 },
+        { key: 'project-audit',    label: '项目申报审核', icon: 'fa fa-file-alt' },
+      ]},
+      { group: '智慧监管', items: [
+        { key: 'farm-mgmt', label: '养殖企业管理', icon: 'fa fa-building' },
+      ]}
+    ],
+    county_staff: [
+      { group: '项目信息管理', items: [
+        { key: 'acceptance-audit', label: '项目验收审核', icon: 'fa fa-clipboard-check', badge: 1 },
+        { key: 'project-audit',    label: '项目申报审核', icon: 'fa fa-file-alt' },
+      ]},
+      { group: '决策分析', items: [
+        { key: 'analysis',  label: '养殖分析',   icon: 'fa fa-chart-bar' },
+        { key: 'trade',     label: '市场贸易分析', icon: 'fa fa-chart-line' },
+      ]}
+    ]
+  },
+  tabs: {
+    town_vet_station: [
+      { key: 'PENDING',  label: '待核实' },
+      { key: 'APPROVED', label: '核实通过' },
+      { key: 'REJECTED', label: '核实退回' },
+    ],
+    town_gov_staff: [
+      { key: 'PENDING',  label: '待审核' },
+      { key: 'APPROVED', label: '已通过' },
+      { key: 'REJECTED', label: '已退回' },
+    ],
+    county_staff: [
+      { key: 'PENDING',  label: '待审核' },
+      { key: 'APPROVED', label: '已通过' },
+      { key: 'REJECTED', label: '已退回' },
+    ]
+  },
+  pendingStatuses: {
+    town_vet_station: ['PENDING_STATION_REVIEW'],
+    town_gov_staff:   ['PENDING_TOWN_REVIEW'],
+    county_staff:     ['PENDING_COUNTY_REVIEW']
+  },
+  approvedStatuses: {
+    town_vet_station: ['STATION_APPROVED','PENDING_TOWN_REVIEW','TOWN_APPROVED','PENDING_COUNTY_REVIEW','ACCEPTANCE_APPROVED','TOWN_REJECTED','COUNTY_REJECTED'],
+    town_gov_staff:   ['TOWN_APPROVED','PENDING_COUNTY_REVIEW','ACCEPTANCE_APPROVED','COUNTY_REJECTED'],
+    county_staff:     ['ACCEPTANCE_APPROVED']
+  },
+  rejectedStatuses: {
+    town_vet_station: ['STATION_REJECTED'],
+    town_gov_staff:   ['TOWN_REJECTED'],
+    county_staff:     ['COUNTY_REJECTED']
+  },
+  acceptanceList: [
+    { id: 1, company: '蓬溪县鑫源养殖有限公司', town: '蓬南镇',
+      projectName: '蓬溪县鑫源养殖有限公司标准化猪舍新建项目',
+      applyDate: '2025-03-10', address: '蓬南镇中坝村',
+      stationAuditDate: null, townAuditDate: null,
+      acceptanceStatus: 'PENDING_STATION_REVIEW', statusLabel: '待站核实', statusBadge: 'badge-blue',
+      pdfStatus: 'NOT_GENERATED', pdfGenerateTime: null, auditLogs: []
+    },
+    { id: 2, company: '蓬溪县顺发牧业有限公司', town: '蓬南镇',
+      projectName: '蓬溪县顺发牧业有限公司防疫设施升级项目',
+      applyDate: '2025-03-05', address: '蓬南镇顺风村',
+      stationAuditDate: null, townAuditDate: null,
+      acceptanceStatus: 'PENDING_STATION_REVIEW', statusLabel: '待站核实', statusBadge: 'badge-blue',
+      pdfStatus: 'NOT_GENERATED', pdfGenerateTime: null, auditLogs: []
+    },
+    { id: 3, company: '蓬溪县丰收农牧有限公司', town: '蓬南镇',
+      projectName: '蓬溪县丰收农牧有限公司环控系统扩建项目',
+      applyDate: '2025-02-20', address: '蓬南镇沙溪村',
+      stationAuditDate: '2025-03-01', townAuditDate: null,
+      acceptanceStatus: 'PENDING_TOWN_REVIEW', statusLabel: '待镇审核', statusBadge: 'badge-blue',
+      pdfStatus: 'NOT_GENERATED', pdfGenerateTime: null,
+      auditLogs: [
+        { node: '乡镇畜牧兽医站核实', result: 'APPROVED', opinion: '现场核实情况良好，实施内容与申报一致，建议通过。', auditor: '李建国', time: '2025-03-01 10:30' }
+      ]
+    },
+    { id: 4, company: '蓬溪县华通养殖有限公司', town: '吉星镇',
+      projectName: '蓬溪县华通养殖有限公司智能饲喂系统采购项目',
+      applyDate: '2025-02-10', address: '吉星镇石桥村',
+      stationAuditDate: '2025-02-18', townAuditDate: '2025-02-25',
+      acceptanceStatus: 'PENDING_COUNTY_REVIEW', statusLabel: '待县审核', statusBadge: 'badge-blue',
+      pdfStatus: 'NOT_GENERATED', pdfGenerateTime: null,
+      auditLogs: [
+        { node: '乡镇畜牧兽医站核实', result: 'APPROVED', opinion: '实地核查项目建设完成，设备运行正常。', auditor: '刘核实员', time: '2025-02-18 14:00' },
+        { node: '乡镇政府审核', result: 'APPROVED', opinion: '经审核符合要求，同意通过，提请县局最终审核。', auditor: '王行政', time: '2025-02-25 09:30' }
+      ]
+    },
+    { id: 5, company: '蓬溪县鑫源养殖有限公司', town: '蓬南镇',
+      projectName: '蓬溪县鑫源养殖有限公司粪污处理系统扩建项目',
+      applyDate: '2024-11-15', address: '蓬南镇中坝村',
+      stationAuditDate: '2024-12-05', townAuditDate: '2024-12-10',
+      acceptanceStatus: 'ACCEPTANCE_APPROVED', statusLabel: '验收通过', statusBadge: 'badge-green',
+      pdfStatus: 'GENERATED', pdfGenerateTime: '2024-12-22 10:15',
+      auditLogs: [
+        { node: '乡镇畜牧兽医站核实', result: 'APPROVED', opinion: '现场核实项目竣工情况良好，各项设施设备已安装到位并正常运行。', auditor: '李建国', time: '2024-12-05 10:00' },
+        { node: '乡镇政府审核', result: 'APPROVED', opinion: '经审核，项目建设符合申报要求，同意通过。', auditor: '王行政', time: '2024-12-10 15:30' },
+        { node: '县农业农村局审核', result: 'APPROVED', opinion: '验收合格，项目建设达到预期目标，符合验收标准。', auditor: '陈主任', time: '2024-12-20 09:00' }
+      ]
+    },
+    { id: 6, company: '蓬溪县顺发牧业有限公司', town: '蓬南镇',
+      projectName: '蓬溪县顺发牧业有限公司圈舍智能改建项目',
+      applyDate: '2025-01-10', address: '蓬南镇顺风村',
+      stationAuditDate: '2025-01-18', townAuditDate: null,
+      acceptanceStatus: 'STATION_REJECTED', statusLabel: '站核实退回', statusBadge: 'badge-red',
+      pdfStatus: 'NOT_GENERATED', pdfGenerateTime: null,
+      auditLogs: [
+        { node: '乡镇畜牧兽医站核实', result: 'REJECTED', opinion: '现场核查发现圈舍建设与申报图纸不符，部分设备未按要求安装，请整改后重新申请。', auditor: '李建国', time: '2025-01-18 16:00' }
+      ]
+    },
+    { id: 7, company: '蓬溪县华通养殖有限公司', town: '吉星镇',
+      projectName: '蓬溪县华通养殖有限公司圈舍标准化建设项目',
+      applyDate: '2024-09-10', address: '吉星镇石桥村',
+      stationAuditDate: '2024-09-20', townAuditDate: '2024-09-28',
+      acceptanceStatus: 'TOWN_REJECTED', statusLabel: '镇审核退回', statusBadge: 'badge-red',
+      pdfStatus: 'NOT_GENERATED', pdfGenerateTime: null,
+      auditLogs: [
+        { node: '乡镇畜牧兽医站核实', result: 'APPROVED', opinion: '现场核查合格。', auditor: '刘核实员', time: '2024-09-20 10:00' },
+        { node: '乡镇政府审核', result: 'REJECTED', opinion: '建设材料不符合规范要求，请提供合格证明材料后重新提交。', auditor: '王行政', time: '2024-09-28 11:30' }
+      ]
+    },
+    { id: 8, company: '蓬溪县绿源生态农业有限公司', town: '赤城镇',
+      projectName: '蓬溪县绿源生态农业有限公司沼气配套工程',
+      applyDate: '2024-07-05', address: '赤城镇龙泉村',
+      stationAuditDate: '2024-07-15', townAuditDate: '2024-07-22',
+      acceptanceStatus: 'COUNTY_REJECTED', statusLabel: '县审核退回', statusBadge: 'badge-red',
+      pdfStatus: 'NOT_GENERATED', pdfGenerateTime: null,
+      auditLogs: [
+        { node: '乡镇畜牧兽医站核实', result: 'APPROVED', opinion: '项目竣工情况符合要求。', auditor: '张核实员', time: '2024-07-15 10:00' },
+        { node: '乡镇政府审核', result: 'APPROVED', opinion: '同意通过，提请县局审核。', auditor: '刘行政', time: '2024-07-22 14:00' },
+        { node: '县农业农村局审核', result: 'REJECTED', opinion: '沼气设备未取得相关合格证明，粪污处理能力未达到环保要求，请整改后重新申请。', auditor: '陈主任', time: '2024-07-30 10:00' }
+      ]
+    }
+  ],
+  buildItems: [
+    { id: 1, sub: '圈舍建设',       content: '新建标准化圈舍',          unit: '栋', qty: 5, price: 200000, amount: 100,  model: 'XY-A型',   remark: '含配套设施' },
+    { id: 2, sub: '自动化饲喂系统', content: '全自动饲喂线',            unit: '套', qty: 5, price: 80000,  amount: 40,   model: 'ZL-200型', remark: '' },
+    { id: 3, sub: '智能化管理系统', content: '智能养殖管理软件+传感设备', unit: '套', qty: 1, price: 300000, amount: 30,   model: '',         remark: '' },
+    { id: 4, sub: '防疫系统建设',   content: '消毒通道及防疫设备',       unit: '套', qty: 2, price: 100000, amount: 20,   model: '',         remark: '' },
+    { id: 5, sub: '粪污处理系统',   content: '化粪池及沼气工程',         unit: '座', qty: 1, price: 150000, amount: 15,   model: '',         remark: '配套沼气发电' },
+    { id: 6, sub: '智能化环控系统', content: '温控、通风、水帘设备',      unit: '套', qty: 5, price: 27000,  amount: 13.5, model: '',         remark: '' },
+  ],
+  implPhotos: [
+    { id: 1, open: true, title: '圈舍建设 - 新建标准化圈舍 5栋',
+      stages: [
+        { name: '前期阶段', photos: ['https://picsum.photos/seed/a1/120/120','https://picsum.photos/seed/a2/120/120'], desc: '地基完成，钢结构安装中' },
+        { name: '中期阶段', photos: ['https://picsum.photos/seed/a3/120/120'], desc: '主体结构完工' },
+        { name: '后期阶段', photos: [], desc: '' },
+      ]
+    },
+    { id: 2, open: false, title: '自动化饲喂系统建设 - 全自动饲喂线 5套',
+      stages: [
+        { name: '前期阶段', photos: [], desc: '' },
+        { name: '中期阶段', photos: ['https://picsum.photos/seed/b1/120/120'], desc: '设备安装中' },
+        { name: '后期阶段', photos: ['https://picsum.photos/seed/b2/120/120','https://picsum.photos/seed/b3/120/120'], desc: '安装完成，调试通过' },
+      ]
+    },
+    { id: 3, open: false, title: '粪污处理系统建设 - 化粪池及沼气工程 1座',
+      stages: [
+        { name: '前期阶段', photos: [], desc: '' },
+        { name: '中期阶段', photos: [], desc: '' },
+        { name: '后期阶段', photos: [], desc: '' },
+      ]
+    }
+  ],
+  suppPhotos: [
+    { key: 'PIGSTY',              label: '圈舍建设',          photos: ['https://picsum.photos/seed/s1/88/88','https://picsum.photos/seed/s2/88/88'] },
+    { key: 'AUTO_FEEDING',        label: '自动化饲喂系统建设', photos: [] },
+    { key: 'SMART_MGMT',          label: '智能化管理系统建设', photos: ['https://picsum.photos/seed/s3/88/88'] },
+    { key: 'EPIDEMIC_PREVENTION', label: '防疫系统建设',       photos: [] },
+    { key: 'MANURE_TREATMENT',    label: '粪污处理系统建设',   photos: [] },
+    { key: 'SMART_ENV_CTRL',      label: '智能化环控系统建设', photos: [] },
+  ]
+};
+
+function appData() {
+  return {
+    sidebarCollapsed: false,
+    activeMenu: 'acceptance-audit',
+    currentView: 'list',
+    showLightbox: false,
+    lightboxSrc: '',
+    showImplSection: true,       // 详情页默认展开实施信息
+    showSupplementSection: true,
+    toast: { show: false, type: 'success', msg: '' },
+
+    currentRole: 'town_vet_station',
+    roles: MOCK_DATA.roles,
+
+    acceptanceList: MOCK_DATA.acceptanceList,
+    buildItems: MOCK_DATA.buildItems,
+    implPhotos: MOCK_DATA.implPhotos,
+    suppPhotos: MOCK_DATA.suppPhotos,
+
+    activeTab: 'PENDING',
+    listPage: 1,
+    pageSize: 10,
+    filterTown: '', filterDateStart: '', filterDateEnd: '',
+    filterCompany: '', filterError: '',
+    _appliedFilterTown: '', _appliedFilterCompany: '',
+
+    selectedItem: null,
+    canAudit: false,
+    auditOpinion: '',
+    auditError: '',
+
+    /* ── Computed getters ── */
+    get currentRoleUser() {
+      return MOCK_DATA.roles.find(r => r.key === this.currentRole) || MOCK_DATA.roles[0];
+    },
+    get currentSideMenus() {
+      return MOCK_DATA.sideMenus[this.currentRole] || [];
+    },
+    get currentTabs() {
+      return MOCK_DATA.tabs[this.currentRole] || [];
+    },
+    get listTitle() {
+      return { town_vet_station: '项目验收审核（乡镇畜牧兽医站）',
+               town_gov_staff:   '项目验收审核（乡镇政府）',
+               county_staff:     '项目验收审核（县农业农村局）' }[this.currentRole];
+    },
+
+    // 所有角色可见的列表（按角色过滤乡镇 + 已应用筛选条件）
+    get visibleList() {
+      let list = this.acceptanceList;
+      if (this.currentRole !== 'county_staff') {
+        list = list.filter(a => a.town === this.currentRoleUser.town);
+      }
+      if (this._appliedFilterTown) list = list.filter(a => a.town === this._appliedFilterTown);
+      if (this._appliedFilterCompany) list = list.filter(a => a.company.includes(this._appliedFilterCompany));
+      return list;
+    },
+
+    get filteredList() {
+      const list = this.visibleList;
+      if (this.activeTab === 'PENDING')
+        return list.filter(a => (MOCK_DATA.pendingStatuses[this.currentRole]||[]).includes(a.acceptanceStatus));
+      if (this.activeTab === 'APPROVED')
+        return list.filter(a => (MOCK_DATA.approvedStatuses[this.currentRole]||[]).includes(a.acceptanceStatus));
+      if (this.activeTab === 'REJECTED')
+        return list.filter(a => (MOCK_DATA.rejectedStatuses[this.currentRole]||[]).includes(a.acceptanceStatus));
+      return list;
+    },
+    get paginatedList() {
+      const s = (this.listPage - 1) * this.pageSize;
+      return this.filteredList.slice(s, s + this.pageSize);
+    },
+
+    /* ── Tab 计数（直接从 visibleList 计算，不依赖 activeTab 响应式副作用） ── */
+    computeTabCount(tabKey) {
+      const list = this.visibleList;
+      if (tabKey === 'PENDING')  return list.filter(a => (MOCK_DATA.pendingStatuses[this.currentRole]||[]).includes(a.acceptanceStatus)).length;
+      if (tabKey === 'APPROVED') return list.filter(a => (MOCK_DATA.approvedStatuses[this.currentRole]||[]).includes(a.acceptanceStatus)).length;
+      if (tabKey === 'REJECTED') return list.filter(a => (MOCK_DATA.rejectedStatuses[this.currentRole]||[]).includes(a.acceptanceStatus)).length;
+      return list.length;
+    },
+
+    /* ── 统计卡片 ── */
+    getStatCount(type) {
+      const list = this.visibleList;
+      if (type === 'pending')  return list.filter(a => (MOCK_DATA.pendingStatuses[this.currentRole]||[]).includes(a.acceptanceStatus)).length;
+      if (type === 'approved') return list.filter(a => a.acceptanceStatus === 'ACCEPTANCE_APPROVED').length;
+      if (type === 'rejected') return list.filter(a => (MOCK_DATA.rejectedStatuses[this.currentRole]||[]).includes(a.acceptanceStatus)).length;
+      if (type === 'pdf')      return list.filter(a => a.pdfStatus === 'GENERATED').length;
+      return 0;
+    },
+
+    getTotalSuppCount() {
+      return this.suppPhotos.reduce((sum, c) => sum + c.photos.length, 0);
+    },
+
+    /* ── 状态图标映射 ── */
+    getStatusIcon(status) {
+      const map = {
+        'PENDING_STATION_REVIEW': 'fa fa-hourglass-half',
+        'STATION_APPROVED':       'fa fa-check',
+        'STATION_REJECTED':       'fa fa-times',
+        'PENDING_TOWN_REVIEW':    'fa fa-hourglass-half',
+        'TOWN_APPROVED':          'fa fa-check',
+        'TOWN_REJECTED':          'fa fa-times',
+        'PENDING_COUNTY_REVIEW':  'fa fa-hourglass-half',
+        'ACCEPTANCE_APPROVED':    'fa fa-check-double',
+        'COUNTY_REJECTED':        'fa fa-times',
+        'DRAFT':                  'fa fa-pen',
+        'WITHDRAWN':              'fa fa-ban',
+      };
+      return map[status] || 'fa fa-circle';
+    },
+
+    isAuditStatus(item) {
+      return (MOCK_DATA.pendingStatuses[this.currentRole]||[]).includes(item.acceptanceStatus);
+    },
+
+    /* ── 操作 ── */
+    switchRole(roleKey) {
+      this.currentRole = roleKey;
+      this.activeTab = 'PENDING';
+      this.listPage = 1;
+      this.currentView = 'list';
+      this.activeMenu = 'acceptance-audit';
+      this._appliedFilterTown = '';
+      this._appliedFilterCompany = '';
+    },
+
+    openDetail(item, forAudit = false) {
+      this.selectedItem = item;
+      this.canAudit = forAudit && this.isAuditStatus(item);
+      this.auditOpinion = '';
+      this.auditError = '';
+      this.showImplSection = true;
+      this.showSupplementSection = true;
+      this.currentView = 'detail';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+
+    doSearch() {
+      this.filterError = '';
+      if (this.filterDateStart && this.filterDateEnd && this.filterDateStart > this.filterDateEnd) {
+        this.filterError = '开始日期不能晚于结束日期';
+        return;
+      }
+      this._appliedFilterTown = this.filterTown;
+      this._appliedFilterCompany = this.filterCompany;
+      this.listPage = 1;
+    },
+    resetFilter() {
+      this.filterTown = ''; this.filterDateStart = ''; this.filterDateEnd = '';
+      this.filterCompany = ''; this.filterError = '';
+      this._appliedFilterTown = ''; this._appliedFilterCompany = '';
+    },
+
+    /* ── 步骤条数据 ── */
+    getSteps(item) {
+      if (!item) return [];
+      const st = item.acceptanceStatus;
+      const logs = item.auditLogs || [];
+      const lastLog = (node) => {
+        const matched = logs.filter(l => l.node === node);
+        return matched.length ? matched[matched.length - 1] : null;
+      };
+
+      const stationLog = lastLog('乡镇畜牧兽医站核实');
+      const townLog    = lastLog('乡镇政府审核');
+      const countyLog  = lastLog('县农业农村局审核');
+
+      const stationDone   = ['STATION_APPROVED','PENDING_TOWN_REVIEW','TOWN_APPROVED','TOWN_REJECTED','PENDING_COUNTY_REVIEW','ACCEPTANCE_APPROVED','COUNTY_REJECTED'].includes(st);
+      const stationReject = st === 'STATION_REJECTED';
+      const stationActive = st === 'PENDING_STATION_REVIEW';
+      const townDone      = ['TOWN_APPROVED','PENDING_COUNTY_REVIEW','ACCEPTANCE_APPROVED','COUNTY_REJECTED'].includes(st);
+      const townReject    = st === 'TOWN_REJECTED';
+      const townActive    = st === 'PENDING_TOWN_REVIEW';
+      const countyDone    = st === 'ACCEPTANCE_APPROVED';
+      const countyReject  = st === 'COUNTY_REJECTED';
+      const countyActive  = st === 'PENDING_COUNTY_REVIEW';
+
+      const make = (label, done, reject, active, log) => ({
+        label,
+        cls:      done ? 's-done' : reject ? 's-reject' : active ? '' : '',
+        iconCls:  done ? 's-done' : reject ? 's-reject' : active ? 's-active' : 's-wait',
+        labelCls: done ? 's-done' : reject ? 's-reject' : active ? 's-active' : '',
+        icon:     done ? 'fa fa-check' : reject ? 'fa fa-times' : active ? 'fa fa-spinner fa-spin' : 'fa fa-circle',
+        time:     log ? log.time.split(' ')[0] : '',
+        auditor:  log ? log.auditor : '',
+        opinion:  reject && log ? log.opinion.substring(0, 24) + (log.opinion.length > 24 ? '…' : '') : ''
+      });
+
+      return [
+        { label: '填报提交',  cls: 's-done', iconCls: 's-done', labelCls: 's-done',
+          icon: 'fa fa-check', time: item.applyDate, auditor: '', opinion: '' },
+        make('乡镇畜牧兽医站核实', stationDone, stationReject, stationActive, stationLog),
+        make('乡镇政府审核',       townDone,    townReject,    townActive,    townLog),
+        make('县农业农村局审核',   countyDone,  countyReject,  countyActive,  countyLog),
+      ];
+    },
+
+    /* ── 审核操作 ── */
+    doAudit(result) {
+      this.auditError = '';
+      if (result === 'REJECTED' && !this.auditOpinion.trim()) {
+        this.auditError = '请填写退回原因';
+        return;
+      }
+      if (this.auditOpinion.length > 500) {
+        this.auditError = (result === 'REJECTED' ? '退回原因' : '审核意见') + '不能超过500个字符';
+        return;
+      }
+
+      const confirmMsg = result === 'APPROVED'
+        ? ({ town_vet_station: '确认核实通过？通过后将自动流转至乡镇政府审核流程。',
+             town_gov_staff:   '确认审核通过？通过后将自动流转至县农业农村局审核流程。',
+             county_staff:     '确认审核通过？通过后验收流程完成，关联申报状态将自动更新为「已验收（ACCEPTED）」。'
+           })[this.currentRole]
+        : ({ town_vet_station: '核实退回后将推送消息通知企业端用户修改重提，是否确认？',
+             town_gov_staff:   '审核退回后将推送消息通知企业端用户修改重提，是否确认？',
+             county_staff:     '审核退回后将推送消息通知企业端用户修改重提，是否确认？'
+           })[this.currentRole];
+
+      if (!confirm(confirmMsg)) return;
+
+      const nodeMap = {
+        town_vet_station: '乡镇畜牧兽医站核实',
+        town_gov_staff:   '乡镇政府审核',
+        county_staff:     '县农业农村局审核'
+      };
+      this.selectedItem.auditLogs.push({
+        node: nodeMap[this.currentRole], result,
+        opinion: this.auditOpinion,
+        auditor: this.currentRoleUser.name,
+        time: new Date().toISOString().replace('T',' ').substring(0, 16)
+      });
+
+      if (this.currentRole === 'town_vet_station') {
+        if (result === 'APPROVED') {
+          Object.assign(this.selectedItem, {
+            acceptanceStatus: 'PENDING_TOWN_REVIEW',
+            statusLabel: '待镇审核', statusBadge: 'badge-blue',
+            stationAuditDate: new Date().toISOString().split('T')[0]
+          });
+          this.showToast('success', '核实通过，已自动流转至乡镇政府审核');
+        } else {
+          Object.assign(this.selectedItem, { acceptanceStatus: 'STATION_REJECTED', statusLabel: '站核实退回', statusBadge: 'badge-red' });
+          this.showToast('success', '核实退回，消息已推送给企业端用户');
+        }
+      } else if (this.currentRole === 'town_gov_staff') {
+        if (result === 'APPROVED') {
+          Object.assign(this.selectedItem, {
+            acceptanceStatus: 'PENDING_COUNTY_REVIEW',
+            statusLabel: '待县审核', statusBadge: 'badge-blue',
+            townAuditDate: new Date().toISOString().split('T')[0]
+          });
+          this.showToast('success', '审核通过，已自动流转至县农业农村局审核');
+        } else {
+          Object.assign(this.selectedItem, { acceptanceStatus: 'TOWN_REJECTED', statusLabel: '镇审核退回', statusBadge: 'badge-red' });
+          this.showToast('success', '审核退回，消息已推送给企业端用户');
+        }
+      } else if (this.currentRole === 'county_staff') {
+        if (result === 'APPROVED') {
+          Object.assign(this.selectedItem, {
+            acceptanceStatus: 'ACCEPTANCE_APPROVED',
+            statusLabel: '验收通过', statusBadge: 'badge-green',
+            pdfStatus: 'NOT_GENERATED'
+          });
+          this.showToast('success', '验收通过！关联申报状态已自动更新为「已验收（ACCEPTED）」');
+        } else {
+          Object.assign(this.selectedItem, { acceptanceStatus: 'COUNTY_REJECTED', statusLabel: '县审核退回', statusBadge: 'badge-red' });
+          this.showToast('success', '审核退回，消息已推送给企业端用户');
+        }
+      }
+
+      this.canAudit = false;
+      this.auditOpinion = '';
+    },
+
+    generatePDF() {
+      if (!this.selectedItem) return;
+      this.selectedItem.pdfStatus = 'GENERATING';
+      this.showToast('info', 'PDF生成中，预计需要10~30秒...');
+      setTimeout(() => {
+        this.selectedItem.pdfStatus = 'GENERATED';
+        this.selectedItem.pdfGenerateTime = new Date().toISOString().replace('T',' ').substring(0, 16);
+        this.showToast('success', '验收申请书PDF生成成功，可点击下载');
+      }, 2000);
+    },
+
+    downloadPDF(item) {
+      this.showToast('success', '模拟下载：' + item.company + '-竣工投产前验收申请书.pdf');
+    },
+
+    showToast(type, msg) {
+      this.toast = { show: true, type, msg };
+      clearTimeout(this._toastTimer);
+      this._toastTimer = setTimeout(() => { this.toast.show = false; }, 3000);
+    }
+  };
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,806 @@
+<!--
+  功能名称：畜禽疾病诊疗记录管理
+  对应PRD：doc_prd/WEB/企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-畜禽疾病诊疗记录.prd.md
+  所属端口：WEB企业端
+  所属模块：企业信息管理 - 养殖信息管理
+  制作日期：2026-03-09
+  最后更新：2026-03-09
+  角色说明：ent_admin/ent_reporter（企业）、town_vet_station（核实）、town_gov_staff（审核）、county_staff（终审）、county_admin（全权）
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>畜禽疾病诊疗记录管理 - 2024年蓬溪县生猪数字化管理平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    [x-cloak] { display: none !important; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; font-size: 14px; color: #262626; background: #f0f2f5; }
+    .sidebar { width: 240px; min-width: 240px; }
+    .main-content { flex: 1; min-width: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    .content-area { flex: 1; overflow-y: auto; padding: 16px; }
+    .table-wrapper { overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { padding: 10px 12px; text-align: left; white-space: nowrap; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+    thead th { background: #fafafa; font-weight: 600; color: #595959; }
+    tbody tr:hover { background: #fafafa; }
+    .op-col { position: sticky; right: 0; background: white; }
+    thead .op-col { background: #fafafa; }
+    .status-badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 500; }
+    .status-0 { background: #f5f5f5; color: #999; }
+    .status-1 { background: #e6f7ff; color: #1890ff; }
+    .status-2 { background: #fff7e6; color: #fa8c16; }
+    .status-3 { background: #f9f0ff; color: #722ed1; }
+    .status-4 { background: #f6ffed; color: #52c41a; }
+    .status-5,.status-6,.status-7 { background: #fff1f0; color: #f5222d; }
+    .btn-primary { background: #1677ff; color: white; border: none; padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 4px; }
+    .btn-primary:hover { background: #4096ff; }
+    .btn-default { background: white; color: #262626; border: 1px solid #d9d9d9; padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 4px; }
+    .btn-default:hover { border-color: #1677ff; color: #1677ff; }
+    .btn-danger { background: #ff4d4f; color: white; border: none; padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    .btn-link { background: none; border: none; color: #1677ff; cursor: pointer; font-size: 12px; padding: 2px 4px; }
+    .btn-link-danger { background: none; border: none; color: #ff4d4f; cursor: pointer; font-size: 12px; padding: 2px 4px; }
+    .form-label { display: block; margin-bottom: 4px; font-size: 13px; color: #595959; }
+    .required { color: #ff4d4f; margin-right: 2px; }
+    .form-input { width: 100%; padding: 6px 10px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 13px; color: #262626; outline: none; box-sizing: border-box; }
+    .form-input:focus { border-color: #1677ff; }
+    .form-error { color: #ff4d4f; font-size: 12px; margin-top: 2px; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+    .modal-box { background: white; border-radius: 6px; box-shadow: 0 6px 16px rgba(0,0,0,0.15); max-height: 90vh; display: flex; flex-direction: column; }
+    .modal-header { padding: 14px 20px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 15px; }
+    .modal-body { overflow-y: auto; padding: 20px; flex: 1; }
+    .modal-footer { padding: 12px 20px; border-top: 1px solid #f0f0f0; display: flex; gap: 8px; justify-content: flex-end; }
+    .pagination { display: flex; align-items: center; gap: 4px; }
+    .page-btn { min-width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #d9d9d9; border-radius: 4px; cursor: pointer; font-size: 12px; background: white; }
+    .page-btn.active { background: #1677ff; color: white; border-color: #1677ff; }
+    .toast { position: fixed; top: 70px; right: 24px; z-index: 9999; padding: 10px 16px; border-radius: 6px; font-size: 13px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .toast-success { background: #f6ffed; border: 1px solid #b7eb8f; color: #52c41a; }
+    .toast-error { background: #fff1f0; border: 1px solid #ffa39e; color: #f5222d; }
+    .reject-row { background: #fff5f5 !important; }
+    .step-bar { display: flex; align-items: flex-start; }
+    .step-item { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; }
+    .step-item:not(:last-child)::after { content: ''; position: absolute; top: 14px; left: 50%; width: 100%; height: 2px; background: #e8e8e8; z-index: 0; }
+    .step-item.done::after { background: #1677ff; }
+    .step-circle { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; z-index: 1; position: relative; background: #e8e8e8; color: #8c8c8c; }
+    .step-item.done .step-circle { background: #1677ff; color: white; }
+    .step-item.current .step-circle { background: #1677ff; color: white; border: 3px solid #91caff; }
+    .step-item.failed .step-circle { background: #ff4d4f; color: white; }
+    .step-label { margin-top: 6px; font-size: 11px; color: #8c8c8c; text-align: center; line-height: 1.3; }
+    .step-item.done .step-label { color: #1677ff; }
+    .step-item.failed .step-label { color: #ff4d4f; }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; }
+    .detail-item { display: flex; gap: 8px; }
+    .detail-label { color: #8c8c8c; white-space: nowrap; min-width: 100px; text-align: right; }
+    .detail-value { color: #262626; flex: 1; word-break: break-all; }
+    .filter-bar { background: white; border-radius: 4px; padding: 14px 16px; margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+    .filter-item { display: flex; flex-direction: column; gap: 4px; }
+    .filter-label { font-size: 12px; color: #8c8c8c; }
+    select.form-input { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%238c8c8c'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; padding-right: 28px; }
+  </style>
+</head>
+<body>
+<div x-data="app()" x-cloak class="flex h-screen overflow-hidden">
+
+  <!-- SECTION START: 顶部导航栏 -->
+  <div class="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4" style="height:60px;background:#1677ff;">
+    <div class="flex items-center gap-3">
+      <i class="fa-solid fa-pig text-white text-xl"></i>
+      <span class="text-white font-semibold text-base">2024年蓬溪县生猪数字化管理平台</span>
+      <span class="text-blue-200 text-sm">· 企业端</span>
+    </div>
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2">
+        <span class="text-blue-100 text-xs">当前角色：</span>
+        <select x-model="currentRole" @change="onRoleChange()" class="text-xs border-0 rounded px-2 py-1" style="background:rgba(255,255,255,0.15);color:white;">
+          <option value="ent_admin" style="color:#262626;">企业管理员</option>
+          <option value="ent_reporter" style="color:#262626;">企业填报员</option>
+          <option value="town_vet_station" style="color:#262626;">乡镇畜牧兽医站</option>
+          <option value="town_gov_staff" style="color:#262626;">乡镇政府审核员</option>
+          <option value="county_staff" style="color:#262626;">县级终审员</option>
+          <option value="county_admin" style="color:#262626;">县级管理员</option>
+        </select>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-full bg-blue-300 flex items-center justify-center text-white text-xs font-bold">
+          <span x-text="currentUser.name.slice(0,1)"></span>
+        </div>
+        <span class="text-white text-sm" x-text="currentUser.name"></span>
+      </div>
+      <button class="text-blue-100 hover:text-white text-xs flex items-center gap-1">
+        <i class="fa-solid fa-right-from-bracket"></i> 退出
+      </button>
+    </div>
+  </div>
+  <!-- SECTION END: 顶部导航栏 -->
+
+  <!-- 左侧菜单 -->
+  <div class="sidebar bg-white border-r border-gray-200 flex-shrink-0 overflow-y-auto" style="margin-top:60px;">
+    <div class="py-3">
+      <div class="px-4 py-2 text-xs text-gray-400 font-semibold uppercase tracking-wider">企业信息管理</div>
+      <div class="menu-group">
+        <div class="px-4 py-2.5 flex items-center gap-2.5 text-sm text-gray-600 hover:bg-blue-50 cursor-pointer rounded mx-2">
+          <i class="fa-solid fa-building w-4 text-center text-gray-400"></i> 企业基本信息
+        </div>
+        <div class="px-4 py-2 text-xs text-gray-400 font-medium pl-6">养殖信息管理</div>
+        <div class="px-4 py-2.5 flex items-center gap-2.5 text-sm text-gray-600 hover:bg-blue-50 cursor-pointer rounded mx-2 pl-8">
+          <i class="fa-solid fa-notes-medical w-4 text-center text-gray-400"></i> 养殖信息
+        </div>
+        <div class="px-4 py-2.5 flex items-center gap-2.5 text-sm text-gray-600 hover:bg-blue-50 cursor-pointer rounded mx-2 pl-8">
+          <i class="fa-solid fa-syringe w-4 text-center text-gray-400"></i> 兽药使用记录
+        </div>
+        <div class="px-4 py-2.5 flex items-center gap-2.5 text-sm font-medium rounded mx-2 pl-8" style="background:#e6f4ff;color:#1677ff;">
+          <i class="fa-solid fa-virus w-4 text-center" style="color:#1677ff;"></i> 疾病诊疗记录
+        </div>
+        <div class="px-4 py-2.5 flex items-center gap-2.5 text-sm text-gray-600 hover:bg-blue-50 cursor-pointer rounded mx-2 pl-8">
+          <i class="fa-solid fa-shield-virus w-4 text-center text-gray-400"></i> 免疫记录
+        </div>
+        <div class="px-4 py-2.5 flex items-center gap-2.5 text-sm text-gray-600 hover:bg-blue-50 cursor-pointer rounded mx-2 pl-8">
+          <i class="fa-solid fa-flask w-4 text-center text-gray-400"></i> 检测记录
+        </div>
+        <div class="px-4 py-2.5 flex items-center gap-2.5 text-sm text-gray-600 hover:bg-blue-50 cursor-pointer rounded mx-2 pl-8">
+          <i class="fa-solid fa-trash-can w-4 text-center text-gray-400"></i> 无害化处理记录
+        </div>
+      </div>
+      <div class="px-4 py-2 text-xs text-gray-400 font-semibold uppercase tracking-wider mt-2">项目信息管理</div>
+      <div class="px-4 py-2.5 flex items-center gap-2.5 text-sm text-gray-600 hover:bg-blue-50 cursor-pointer rounded mx-2">
+        <i class="fa-solid fa-file-contract w-4 text-center text-gray-400"></i> 项目申报
+      </div>
+      <div class="px-4 py-2 text-xs text-gray-400 font-semibold uppercase tracking-wider mt-2">政策资讯</div>
+      <div class="px-4 py-2.5 flex items-center gap-2.5 text-sm text-gray-600 hover:bg-blue-50 cursor-pointer rounded mx-2">
+        <i class="fa-solid fa-newspaper w-4 text-center text-gray-400"></i> 政策信息查看
+      </div>
+    </div>
+  </div>
+
+  <!-- 主内容区 -->
+  <div class="main-content" style="margin-top:60px;">
+    <div class="px-4 py-2.5 bg-white border-b border-gray-100 flex items-center gap-1.5 text-sm">
+      <span class="text-gray-400">企业信息管理</span>
+      <i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+      <span class="text-gray-400">养殖信息管理</span>
+      <i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+      <span style="color:#1677ff;">畜禽疾病诊疗记录</span>
+    </div>
+
+    <div class="content-area">
+      <!-- SECTION START: 筛选区 -->
+      <section id="feature-filter">
+        <div class="filter-bar">
+          <div class="filter-item" x-show="!isEntRole()">
+            <span class="filter-label">企业名称</span>
+            <input type="text" x-model="filters.entName" placeholder="请输入企业名称" class="form-input" style="width:160px;">
+          </div>
+          <div class="filter-item" x-show="!isEntRole()">
+            <span class="filter-label">行政区划</span>
+            <select x-model="filters.region" class="form-input" style="width:140px;">
+              <option value="">全部</option>
+              <option>蓬南镇</option><option>常乐镇</option><option>吉祥镇</option><option>明月镇</option><option>天福镇</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <span class="filter-label">疾病名称</span>
+            <input type="text" x-model="filters.diseaseName" placeholder="请输入疾病名称" class="form-input" style="width:160px;">
+          </div>
+          <div class="filter-item">
+            <span class="filter-label">状态</span>
+            <select x-model="filters.status" class="form-input" style="width:120px;">
+              <option value="">全部</option>
+              <option value="0">草稿</option><option value="1">待核实</option><option value="2">待审核</option>
+              <option value="3">待终审</option><option value="4">已入库</option>
+              <option value="5">核实退回</option><option value="6">审核退回</option><option value="7">终审退回</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <span class="filter-label">发病日期</span>
+            <input type="date" x-model="filters.dateStart" class="form-input" style="width:140px;">
+          </div>
+          <div class="filter-item">
+            <span class="filter-label" style="visibility:hidden;">至</span>
+            <input type="date" x-model="filters.dateEnd" class="form-input" style="width:140px;">
+          </div>
+          <div class="filter-item">
+            <span class="filter-label" style="visibility:hidden;">操作</span>
+            <div class="flex gap-2">
+              <button @click="doSearch()" class="btn-primary"><i class="fa-solid fa-magnifying-glass"></i> 查询</button>
+              <button @click="resetFilters()" class="btn-default"><i class="fa-solid fa-rotate"></i> 重置</button>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- SECTION END: 筛选区 -->
+
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <h2 class="text-base font-semibold text-gray-800">畜禽疾病诊疗记录</h2>
+          <span class="text-xs text-gray-400">共 <span x-text="filteredList.length"></span> 条</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button x-show="canAdd()" @click="openAddModal()" class="btn-primary">
+            <i class="fa-solid fa-plus"></i> 新增记录
+          </button>
+          <button class="btn-default" @click="showToast('导出成功，文件已生成', 'success')">
+            <i class="fa-solid fa-download"></i> 导出
+          </button>
+        </div>
+      </div>
+
+      <!-- SECTION START: 数据列表 -->
+      <section id="feature-list">
+        <div class="bg-white rounded border border-gray-100" style="display:flex;flex-direction:column;">
+          <div class="table-wrapper" style="flex:1;overflow-y:auto;max-height:calc(100vh - 320px);">
+            <table>
+              <thead>
+                <tr>
+                  <th x-show="!isEntRole()">企业名称</th>
+                  <th x-show="!isEntRole()">行政区划</th>
+                  <th>圈舍名称</th>
+                  <th>发病日期</th>
+                  <th>疾病名称</th>
+                  <th>发病数量（头）</th>
+                  <th>死亡数量（头）</th>
+                  <th>诊断结果</th>
+                  <th>诊疗兽医</th>
+                  <th>诊疗日期</th>
+                  <th>状态</th>
+                  <th>填报人</th>
+                  <th>创建时间</th>
+                  <th class="op-col">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="row in pagedList" :key="row.id">
+                  <tr :class="[5,6,7].includes(row.status) ? 'reject-row' : ''">
+                    <td x-show="!isEntRole()" x-text="row.entName"></td>
+                    <td x-show="!isEntRole()" x-text="row.region"></td>
+                    <td x-text="row.pen"></td>
+                    <td x-text="row.onsetDate"></td>
+                    <td x-text="row.diseaseName"></td>
+                    <td x-text="row.onsetQty"></td>
+                    <td x-text="row.deathQty"></td>
+                    <td x-text="row.diagnosis || '——'"></td>
+                    <td x-text="row.vetName || '——'"></td>
+                    <td x-text="row.treatDate || '——'"></td>
+                    <td>
+                      <span class="status-badge" :class="'status-'+row.status" x-text="statusLabel(row.status)"></span>
+                    </td>
+                    <td x-text="row.reporter"></td>
+                    <td x-text="row.createdAt"></td>
+                    <td class="op-col">
+                      <div class="flex items-center gap-1">
+                        <button class="btn-link" @click="openDetail(row)">查看</button>
+                        <template x-if="canEdit(row)">
+                          <button class="btn-link" @click="openEditModal(row)">编辑</button>
+                        </template>
+                        <template x-if="canSubmit(row)">
+                          <button class="btn-link" @click="submitRecord(row)">提交</button>
+                        </template>
+                        <template x-if="canWithdraw(row)">
+                          <button class="btn-link" @click="withdrawRecord(row)">撤回</button>
+                        </template>
+                        <template x-if="canVerify(row)">
+                          <button class="btn-link" @click="openApproveModal(row, 'verify')">核实</button>
+                        </template>
+                        <template x-if="canAudit(row)">
+                          <button class="btn-link" @click="openApproveModal(row, 'audit')">审核</button>
+                        </template>
+                        <template x-if="canFinalAudit(row)">
+                          <button class="btn-link" @click="openApproveModal(row, 'final')">终审</button>
+                        </template>
+                        <template x-if="canDirectStore(row)">
+                          <button class="btn-link" @click="directStore(row)">直接入库</button>
+                        </template>
+                        <template x-if="canDelete(row)">
+                          <button class="btn-link-danger" @click="deleteRecord(row)">删除</button>
+                        </template>
+                      </div>
+                    </td>
+                  </tr>
+                </template>
+                <tr x-show="filteredList.length === 0">
+                  <td colspan="14" class="text-center py-8 text-gray-400">暂无数据</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-white">
+            <span class="text-xs text-gray-400">共 <span x-text="filteredList.length"></span> 条记录</span>
+            <div class="pagination">
+              <button class="page-btn" @click="prevPage()" :disabled="currentPage===1">
+                <i class="fa-solid fa-chevron-left text-xs"></i>
+              </button>
+              <template x-for="p in totalPages" :key="p">
+                <button class="page-btn" :class="p===currentPage?'active':''" @click="currentPage=p" x-text="p"></button>
+              </template>
+              <button class="page-btn" @click="nextPage()" :disabled="currentPage===totalPages">
+                <i class="fa-solid fa-chevron-right text-xs"></i>
+              </button>
+              <span class="text-xs text-gray-400 ml-2">每页 <span x-text="pageSize"></span> 条</span>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- SECTION END: 数据列表 -->
+    </div>
+  </div>
+
+  <!-- SECTION START: 新增/编辑弹窗 -->
+  <div id="feature-add-modal" class="modal-overlay" x-show="showFormModal" @click.self="showFormModal=false">
+    <div class="modal-box" style="width:700px;">
+      <div class="modal-header">
+        <span x-text="formMode==='add'?'新增畜禽疾病诊疗记录':'编辑畜禽疾病诊疗记录'"></span>
+        <button @click="showFormModal=false" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="grid grid-cols-2 gap-x-6 gap-y-4">
+          <div>
+            <label class="form-label"><span class="required">*</span>圈舍</label>
+            <select x-model="form.pen" class="form-input">
+              <option value="">请选择圈舍</option>
+              <template x-for="p in MOCK_DATA.pens" :key="p"><option x-text="p"></option></template>
+            </select>
+            <div class="form-error" x-show="formErrors.pen" x-text="formErrors.pen"></div>
+          </div>
+          <div>
+            <label class="form-label"><span class="required">*</span>发病日期</label>
+            <input type="date" x-model="form.onsetDate" :max="today" class="form-input">
+            <div class="form-error" x-show="formErrors.onsetDate" x-text="formErrors.onsetDate"></div>
+          </div>
+          <div>
+            <label class="form-label"><span class="required">*</span>疾病名称</label>
+            <input type="text" x-model="form.diseaseName" maxlength="100" placeholder="请输入疾病名称" class="form-input">
+            <div class="form-error" x-show="formErrors.diseaseName" x-text="formErrors.diseaseName"></div>
+          </div>
+          <div>
+            <label class="form-label"><span class="required">*</span>发病数量（头）</label>
+            <input type="number" x-model="form.onsetQty" min="1" max="9999" placeholder="1-9999" class="form-input">
+            <div class="form-error" x-show="formErrors.onsetQty" x-text="formErrors.onsetQty"></div>
+          </div>
+          <div>
+            <label class="form-label">死亡数量（头）</label>
+            <input type="number" x-model="form.deathQty" min="0" max="9999" placeholder="0-9999" class="form-input">
+            <div class="form-error" x-show="formErrors.deathQty" x-text="formErrors.deathQty"></div>
+          </div>
+          <div>
+            <label class="form-label">诊疗兽医</label>
+            <input type="text" x-model="form.vetName" maxlength="50" placeholder="请输入诊疗兽医姓名" class="form-input">
+          </div>
+          <div>
+            <label class="form-label">诊疗日期</label>
+            <input type="date" x-model="form.treatDate" class="form-input">
+          </div>
+          <div>
+            <label class="form-label">诊断结果</label>
+            <input type="text" x-model="form.diagnosis" maxlength="500" placeholder="请输入诊断结果" class="form-input">
+          </div>
+          <div class="col-span-2">
+            <label class="form-label"><span class="required">*</span>主要症状</label>
+            <textarea x-model="form.symptoms" rows="3" maxlength="500" placeholder="请描述主要症状（最多500字符）" class="form-input"></textarea>
+            <div class="form-error" x-show="formErrors.symptoms" x-text="formErrors.symptoms"></div>
+          </div>
+          <div class="col-span-2">
+            <label class="form-label">诊疗措施</label>
+            <textarea x-model="form.measures" rows="3" maxlength="500" placeholder="请描述诊疗措施" class="form-input"></textarea>
+          </div>
+          <div class="col-span-2">
+            <label class="form-label">用药情况</label>
+            <textarea x-model="form.medication" rows="2" placeholder="请描述用药情况" class="form-input"></textarea>
+          </div>
+          <div class="col-span-2">
+            <label class="form-label">备注</label>
+            <textarea x-model="form.remark" rows="2" placeholder="请输入备注信息" class="form-input"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button @click="showFormModal=false" class="btn-default">取消</button>
+        <button @click="saveForm()" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> 保存</button>
+      </div>
+    </div>
+  </div>
+  <!-- SECTION END: 新增/编辑弹窗 -->
+
+  <!-- SECTION START: 详情弹窗 -->
+  <div id="feature-detail" class="modal-overlay" x-show="showDetailModal" @click.self="showDetailModal=false">
+    <div class="modal-box" style="width:720px;">
+      <div class="modal-header">
+        <span>畜禽疾病诊疗记录详情</span>
+        <button @click="showDetailModal=false" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="modal-body" x-show="detailRow">
+        <div class="mb-6 px-2">
+          <div class="text-sm font-medium text-gray-700 mb-3">审批进度</div>
+          <div class="step-bar">
+            <template x-for="(step, idx) in getSteps(detailRow)" :key="idx">
+              <div class="step-item" :class="step.state">
+                <div class="step-circle">
+                  <i :class="step.state==='done'?'fa-solid fa-check':(step.state==='failed'?'fa-solid fa-xmark':'fa-solid fa-circle-dot')" class="text-xs"></i>
+                </div>
+                <div class="step-label" x-text="step.label"></div>
+              </div>
+            </template>
+          </div>
+        </div>
+        <div class="border-t border-gray-100 pt-4">
+          <div class="text-sm font-medium text-gray-700 mb-3">基本信息</div>
+          <div class="detail-grid">
+            <div class="detail-item" x-show="!isEntRole()">
+              <span class="detail-label">企业名称：</span>
+              <span class="detail-value" x-text="detailRow?.entName||'——'"></span>
+            </div>
+            <div class="detail-item" x-show="!isEntRole()">
+              <span class="detail-label">行政区划：</span>
+              <span class="detail-value" x-text="detailRow?.region||'——'"></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">圈舍名称：</span>
+              <span class="detail-value" x-text="detailRow?.pen||'——'"></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">发病日期：</span>
+              <span class="detail-value" x-text="detailRow?.onsetDate||'——'"></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">疾病名称：</span>
+              <span class="detail-value" x-text="detailRow?.diseaseName||'——'"></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">发病数量：</span>
+              <span class="detail-value" x-text="(detailRow?.onsetQty||'——') + ' 头'"></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">死亡数量：</span>
+              <span class="detail-value" x-text="(detailRow?.deathQty ?? '——') + ' 头'"></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">诊断结果：</span>
+              <span class="detail-value" x-text="detailRow?.diagnosis||'——'"></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">诊疗兽医：</span>
+              <span class="detail-value" x-text="detailRow?.vetName||'——'"></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">诊疗日期：</span>
+              <span class="detail-value" x-text="detailRow?.treatDate||'——'"></span>
+            </div>
+            <div class="detail-item col-span-2">
+              <span class="detail-label">主要症状：</span>
+              <span class="detail-value" x-text="detailRow?.symptoms||'——'"></span>
+            </div>
+            <div class="detail-item col-span-2">
+              <span class="detail-label">诊疗措施：</span>
+              <span class="detail-value" x-text="detailRow?.measures||'——'"></span>
+            </div>
+            <div class="detail-item col-span-2">
+              <span class="detail-label">用药情况：</span>
+              <span class="detail-value" x-text="detailRow?.medication||'——'"></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">填报人：</span>
+              <span class="detail-value" x-text="detailRow?.reporter||'——'"></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">创建时间：</span>
+              <span class="detail-value" x-text="detailRow?.createdAt||'——'"></span>
+            </div>
+            <div class="detail-item col-span-2">
+              <span class="detail-label">备注：</span>
+              <span class="detail-value" x-text="detailRow?.remark||'——'"></span>
+            </div>
+          </div>
+        </div>
+        <div x-show="detailRow && [5,6,7].includes(detailRow.status)" class="mt-4 p-3 rounded" style="background:#fff1f0;border:1px solid #ffa39e;">
+          <div class="text-sm font-medium" style="color:#f5222d;"><i class="fa-solid fa-circle-exclamation mr-1"></i>退回意见</div>
+          <div class="text-sm mt-1" style="color:#595959;" x-text="detailRow?.rejectReason||'——'"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button @click="showDetailModal=false" class="btn-default">关闭</button>
+        <template x-if="detailRow && canEdit(detailRow)">
+          <button @click="showDetailModal=false;openEditModal(detailRow)" class="btn-primary">编辑</button>
+        </template>
+      </div>
+    </div>
+  </div>
+  <!-- SECTION END: 详情弹窗 -->
+
+  <!-- SECTION START: 审批弹窗 -->
+  <div id="feature-approve-modal" class="modal-overlay" x-show="showApproveModal" @click.self="showApproveModal=false">
+    <div class="modal-box" style="width:480px;">
+      <div class="modal-header">
+        <span x-text="approveTitle"></span>
+        <button @click="showApproveModal=false" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-4 p-3 rounded bg-gray-50">
+          <div class="text-sm"><span class="text-gray-400">疾病名称：</span><span x-text="approveRow?.diseaseName"></span></div>
+          <div class="text-sm mt-1"><span class="text-gray-400">企业：</span><span x-text="approveRow?.entName"></span></div>
+          <div class="text-sm mt-1"><span class="text-gray-400">发病日期：</span><span x-text="approveRow?.onsetDate"></span></div>
+        </div>
+        <div class="mb-4">
+          <label class="form-label">审批意见</label>
+          <textarea x-model="approveOpinion" rows="3" placeholder="请输入审批意见（可选）" class="form-input"></textarea>
+        </div>
+        <div x-show="showRejectReason">
+          <label class="form-label"><span class="required">*</span>退回原因</label>
+          <textarea x-model="rejectReason" rows="3" placeholder="请输入退回原因" class="form-input"></textarea>
+          <div class="form-error" x-show="approveErrors.rejectReason" x-text="approveErrors.rejectReason"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button @click="showApproveModal=false" class="btn-default">取消</button>
+        <button @click="showRejectReason=!showRejectReason" class="btn-default" x-show="!showRejectReason">
+          <i class="fa-solid fa-rotate-left"></i> 退回
+        </button>
+        <button @click="submitReject()" class="btn-danger" x-show="showRejectReason">确认退回</button>
+        <button @click="submitApprove()" class="btn-primary" x-show="!showRejectReason">
+          <i class="fa-solid fa-check"></i> 通过
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- SECTION END: 审批弹窗 -->
+
+  <!-- SECTION START: 删除确认弹窗 -->
+  <div id="feature-delete-confirm" class="modal-overlay" x-show="showDeleteConfirm" @click.self="showDeleteConfirm=false">
+    <div class="modal-box" style="width:400px;">
+      <div class="modal-header">
+        <span>确认删除</span>
+        <button @click="showDeleteConfirm=false" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="flex items-start gap-3">
+          <i class="fa-solid fa-triangle-exclamation text-yellow-500 text-xl mt-0.5"></i>
+          <div>
+            <div class="font-medium text-gray-800">确认删除此记录吗？</div>
+            <div class="text-sm text-gray-500 mt-1">疾病：<span x-text="deleteTarget?.diseaseName" class="font-medium"></span></div>
+            <div class="text-sm text-gray-500 mt-1">发病日期：<span x-text="deleteTarget?.onsetDate"></span></div>
+            <div class="text-sm text-red-500 mt-2">删除后无法恢复，请谨慎操作。</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button @click="showDeleteConfirm=false" class="btn-default">取消</button>
+        <button @click="confirmDelete()" class="btn-danger">确认删除</button>
+      </div>
+    </div>
+  </div>
+  <!-- SECTION END: 删除确认弹窗 -->
+
+  <div x-show="toast.show" class="toast" :class="'toast-'+toast.type" x-transition>
+    <i :class="toast.type==='success'?'fa-solid fa-circle-check':'fa-solid fa-circle-xmark'"></i>
+    <span x-text="toast.msg"></span>
+  </div>
+
+</div>
+
+<script>
+const MOCK_DATA = {
+  currentUsers: {
+    ent_admin:       { id: 1, name: '李志强', role: 'ent_admin',       roleName: '企业管理员',   entId: 101, entName: '蓬溪县鑫源生猪养殖有限公司' },
+    ent_reporter:    { id: 2, name: '王芳',   role: 'ent_reporter',    roleName: '企业填报员',   entId: 101, entName: '蓬溪县鑫源生猪养殖有限公司' },
+    town_vet_station:{ id: 3, name: '赵建国', role: 'town_vet_station', roleName: '乡镇畜牧兽医站', entId: null },
+    town_gov_staff:  { id: 4, name: '陈秀英', role: 'town_gov_staff',  roleName: '乡镇政府审核员', entId: null },
+    county_staff:    { id: 5, name: '张明华', role: 'county_staff',    roleName: '县级终审员',   entId: null },
+    county_admin:    { id: 6, name: '刘建平', role: 'county_admin',    roleName: '县级管理员',   entId: null },
+  },
+  pens: ['A栋1号圈', 'A栋2号圈', 'B栋1号圈', 'B栋2号圈', 'C栋母猪舍', 'D栋仔猪舍'],
+  records: [
+    { id: 1,  entName: '蓬溪县鑫源生猪养殖有限公司', region: '蓬南镇', pen: 'A栋1号圈', onsetDate: '2026-01-15', diseaseName: '猪流感', onsetQty: 45, deathQty: 2, symptoms: '发热、咳嗽、流鼻涕、食欲下降、精神萎靡，体温升至41℃以上', diagnosis: '猪流感（H1N1型）', measures: '隔离病猪，加强通风，补充电解质，使用抗病毒药物', medication: '黄芪多糖注射液+恩诺沙星注射液联合使用5天', vetName: '李德明', treatDate: '2026-01-16', remark: '疫情已控制，无扩散迹象', reporter: '王芳', createdAt: '2026-01-15 14:30', status: 4, rejectReason: '' },
+    { id: 2,  entName: '蓬溪县鑫源生猪养殖有限公司', region: '蓬南镇', pen: 'B栋1号圈', onsetDate: '2026-01-28', diseaseName: '蓝耳病', onsetQty: 30, deathQty: 5, symptoms: '母猪流产、死胎，仔猪呼吸困难、皮肤发绀，育肥猪发热厌食', diagnosis: '猪繁殖与呼吸综合征（PRRS）', measures: '对发病猪紧急免疫接种蓝耳病疫苗，隔离重症猪，加强消毒', medication: '替米考星+多西环素联合用药10天', vetName: '李德明', treatDate: '2026-01-29', remark: '已上报县动物疫病预防控制中心', reporter: '王芳', createdAt: '2026-01-28 09:15', status: 3, rejectReason: '' },
+    { id: 3,  entName: '常乐镇腾飞农业发展有限公司', region: '常乐镇', pen: 'B栋2号圈', onsetDate: '2026-02-05', diseaseName: '口蹄疫疑似', onsetQty: 18, deathQty: 0, symptoms: '蹄部水疱、破溃、跛行，口鼻部出现水疱，流涎增多，采食困难', diagnosis: '疑似口蹄疫，已采样送检', measures: '立即封锁圈舍，全场消毒，上报乡镇兽医站，等待检测结果', medication: '暂未用药，等待官方诊断', vetName: '吴兴华', treatDate: '2026-02-05', remark: '已隔离封锁，等待官方检测结果', reporter: '周小红', createdAt: '2026-02-05 08:20', status: 2, rejectReason: '' },
+    { id: 4,  entName: '吉祥镇永兴畜禽养殖场',     region: '吉祥镇', pen: 'A栋2号圈', onsetDate: '2026-02-10', diseaseName: '猪瘟疑似', onsetQty: 12, deathQty: 3, symptoms: '高温稽留（40-41℃），皮肤出血点，便秘与腹泻交替，神经症状，步态不稳', diagnosis: '疑似猪瘟，采样送检中', measures: '紧急隔离，全场封锁消毒，已上报主管部门，等待检测', medication: '支持疗法，维生素B、C等', vetName: '郑春梅', treatDate: '2026-02-10', remark: '情况严重，已向县畜牧局报告', reporter: '何建军', createdAt: '2026-02-10 10:45', status: 1, rejectReason: '' },
+    { id: 5,  entName: '蓬溪县鑫源生猪养殖有限公司', region: '蓬南镇', pen: 'C栋母猪舍', onsetDate: '2026-02-15', diseaseName: '伪狂犬病', onsetQty: 8, deathQty: 1, symptoms: '仔猪奇痒、共济失调、抽搐，母猪流产、木乃伊胎，育肥猪发热呼吸困难', diagnosis: '猪伪狂犬病（Aujeszky病）', measures: '紧急接种伪狂犬病灭活疫苗，隔离病猪，圈舍消毒', medication: '黄芪多糖注射液增强免疫力，阿莫西林防继发感染', vetName: '李德明', treatDate: '2026-02-15', remark: '全场紧急免疫已完成', reporter: '王芳', createdAt: '2026-02-15 11:20', status: 6, rejectReason: '疾病症状描述不够详细，请补充具体发病头数的圈舍分布情况' },
+    { id: 6,  entName: '明月镇天顺猪场',           region: '明月镇', pen: 'D栋仔猪舍', onsetDate: '2026-02-20', diseaseName: '仔猪腹泻', onsetQty: 35, deathQty: 4, symptoms: '水样腹泻、黄白色稀粪，脱水严重，皮肤弹性降低，体重迅速下降', diagnosis: '仔猪白痢（大肠杆菌病）', measures: '口服补液盐补水，抗菌消炎，改善圈舍环境，加强保温', medication: '硫酸庆大霉素+蒙脱石散口服3天，病重者肌注头孢噻呋', vetName: '谢文静', treatDate: '2026-02-20', remark: '发病率较高，建议检查饮水卫生', reporter: '刘伟', createdAt: '2026-02-20 15:10', status: 5, rejectReason: '请补充具体的治疗用药量及疗程信息' },
+    { id: 7,  entName: '天福镇兴旺养猪专业合作社',   region: '天福镇', pen: 'B栋1号圈', onsetDate: '2026-02-25', diseaseName: '猪链球菌病', onsetQty: 10, deathQty: 1, symptoms: '高热（41-43℃），关节肿大跛行，神经症状，败血症型死亡迅速', diagnosis: '猪链球菌2型感染', measures: '青霉素大剂量肌注，隔离病猪，消毒圈舍', medication: '青霉素G钾注射液每日2次，共7天', vetName: '杨志远', treatDate: '2026-02-26', remark: '', reporter: '马丽华', createdAt: '2026-02-25 09:00', status: 0, rejectReason: '' },
+    { id: 8,  entName: '蓬溪县鑫源生猪养殖有限公司', region: '蓬南镇', pen: 'A栋1号圈', onsetDate: '2026-03-02', diseaseName: '猪圆环病毒病', onsetQty: 20, deathQty: 2, symptoms: '消瘦、生长迟缓、皮肤苍白或黄疸、呼吸困难、腹泻、全身淋巴结肿大', diagnosis: '猪圆环病毒2型（PCV2）感染导致的断奶猪多系统衰竭综合征', measures: '加强营养，注射免疫球蛋白，改善饲养管理条件', medication: '多西环素+维生素E+硒制剂辅助治疗', vetName: '李德明', treatDate: '2026-03-03', remark: '建议补种圆环病毒疫苗', reporter: '王芳', createdAt: '2026-03-02 13:40', status: 7, rejectReason: '请提供病理剖检结果或实验室检测报告作为诊断依据' },
+  ]
+};
+
+function app() {
+  return {
+    currentRole: 'ent_admin',
+    currentUser: MOCK_DATA.currentUsers['ent_admin'],
+    records: [...MOCK_DATA.records],
+    filters: { entName: '', region: '', diseaseName: '', status: '', dateStart: '', dateEnd: '' },
+    currentPage: 1,
+    pageSize: 10,
+    today: new Date().toISOString().split('T')[0],
+
+    showFormModal: false,
+    showDetailModal: false,
+    showApproveModal: false,
+    showDeleteConfirm: false,
+    formMode: 'add',
+    form: {},
+    formErrors: {},
+    detailRow: null,
+    approveRow: null,
+    approveType: '',
+    approveTitle: '',
+    approveOpinion: '',
+    showRejectReason: false,
+    rejectReason: '',
+    approveErrors: {},
+    deleteTarget: null,
+    toast: { show: false, msg: '', type: 'success' },
+
+    onRoleChange() { this.currentUser = MOCK_DATA.currentUsers[this.currentRole]; },
+    isEntRole() { return ['ent_admin', 'ent_reporter'].includes(this.currentRole); },
+    statusLabel(s) {
+      const map = {0:'草稿',1:'待核实',2:'待审核',3:'待终审',4:'已入库',5:'核实退回',6:'审核退回',7:'终审退回'};
+      return map[s] || '未知';
+    },
+
+    get filteredList() {
+      let list = this.records;
+      if (this.isEntRole()) list = list.filter(r => r.entName === this.currentUser.entName);
+      if (this.filters.entName) list = list.filter(r => r.entName.includes(this.filters.entName));
+      if (this.filters.region) list = list.filter(r => r.region === this.filters.region);
+      if (this.filters.diseaseName) list = list.filter(r => r.diseaseName.includes(this.filters.diseaseName));
+      if (this.filters.status !== '') list = list.filter(r => r.status == this.filters.status);
+      if (this.filters.dateStart) list = list.filter(r => r.onsetDate >= this.filters.dateStart);
+      if (this.filters.dateEnd) list = list.filter(r => r.onsetDate <= this.filters.dateEnd);
+      return list;
+    },
+
+    get totalPages() { return Math.max(1, Math.ceil(this.filteredList.length / this.pageSize)); },
+    get pagedList() {
+      const start = (this.currentPage - 1) * this.pageSize;
+      return this.filteredList.slice(start, start + this.pageSize);
+    },
+
+    doSearch() { this.currentPage = 1; },
+    resetFilters() { this.filters = { entName:'', region:'', diseaseName:'', status:'', dateStart:'', dateEnd:'' }; this.currentPage = 1; },
+    prevPage() { if (this.currentPage > 1) this.currentPage--; },
+    nextPage() { if (this.currentPage < this.totalPages) this.currentPage++; },
+
+    canAdd() { return ['ent_admin','ent_reporter','county_admin'].includes(this.currentRole); },
+    canEdit(row) {
+      if (this.currentRole === 'county_admin') return true;
+      return ['ent_admin','ent_reporter'].includes(this.currentRole) && [0,5,6,7].includes(row.status);
+    },
+    canSubmit(row) { return ['ent_admin','ent_reporter'].includes(this.currentRole) && [0,5,6,7].includes(row.status); },
+    canWithdraw(row) { return ['ent_admin','ent_reporter'].includes(this.currentRole) && row.status === 1; },
+    canVerify(row) { return this.currentRole === 'town_vet_station' && row.status === 1; },
+    canAudit(row) { return this.currentRole === 'town_gov_staff' && row.status === 2; },
+    canFinalAudit(row) { return this.currentRole === 'county_staff' && row.status === 3; },
+    canDirectStore(row) { return this.currentRole === 'county_admin' && row.status !== 4; },
+    canDelete(row) {
+      if (this.currentRole === 'county_admin') return true;
+      return ['ent_admin','ent_reporter'].includes(this.currentRole) && row.status === 0;
+    },
+
+    openAddModal() {
+      this.formMode = 'add';
+      this.form = { pen:'', onsetDate:'', diseaseName:'', symptoms:'', onsetQty:'', deathQty:'', diagnosis:'', measures:'', vetName:'', treatDate:'', medication:'', remark:'' };
+      this.formErrors = {};
+      this.showFormModal = true;
+    },
+
+    openEditModal(row) {
+      this.formMode = 'edit';
+      this.form = { ...row };
+      this.formErrors = {};
+      this.showFormModal = true;
+    },
+
+    validateForm() {
+      const e = {};
+      if (!this.form.pen) e.pen = '圈舍不能为空';
+      if (!this.form.onsetDate) e.onsetDate = '发病日期不能为空';
+      else if (this.form.onsetDate > this.today) e.onsetDate = '发病日期不能超过今天';
+      if (!this.form.diseaseName) e.diseaseName = '疾病名称不能为空';
+      if (!this.form.symptoms) e.symptoms = '主要症状不能为空';
+      if (!this.form.onsetQty || this.form.onsetQty < 1 || this.form.onsetQty > 9999) e.onsetQty = '发病数量需在1-9999之间';
+      if (this.form.deathQty !== '' && this.form.deathQty !== undefined) {
+        if (Number(this.form.deathQty) < 0 || Number(this.form.deathQty) > 9999) e.deathQty = '死亡数量需在0-9999之间';
+        if (Number(this.form.deathQty) > Number(this.form.onsetQty)) e.deathQty = '死亡数量不能超过发病数量';
+      }
+      this.formErrors = e;
+      return Object.keys(e).length === 0;
+    },
+
+    saveForm() {
+      if (!this.validateForm()) return;
+      if (this.formMode === 'add') {
+        const newRec = { ...this.form, id: Date.now(), entName: this.currentUser.entName || '蓬溪县鑫源生猪养殖有限公司', region: '蓬南镇', reporter: this.currentUser.name, createdAt: new Date().toLocaleString('zh-CN',{hour12:false}).replace(/\//g,'-'), status: 0, rejectReason: '' };
+        this.records.unshift(newRec);
+        this.showToast('新增成功', 'success');
+      } else {
+        const idx = this.records.findIndex(r => r.id === this.form.id);
+        if (idx !== -1) this.records[idx] = { ...this.records[idx], ...this.form };
+        this.showToast('保存成功', 'success');
+      }
+      this.showFormModal = false;
+    },
+
+    openDetail(row) { this.detailRow = row; this.showDetailModal = true; },
+
+    getSteps(row) {
+      if (!row) return [];
+      const s = row.status;
+      const steps = [
+        { label: '企业填报' },
+        { label: '乡镇兽医站核实' },
+        { label: '乡镇政府审核' },
+        { label: '县级终审入库' },
+      ];
+      if (s === 0) { steps[0].state='current'; }
+      else if (s === 1) { steps[0].state='done'; steps[1].state='current'; }
+      else if (s === 2) { steps[0].state='done'; steps[1].state='done'; steps[2].state='current'; }
+      else if (s === 3) { steps[0].state='done'; steps[1].state='done'; steps[2].state='done'; steps[3].state='current'; }
+      else if (s === 4) { steps.forEach(st=>st.state='done'); }
+      else if (s === 5) { steps[0].state='failed'; steps[1].state='failed'; steps[2].state=''; steps[3].state=''; }
+      else if (s === 6) { steps[0].state='failed'; steps[1].state='done'; steps[2].state='failed'; steps[3].state=''; }
+      else if (s === 7) { steps[0].state='failed'; steps[1].state='done'; steps[2].state='done'; steps[3].state='failed'; }
+      return steps;
+    },
+
+    submitRecord(row) {
+      const idx = this.records.findIndex(r => r.id === row.id);
+      if (idx !== -1) { this.records[idx].status = 1; this.records[idx].rejectReason = ''; }
+      this.showToast('提交成功，等待乡镇兽医站核实', 'success');
+    },
+
+    withdrawRecord(row) {
+      const idx = this.records.findIndex(r => r.id === row.id);
+      if (idx !== -1) this.records[idx].status = 0;
+      this.showToast('已撤回', 'success');
+    },
+
+    openApproveModal(row, type) {
+      this.approveRow = row; this.approveType = type;
+      this.approveOpinion = ''; this.rejectReason = '';
+      this.showRejectReason = false; this.approveErrors = {};
+      const titles = { verify:'核实 - 乡镇兽医站', audit:'审核 - 乡镇政府', final:'终审 - 县级' };
+      this.approveTitle = titles[type] || '审批';
+      this.showApproveModal = true;
+    },
+
+    submitApprove() {
+      const idx = this.records.findIndex(r => r.id === this.approveRow.id);
+      if (idx === -1) return;
+      const nextStatus = { verify:2, audit:3, final:4 };
+      this.records[idx].status = nextStatus[this.approveType];
+      this.showApproveModal = false;
+      this.showToast('审批通过', 'success');
+    },
+
+    submitReject() {
+      if (!this.rejectReason.trim()) { this.approveErrors.rejectReason = '退回原因不能为空'; return; }
+      const idx = this.records.findIndex(r => r.id === this.approveRow.id);
+      if (idx === -1) return;
+      const statusMap = { verify:5, audit:6, final:7 };
+      this.records[idx].status = statusMap[this.approveType];
+      this.records[idx].rejectReason = this.rejectReason;
+      this.showApproveModal = false;
+      this.showToast('已退回', 'success');
+    },
+
+    directStore(row) {
+      const idx = this.records.findIndex(r => r.id === row.id);
+      if (idx !== -1) { this.records[idx].status = 4; this.records[idx].rejectReason = ''; }
+      this.showToast('已直接入库（操作留痕）', 'success');
+    },
+
+    deleteRecord(row) { this.deleteTarget = row; this.showDeleteConfirm = true; },
+
+    confirmDelete() {
+      this.records = this.records.filter(r => r.id !== this.deleteTarget.id);
+      this.showDeleteConfirm = false;
+      this.showToast('删除成功', 'success');
+    },
+
+    showToast(msg, type='success') {
+      this.toast = { show: true, msg, type };
+      setTimeout(() => this.toast.show = false, 3000);
+    }
+  };
+}
+</script>
+</body>
+</html>

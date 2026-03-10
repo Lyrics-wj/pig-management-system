@@ -1,0 +1,770 @@
+<!--
+  功能名称：通知公告管理
+  对应PRD：doc_prd/WEB/监管端/智慧监管/工作通知管理/WEB监管端-通知公告管理.prd.md
+  所属端口：WEB监管端
+  所属模块：智慧监管 / 工作通知管理
+  制作日期：2026-03-10
+  最后更新：2026-03-10
+  角色说明：county_admin（县级管理员）、county_staff（县级业务人员）、town_gov_staff（乡镇政府业务人员）、town_vet_station（乡镇畜牧兽医站）、ent_admin（企业管理员）
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>通知公告管理 - 2024年蓬溪县生猪数字化管理平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    /* SHARED STYLES */
+    [x-cloak] { display: none !important; }
+    body { font-size: 14px; }
+    .sidebar-menu a.active { background-color: #1677ff; color: #fff; }
+    .sidebar-menu a:hover:not(.active) { background-color: #e6f4ff; color: #1677ff; }
+    .table-container { overflow-x: auto; }
+    .data-table { min-width: 900px; border-collapse: collapse; width: 100%; }
+    .data-table th { background: #fafafa; color: #595959; font-weight: 600; padding: 10px 12px; border-bottom: 1px solid #e8e8e8; white-space: nowrap; }
+    .data-table td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+    .data-table tr:hover td { background-color: #fafafa; }
+    .data-table tr:nth-child(even) td { background-color: #fafafa; }
+    .data-table tr:nth-child(even):hover td { background-color: #f0f0f0; }
+    .data-table .op-col { position: sticky; right: 0; background: #fff; }
+    .data-table tr:nth-child(even) .op-col { background: #fafafa; }
+    .data-table tr:hover .op-col { background: #fafafa; }
+    .tag { display: inline-block; padding: 1px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+    .btn-primary { background: #1677ff; color: #fff; border: none; padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+    .btn-primary:hover { background: #4096ff; }
+    .btn-default { background: #fff; color: #333; border: 1px solid #d9d9d9; padding: 5px 15px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+    .btn-default:hover { border-color: #1677ff; color: #1677ff; }
+    .btn-link { background: none; border: none; padding: 2px 6px; cursor: pointer; font-size: 12px; }
+    .btn-danger { background: none; border: none; padding: 2px 6px; cursor: pointer; font-size: 12px; color: #ff4d4f; }
+    .form-input { border: 1px solid #d9d9d9; border-radius: 6px; padding: 6px 10px; font-size: 13px; width: 100%; box-sizing: border-box; }
+    .form-input:focus { outline: none; border-color: #1677ff; box-shadow: 0 0 0 2px rgba(22,119,255,0.1); }
+    .form-label { font-size: 13px; color: #333; margin-bottom: 4px; display: block; }
+    .required::before { content: '*'; color: #ff4d4f; margin-right: 4px; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+    .modal-box { background: #fff; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.18); padding: 24px; position: relative; max-height: 90vh; overflow-y: auto; }
+    .error-msg { color: #ff4d4f; font-size: 12px; margin-top: 2px; }
+    .row-unread td { background: #EBF5FF !important; }
+    .row-urgent td { background: #FFF0F0 !important; }
+    .progress-bar-bg { background: #e8e8e8; border-radius: 4px; height: 8px; overflow: hidden; }
+    .progress-bar-fill { background: #1677ff; height: 8px; border-radius: 4px; }
+    .pagination { display: flex; align-items: center; gap: 4px; }
+    .page-btn { border: 1px solid #d9d9d9; background: #fff; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    .page-btn.active { background: #1677ff; color: #fff; border-color: #1677ff; }
+    .page-btn:hover:not(.active) { border-color: #1677ff; color: #1677ff; }
+    .detail-section { margin-bottom: 20px; }
+    .detail-label { color: #8c8c8c; font-size: 13px; }
+    .detail-value { color: #262626; font-size: 13px; }
+    .richtext-render { line-height: 1.8; color: #333; }
+  </style>
+</head>
+<body class="bg-gray-100" x-data="noticeApp()">
+
+<!-- SECTION START: 顶部导航栏 -->
+<header class="fixed top-0 left-0 right-0 h-15 bg-white border-b border-gray-200 flex items-center px-4 z-50" style="height:60px;">
+  <div class="flex items-center gap-3 flex-1">
+    <i class="fa-solid fa-piggy-bank text-blue-500 text-xl"></i>
+    <span class="font-bold text-gray-800 text-base">2024年蓬溪县生猪数字化管理平台</span>
+    <span class="text-gray-300 mx-2">|</span>
+    <span class="text-gray-500 text-sm">智慧监管</span>
+  </div>
+  <div class="flex items-center gap-4">
+    <!-- 未读通知铃铛 -->
+    <div class="relative cursor-pointer" @click="showUnreadBadge=!showUnreadBadge">
+      <i class="fa-solid fa-bell text-gray-500 text-lg"></i>
+      <span x-show="currentUser.role!=='county_admin'&&currentUser.role!=='county_staff'" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1" style="font-size:10px;" x-text="unreadCount"></span>
+    </div>
+    <!-- 角色切换 -->
+    <div class="relative" x-data="{open:false}">
+      <button class="flex items-center gap-2 hover:bg-gray-100 px-3 py-1 rounded-lg" @click="open=!open">
+        <i class="fa-solid fa-user-circle text-blue-500"></i>
+        <span class="text-sm text-gray-700" x-text="currentUser.roleName"></span>
+        <span class="text-xs text-gray-400" x-text="currentUser.name"></span>
+        <i class="fa-solid fa-chevron-down text-xs text-gray-400"></i>
+      </button>
+      <div x-show="open" @click.away="open=false" class="absolute right-0 top-10 bg-white border border-gray-200 rounded-lg shadow-lg z-50 w-52" x-cloak>
+        <div class="px-3 py-2 text-xs text-gray-400 border-b">切换角色</div>
+        <template x-for="u in MOCK_DATA.users" :key="u.id">
+          <button class="w-full text-left px-4 py-2 text-sm hover:bg-blue-50 flex items-center gap-2"
+            :class="currentUser.id===u.id?'text-blue-600 font-medium':'text-gray-700'"
+            @click="switchRole(u);open=false">
+            <i class="fa-solid fa-check text-blue-500 text-xs" x-show="currentUser.id===u.id"></i>
+            <span x-show="currentUser.id!==u.id" class="w-3"></span>
+            <span x-text="u.roleName+' - '+u.name"></span>
+          </button>
+        </template>
+      </div>
+    </div>
+    <button class="btn-default text-xs" @click="alert('退出登录')"><i class="fa-solid fa-right-from-bracket mr-1"></i>退出</button>
+  </div>
+</header>
+<!-- SECTION END: 顶部导航栏 -->
+
+<div class="flex" style="padding-top:60px; min-height:100vh;">
+
+  <!-- SECTION START: 侧边菜单 -->
+  <aside class="fixed left-0 bottom-0 bg-white border-r border-gray-200 overflow-y-auto sidebar-menu" style="top:60px;width:220px;">
+    <div class="py-3">
+      <div class="px-4 py-1 text-xs text-gray-400 font-medium tracking-widest uppercase">智慧监管</div>
+      <a href="#" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 rounded mx-2 active">
+        <i class="fa-solid fa-bullhorn w-4"></i>通知公告管理
+      </a>
+      <a href="WEB监管端-工作任务管理.html" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 rounded mx-2">
+        <i class="fa-solid fa-tasks w-4"></i>工作任务管理
+      </a>
+      <a href="WEB监管端-信息收集管理.html" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 rounded mx-2">
+        <i class="fa-solid fa-database w-4"></i>信息收集管理
+      </a>
+      <a href="WEB监管端-情况总结看板.html" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 rounded mx-2">
+        <i class="fa-solid fa-chart-line w-4"></i>情况总结看板
+      </a>
+    </div>
+  </aside>
+  <!-- SECTION END: 侧边菜单 -->
+
+  <!-- 主内容区 -->
+  <main class="flex-1 flex flex-col" style="margin-left:220px; min-height:calc(100vh - 60px);">
+
+    <!-- 面包屑 -->
+    <div class="bg-white border-b border-gray-200 px-6 py-2 text-xs text-gray-400">
+      <span>智慧监管</span> <span class="mx-1">></span> <span class="text-gray-700">通知公告管理</span>
+    </div>
+
+    <div class="flex-1 p-6 flex flex-col gap-4">
+
+      <!-- SECTION START: 页面标题 + 角色视角说明 -->
+      <div id="feature-header" class="flex items-center justify-between">
+        <h1 class="text-lg font-bold text-gray-800">
+          <span x-show="currentUser.role==='county_admin'||currentUser.role==='county_staff'">我发布的通知</span>
+          <span x-show="currentUser.role!=='county_admin'&&currentUser.role!=='county_staff'">我收到的通知</span>
+        </h1>
+        <button class="btn-primary" x-show="currentUser.role==='county_admin'||currentUser.role==='county_staff'" @click="openAddModal()">
+          <i class="fa-solid fa-plus mr-1"></i>新增
+        </button>
+      </div>
+      <!-- SECTION END: 页面标题 -->
+
+      <!-- SECTION START: 筛选区域 -->
+      <section id="feature-filter" class="bg-white rounded-lg p-4 border border-gray-200">
+        <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div>
+            <label class="form-label text-xs text-gray-500">通知标题</label>
+            <input class="form-input" type="text" placeholder="请输入通知标题" x-model="filter.title">
+          </div>
+          <div>
+            <label class="form-label text-xs text-gray-500">通知类型</label>
+            <select class="form-input" x-model="filter.type">
+              <option value="">全部</option>
+              <option value="1">政策文件</option>
+              <option value="2">工作通知</option>
+              <option value="3">会议通知</option>
+              <option value="4">紧急通知</option>
+            </select>
+          </div>
+          <!-- 发布方筛选 -->
+          <template x-if="currentUser.role==='county_admin'||currentUser.role==='county_staff'">
+            <div>
+              <label class="form-label text-xs text-gray-500">状态</label>
+              <select class="form-input" x-model="filter.status">
+                <option value="">全部</option>
+                <option value="0">草稿</option>
+                <option value="1">已发布</option>
+                <option value="2">已撤回</option>
+              </select>
+            </div>
+          </template>
+          <!-- 接收方筛选 -->
+          <template x-if="currentUser.role!=='county_admin'&&currentUser.role!=='county_staff'">
+            <div>
+              <label class="form-label text-xs text-gray-500">是否已读</label>
+              <select class="form-input" x-model="filter.isRead">
+                <option value="">全部</option>
+                <option value="1">已读</option>
+                <option value="0">未读</option>
+              </select>
+            </div>
+          </template>
+          <div>
+            <label class="form-label text-xs text-gray-500">发布时间</label>
+            <input class="form-input" type="date" x-model="filter.dateFrom">
+          </div>
+        </div>
+        <div class="flex gap-2 mt-3">
+          <button class="btn-primary text-xs" @click="doSearch()"><i class="fa-solid fa-search mr-1"></i>搜索</button>
+          <button class="btn-default text-xs" @click="resetFilter()"><i class="fa-solid fa-rotate-right mr-1"></i>重置</button>
+        </div>
+      </section>
+      <!-- SECTION END: 筛选区域 -->
+
+      <!-- SECTION START: 数据表格 -->
+      <section id="feature-list" class="bg-white rounded-lg border border-gray-200 flex flex-col" style="min-height:400px;">
+        <div class="table-container flex-1">
+          <!-- 发布方视角 -->
+          <template x-if="currentUser.role==='county_admin'||currentUser.role==='county_staff'">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="min-width:200px;">通知标题</th>
+                  <th>通知类型</th>
+                  <th>紧急程度</th>
+                  <th>发布范围</th>
+                  <th>阅读情况</th>
+                  <th>状态</th>
+                  <th>发布时间</th>
+                  <th class="op-col" style="min-width:180px;">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="item in pagedPublisherList" :key="item.notice_id">
+                  <tr>
+                    <td>
+                      <span x-show="item.is_top==='1'" class="mr-1">📌</span>
+                      <span class="truncate max-w-xs inline-block align-middle" :title="item.notice_title" x-text="item.notice_title"></span>
+                    </td>
+                    <td><span class="tag" :class="getTypeClass(item.notice_type)" x-text="getTypeLabel(item.notice_type)"></span></td>
+                    <td><span class="tag" :class="getUrgencyClass(item.urgency_level)" x-text="getUrgencyLabel(item.urgency_level)"></span></td>
+                    <td x-text="getScopeText(item)"></td>
+                    <td>
+                      <span x-text="'已读'+item.read_count+'人/共'+item.total_count+'人'"></span>
+                    </td>
+                    <td><span class="tag" :class="getStatusClass(item.status)" x-text="getStatusLabel(item.status)"></span></td>
+                    <td x-text="item.publish_time||'—'"></td>
+                    <td class="op-col">
+                      <template x-if="item.status==='0'">
+                        <span class="flex gap-1 flex-wrap">
+                          <button class="btn-link text-blue-500" @click="openEditModal(item)">编辑</button>
+                          <button class="btn-link text-green-600" @click="publishNotice(item)">发布</button>
+                          <button class="btn-danger" @click="deleteNotice(item)">删除</button>
+                        </span>
+                      </template>
+                      <template x-if="item.status==='1'">
+                        <span class="flex gap-1 flex-wrap">
+                          <button class="btn-link text-blue-500" @click="viewDetail(item)">查看</button>
+                          <button class="btn-link text-orange-500" @click="revokeNotice(item)">撤回</button>
+                          <button class="btn-link text-purple-600" @click="viewReadDetail(item)">阅读详情</button>
+                        </span>
+                      </template>
+                      <template x-if="item.status==='2'">
+                        <span class="flex gap-1 flex-wrap">
+                          <button class="btn-link text-blue-500" @click="viewDetail(item)">查看</button>
+                          <button class="btn-danger" @click="deleteNotice(item)">删除</button>
+                        </span>
+                      </template>
+                    </td>
+                  </tr>
+                </template>
+                <tr x-show="pagedPublisherList.length===0">
+                  <td colspan="8" class="text-center text-gray-400 py-8">暂无数据</td>
+                </tr>
+              </tbody>
+            </table>
+          </template>
+
+          <!-- 接收方视角 -->
+          <template x-if="currentUser.role!=='county_admin'&&currentUser.role!=='county_staff'">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="min-width:200px;">通知标题</th>
+                  <th>通知类型</th>
+                  <th>紧急程度</th>
+                  <th>发布单位</th>
+                  <th>发布人</th>
+                  <th>发布时间</th>
+                  <th>是否已读</th>
+                  <th class="op-col" style="min-width:80px;">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="item in pagedReceiverList" :key="item.notice_id">
+                  <tr :class="getReceiverRowClass(item)">
+                    <td>
+                      <span x-show="item.is_top==='1'" class="mr-1">📌</span>
+                      <span class="truncate max-w-xs inline-block align-middle" :title="item.notice_title" x-text="item.notice_title"></span>
+                    </td>
+                    <td><span class="tag" :class="getTypeClass(item.notice_type)" x-text="getTypeLabel(item.notice_type)"></span></td>
+                    <td><span class="tag" :class="getUrgencyClass(item.urgency_level)" x-text="getUrgencyLabel(item.urgency_level)"></span></td>
+                    <td x-text="item.publish_dept"></td>
+                    <td x-text="item.create_by_name"></td>
+                    <td x-text="item.publish_time"></td>
+                    <td>
+                      <span class="tag" :class="item.is_read==='1'?'bg-green-100 text-green-700':'bg-blue-100 text-blue-700'" x-text="item.is_read==='1'?'已读':'未读'"></span>
+                    </td>
+                    <td class="op-col">
+                      <button class="btn-link text-blue-500" @click="viewDetailReceiver(item)">查看</button>
+                    </td>
+                  </tr>
+                </template>
+                <tr x-show="pagedReceiverList.length===0">
+                  <td colspan="8" class="text-center text-gray-400 py-8">暂无数据</td>
+                </tr>
+              </tbody>
+            </table>
+          </template>
+        </div>
+
+        <!-- 分页器 -->
+        <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+          <span class="text-xs text-gray-400">
+            共 <span x-text="currentUser.role==='county_admin'||currentUser.role==='county_staff' ? filteredPublisherList.length : filteredReceiverList.length"></span> 条
+          </span>
+          <div class="pagination">
+            <button class="page-btn" :disabled="page===1" @click="page=Math.max(1,page-1)"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+            <template x-for="p in totalPages" :key="p">
+              <button class="page-btn" :class="p===page?'active':''" @click="page=p" x-text="p"></button>
+            </template>
+            <button class="page-btn" :disabled="page===totalPages" @click="page=Math.min(totalPages,page+1)"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+            <span class="text-xs text-gray-400 ml-2">每页
+              <select class="form-input inline-block w-16 py-1 text-xs" x-model.number="pageSize" @change="page=1">
+                <option>10</option><option>20</option><option>50</option>
+              </select>
+            </span>
+          </div>
+        </div>
+      </section>
+      <!-- SECTION END: 数据表格 -->
+
+    </div>
+  </main>
+</div>
+
+<!-- SECTION START: 新增/编辑通知弹窗 -->
+<div id="feature-add-modal" class="modal-overlay" x-show="showFormModal" x-cloak @click.self="confirmClose()">
+  <div class="modal-box" style="width:min(720px,95vw);">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-base font-bold text-gray-800" x-text="editItem?'编辑通知':'新增通知'"></h2>
+      <button @click="confirmClose()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    <form @submit.prevent="submitForm()">
+      <div class="grid grid-cols-2 gap-4">
+        <div class="col-span-2">
+          <label class="form-label required">通知标题</label>
+          <input class="form-input" type="text" placeholder="请输入通知标题（最多100字）" x-model="form.notice_title" maxlength="100">
+          <p class="error-msg" x-show="errors.notice_title" x-text="errors.notice_title"></p>
+        </div>
+        <div>
+          <label class="form-label required">通知类型</label>
+          <select class="form-input" x-model="form.notice_type">
+            <option value="">请选择通知类型</option>
+            <option value="1">政策文件</option>
+            <option value="2">工作通知</option>
+            <option value="3">会议通知</option>
+            <option value="4">紧急通知</option>
+          </select>
+          <p class="error-msg" x-show="errors.notice_type" x-text="errors.notice_type"></p>
+        </div>
+        <div>
+          <label class="form-label required">紧急程度</label>
+          <select class="form-input" x-model="form.urgency_level">
+            <option value="">请选择紧急程度</option>
+            <option value="0">普通</option>
+            <option value="1">重要</option>
+            <option value="2">紧急</option>
+          </select>
+          <p class="error-msg" x-show="errors.urgency_level" x-text="errors.urgency_level"></p>
+        </div>
+        <div class="col-span-2">
+          <label class="form-label required">通知内容</label>
+          <textarea class="form-input" rows="5" placeholder="请输入通知内容（支持富文本，此处用文本域模拟）" x-model="form.notice_content"></textarea>
+          <p class="error-msg" x-show="errors.notice_content" x-text="errors.notice_content"></p>
+        </div>
+        <div class="col-span-2">
+          <label class="form-label">附件</label>
+          <div class="border border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-blue-400" @click="alert('文件选择框（原型模拟）')">
+            <i class="fa-solid fa-cloud-arrow-up text-gray-300 text-2xl"></i>
+            <p class="text-xs text-gray-400 mt-1">点击上传附件（单文件≤20MB，总计≤100MB）</p>
+          </div>
+        </div>
+        <div class="col-span-2">
+          <label class="form-label required">发布范围</label>
+          <div class="flex gap-4 mt-1">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" x-model="form.scope_type" value="0"> 全部
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" x-model="form.scope_type" value="1"> 按机构
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" x-model="form.scope_type" value="2"> 按人员
+            </label>
+          </div>
+          <p class="error-msg" x-show="errors.scope_type" x-text="errors.scope_type"></p>
+        </div>
+        <!-- 按机构 -->
+        <template x-if="form.scope_type==='1'">
+          <div class="col-span-2">
+            <label class="form-label required">选择目标机构</label>
+            <div class="border border-gray-200 rounded-lg p-3 bg-gray-50">
+              <template x-for="dept in MOCK_DATA.depts" :key="dept.id">
+                <label class="flex items-center gap-2 text-sm cursor-pointer mb-1">
+                  <input type="checkbox" :value="dept.id" x-model="form.scope_value_arr">
+                  <span x-text="dept.name"></span>
+                </label>
+              </template>
+            </div>
+            <p class="error-msg" x-show="errors.scope_value" x-text="errors.scope_value"></p>
+          </div>
+        </template>
+        <!-- 按人员 -->
+        <template x-if="form.scope_type==='2'">
+          <div class="col-span-2">
+            <label class="form-label required">选择目标人员</label>
+            <div class="border border-gray-200 rounded-lg p-3 bg-gray-50 grid grid-cols-2 gap-1">
+              <template x-for="user in MOCK_DATA.receiverUsers" :key="user.id">
+                <label class="flex items-center gap-2 text-sm cursor-pointer">
+                  <input type="checkbox" :value="user.id" x-model="form.scope_value_arr">
+                  <span x-text="user.name+'（'+user.deptName+'）'"></span>
+                </label>
+              </template>
+            </div>
+            <p class="error-msg" x-show="errors.scope_value" x-text="errors.scope_value"></p>
+          </div>
+        </template>
+        <div class="flex items-center gap-3">
+          <label class="form-label mb-0">是否短信通知</label>
+          <div class="relative inline-flex items-center cursor-pointer" @click="form.is_sms_notify=form.is_sms_notify==='1'?'0':'1'">
+            <div class="w-10 h-5 rounded-full transition-colors" :class="form.is_sms_notify==='1'?'bg-blue-500':'bg-gray-300'"></div>
+            <div class="absolute left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform" :style="form.is_sms_notify==='1'?'transform:translateX(20px)':''"></div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <label class="form-label mb-0">是否置顶</label>
+          <div class="relative inline-flex items-center cursor-pointer" @click="form.is_top=form.is_top==='1'?'0':'1'">
+            <div class="w-10 h-5 rounded-full transition-colors" :class="form.is_top==='1'?'bg-blue-500':'bg-gray-300'"></div>
+            <div class="absolute left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform" :style="form.is_top==='1'?'transform:translateX(20px)':''"></div>
+          </div>
+        </div>
+        <template x-if="form.is_top==='1'">
+          <div class="col-span-2">
+            <label class="form-label required">置顶截止时间</label>
+            <input class="form-input" type="datetime-local" x-model="form.top_expire_time">
+            <p class="error-msg" x-show="errors.top_expire_time" x-text="errors.top_expire_time"></p>
+          </div>
+        </template>
+      </div>
+      <div class="flex gap-3 mt-6 pt-4 border-t border-gray-100 justify-end">
+        <button type="button" class="btn-default" @click="confirmClose()">取消</button>
+        <button type="button" class="btn-default" @click="submitForm('draft')">保存草稿</button>
+        <button type="submit" class="btn-primary">发布</button>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- SECTION END: 新增/编辑通知弹窗 -->
+
+<!-- SECTION START: 通知详情弹窗 -->
+<div id="feature-detail" class="modal-overlay" x-show="showDetailModal" x-cloak @click.self="showDetailModal=false">
+  <div class="modal-box" style="width:min(760px,95vw);">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-base font-bold text-gray-800">通知详情</h2>
+      <button @click="showDetailModal=false" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    <template x-if="detailItem">
+      <div>
+        <div class="mb-4">
+          <h3 class="text-xl font-bold text-gray-800 mb-2" x-text="detailItem.notice_title"></h3>
+          <div class="flex gap-2 flex-wrap">
+            <span class="tag" :class="getTypeClass(detailItem.notice_type)" x-text="getTypeLabel(detailItem.notice_type)"></span>
+            <span class="tag" :class="getUrgencyClass(detailItem.urgency_level)" x-text="getUrgencyLabel(detailItem.urgency_level)"></span>
+          </div>
+        </div>
+        <div class="bg-gray-50 rounded-lg p-4 mb-4 grid grid-cols-3 gap-3">
+          <div><span class="detail-label">发布单位：</span><span class="detail-value" x-text="detailItem.publish_dept||'蓬溪县农业农村局'"></span></div>
+          <div><span class="detail-label">发布人：</span><span class="detail-value" x-text="detailItem.create_by_name||'—'"></span></div>
+          <div><span class="detail-label">发布时间：</span><span class="detail-value" x-text="detailItem.publish_time||'—'"></span></div>
+        </div>
+        <div class="detail-section">
+          <div class="font-medium text-gray-700 mb-2">通知内容</div>
+          <div class="richtext-render bg-gray-50 rounded-lg p-4" x-text="detailItem.notice_content"></div>
+        </div>
+        <div class="detail-section">
+          <div class="font-medium text-gray-700 mb-2">附件</div>
+          <div class="text-gray-400 text-sm">暂无附件</div>
+        </div>
+      </div>
+    </template>
+    <div class="flex justify-end mt-4 pt-4 border-t border-gray-100">
+      <button class="btn-default" @click="showDetailModal=false">返回</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 通知详情弹窗 -->
+
+<!-- SECTION START: 阅读详情弹窗 -->
+<div id="feature-read-detail" class="modal-overlay" x-show="showReadDetailModal" x-cloak @click.self="showReadDetailModal=false">
+  <div class="modal-box" style="width:min(680px,95vw);">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-base font-bold text-gray-800">阅读详情 - <span x-text="readDetailNotice&&readDetailNotice.notice_title"></span></h2>
+      <button @click="showReadDetailModal=false" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    <template x-if="readDetailNotice">
+      <div>
+        <div class="flex items-center gap-4 mb-4 bg-blue-50 rounded-lg p-3">
+          <div class="text-center">
+            <div class="text-2xl font-bold text-blue-600" x-text="readDetailNotice.read_count+'/'+ readDetailNotice.total_count"></div>
+            <div class="text-xs text-gray-500">已读人数/总人数</div>
+          </div>
+          <div class="flex-1">
+            <div class="flex justify-between text-xs text-gray-500 mb-1">
+              <span>阅读率</span>
+              <span x-text="readDetailNotice.total_count>0?Math.round(readDetailNotice.read_count/readDetailNotice.total_count*100)+'%':'0%'"></span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" :style="'width:'+( readDetailNotice.total_count>0?(readDetailNotice.read_count/readDetailNotice.total_count*100):0)+'%'"></div>
+            </div>
+          </div>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>接收人姓名</th>
+                <th>所属机构</th>
+                <th>阅读状态</th>
+                <th>阅读时间</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="r in MOCK_DATA.readRecords" :key="r.user_id">
+                <tr>
+                  <td x-text="r.name"></td>
+                  <td x-text="r.dept"></td>
+                  <td><span class="tag" :class="r.is_read==='1'?'bg-green-100 text-green-700':'bg-gray-100 text-gray-500'" x-text="r.is_read==='1'?'已读':'未读'"></span></td>
+                  <td x-text="r.read_time||'—'"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </template>
+    <div class="flex justify-end mt-4 pt-4 border-t border-gray-100">
+      <button class="btn-default" @click="showReadDetailModal=false">关闭</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 阅读详情弹窗 -->
+
+<script>
+const MOCK_DATA = {
+  users: [
+    { id: 1, username: 'county_admin', password: '123456', role: 'county_admin', roleName: '县级管理员', name: '李主任', deptName: '蓬溪县农业农村局' },
+    { id: 2, username: 'county_staff', password: '123456', role: 'county_staff', roleName: '县级业务人员', name: '王科员', deptName: '蓬溪县农业农村局' },
+    { id: 3, username: 'town_gov', password: '123456', role: 'town_gov_staff', roleName: '乡镇政府业务人员', name: '张镇长', deptName: '蓬溪镇人民政府' },
+    { id: 4, username: 'town_vet', password: '123456', role: 'town_vet_station', roleName: '乡镇畜牧兽医站', name: '刘站长', deptName: '蓬溪镇畜牧兽医站' },
+    { id: 5, username: 'ent_admin', password: '123456', role: 'ent_admin', roleName: '企业管理员', name: '陈经理', deptName: '蓬溪县鑫源养殖场' }
+  ],
+  depts: [
+    { id: 101, name: '蓬溪镇人民政府' },
+    { id: 102, name: '新会镇人民政府' },
+    { id: 103, name: '明月镇人民政府' },
+    { id: 104, name: '蓬溪镇畜牧兽医站' },
+    { id: 105, name: '新会镇畜牧兽医站' },
+    { id: 106, name: '明月镇畜牧兽医站' }
+  ],
+  receiverUsers: [
+    { id: 3, name: '张镇长', deptName: '蓬溪镇人民政府' },
+    { id: 4, name: '刘站长', deptName: '蓬溪镇畜牧兽医站' },
+    { id: 5, name: '陈经理', deptName: '蓬溪县鑫源养殖场' },
+    { id: 6, name: '赵主任', deptName: '新会镇人民政府' },
+    { id: 7, name: '孙站长', deptName: '新会镇畜牧兽医站' }
+  ],
+  publisherNotices: [
+    { notice_id: 1, notice_title: '关于开展2026年春季生猪防疫专项检查工作的通知', notice_type: '2', urgency_level: '1', scope_type: '0', scope_value: null, is_sms_notify: '0', is_top: '1', top_expire_time: '2026-04-01 00:00:00', status: '1', publish_time: '2026-03-01 09:00', create_by: 'county_admin', create_by_name: '李主任', publish_dept: '蓬溪县农业农村局', read_count: 18, total_count: 25, notice_content: '各乡镇人民政府、各畜牧兽医站、各养殖企业：\n\n根据省、市部署，决定开展2026年春季生猪防疫专项检查工作。请各单位于2026年3月15日前，完成辖区内生猪养殖场所的防疫档案核查工作，并将结果汇报至县农业农村局。\n\n蓬溪县农业农村局\n2026年3月1日' },
+    { notice_id: 2, notice_title: '蓬溪县2026年生猪产业发展政策文件汇编', notice_type: '1', urgency_level: '0', scope_type: '1', scope_value: '[101,102,103]', is_sms_notify: '0', is_top: '0', top_expire_time: null, status: '1', publish_time: '2026-02-20 14:30', create_by: 'county_staff', create_by_name: '王科员', publish_dept: '蓬溪县农业农村局', read_count: 6, total_count: 10, notice_content: '根据国家和省市相关政策，现将2026年生猪产业发展主要政策文件汇编如下，请各机构认真学习贯彻。' },
+    { notice_id: 3, notice_title: '关于组织召开2026年第一季度生猪养殖工作推进会的通知', notice_type: '3', urgency_level: '0', scope_type: '2', scope_value: '[3,4,5]', is_sms_notify: '1', is_top: '0', top_expire_time: null, status: '1', publish_time: '2026-03-05 10:15', create_by: 'county_admin', create_by_name: '李主任', publish_dept: '蓬溪县农业农村局', read_count: 2, total_count: 3, notice_content: '各有关单位：\n\n定于2026年3月20日（周五）上午9:00，在县农业农村局四楼会议室召开2026年第一季度生猪养殖工作推进会，请各参会单位准时参会。' },
+    { notice_id: 4, notice_title: '紧急通知：关于非洲猪瘟疫情防控紧急应对措施', notice_type: '4', urgency_level: '2', scope_type: '0', scope_value: null, is_sms_notify: '1', is_top: '0', top_expire_time: null, status: '1', publish_time: '2026-02-28 16:00', create_by: 'county_admin', create_by_name: '李主任', publish_dept: '蓬溪县农业农村局', read_count: 22, total_count: 25, notice_content: '紧急通知：近期邻近县市发现非洲猪瘟疫情，请各养殖主体立即启动防控预案，加强消毒和检测工作。' },
+    { notice_id: 5, notice_title: '关于2026年生猪养殖补贴申报工作安排的通知', notice_type: '2', urgency_level: '0', scope_type: '0', scope_value: null, is_sms_notify: '0', is_top: '0', top_expire_time: null, status: '1', publish_time: '2026-01-15 09:30', create_by: 'county_staff', create_by_name: '王科员', publish_dept: '蓬溪县农业农村局', read_count: 20, total_count: 25, notice_content: '各养殖主体：\n\n2026年生猪养殖补贴申报工作现已开始，请各符合条件的养殖主体于2026年2月28日前提交申报材料。' },
+    { notice_id: 6, notice_title: '关于开展生猪粪污无害化处理专项督查的工作通知（草稿）', notice_type: '2', urgency_level: '1', scope_type: '1', scope_value: '[101,102]', is_sms_notify: '0', is_top: '0', top_expire_time: null, status: '0', publish_time: null, create_by: 'county_staff', create_by_name: '王科员', publish_dept: '蓬溪县农业农村局', read_count: 0, total_count: 0, notice_content: '（草稿内容，待修改）' },
+    { notice_id: 7, notice_title: '已撤回：关于试行生猪数字化档案管理的通知', notice_type: '2', urgency_level: '0', scope_type: '0', scope_value: null, is_sms_notify: '0', is_top: '0', top_expire_time: null, status: '2', publish_time: '2026-01-10 11:00', create_by: 'county_admin', create_by_name: '李主任', publish_dept: '蓬溪县农业农村局', read_count: 15, total_count: 25, notice_content: '（已撤回）' },
+    { notice_id: 8, notice_title: '关于加强规模养殖场环保设施配置的相关要求（草稿）', notice_type: '1', urgency_level: '0', scope_type: '0', scope_value: null, is_sms_notify: '0', is_top: '0', top_expire_time: null, status: '0', publish_time: null, create_by: 'county_admin', create_by_name: '李主任', publish_dept: '蓬溪县农业农村局', read_count: 0, total_count: 0, notice_content: '（草稿）' }
+  ],
+  receiverNotices: [
+    { notice_id: 1, notice_title: '关于开展2026年春季生猪防疫专项检查工作的通知', notice_type: '2', urgency_level: '1', scope_type: '0', is_top: '1', publish_dept: '蓬溪县农业农村局', create_by_name: '李主任', publish_time: '2026-03-01 09:00', is_read: '0' },
+    { notice_id: 4, notice_title: '紧急通知：关于非洲猪瘟疫情防控紧急应对措施', notice_type: '4', urgency_level: '2', scope_type: '0', is_top: '0', publish_dept: '蓬溪县农业农村局', create_by_name: '李主任', publish_time: '2026-02-28 16:00', is_read: '0' },
+    { notice_id: 3, notice_title: '关于组织召开2026年第一季度生猪养殖工作推进会的通知', notice_type: '3', urgency_level: '0', scope_type: '2', is_top: '0', publish_dept: '蓬溪县农业农村局', create_by_name: '李主任', publish_time: '2026-03-05 10:15', is_read: '0' },
+    { notice_id: 5, notice_title: '关于2026年生猪养殖补贴申报工作安排的通知', notice_type: '2', urgency_level: '0', scope_type: '0', is_top: '0', publish_dept: '蓬溪县农业农村局', create_by_name: '王科员', publish_time: '2026-01-15 09:30', is_read: '1' },
+    { notice_id: 2, notice_title: '蓬溪县2026年生猪产业发展政策文件汇编', notice_type: '1', urgency_level: '0', scope_type: '1', is_top: '0', publish_dept: '蓬溪县农业农村局', create_by_name: '王科员', publish_time: '2026-02-20 14:30', is_read: '1' }
+  ],
+  readRecords: [
+    { user_id: 3, name: '张镇长', dept: '蓬溪镇人民政府', is_read: '1', read_time: '2026-03-01 09:42' },
+    { user_id: 4, name: '刘站长', dept: '蓬溪镇畜牧兽医站', is_read: '1', read_time: '2026-03-01 10:05' },
+    { user_id: 5, name: '陈经理', dept: '蓬溪县鑫源养殖场', is_read: '0', read_time: null },
+    { user_id: 6, name: '赵主任', dept: '新会镇人民政府', is_read: '1', read_time: '2026-03-02 08:30' },
+    { user_id: 7, name: '孙站长', dept: '新会镇畜牧兽医站', is_read: '0', read_time: null },
+    { user_id: 8, name: '李场长', dept: '明月镇养殖场', is_read: '1', read_time: '2026-03-01 14:20' },
+    { user_id: 9, name: '周主任', dept: '明月镇人民政府', is_read: '0', read_time: null },
+    { user_id: 10, name: '吴科员', dept: '明月镇畜牧兽医站', is_read: '1', read_time: '2026-03-03 09:10' }
+  ]
+};
+
+function noticeApp() {
+  return {
+    MOCK_DATA,
+    currentUser: MOCK_DATA.users[0],
+    unreadCount: 3,
+
+    // 筛选
+    filter: { title: '', type: '', status: '', isRead: '', dateFrom: '' },
+
+    // 分页
+    page: 1,
+    pageSize: 10,
+
+    // 弹窗状态
+    showFormModal: false,
+    showDetailModal: false,
+    showReadDetailModal: false,
+    editItem: null,
+    detailItem: null,
+    readDetailNotice: null,
+
+    // 表单
+    form: {},
+    errors: {},
+
+    switchRole(u) {
+      this.currentUser = u;
+      this.page = 1;
+      this.filter = { title: '', type: '', status: '', isRead: '', dateFrom: '' };
+    },
+
+    get filteredPublisherList() {
+      let list = MOCK_DATA.publisherNotices;
+      if (this.filter.title) list = list.filter(n => n.notice_title.includes(this.filter.title));
+      if (this.filter.type) list = list.filter(n => n.notice_type === this.filter.type);
+      if (this.filter.status) list = list.filter(n => n.status === this.filter.status);
+      return list;
+    },
+    get filteredReceiverList() {
+      let list = MOCK_DATA.receiverNotices;
+      if (this.filter.title) list = list.filter(n => n.notice_title.includes(this.filter.title));
+      if (this.filter.type) list = list.filter(n => n.notice_type === this.filter.type);
+      if (this.filter.isRead !== '') list = list.filter(n => n.is_read === this.filter.isRead);
+      return list;
+    },
+    get totalPages() {
+      const total = (this.currentUser.role==='county_admin'||this.currentUser.role==='county_staff')
+        ? this.filteredPublisherList.length : this.filteredReceiverList.length;
+      return Math.max(1, Math.ceil(total / this.pageSize));
+    },
+    get pagedPublisherList() {
+      return this.filteredPublisherList.slice((this.page-1)*this.pageSize, this.page*this.pageSize);
+    },
+    get pagedReceiverList() {
+      return this.filteredReceiverList.slice((this.page-1)*this.pageSize, this.page*this.pageSize);
+    },
+
+    doSearch() { this.page = 1; },
+    resetFilter() { this.filter = { title: '', type: '', status: '', isRead: '', dateFrom: '' }; this.page=1; },
+
+    openAddModal() {
+      this.editItem = null;
+      this.form = { notice_title:'', notice_type:'', urgency_level:'', notice_content:'', scope_type:'0', scope_value_arr:[], is_sms_notify:'0', is_top:'0', top_expire_time:'' };
+      this.errors = {};
+      this.showFormModal = true;
+    },
+    openEditModal(item) {
+      this.editItem = item;
+      this.form = { ...item, scope_value_arr: item.scope_value ? JSON.parse(item.scope_value) : [] };
+      this.errors = {};
+      this.showFormModal = true;
+    },
+    confirmClose() {
+      if (confirm('确认关闭？未保存的内容将丢失。')) this.showFormModal = false;
+    },
+    validate() {
+      this.errors = {};
+      if (!this.form.notice_title) this.errors.notice_title = '请输入通知标题';
+      if (this.form.notice_title && this.form.notice_title.length > 100) this.errors.notice_title = '通知标题不能超过100个字符';
+      if (!this.form.notice_type) this.errors.notice_type = '请选择通知类型';
+      if (!this.form.urgency_level && this.form.urgency_level !== '0') this.errors.urgency_level = '请选择紧急程度';
+      if (!this.form.notice_content) this.errors.notice_content = '请输入通知内容';
+      if (!this.form.scope_type) this.errors.scope_type = '请选择发布范围';
+      if (this.form.scope_type==='1' && this.form.scope_value_arr.length===0) this.errors.scope_value = '请选择目标机构';
+      if (this.form.scope_type==='2' && this.form.scope_value_arr.length===0) this.errors.scope_value = '请选择目标人员';
+      if (this.form.is_top==='1' && !this.form.top_expire_time) this.errors.top_expire_time = '请选择置顶截止时间';
+      return Object.keys(this.errors).length === 0;
+    },
+    submitForm(mode) {
+      if (!this.validate()) return;
+      const isDraft = mode === 'draft';
+      const msg = isDraft ? '草稿保存成功！' : '通知发布成功！';
+      if (this.editItem) {
+        const idx = MOCK_DATA.publisherNotices.findIndex(n => n.notice_id === this.editItem.notice_id);
+        if (idx > -1) {
+          MOCK_DATA.publisherNotices[idx] = { ...MOCK_DATA.publisherNotices[idx], ...this.form, status: isDraft ? '0' : '1', publish_time: isDraft ? null : '2026-03-10 ' + new Date().toTimeString().slice(0,5) };
+        }
+      } else {
+        const newId = Math.max(...MOCK_DATA.publisherNotices.map(n=>n.notice_id)) + 1;
+        MOCK_DATA.publisherNotices.push({ ...this.form, notice_id: newId, status: isDraft ? '0' : '1', publish_time: isDraft ? null : '2026-03-10 ' + new Date().toTimeString().slice(0,5), create_by: this.currentUser.username, create_by_name: this.currentUser.name, publish_dept: this.currentUser.deptName, read_count: 0, total_count: isDraft ? 0 : this.form.scope_value_arr.length || 25 });
+      }
+      alert(msg);
+      this.showFormModal = false;
+    },
+    publishNotice(item) {
+      if (confirm('确认发布此通知？')) {
+        item.status = '1';
+        item.publish_time = '2026-03-10 ' + new Date().toTimeString().slice(0,5);
+        item.total_count = 25;
+        alert('通知发布成功！');
+      }
+    },
+    revokeNotice(item) {
+      if (confirm('确认撤回该通知？撤回后接收方将无法查看此通知。')) {
+        item.status = '2';
+        alert('通知已撤回。');
+      }
+    },
+    deleteNotice(item) {
+      if (confirm(`确认删除通知「${item.notice_title}」吗？`)) {
+        const idx = MOCK_DATA.publisherNotices.indexOf(item);
+        if (idx > -1) MOCK_DATA.publisherNotices.splice(idx, 1);
+        alert('删除成功！');
+      }
+    },
+    viewDetail(item) {
+      this.detailItem = item;
+      this.showDetailModal = true;
+    },
+    viewDetailReceiver(item) {
+      this.detailItem = item;
+      item.is_read = '1';
+      this.unreadCount = Math.max(0, this.unreadCount - 1);
+      this.showDetailModal = true;
+    },
+    viewReadDetail(item) {
+      this.readDetailNotice = item;
+      this.showReadDetailModal = true;
+    },
+
+    getTypeLabel(t) { return {1:'政策文件',2:'工作通知',3:'会议通知',4:'紧急通知'}[t]||t; },
+    getTypeClass(t) { return {1:'bg-purple-100 text-purple-700',2:'bg-blue-100 text-blue-700',3:'bg-indigo-100 text-indigo-700',4:'bg-red-100 text-red-700'}[t]||'bg-gray-100 text-gray-600'; },
+    getUrgencyLabel(l) { return {0:'普通',1:'重要',2:'紧急'}[l]||l; },
+    getUrgencyClass(l) { return {0:'bg-gray-100 text-gray-500',1:'bg-orange-100 text-orange-700',2:'bg-red-100 text-red-700'}[l]||'bg-gray-100 text-gray-500'; },
+    getStatusLabel(s) { return {0:'草稿',1:'已发布',2:'已撤回'}[s]||s; },
+    getStatusClass(s) { return {0:'bg-gray-100 text-gray-500',1:'bg-green-100 text-green-700',2:'bg-red-100 text-red-600'}[s]||'bg-gray-100 text-gray-500'; },
+    getScopeText(item) {
+      if (item.scope_type==='0') return '全部';
+      if (item.scope_type==='1') {
+        const arr = item.scope_value ? JSON.parse(item.scope_value) : [];
+        return arr.length + '个机构';
+      }
+      if (item.scope_type==='2') {
+        const arr = item.scope_value ? JSON.parse(item.scope_value) : [];
+        return arr.length + '人';
+      }
+      return '—';
+    },
+    getReceiverRowClass(item) {
+      if (item.urgency_level === '2') return 'row-urgent';
+      if (item.is_read === '0') return 'row-unread';
+      return '';
+    }
+  };
+}
+</script>
+</body>
+</html>

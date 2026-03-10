@@ -1,0 +1,405 @@
+<!--
+  功能名称：情况总结看板
+  对应PRD：doc_prd/WEB/监管端/智慧监管/工作通知管理/WEB监管端-情况总结看板.prd.md
+  所属端口：WEB监管端
+  所属模块：智慧监管 / 工作通知管理
+  制作日期：2026-03-10
+  最后更新：2026-03-10
+  角色说明：county_admin（县级管理员）、county_staff（县级业务人员）—— 仅此二角色可访问
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>情况总结看板 - 2024年蓬溪县生猪数字化管理平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* SHARED STYLES */
+    [x-cloak] { display: none !important; }
+    body { font-size: 14px; }
+    .sidebar-menu a.active { background-color: #1677ff; color: #fff; }
+    .sidebar-menu a:hover:not(.active) { background-color: #e6f4ff; color: #1677ff; }
+    .stat-card { border-radius: 12px; padding: 20px; position: relative; overflow: hidden; }
+    .stat-card .icon { position: absolute; right: 16px; top: 16px; font-size: 2.5rem; opacity: 0.15; }
+    .data-table { border-collapse: collapse; width: 100%; }
+    .data-table th { background: #fafafa; color: #595959; font-weight: 600; padding: 10px 12px; border-bottom: 1px solid #e8e8e8; white-space: nowrap; font-size: 13px; }
+    .data-table td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; font-size: 13px; }
+    .data-table tr:hover td { background-color: #fafafa; }
+    .tag { display: inline-block; padding: 1px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+    .btn-primary { background: #1677ff; color: #fff; border: none; padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+    .btn-primary:hover { background: #4096ff; }
+    .btn-default { background: #fff; color: #333; border: 1px solid #d9d9d9; padding: 5px 15px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+    .btn-default:hover { border-color: #1677ff; color: #1677ff; }
+    .form-input { border: 1px solid #d9d9d9; border-radius: 6px; padding: 5px 10px; font-size: 13px; }
+    .row-low-rate td { background: #FFF0F0 !important; }
+    .progress-bar-bg { background: #e8e8e8; border-radius: 4px; height: 6px; overflow: hidden; display: inline-block; width: 60px; vertical-align: middle; }
+    .progress-bar-fill { background: #1677ff; height: 6px; border-radius: 4px; }
+    .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%); background-size: 200% 100%; animation: skeleton-shimmer 1.5s infinite; border-radius: 8px; }
+    @keyframes skeleton-shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+    .pagination { display: flex; align-items: center; gap: 4px; }
+    .page-btn { border: 1px solid #d9d9d9; background: #fff; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    .page-btn.active { background: #1677ff; color: #fff; border-color: #1677ff; }
+    .page-btn:hover:not(.active) { border-color: #1677ff; color: #1677ff; }
+    .rank-badge { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; font-size: 12px; font-weight: bold; }
+  </style>
+</head>
+<body class="bg-gray-100" x-data="dashboardApp()" x-init="init()">
+
+<!-- SECTION START: 顶部导航栏 -->
+<header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 flex items-center px-4 z-50" style="height:60px;">
+  <div class="flex items-center gap-3 flex-1">
+    <i class="fa-solid fa-piggy-bank text-blue-500 text-xl"></i>
+    <span class="font-bold text-gray-800 text-base">2024年蓬溪县生猪数字化管理平台</span>
+    <span class="text-gray-300 mx-2">|</span>
+    <span class="text-gray-500 text-sm">智慧监管</span>
+  </div>
+  <div class="flex items-center gap-4">
+    <div class="relative" x-data="{open:false}">
+      <button class="flex items-center gap-2 hover:bg-gray-100 px-3 py-1 rounded-lg" @click="open=!open">
+        <i class="fa-solid fa-user-circle text-blue-500"></i>
+        <span class="text-sm text-gray-700" x-text="currentUser.roleName"></span>
+        <span class="text-xs text-gray-400" x-text="currentUser.name"></span>
+        <i class="fa-solid fa-chevron-down text-xs text-gray-400"></i>
+      </button>
+      <div x-show="open" @click.away="open=false" class="absolute right-0 top-10 bg-white border border-gray-200 rounded-lg shadow-lg z-50 w-52" x-cloak>
+        <div class="px-3 py-2 text-xs text-gray-400 border-b">切换角色</div>
+        <template x-for="u in MOCK_DATA.users" :key="u.id">
+          <button class="w-full text-left px-4 py-2 text-sm hover:bg-blue-50 flex items-center gap-2"
+            :class="currentUser.id===u.id?'text-blue-600 font-medium':'text-gray-700'"
+            @click="switchRole(u);open=false">
+            <i class="fa-solid fa-check text-blue-500 text-xs" x-show="currentUser.id===u.id"></i>
+            <span x-show="currentUser.id!==u.id" class="w-3"></span>
+            <span x-text="u.roleName+' - '+u.name"></span>
+          </button>
+        </template>
+      </div>
+    </div>
+    <button class="btn-default text-xs" @click="alert('退出登录')"><i class="fa-solid fa-right-from-bracket mr-1"></i>退出</button>
+  </div>
+</header>
+<!-- SECTION END: 顶部导航栏 -->
+
+<div class="flex" style="padding-top:60px; min-height:100vh;">
+  <!-- SECTION START: 侧边菜单 -->
+  <aside class="fixed left-0 bottom-0 bg-white border-r border-gray-200 overflow-y-auto sidebar-menu" style="top:60px;width:220px;">
+    <div class="py-3">
+      <div class="px-4 py-1 text-xs text-gray-400 font-medium tracking-widest uppercase">智慧监管</div>
+      <a href="WEB监管端-通知公告管理.html" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 rounded mx-2">
+        <i class="fa-solid fa-bullhorn w-4"></i>通知公告管理
+      </a>
+      <a href="WEB监管端-工作任务管理.html" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 rounded mx-2">
+        <i class="fa-solid fa-tasks w-4"></i>工作任务管理
+      </a>
+      <a href="WEB监管端-信息收集管理.html" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 rounded mx-2">
+        <i class="fa-solid fa-database w-4"></i>信息收集管理
+      </a>
+      <a href="#" class="flex items-center gap-2 px-4 py-2 text-sm rounded mx-2 active">
+        <i class="fa-solid fa-chart-line w-4"></i>情况总结看板
+      </a>
+    </div>
+  </aside>
+  <!-- SECTION END: 侧边菜单 -->
+
+  <main class="flex-1 flex flex-col" style="margin-left:220px;">
+    <div class="bg-white border-b border-gray-200 px-6 py-2 text-xs text-gray-400">
+      <span>智慧监管</span> <span class="mx-1">></span> <span class="text-gray-700">情况总结看板</span>
+    </div>
+
+    <!-- 无权限提示 -->
+    <template x-if="!canAccess()">
+      <div class="flex-1 flex items-center justify-center">
+        <div class="text-center">
+          <i class="fa-solid fa-lock text-gray-300 text-5xl mb-4"></i>
+          <p class="text-gray-500 text-lg">无访问权限</p>
+          <p class="text-gray-400 text-sm mt-2">仅县级管理员和县级业务人员可访问情况总结看板</p>
+        </div>
+      </div>
+    </template>
+
+    <template x-if="canAccess()">
+      <div class="flex-1 p-6 flex flex-col gap-5">
+        <div class="flex items-center justify-between">
+          <h1 class="text-lg font-bold text-gray-800">情况总结看板</h1>
+          <button class="btn-default text-xs" @click="refresh()"><i class="fa-solid fa-rotate-right mr-1"></i>刷新数据</button>
+        </div>
+
+        <!-- SECTION START: 总体统计卡片 -->
+        <section id="feature-stats" class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <!-- 通知公告卡片 -->
+          <div class="stat-card bg-blue-50 border border-blue-100">
+            <i class="fa-solid fa-bullhorn icon text-blue-500"></i>
+            <div class="text-xs text-blue-500 font-medium mb-2">通知公告</div>
+            <div class="text-3xl font-bold text-blue-700 mb-1" x-text="MOCK_DATA.stats.notice.monthCount+'条'"></div>
+            <div class="text-xs text-gray-500">本月发布</div>
+            <div class="mt-3 text-xs text-gray-600">总阅读率：<span class="text-blue-600 font-bold" x-text="MOCK_DATA.stats.notice.readRate+'%'"></span></div>
+          </div>
+
+          <!-- 工作任务卡片 -->
+          <div class="stat-card bg-green-50 border border-green-100">
+            <i class="fa-solid fa-tasks icon text-green-500"></i>
+            <div class="text-xs text-green-600 font-medium mb-2">工作任务</div>
+            <div class="text-3xl font-bold text-green-700 mb-1" x-text="MOCK_DATA.stats.task.monthCount+'条'"></div>
+            <div class="text-xs text-gray-500">本月下发</div>
+            <div class="mt-3 text-xs text-gray-600 flex flex-col gap-1">
+              <span>进行中：<span class="text-orange-600 font-bold" x-text="MOCK_DATA.stats.task.inProgress"></span> 条</span>
+              <span>已完成：<span class="text-green-600 font-bold" x-text="MOCK_DATA.stats.task.completed"></span> 条 · 反馈率：<span class="text-blue-600 font-bold" x-text="MOCK_DATA.stats.task.feedbackRate+'%'"></span></span>
+            </div>
+          </div>
+
+          <!-- 信息收集卡片 -->
+          <div class="stat-card bg-purple-50 border border-purple-100">
+            <i class="fa-solid fa-database icon text-purple-500"></i>
+            <div class="text-xs text-purple-600 font-medium mb-2">信息收集</div>
+            <div class="text-3xl font-bold text-purple-700 mb-1" x-text="MOCK_DATA.stats.collect.monthCount+'条'"></div>
+            <div class="text-xs text-gray-500">本月下发</div>
+            <div class="mt-3 text-xs text-gray-600 flex flex-col gap-1">
+              <span>进行中：<span class="text-orange-600 font-bold" x-text="MOCK_DATA.stats.collect.inProgress"></span> 条</span>
+              <span>已完成：<span class="text-green-600 font-bold" x-text="MOCK_DATA.stats.collect.completed"></span> 条 · 填报率：<span class="text-blue-600 font-bold" x-text="MOCK_DATA.stats.collect.fillRate+'%'"></span></span>
+            </div>
+          </div>
+
+          <!-- 超期统计卡片 -->
+          <div class="stat-card bg-red-50 border border-red-100">
+            <i class="fa-solid fa-triangle-exclamation icon text-red-500"></i>
+            <div class="text-xs text-red-500 font-medium mb-2">超期统计</div>
+            <div class="text-3xl font-bold text-red-600 mb-1" x-text="MOCK_DATA.stats.overdue.taskCount+'条'"></div>
+            <div class="text-xs text-gray-500">超期未反馈任务</div>
+            <div class="mt-3 text-xs text-gray-600">超期未填报收集：<span class="text-red-600 font-bold" x-text="MOCK_DATA.stats.overdue.collectCount"></span> 条</div>
+          </div>
+        </section>
+        <!-- SECTION END: 总体统计卡片 -->
+
+        <!-- 中部：趋势图 + 排行表 -->
+        <div class="flex gap-5">
+          <!-- SECTION START: 任务执行趋势图 -->
+          <section id="feature-trend" class="bg-white rounded-lg border border-gray-200 p-5 flex-1" style="min-width:0;">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="font-bold text-gray-700">任务执行趋势</h2>
+              <select class="form-input" style="width:auto;" x-model="trendFilter" @change="updateChart()">
+                <option value="">全部</option>
+                <option value="1">日常巡查</option>
+                <option value="2">专项检查</option>
+                <option value="3">数据报送</option>
+                <option value="4">整改通知</option>
+                <option value="5">其他</option>
+              </select>
+            </div>
+            <canvas id="trendChart" height="200"></canvas>
+          </section>
+          <!-- SECTION END: 任务执行趋势图 -->
+
+          <!-- SECTION START: 各机构响应排行 -->
+          <section id="feature-ranking" class="bg-white rounded-lg border border-gray-200 p-5" style="width:420px;flex-shrink:0;">
+            <h2 class="font-bold text-gray-700 mb-4">各机构响应排行</h2>
+            <div class="overflow-y-auto" style="max-height:280px;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th style="width:40px;">排名</th>
+                    <th>机构名称</th>
+                    <th>接收</th>
+                    <th>反馈</th>
+                    <th>超期</th>
+                    <th>响应时长</th>
+                    <th>反馈率</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template x-for="(item, idx) in MOCK_DATA.ranking" :key="item.dept_name">
+                    <tr :class="item.feedback_rate<50?'row-low-rate':''">
+                      <td>
+                        <span x-show="idx===0" class="rank-badge bg-yellow-400 text-white">🥇</span>
+                        <span x-show="idx===1" class="rank-badge bg-gray-300 text-white">🥈</span>
+                        <span x-show="idx===2" class="rank-badge bg-orange-400 text-white">🥉</span>
+                        <span x-show="idx>2" class="rank-badge bg-gray-100 text-gray-600" x-text="idx+1"></span>
+                      </td>
+                      <td class="text-xs" x-text="item.dept_name"></td>
+                      <td x-text="item.total"></td>
+                      <td x-text="item.done"></td>
+                      <td :class="item.overdue>0?'text-red-500 font-bold':''" x-text="item.overdue"></td>
+                      <td x-text="item.avg_hours+'小时'"></td>
+                      <td>
+                        <span x-text="item.feedback_rate+'%'"></span>
+                        <div class="progress-bar-bg ml-1"><div class="progress-bar-fill" :class="item.feedback_rate<50?'bg-red-400':'bg-blue-500'" :style="'width:'+item.feedback_rate+'%'"></div></div>
+                      </td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </section>
+          <!-- SECTION END: 各机构响应排行 -->
+        </div>
+
+        <!-- SECTION START: 超期预警列表 -->
+        <section id="feature-overdue-list" class="bg-white rounded-lg border border-gray-200 p-5">
+          <h2 class="font-bold text-gray-700 mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-triangle-exclamation text-red-500"></i>
+            超期预警
+          </h2>
+          <div class="overflow-x-auto">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="min-width:220px;">任务/收集名称</th>
+                  <th>类型</th>
+                  <th>下发时间</th>
+                  <th>截止时间</th>
+                  <th>超期天数</th>
+                  <th>未完成/总人数</th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="item in pagedOverdueList" :key="item.id">
+                  <tr class="cursor-pointer hover:bg-blue-50" @click="alert('跳转到对应任务/收集详情页（原型模拟）\n名称：'+item.name)">
+                    <td class="text-sm" x-text="item.name"></td>
+                    <td>
+                      <span class="tag" :class="item.type==='task'?'bg-blue-100 text-blue-700':'bg-purple-100 text-purple-700'" x-text="item.type==='task'?'工作任务':'信息收集'"></span>
+                    </td>
+                    <td x-text="item.dispatch_time"></td>
+                    <td x-text="item.deadline"></td>
+                    <td class="text-red-500 font-bold" x-text="item.overdue_days+'天'"></td>
+                    <td x-text="item.undone+'/'+item.total"></td>
+                  </tr>
+                </template>
+                <tr x-show="pagedOverdueList.length===0">
+                  <td colspan="6" class="text-center text-gray-400 py-8">
+                    <i class="fa-solid fa-circle-check text-green-400 text-2xl mb-2 block"></i>
+                    暂无超期预警
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="flex items-center justify-between mt-3">
+            <span class="text-xs text-gray-400">共 <span x-text="MOCK_DATA.overdueList.length"></span> 条超期预警</span>
+            <div class="pagination">
+              <button class="page-btn" :disabled="overduePage===1" @click="overduePage=Math.max(1,overduePage-1)"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+              <template x-for="p in overdueTotalPages" :key="p">
+                <button class="page-btn" :class="p===overduePage?'active':''" @click="overduePage=p" x-text="p"></button>
+              </template>
+              <button class="page-btn" :disabled="overduePage===overdueTotalPages" @click="overduePage=Math.min(overdueTotalPages,overduePage+1)"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+            </div>
+          </div>
+        </section>
+        <!-- SECTION END: 超期预警列表 -->
+      </div>
+    </template>
+  </main>
+</div>
+
+<script>
+const MOCK_DATA = {
+  users: [
+    { id: 1, username: 'county_admin', password: '123456', role: 'county_admin', roleName: '县级管理员', name: '李主任', deptName: '蓬溪县农业农村局' },
+    { id: 2, username: 'county_staff', password: '123456', role: 'county_staff', roleName: '县级业务人员', name: '王科员', deptName: '蓬溪县农业农村局' },
+    { id: 3, username: 'town_gov', password: '123456', role: 'town_gov_staff', roleName: '乡镇政府业务人员', name: '张镇长', deptName: '蓬溪镇人民政府' },
+    { id: 4, username: 'town_vet', password: '123456', role: 'town_vet_station', roleName: '乡镇畜牧兽医站', name: '刘站长', deptName: '蓬溪镇畜牧兽医站' },
+    { id: 5, username: 'ent_admin', password: '123456', role: 'ent_admin', roleName: '企业管理员', name: '陈经理', deptName: '蓬溪县鑫源养殖场' }
+  ],
+  stats: {
+    notice: { monthCount: 8, readRate: 72.4 },
+    task: { monthCount: 15, inProgress: 6, completed: 7, feedbackRate: 68.5 },
+    collect: { monthCount: 5, inProgress: 2, completed: 2, fillRate: 61.2 },
+    overdue: { taskCount: 3, collectCount: 2 }
+  },
+  trendData: {
+    labels: ['2025-10', '2025-11', '2025-12', '2026-01', '2026-02', '2026-03'],
+    dispatched: [8, 10, 12, 6, 14, 15],
+    completed: [6, 8, 11, 5, 12, 7],
+    overdue: [1, 2, 1, 0, 2, 3]
+  },
+  ranking: [
+    { dept_name: '蓬溪镇人民政府', total: 42, done: 40, overdue: 1, avg_hours: 3.2, feedback_rate: 95 },
+    { dept_name: '新会镇人民政府', total: 38, done: 35, overdue: 2, avg_hours: 4.8, feedback_rate: 92 },
+    { dept_name: '明月镇人民政府', total: 35, done: 30, overdue: 0, avg_hours: 5.5, feedback_rate: 86 },
+    { dept_name: '蓬溪镇畜牧兽医站', total: 28, done: 22, overdue: 3, avg_hours: 6.1, feedback_rate: 79 },
+    { dept_name: '新会镇畜牧兽医站', total: 26, done: 18, overdue: 4, avg_hours: 8.3, feedback_rate: 69 },
+    { dept_name: '明月镇畜牧兽医站', total: 24, done: 15, overdue: 5, avg_hours: 10.2, feedback_rate: 63 },
+    { dept_name: '蓬溪县鑫源养殖场', total: 20, done: 8, overdue: 6, avg_hours: 14.5, feedback_rate: 40 },
+    { dept_name: '蓬溪县华丰牧业', total: 18, done: 6, overdue: 7, avg_hours: 18.2, feedback_rate: 33 }
+  ],
+  overdueList: [
+    { id: 1, name: '生猪养殖场粪污资源化利用情况专项检查', type: 'task', dispatch_time: '2026-02-01 09:30', deadline: '2026-02-28 18:00', overdue_days: 10, undone: 4, total: 8 },
+    { id: 2, name: '冬季生猪存栏情况摸底收集', type: 'collect', dispatch_time: '2025-12-01 10:00', deadline: '2025-12-20 18:00', overdue_days: 80, undone: 17, total: 25 },
+    { id: 3, name: '2025年Q4生猪养殖巡查任务', type: 'task', dispatch_time: '2025-12-10 09:00', deadline: '2025-12-31 18:00', overdue_days: 70, undone: 8, total: 20 },
+    { id: 4, name: '2026年1月规模养殖场监测数据收集', type: 'collect', dispatch_time: '2026-01-10 10:00', deadline: '2026-01-31 18:00', overdue_days: 38, undone: 6, total: 15 },
+    { id: 5, name: '春节假期生猪疫情监测日报任务', type: 'task', dispatch_time: '2026-01-28 10:00', deadline: '2026-02-14 18:00', overdue_days: 24, undone: 15, total: 25 }
+  ]
+};
+
+function dashboardApp() {
+  return {
+    MOCK_DATA,
+    currentUser: MOCK_DATA.users[0],
+    trendFilter: '',
+    overduePage: 1,
+    overduePageSize: 10,
+    chartInstance: null,
+
+    switchRole(u) { this.currentUser = u; },
+    canAccess() { return this.currentUser.role === 'county_admin' || this.currentUser.role === 'county_staff'; },
+
+    get overdueTotalPages() { return Math.max(1, Math.ceil(MOCK_DATA.overdueList.length / this.overduePageSize)); },
+    get pagedOverdueList() { return MOCK_DATA.overdueList.slice((this.overduePage-1)*this.overduePageSize, this.overduePage*this.overduePageSize); },
+
+    init() {
+      this.$nextTick(() => { this.renderChart(); });
+    },
+
+    refresh() {
+      alert('数据刷新成功！（原型模拟）');
+    },
+
+    renderChart() {
+      const canvas = document.getElementById('trendChart');
+      if (!canvas) return;
+      if (this.chartInstance) this.chartInstance.destroy();
+      const data = MOCK_DATA.trendData;
+      // 如按任务类型筛选，在mock数据上做微小随机扰动
+      const getVals = (arr) => {
+        if (!this.trendFilter) return arr;
+        return arr.map(v => Math.max(0, Math.round(v * (0.3 + Math.random() * 0.4))));
+      };
+      this.chartInstance = new Chart(canvas, {
+        type: 'line',
+        data: {
+          labels: data.labels,
+          datasets: [
+            { label: '下发数', data: getVals(data.dispatched), borderColor: '#1677ff', backgroundColor: 'rgba(22,119,255,0.1)', tension: 0.4, fill: false, pointRadius: 4, pointBackgroundColor: '#1677ff' },
+            { label: '完成数', data: getVals(data.completed), borderColor: '#52c41a', backgroundColor: 'rgba(82,196,26,0.1)', tension: 0.4, fill: false, pointRadius: 4, pointBackgroundColor: '#52c41a' },
+            { label: '超期数', data: getVals(data.overdue), borderColor: '#ff4d4f', backgroundColor: 'rgba(255,77,79,0.1)', tension: 0.4, fill: false, pointRadius: 4, pointBackgroundColor: '#ff4d4f' }
+          ]
+        },
+        options: {
+          responsive: true,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'top', labels: { usePointStyle: true, font: { size: 12 } } },
+            tooltip: {
+              callbacks: {
+                title: (items) => items[0].label,
+                label: (item) => item.dataset.label + ': ' + item.raw + ' 条'
+              }
+            }
+          },
+          scales: {
+            x: { grid: { color: '#f0f0f0' } },
+            y: { grid: { color: '#f0f0f0' }, beginAtZero: true, ticks: { stepSize: 2 } }
+          }
+        }
+      });
+    },
+
+    updateChart() {
+      this.renderChart();
+    }
+  };
+}
+</script>
+</body>
+</html>

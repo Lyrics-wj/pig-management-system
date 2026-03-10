@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2024年蓬溪县生猪数字化管理平台 - 检验检疫无害化分析原型导航</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body { background: #f0f2f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; margin: 0; padding: 0; }
+    .header { background: linear-gradient(135deg, #001529 0%, #003366 100%); color: white; padding: 32px 40px; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 32px 40px; }
+    .card { background: white; border-radius: 10px; border: 1px solid #e8e8e8; margin-bottom: 20px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .card-header { background: #fafafa; border-bottom: 1px solid #e8e8e8; padding: 14px 20px; display: flex; align-items: center; gap: 10px; }
+    .card-title { font-size: 15px; font-weight: 600; color: #262626; }
+    .module-title { font-size: 13px; font-weight: 600; color: #8c8c8c; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .prototype-item { display: flex; align-items: center; padding: 14px 20px; border-bottom: 1px solid #f5f5f5; transition: background 0.15s; text-decoration: none; color: inherit; }
+    .prototype-item:last-child { border-bottom: none; }
+    .prototype-item:hover { background: #e6f4ff; }
+    .item-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-right: 14px; flex-shrink: 0; }
+    .item-info { flex: 1; }
+    .item-name { font-size: 14px; font-weight: 500; color: #262626; margin-bottom: 3px; }
+    .item-prd { font-size: 11px; color: #8c8c8c; font-family: monospace; }
+    .item-desc { font-size: 12px; color: #595959; margin-top: 3px; }
+    .item-meta { text-align: right; flex-shrink: 0; margin-left: 16px; }
+    .item-date { font-size: 11px; color: #8c8c8c; margin-bottom: 4px; }
+    .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+    .status-done { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; }
+    .status-wip { background: #fff7e6; color: #d46b08; border: 1px solid #ffd591; }
+    .status-todo { background: #fafafa; color: #8c8c8c; border: 1px solid #d9d9d9; }
+    .stats-bar { display: flex; gap: 24px; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.15); }
+    .stat-item { text-align: center; }
+    .stat-val { font-size: 28px; font-weight: 700; color: white; }
+    .stat-lbl { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+    .role-card { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 8px 14px; margin: 4px; font-size: 13px; color: rgba(255,255,255,0.9); }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 6px; }
+    .tag-county { background: #e6f4ff; color: #0958d9; }
+    .tag-town { background: #f6ffed; color: #389e0d; }
+    .feature-list { padding: 12px 20px 16px; background: #fafafa; border-top: 1px solid #f0f2f5; }
+    .feature-chip { display: inline-block; background: #f0f2f5; border: 1px solid #e8e8e8; border-radius: 4px; padding: 2px 8px; font-size: 11px; color: #595959; margin: 2px 3px 2px 0; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div style="max-width:1100px;margin:0 auto;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
+        <div style="width:40px;height:40px;background:#1677ff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;">🐷</div>
+        <div>
+          <div style="font-size:20px;font-weight:700;">2024年蓬溪县生猪数字化管理平台</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:2px;">可交互 HTML 原型导航 · 检验检疫无害化分析模块</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:4px;">
+        <span style="font-size:12px;color:rgba(255,255,255,0.5);margin-right:4px;align-self:center;">涉及角色：</span>
+        <span class="role-card"><i class="fa fa-user-tie"></i> 县级管理员 <span class="tag tag-county">county_admin</span></span>
+        <span class="role-card"><i class="fa fa-user"></i> 县级业务人员 <span class="tag tag-county">county_staff</span></span>
+        <span class="role-card"><i class="fa fa-map-marker"></i> 乡镇政府业务人员 <span class="tag tag-town">town_gov_staff</span></span>
+        <span class="role-card"><i class="fa fa-stethoscope"></i> 乡镇畜牧兽医站 <span class="tag tag-town">town_vet_station</span></span>
+      </div>
+      <div class="stats-bar">
+        <div class="stat-item"><div class="stat-val">1</div><div class="stat-lbl">总文件数</div></div>
+        <div class="stat-item"><div class="stat-val" style="color:#52c41a;">1</div><div class="stat-lbl">已完成</div></div>
+        <div class="stat-item"><div class="stat-val" style="color:#faad14;">0</div><div class="stat-lbl">制作中</div></div>
+        <div class="stat-item"><div class="stat-val" style="color:#8c8c8c;">0</div><div class="stat-lbl">待制作</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <!-- 权限说明 -->
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-header">
+        <i class="fa fa-key" style="color:#faad14;"></i>
+        <span class="card-title">角色权限说明</span>
+      </div>
+      <div style="padding:14px 20px;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead>
+            <tr style="background:#fafafa;">
+              <th style="padding:8px 12px;border:1px solid #e8e8e8;text-align:left;color:#595959;">角色</th>
+              <th style="padding:8px 12px;border:1px solid #e8e8e8;text-align:left;color:#595959;">查看数据范围</th>
+              <th style="padding:8px 12px;border:1px solid #e8e8e8;text-align:center;color:#595959;">数据导入</th>
+              <th style="padding:8px 12px;border:1px solid #e8e8e8;text-align:center;color:#595959;">导出分析报告</th>
+              <th style="padding:8px 12px;border:1px solid #e8e8e8;text-align:center;color:#595959;">乡镇筛选</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding:8px 12px;border:1px solid #e8e8e8;">县级管理员</td>
+              <td style="padding:8px 12px;border:1px solid #e8e8e8;">全县数据</td>
+              <td style="padding:8px 12px;border:1px solid #e8e8e8;text-align:center;color:#52c41a;">✅ 可操作</td>
+              <td style="padding:8px 12px;border:1px solid #e8e8e8;text-align:center;color:#52c41a;">✅ 可导出</td>
+              <td style="padding:8px 12px;border:1px solid #e8e8e8;text-align:center;color:#52c41a;">✅ 可筛选</td>
+            </tr>
+            <tr style="background:#fafafa;">
+              <td style="padding:8px 12px;border:1px solid #e8e8e8;">县级业务人员</td>
+              <td style="padding:8px 12px;border:1px solid #e8e8e8;">全县数据</td>
+              <td style="padding:8px 12px;border:1px solid #e8e8e8;text-align:center;color:#ff4d4f;">❌ 不可操作</td>
+              <td style="padding:8px 12px;border:1px solid #e8e8e8;text-align:center;color:#52c41a;">✅ 可导出</td>
+              <td style="padding:8px 12px;border:1px solid #e8e8e8;text-align:center;color:#52c41a;">✅ 可筛选</td>
+            </tr>
+            <tr>
+              <td style="padding:8px 12px;border:1px solid #e8e8e8;">乡镇政府业务人员</td>
+              <td style="padding:8px 12px;border:1px solid #e8e8e8;">本乡镇数据</td>
+              <td style="padding:8px 12px;border:1px solid #e8e8e8;text-align:center;color:#ff4d4f;">❌ 不可操作</td>
+              <td style="padding:8px 12px;border:1px solid #e8e8e8;text-align:center;color:#ff4d4f;">❌ 不可导出</td>
+              <td style="padding:8px 12px;border:1px solid #e8e8e8;text-align:center;color:#ff4d4f;">❌ 不显示（自动过滤）</td>
+            </tr>
+            <tr style="background:#fafafa;">
+              <td style="padding:8px 12px;border:1px solid #e8e8e8;">乡镇畜牧兽医站</td>
+              <td style="padding:8px 12px;border:1px solid #e8e8e8;">本乡镇数据</td>
+              <td style="padding:8px 12px;border:1px solid #e8e8e8;text-align:center;color:#ff4d4f;">❌ 不可操作</td>
+              <td style="padding:8px 12px;border:1px solid #e8e8e8;text-align:center;color:#ff4d4f;">❌ 不可导出</td>
+              <td style="padding:8px 12px;border:1px solid #e8e8e8;text-align:center;color:#ff4d4f;">❌ 不显示（自动过滤）</td>
+            </tr>
+          </tbody>
+        </table>
+        <div style="margin-top:10px;font-size:12px;color:#8c8c8c;background:#fffbe6;padding:8px 12px;border-radius:6px;border-left:3px solid #faad14;">
+          💡 在原型中点击右下角 <strong>切换角色</strong> 按钮可快速切换不同角色体验权限差异
+        </div>
+      </div>
+    </div>
+
+    <!-- WEB监管端 - 决策分析 -->
+    <div class="card">
+      <div class="card-header">
+        <i class="fa fa-desktop" style="color:#1677ff;font-size:16px;"></i>
+        <span class="card-title">WEB监管端 · 决策分析模块</span>
+      </div>
+
+      <div style="padding:14px 20px 4px;">
+        <div class="module-title"><i class="fa fa-shield" style="color:#1677ff;margin-right:6px;"></i>检验检疫无害化分析</div>
+      </div>
+
+      <a class="prototype-item" href="监管端/决策分析/检验检疫无害化分析/WEB监管端-检验检疫无害化分析.html" target="_blank">
+        <div class="item-icon" style="background:#e6f4ff;color:#1677ff;font-size:18px;">
+          <i class="fa fa-medkit"></i>
+        </div>
+        <div class="item-info">
+          <div class="item-name">检验检疫无害化分析</div>
+          <div class="item-prd">WEB监管端-检验检疫无害化分析.prd.md</div>
+          <div class="item-desc">仪表盘式多维度分析页：6个核心指标KPI + 8个分析卡片（检疫类目分布、检疫趋势、疫病分布热力图、病死猪分布与处理、免疫覆盖、保险统计）；支持检疫数据/保险数据Excel导入及逐条录入；分析报告Excel导出；乡镇热力图下钻明细；全局筛选（年度/乡镇/时间粒度）即时刷新</div>
+        </div>
+        <div class="item-meta">
+          <div class="item-date">2026-03-10</div>
+          <div class="status-badge status-done">✅ 已完成</div>
+        </div>
+      </a>
+
+      <div class="feature-list">
+        <div style="font-size:12px;color:#8c8c8c;margin-bottom:6px;">包含功能点：</div>
+        <span class="feature-chip">全局筛选（年度/乡镇/时间粒度）</span>
+        <span class="feature-chip">6个核心KPI指标卡</span>
+        <span class="feature-chip">检疫类目饼图+表格</span>
+        <span class="feature-chip">检疫趋势堆叠柱+折线组合图</span>
+        <span class="feature-chip">疫病Top10柱状图</span>
+        <span class="feature-chip">疫病乡镇热力图+下钻明细</span>
+        <span class="feature-chip">病死猪趋势折线图（本年vs去年）</span>
+        <span class="feature-chip">病死猪乡镇热力图（病死率预警▲）+下钻明细</span>
+        <span class="feature-chip">处理方式饼图+月度堆叠柱状图</span>
+        <span class="feature-chip">免疫覆盖柱状图+数据表格</span>
+        <span class="feature-chip">保险统计KPI+组合图+月度明细</span>
+        <span class="feature-chip">检疫数据Excel导入</span>
+        <span class="feature-chip">保险数据Excel导入/手动录入</span>
+        <span class="feature-chip">分析报告导出</span>
+        <span class="feature-chip">多角色权限控制</span>
+        <span class="feature-chip">可折叠数据表格</span>
+      </div>
+    </div>
+
+    <!-- 数据说明 -->
+    <div class="card">
+      <div class="card-header">
+        <i class="fa fa-database" style="color:#8c8c8c;"></i>
+        <span class="card-title">Mock 数据说明</span>
+      </div>
+      <div style="padding:14px 20px;font-size:13px;color:#595959;line-height:1.8;">
+        <ul style="margin:0;padding-left:20px;">
+          <li>年度：2026年，数据来源：省级平台检疫数据（手动导入）+ 本县企业填报数据</li>
+          <li>检验检疫总量：12,840头次；产地检疫 7,523、屠宰检疫 4,891、调运检疫 426</li>
+          <li>检疫合格率：97.6%（97.6% 显示黄色标签，≥99%绿色、95%-99%黄色、&lt;95%红色）</li>
+          <li>疫病发现：43例，覆盖9种疫病类型，蓬溪镇为高发区（12例）</li>
+          <li>病死猪处理：312头，蓬溪镇（98头，病死率5.8%）和福德镇（病死率6.3%）超阈值预警</li>
+          <li>免疫覆盖：口蹄疫（84.9%）和高致病性猪蓝耳病（87.6%）低于90%阈值，红色预警</li>
+          <li>保险统计：投保8,560头，理赔234头，理赔金额23.56万元</li>
+          <li>10个乡镇模拟地图数据，支持点击热力图下钻查看企业明细</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 其他决策分析模块导航 -->
+    <div class="card">
+      <div class="card-header">
+        <i class="fa fa-th-large" style="color:#8c8c8c;"></i>
+        <span class="card-title">其他决策分析模块</span>
+      </div>
+      <a class="prototype-item" href="../index-养殖分析.html" target="_blank">
+        <div class="item-icon" style="background:#f6ffed;color:#389e0d;"><i class="fa fa-bar-chart"></i></div>
+        <div class="item-info">
+          <div class="item-name">养殖分析</div>
+          <div class="item-desc">养殖态势、效率指标、排行榜、预警趋势分析</div>
+        </div>
+        <div class="item-meta"><div class="status-badge status-done">✅ 已完成</div></div>
+      </a>
+      <a class="prototype-item" href="../index-市场贸易分析.html" target="_blank">
+        <div class="item-icon" style="background:#fff7e6;color:#d46b08;"><i class="fa fa-line-chart"></i></div>
+        <div class="item-info">
+          <div class="item-name">市场贸易分析</div>
+          <div class="item-desc">生猪及猪肉市场价格走势分析</div>
+        </div>
+        <div class="item-meta"><div class="status-badge status-done">✅ 已完成</div></div>
+      </a>
+    </div>
+
+    <div style="text-align:center;color:#8c8c8c;font-size:12px;padding:20px 0;">
+      2024年蓬溪县生猪数字化管理平台 · 可交互 HTML 原型 · 检验检疫无害化分析模块 · 制作日期：2026-03-10
+    </div>
+  </div>
+</body>
+</html>

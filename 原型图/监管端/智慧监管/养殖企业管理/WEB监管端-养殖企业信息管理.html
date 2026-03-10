@@ -1,0 +1,1471 @@
+<!--
+  功能名称：养殖企业信息管理（列表查看、筛选、详情、状态管理、新增企业账号）
+  对应PRD：doc_prd/WEB/监管端/智慧监管/养殖企业管理/WEB监管端-养殖企业信息管理.prd.md
+  所属端口：WEB监管端
+  所属模块：智慧监管 - 养殖企业管理
+  制作日期：2026-03-09
+  最后更新：2026-03-09
+  角色说明：县级管理员(county_admin)、县级业务人员(county_staff)、乡镇政府业务人员(town_gov_staff)、乡镇畜牧兽医站(town_vet_station)
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>养殖企业信息管理 - WEB监管端</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    /* SHARED STYLES */
+    [x-cloak] { display: none !important; }
+    body { font-size: 14px; background-color: #f0f2f5; color: #262626; }
+    .sidebar-item.active { background-color: #1677ff; color: #fff; }
+    .sidebar-item:hover:not(.active) { background-color: #e6f4ff; color: #1677ff; }
+    .btn-primary { background-color: #1677ff; color: #fff; border: 1px solid #1677ff; }
+    .btn-primary:hover { background-color: #0958d9; }
+    .btn-default { background-color: #fff; color: #262626; border: 1px solid #d9d9d9; }
+    .btn-default:hover { border-color: #1677ff; color: #1677ff; }
+    .btn-danger { background-color: #fff; color: #ff4d4f; border: 1px solid #ff4d4f; }
+    .btn-danger:hover { background-color: #ff4d4f; color: #fff; }
+    .btn-link { background: none; border: none; padding: 0 4px; cursor: pointer; font-size: 13px; }
+    .btn-link.primary { color: #1677ff; }
+    .btn-link.danger { color: #ff4d4f; }
+    .btn-link.warning { color: #faad14; }
+    .tag { display: inline-flex; align-items: center; padding: 1px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+    .tag-green { background-color: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
+    .tag-red { background-color: #fff2f0; color: #ff4d4f; border: 1px solid #ffa39e; }
+    .tag-orange { background-color: #fff7e6; color: #fa8c16; border: 1px solid #ffd591; }
+    .tag-blue { background-color: #e6f7ff; color: #1677ff; border: 1px solid #91d5ff; }
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background-color: #fafafa; color: #595959; font-weight: 600; text-align: left; padding: 10px 12px; border-bottom: 1px solid #e8e8e8; white-space: nowrap; }
+    td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; color: #262626; white-space: nowrap; }
+    tr:nth-child(even) td { background-color: #fafafa; }
+    tr:hover td { background-color: #e6f4ff; }
+    .sticky-col { position: sticky; right: 0; background-color: #fff; box-shadow: -2px 0 4px rgba(0,0,0,0.06); }
+    tr:nth-child(even) .sticky-col { background-color: #fafafa; }
+    tr:hover .sticky-col { background-color: #e6f4ff; }
+    .form-label { font-weight: 500; color: #262626; margin-bottom: 4px; display: block; }
+    .required-star { color: #ff4d4f; margin-right: 2px; }
+    .form-input { width: 100%; padding: 6px 10px; border: 1px solid #d9d9d9; border-radius: 4px; outline: none; font-size: 13px; color: #262626; }
+    .form-input:focus { border-color: #1677ff; box-shadow: 0 0 0 2px rgba(22,119,255,0.1); }
+    .form-input.error { border-color: #ff4d4f; }
+    .error-msg { color: #ff4d4f; font-size: 12px; margin-top: 2px; }
+    .modal-overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.45); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+    .modal-box { background: #fff; border-radius: 8px; box-shadow: 0 6px 16px rgba(0,0,0,0.12); width: 90%; max-width: 800px; max-height: 88vh; display: flex; flex-direction: column; }
+    .modal-box-lg { max-width: 1000px; }
+    .modal-header { padding: 14px 20px; border-bottom: 1px solid #e8e8e8; display: flex; justify-content: space-between; align-items: center; }
+    .modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+    .modal-footer { padding: 12px 20px; border-top: 1px solid #e8e8e8; display: flex; justify-content: flex-end; gap: 8px; }
+    .step-bar { display: flex; align-items: center; padding: 16px 0; }
+    .step-item { display: flex; flex-direction: column; align-items: center; flex: 1; }
+    .step-circle { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+    .step-circle.active { background-color: #1677ff; color: #fff; }
+    .step-circle.done { background-color: #52c41a; color: #fff; }
+    .step-circle.inactive { background-color: #e8e8e8; color: #8c8c8c; }
+    .step-label { font-size: 12px; margin-top: 4px; color: #595959; }
+    .step-label.active { color: #1677ff; font-weight: 600; }
+    .step-line { flex: 1; height: 2px; background-color: #e8e8e8; }
+    .step-line.done { background-color: #52c41a; }
+    .tab-btn { padding: 8px 16px; border-bottom: 2px solid transparent; cursor: pointer; color: #595959; font-size: 13px; transition: all 0.2s; white-space: nowrap; }
+    .tab-btn.active { color: #1677ff; border-bottom-color: #1677ff; font-weight: 600; }
+    .tab-btn:hover:not(.active) { color: #1677ff; }
+    .detail-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; margin-bottom: 8px; }
+    .detail-item label { color: #8c8c8c; font-size: 12px; }
+    .detail-item p { color: #262626; font-size: 13px; margin-top: 2px; font-weight: 500; }
+    .section-title { font-size: 14px; font-weight: 600; color: #262626; padding: 8px 0 4px; border-bottom: 1px solid #f0f0f0; margin-bottom: 12px; }
+    .breadcrumb { font-size: 13px; color: #8c8c8c; }
+    .breadcrumb span { color: #262626; }
+    .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; padding: 8px 20px; border-radius: 6px; font-size: 13px; font-weight: 500; }
+    .toast-success { background-color: #f6ffed; border: 1px solid #b7eb8f; color: #52c41a; }
+    .toast-error { background-color: #fff2f0; border: 1px solid #ffa39e; color: #ff4d4f; }
+    .page-content { height: calc(100vh - 60px); overflow-y: auto; }
+    .content-area { display: flex; flex-direction: column; height: 100%; }
+    .list-area { flex: 1; overflow-y: auto; }
+    .pagination-area { flex-shrink: 0; padding: 12px 16px; background: #fff; border-top: 1px solid #e8e8e8; }
+    .confirm-dialog { max-width: 420px; }
+  </style>
+</head>
+<body x-data="app()" x-cloak>
+
+<!-- Toast 提示 -->
+<div x-show="toast.show" class="toast" :class="toast.type === 'success' ? 'toast-success' : 'toast-error'" x-text="toast.msg" x-transition></div>
+
+<!-- 顶部导航栏 -->
+<header class="fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 z-50 flex items-center px-4 justify-between shadow-sm">
+  <div class="flex items-center gap-3">
+    <i class="fas fa-pig text-blue-500 text-xl"></i>
+    <span class="font-semibold text-gray-800 text-base">2024年蓬溪县生猪数字化管理平台</span>
+    <span class="text-gray-300">|</span>
+    <span class="text-sm text-gray-500">监管端</span>
+  </div>
+  <div class="flex items-center gap-3">
+    <!-- 角色切换 -->
+    <select x-model="currentRole" @change="onRoleChange()" class="text-sm border border-gray-300 rounded px-2 py-1 text-gray-700 bg-white">
+      <template x-for="u in MOCK_DATA.users" :key="u.role">
+        <option :value="u.role" x-text="`${u.roleName}（${u.username}）`"></option>
+      </template>
+    </select>
+    <div class="flex items-center gap-2 text-sm text-gray-700">
+      <i class="fas fa-user-circle text-gray-400"></i>
+      <span x-text="getCurrentUser().name"></span>
+      <span class="text-xs text-gray-400" x-text="`[${getCurrentUser().roleName}]`"></span>
+    </div>
+    <button @click="logout()" class="text-sm text-gray-500 hover:text-blue-500 transition-colors">
+      <i class="fas fa-sign-out-alt mr-1"></i>退出
+    </button>
+  </div>
+</header>
+
+<!-- 主体布局 -->
+<div class="flex" style="margin-top: 56px; height: calc(100vh - 56px);">
+
+  <!-- 侧边菜单 -->
+  <aside class="bg-white border-r border-gray-200 flex-shrink-0 overflow-y-auto" :style="sidebarCollapsed ? 'width:60px' : 'width:240px'">
+    <div class="py-2">
+      <!-- 折叠按钮 -->
+      <div class="flex items-center justify-end px-2 mb-2">
+        <button @click="sidebarCollapsed=!sidebarCollapsed" class="text-gray-400 hover:text-blue-500 p-1">
+          <i :class="sidebarCollapsed ? 'fas fa-angle-right' : 'fas fa-angle-left'"></i>
+        </button>
+      </div>
+
+      <template x-for="menu in MOCK_DATA.menus" :key="menu.key">
+        <div>
+          <!-- 分组标题 -->
+          <div x-show="!sidebarCollapsed" class="px-4 py-1 text-xs text-gray-400 font-medium mt-2" x-text="menu.label"></div>
+          <template x-for="item in menu.children" :key="item.key">
+            <div class="sidebar-item px-4 py-2 cursor-pointer flex items-center gap-2 transition-colors"
+                 :class="currentMenu === item.key ? 'active' : ''"
+                 @click="currentMenu = item.key">
+              <i :class="item.icon" class="w-4 text-center"></i>
+              <span x-show="!sidebarCollapsed" x-text="item.label" class="text-sm whitespace-nowrap"></span>
+            </div>
+          </template>
+        </div>
+      </template>
+    </div>
+  </aside>
+
+  <!-- 主内容区 -->
+  <main class="flex-1 overflow-hidden">
+
+    <!-- SECTION START: 养殖企业信息管理 列表页 -->
+    <div id="feature-list" x-show="currentMenu === 'enterprise'" class="page-content">
+      <div class="p-4 pb-0">
+        <!-- 面包屑 -->
+        <div class="breadcrumb mb-3">智慧监管 / <span>养殖企业信息管理</span></div>
+        <div class="bg-white rounded-lg shadow-sm">
+          <!-- 筛选区 -->
+          <div class="p-4 border-b border-gray-100">
+            <div class="flex flex-wrap gap-3 items-end">
+              <div>
+                <label class="form-label text-xs">最终确定名称</label>
+                <input type="text" x-model="listFilter.finalName" class="form-input" style="width:180px" placeholder="请输入名称">
+              </div>
+              <div>
+                <label class="form-label text-xs">养殖类别</label>
+                <select x-model="listFilter.breedingCategory" class="form-input" style="width:120px">
+                  <option value="">全部</option>
+                  <option value="1">生猪</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label text-xs">养殖场类型</label>
+                <select x-model="listFilter.farmType" class="form-input" style="width:130px">
+                  <option value="">全部</option>
+                  <option value="1">规模场</option>
+                  <option value="2">专业户</option>
+                </select>
+              </div>
+              <div x-show="isCountyRole()">
+                <label class="form-label text-xs">所属乡镇</label>
+                <select x-model="listFilter.town" class="form-input" style="width:130px">
+                  <option value="">全部</option>
+                  <template x-for="t in MOCK_DATA.towns" :key="t.value">
+                    <option :value="t.value" x-text="t.label"></option>
+                  </template>
+                </select>
+              </div>
+              <div>
+                <label class="form-label text-xs">经营状况</label>
+                <select x-model="listFilter.operationStatus" class="form-input" style="width:120px">
+                  <option value="">全部</option>
+                  <option value="1">正常</option>
+                  <option value="2">停养</option>
+                  <option value="3">转产</option>
+                </select>
+              </div>
+              <div class="flex gap-2">
+                <button @click="doSearch()" class="btn-primary px-4 py-1.5 rounded text-sm">
+                  <i class="fas fa-search mr-1"></i>查询
+                </button>
+                <button @click="resetFilter()" class="btn-default px-4 py-1.5 rounded text-sm">
+                  <i class="fas fa-redo mr-1"></i>重置
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 工具栏 -->
+          <div class="px-4 py-3 flex justify-between items-center border-b border-gray-100">
+            <div class="text-sm text-gray-500">共 <span class="text-blue-500 font-medium" x-text="filteredList.length"></span> 条记录</div>
+            <div class="flex gap-2">
+              <button x-show="currentRole === 'county_admin'" @click="openAddPage()" class="btn-primary px-3 py-1.5 rounded text-sm">
+                <i class="fas fa-plus mr-1"></i>新增企业
+              </button>
+              <button @click="exportExcel()" class="btn-default px-3 py-1.5 rounded text-sm">
+                <i class="fas fa-download mr-1"></i>导出
+              </button>
+            </div>
+          </div>
+
+          <!-- 数据表格 -->
+          <div class="list-area" style="max-height: calc(100vh - 280px); overflow-y: auto;">
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>序号</th>
+                    <th>最终确定名称</th>
+                    <th>所属乡镇</th>
+                    <th>养殖类别</th>
+                    <th>养殖场类型</th>
+                    <th>联系人</th>
+                    <th>联系电话</th>
+                    <th>经营状况</th>
+                    <th>设计存栏(头)</th>
+                    <th>设计出栏(头)</th>
+                    <th>社会信用代码</th>
+                    <th>状态</th>
+                    <th>创建时间</th>
+                    <th class="sticky-col" style="min-width:160px;">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template x-for="(row, idx) in paginatedList" :key="row.id">
+                    <tr>
+                      <td x-text="(listPage-1)*listPageSize + idx + 1"></td>
+                      <td x-text="row.finalName" class="max-w-xs truncate" :title="row.finalName"></td>
+                      <td x-text="row.town"></td>
+                      <td><span class="tag tag-blue" x-text="row.breedingCategoryLabel"></span></td>
+                      <td x-text="row.farmTypeLabel"></td>
+                      <td x-text="row.contactName"></td>
+                      <td x-text="row.contactPhone"></td>
+                      <td>
+                        <span class="tag" :class="{
+                          'tag-green': row.operationStatus==='1',
+                          'tag-orange': row.operationStatus==='2',
+                          'tag-blue': row.operationStatus==='3'
+                        }" x-text="row.operationStatusLabel"></span>
+                      </td>
+                      <td x-text="row.designStock.toLocaleString()"></td>
+                      <td x-text="row.designOutput.toLocaleString()"></td>
+                      <td x-text="row.creditCode" class="text-xs"></td>
+                      <td>
+                        <span class="tag" :class="row.status==='0' ? 'tag-green' : 'tag-red'" x-text="row.status==='0' ? '正常' : '停用'"></span>
+                      </td>
+                      <td x-text="row.createTime" class="text-xs"></td>
+                      <td class="sticky-col">
+                        <button @click="openDetail(row)" class="btn-link primary">查看详情</button>
+                        <button x-show="currentRole === 'county_admin'" @click="openEditPage(row)" class="btn-link primary">编辑</button>
+                        <button x-show="currentRole === 'county_admin'" @click="confirmStatusChange(row)"
+                                class="btn-link" :class="row.status==='0' ? 'danger' : 'warning'"
+                                x-text="row.status==='0' ? '停用' : '启用'"></button>
+                      </td>
+                    </tr>
+                  </template>
+                  <tr x-show="paginatedList.length === 0">
+                    <td colspan="14" class="text-center py-10 text-gray-400"><i class="fas fa-inbox text-2xl mb-2 block"></i>暂无数据</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 分页 -->
+          <div class="pagination-area flex items-center justify-between">
+            <div class="text-sm text-gray-500">共 <span x-text="filteredList.length"></span> 条，每页
+              <select x-model="listPageSize" @change="listPage=1" class="border border-gray-300 rounded px-1 py-0.5 text-xs mx-1">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+              </select>条
+            </div>
+            <div class="flex items-center gap-1">
+              <button @click="listPage=1" :disabled="listPage===1" class="btn-default px-2 py-0.5 rounded text-xs" :class="listPage===1 ? 'opacity-40 cursor-not-allowed' : ''">«</button>
+              <button @click="listPage--" :disabled="listPage===1" class="btn-default px-2 py-0.5 rounded text-xs" :class="listPage===1 ? 'opacity-40 cursor-not-allowed' : ''">‹</button>
+              <template x-for="p in pageRange" :key="p">
+                <button @click="listPage=p" class="px-2.5 py-0.5 rounded text-xs border" :class="listPage===p ? 'bg-blue-500 text-white border-blue-500' : 'btn-default'" x-text="p"></button>
+              </template>
+              <button @click="listPage++" :disabled="listPage>=totalPages" class="btn-default px-2 py-0.5 rounded text-xs" :class="listPage>=totalPages ? 'opacity-40 cursor-not-allowed' : ''">›</button>
+              <button @click="listPage=totalPages" :disabled="listPage>=totalPages" class="btn-default px-2 py-0.5 rounded text-xs" :class="listPage>=totalPages ? 'opacity-40 cursor-not-allowed' : ''">»</button>
+              <span class="text-xs text-gray-500 ml-2">第 <span x-text="listPage"></span> / <span x-text="totalPages"></span> 页</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- SECTION END: 养殖企业信息管理 列表页 -->
+
+    <!-- SECTION START: 新增企业页面（多步骤表单） -->
+    <div id="feature-add-page" x-show="currentMenu === 'enterprise_add'" class="page-content">
+      <div class="p-4">
+        <div class="breadcrumb mb-3">智慧监管 / <a @click="currentMenu='enterprise'" class="cursor-pointer hover:text-blue-500">养殖企业信息管理</a> / <span x-text="addMode==='add' ? '新增' : '编辑'"></span></div>
+        <div class="bg-white rounded-lg shadow-sm p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-base font-semibold" x-text="addMode==='add' ? '新增养殖企业' : '编辑养殖企业'"></h2>
+            <button @click="leaveAddPage()" class="btn-default px-3 py-1.5 rounded text-sm">
+              <i class="fas fa-arrow-left mr-1"></i>返回
+            </button>
+          </div>
+
+          <!-- 步骤条 -->
+          <div class="step-bar mb-6">
+            <template x-for="(step, i) in addSteps" :key="i">
+              <div class="flex items-center" :style="i < addSteps.length-1 ? 'flex:1' : ''">
+                <div class="step-item" style="min-width:60px;">
+                  <div class="step-circle" :class="addStep > i+1 ? 'done' : (addStep === i+1 ? 'active' : 'inactive')">
+                    <template x-if="addStep > i+1"><i class="fas fa-check text-xs"></i></template>
+                    <template x-if="addStep <= i+1"><span x-text="i+1"></span></template>
+                  </div>
+                  <span class="step-label text-center" :class="addStep === i+1 ? 'active' : ''" x-text="step"></span>
+                </div>
+                <div x-show="i < addSteps.length-1" class="step-line" :class="addStep > i+1 ? 'done' : ''"></div>
+              </div>
+            </template>
+          </div>
+
+          <!-- 步骤内容 -->
+          <div class="border border-gray-100 rounded-lg p-4 mb-4 bg-gray-50">
+
+            <!-- 步骤1: 基本信息 -->
+            <div x-show="addStep === 1">
+              <p class="section-title mb-4">第一步：基本信息</p>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="form-label text-sm"><span class="required-star">*</span>最终确定名称</label>
+                  <input type="text" x-model="addForm.finalName" class="form-input" :class="addErrors.finalName ? 'error' : ''" placeholder="以工商备案营业执照名称为准" maxlength="200">
+                  <p x-show="addErrors.finalName" class="error-msg" x-text="addErrors.finalName"></p>
+                </div>
+                <div>
+                  <label class="form-label text-sm">之前报送名称</label>
+                  <input type="text" x-model="addForm.previousReportName" class="form-input" placeholder="请输入" maxlength="200">
+                </div>
+                <div>
+                  <label class="form-label text-sm">直连直报系统名称</label>
+                  <input type="text" x-model="addForm.directReportName" class="form-input" placeholder="请输入" maxlength="200">
+                </div>
+                <div>
+                  <label class="form-label text-sm">其他名称</label>
+                  <input type="text" x-model="addForm.otherName" class="form-input" placeholder="请输入" maxlength="200">
+                </div>
+                <div>
+                  <label class="form-label text-sm">经度</label>
+                  <input type="number" x-model="addForm.longitude" class="form-input" placeholder="-180 至 180" step="0.000001">
+                </div>
+                <div>
+                  <label class="form-label text-sm">纬度</label>
+                  <input type="number" x-model="addForm.latitude" class="form-input" placeholder="-90 至 90" step="0.000001">
+                </div>
+                <div>
+                  <label class="form-label text-sm"><span class="required-star">*</span>所属乡镇（部门）</label>
+                  <select x-model="addForm.deptTown" class="form-input" :class="addErrors.deptTown ? 'error' : ''">
+                    <option value="">请选择乡镇</option>
+                    <template x-for="t in MOCK_DATA.towns" :key="t.value">
+                      <option :value="t.value" x-text="t.label"></option>
+                    </template>
+                  </select>
+                  <p x-show="addErrors.deptTown" class="error-msg" x-text="addErrors.deptTown"></p>
+                </div>
+                <div>
+                  <label class="form-label text-sm"><span class="required-star">*</span>乡镇</label>
+                  <input type="text" x-model="addForm.addrTown" class="form-input" :class="addErrors.addrTown ? 'error' : ''" placeholder="请输入" maxlength="50">
+                  <p x-show="addErrors.addrTown" class="error-msg" x-text="addErrors.addrTown"></p>
+                </div>
+                <div>
+                  <label class="form-label text-sm"><span class="required-star">*</span>村</label>
+                  <input type="text" x-model="addForm.addrVillage" class="form-input" :class="addErrors.addrVillage ? 'error' : ''" placeholder="请输入" maxlength="50">
+                  <p x-show="addErrors.addrVillage" class="error-msg" x-text="addErrors.addrVillage"></p>
+                </div>
+                <div>
+                  <label class="form-label text-sm">社</label>
+                  <input type="text" x-model="addForm.addrGroup" class="form-input" placeholder="请输入" maxlength="50">
+                </div>
+                <div>
+                  <label class="form-label text-sm"><span class="required-star">*</span>联系人</label>
+                  <input type="text" x-model="addForm.contactName" class="form-input" :class="addErrors.contactName ? 'error' : ''" placeholder="请输入" maxlength="50">
+                  <p x-show="addErrors.contactName" class="error-msg" x-text="addErrors.contactName"></p>
+                </div>
+                <div>
+                  <label class="form-label text-sm"><span class="required-star">*</span>联系电话</label>
+                  <input type="text" x-model="addForm.contactPhone" @blur="validatePhone()" class="form-input" :class="addErrors.contactPhone ? 'error' : ''" placeholder="请输入11位手机号" maxlength="11">
+                  <p x-show="addErrors.contactPhone" class="error-msg" x-text="addErrors.contactPhone"></p>
+                </div>
+                <div>
+                  <label class="form-label text-sm">身份证号码</label>
+                  <input type="text" x-model="addForm.idCard" @blur="validateIdCard()" class="form-input" :class="addErrors.idCard ? 'error' : ''" placeholder="请输入18位身份证号" maxlength="18">
+                  <p x-show="addErrors.idCard" class="error-msg" x-text="addErrors.idCard"></p>
+                </div>
+                <div>
+                  <label class="form-label text-sm">建场年度</label>
+                  <input type="number" x-model="addForm.establishYear" class="form-input" :class="addErrors.establishYear ? 'error' : ''" placeholder="1950-2099" min="1950" max="2099">
+                  <p x-show="addErrors.establishYear" class="error-msg" x-text="addErrors.establishYear"></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 步骤2: 资质证照 -->
+            <div x-show="addStep === 2">
+              <p class="section-title mb-4">第二步：资质证照</p>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="form-label text-sm">资质文件号</label>
+                  <input type="text" x-model="addForm.qualificationNumber" class="form-input" placeholder="请输入" maxlength="100">
+                </div>
+                <div>
+                  <label class="form-label text-sm">营业执照登记时间</label>
+                  <input type="date" x-model="addForm.licenseRegDate" class="form-input">
+                </div>
+                <div>
+                  <label class="form-label text-sm"><span class="required-star">*</span>营业执照社会信用代码</label>
+                  <input type="text" x-model="addForm.licenseCreditCode" @blur="validateCreditCode()" class="form-input" :class="addErrors.licenseCreditCode ? 'error' : ''" placeholder="18位数字或大写字母" maxlength="18">
+                  <p x-show="addErrors.licenseCreditCode" class="error-msg" x-text="addErrors.licenseCreditCode"></p>
+                </div>
+                <div>
+                  <label class="form-label text-sm">执照附件（最多10张，png/jpg）</label>
+                  <input type="file" accept=".png,.jpg,.jpeg" multiple class="form-input" @change="handleLicenseFiles($event)">
+                  <p class="text-xs text-gray-400 mt-1">已选 <span x-text="addForm.licenseFiles.length"></span> 张，单张不超过5MB</p>
+                </div>
+                <div>
+                  <label class="form-label text-sm">设施农业用地备案登记时间</label>
+                  <input type="date" x-model="addForm.farmlandRegDate" class="form-input">
+                </div>
+                <div>
+                  <label class="form-label text-sm">审批土地（亩）</label>
+                  <input type="number" x-model="addForm.farmlandArea" class="form-input" placeholder="0.01-99999.99" min="0.01" max="99999.99" step="0.01">
+                </div>
+                <div>
+                  <label class="form-label text-sm">环评备案登记时间</label>
+                  <input type="date" x-model="addForm.envAssessRegDate" class="form-input">
+                </div>
+                <div>
+                  <label class="form-label text-sm">环评批复备案号</label>
+                  <input type="text" x-model="addForm.envApprovalCode" class="form-input" placeholder="大型规模养殖场适用" maxlength="100">
+                </div>
+                <div>
+                  <label class="form-label text-sm">环评批复成文时间</label>
+                  <input type="date" x-model="addForm.envApprovalDate" class="form-input">
+                </div>
+                <div>
+                  <label class="form-label text-sm">环评批复文件号</label>
+                  <input type="text" x-model="addForm.envApprovalDocNo" class="form-input" placeholder="请输入" maxlength="100">
+                </div>
+                <div>
+                  <label class="form-label text-sm">动物防疫条件合格证登记时间</label>
+                  <input type="date" x-model="addForm.animalCertRegDate" class="form-input">
+                </div>
+                <div>
+                  <label class="form-label text-sm">防疫条件合格证代码编号</label>
+                  <input type="text" x-model="addForm.animalCertCode" class="form-input" placeholder="请输入" maxlength="100">
+                </div>
+              </div>
+            </div>
+
+            <!-- 步骤3: 养殖经营 -->
+            <div x-show="addStep === 3">
+              <p class="section-title mb-4">第三步：养殖经营</p>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="form-label text-sm"><span class="required-star">*</span>养殖类别</label>
+                  <select x-model="addForm.breedingCategory" class="form-input" :class="addErrors.breedingCategory ? 'error' : ''">
+                    <option value="">请选择</option>
+                    <option value="1">生猪</option>
+                  </select>
+                  <p x-show="addErrors.breedingCategory" class="error-msg" x-text="addErrors.breedingCategory"></p>
+                </div>
+                <div>
+                  <label class="form-label text-sm"><span class="required-star">*</span>养殖场类型</label>
+                  <select x-model="addForm.farmType" class="form-input" :class="addErrors.farmType ? 'error' : ''">
+                    <option value="">请选择</option>
+                    <option value="1">规模场</option>
+                    <option value="2">专业户</option>
+                  </select>
+                  <p x-show="addErrors.farmType" class="error-msg" x-text="addErrors.farmType"></p>
+                </div>
+                <div>
+                  <label class="form-label text-sm"><span class="required-star">*</span>设计存栏（头）</label>
+                  <input type="number" x-model="addForm.designStock" class="form-input" :class="addErrors.designStock ? 'error' : ''" placeholder="1-999999" min="1" max="999999">
+                  <p x-show="addErrors.designStock" class="error-msg" x-text="addErrors.designStock"></p>
+                </div>
+                <div>
+                  <label class="form-label text-sm"><span class="required-star">*</span>设计出栏（头）</label>
+                  <input type="number" x-model="addForm.designOutput" class="form-input" :class="addErrors.designOutput ? 'error' : ''" placeholder="1-999999" min="1" max="999999">
+                  <p x-show="addErrors.designOutput" class="error-msg" x-text="addErrors.designOutput"></p>
+                </div>
+                <div>
+                  <label class="form-label text-sm"><span class="required-star">*</span>经营状况</label>
+                  <select x-model="addForm.operationStatus" class="form-input" :class="addErrors.operationStatus ? 'error' : ''">
+                    <option value="">请选择</option>
+                    <option value="1">正常</option>
+                    <option value="2">停养</option>
+                    <option value="3">转产</option>
+                  </select>
+                  <p x-show="addErrors.operationStatus" class="error-msg" x-text="addErrors.operationStatus"></p>
+                </div>
+                <!-- 正常时显示 -->
+                <template x-if="addForm.operationStatus === '1'">
+                  <div class="col-span-2 grid grid-cols-2 gap-4">
+                    <div>
+                      <label class="form-label text-sm">现存栏（头）</label>
+                      <input type="number" x-model="addForm.currentStock" class="form-input" placeholder="0-999999" min="0">
+                    </div>
+                    <div>
+                      <label class="form-label text-sm">能繁母畜（头）</label>
+                      <input type="number" x-model="addForm.breedingFemaleCount" class="form-input" placeholder="0-999999" min="0">
+                    </div>
+                    <div>
+                      <label class="form-label text-sm">2025年预计出栏（头）</label>
+                      <input type="number" x-model="addForm.plannedOutput2025" class="form-input" placeholder="0-999999" min="0">
+                    </div>
+                  </div>
+                </template>
+                <!-- 停养时显示 -->
+                <template x-if="addForm.operationStatus === '2'">
+                  <div class="col-span-2 grid grid-cols-2 gap-4">
+                    <div>
+                      <label class="form-label text-sm">停养几年</label>
+                      <input type="number" x-model="addForm.suspendedYears" class="form-input" placeholder="0-99" min="0" max="99">
+                    </div>
+                    <div>
+                      <label class="form-label text-sm">有无复养可能</label>
+                      <select x-model="addForm.resumePossibility" class="form-input">
+                        <option value="">请选择</option>
+                        <option value="1">有</option>
+                        <option value="0">无</option>
+                      </select>
+                    </div>
+                  </div>
+                </template>
+                <!-- 转产时显示 -->
+                <template x-if="addForm.operationStatus === '3'">
+                  <div class="col-span-2">
+                    <label class="form-label text-sm">现养殖畜种</label>
+                    <input type="text" x-model="addForm.convertedSpecies" class="form-input" placeholder="如：肉牛、肉羊、禽类、肉兔、蜂" maxlength="200">
+                  </div>
+                </template>
+              </div>
+            </div>
+
+            <!-- 步骤4: 设施设备 -->
+            <div x-show="addStep === 4">
+              <p class="section-title mb-4">第四步：设施设备</p>
+              <p class="text-xs text-blue-500 mb-3">以下字段均为选填</p>
+              <div class="mb-4">
+                <p class="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">基础设施设备</p>
+                <div class="grid grid-cols-2 gap-4">
+                  <div><label class="form-label text-sm">圈舍数量（栋）</label><input type="number" x-model="addForm.facilityPenCount" class="form-input" placeholder="0-9999" min="0"></div>
+                  <div><label class="form-label text-sm">圈舍内面积（㎡）</label><input type="number" x-model="addForm.facilityPenArea" class="form-input" placeholder="0-999999.99" min="0" step="0.01"></div>
+                  <div><label class="form-label text-sm">产床（个）</label><input type="number" x-model="addForm.facilityFarrowingCrate" class="form-input" min="0"></div>
+                  <div><label class="form-label text-sm">限位栏（组）</label><input type="number" x-model="addForm.facilityGestationStall" class="form-input" min="0"></div>
+                </div>
+              </div>
+              <div class="mb-4">
+                <p class="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">饲喂系统</p>
+                <div class="grid grid-cols-2 gap-4">
+                  <div><label class="form-label text-sm">料塔（个）</label><input type="number" x-model="addForm.feedTowerCount" class="form-input" min="0"></div>
+                  <div><label class="form-label text-sm">料线（米）</label><input type="number" x-model="addForm.feedLineLength" class="form-input" min="0" step="0.01"></div>
+                  <div><label class="form-label text-sm">料线主机（套）</label><input type="number" x-model="addForm.feedLineHostCount" class="form-input" min="0"></div>
+                </div>
+              </div>
+              <div class="mb-4">
+                <p class="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">环境控制系统</p>
+                <div class="grid grid-cols-2 gap-4">
+                  <div><label class="form-label text-sm">风机（个）</label><input type="number" x-model="addForm.envFanCount" class="form-input" min="0"></div>
+                  <div><label class="form-label text-sm">水帘（㎡）</label><input type="number" x-model="addForm.envWetPadArea" class="form-input" min="0" step="0.01"></div>
+                  <div><label class="form-label text-sm">控制系统（套）</label><input type="number" x-model="addForm.envControlSystemCount" class="form-input" min="0"></div>
+                  <div><label class="form-label text-sm">地暖（㎡）</label><input type="number" x-model="addForm.envFloorHeatingArea" class="form-input" min="0" step="0.01"></div>
+                  <div><label class="form-label text-sm">热风机（个）</label><input type="number" x-model="addForm.envHeaterCount" class="form-input" min="0"></div>
+                  <div><label class="form-label text-sm">保温箱（套）</label><input type="number" x-model="addForm.envIncubatorCount" class="form-input" min="0"></div>
+                </div>
+              </div>
+              <div class="mb-4">
+                <p class="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">智能监测系统</p>
+                <div class="grid grid-cols-2 gap-4">
+                  <div><label class="form-label text-sm">监控摄像头（个）</label><input type="number" x-model="addForm.smartCameraCount" class="form-input" min="0"></div>
+                  <div><label class="form-label text-sm">管理系统（套）</label><input type="number" x-model="addForm.smartMgmtSystemCount" class="form-input" min="0"></div>
+                  <div><label class="form-label text-sm">发情监测系统（套）</label><input type="number" x-model="addForm.smartEstrusSystemCount" class="form-input" min="0"></div>
+                </div>
+              </div>
+              <div class="mb-4">
+                <p class="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">疫病防疫系统</p>
+                <div class="grid grid-cols-2 gap-4">
+                  <div><label class="form-label text-sm">兽医室（㎡）</label><input type="number" x-model="addForm.diseaseVetRoomArea" class="form-input" min="0" step="0.01"></div>
+                  <div><label class="form-label text-sm">消毒室（㎡）</label><input type="number" x-model="addForm.diseaseDisinfectRoomArea" class="form-input" min="0" step="0.01"></div>
+                  <div><label class="form-label text-sm">病死畜禽无害化暂存点（个）</label><input type="number" x-model="addForm.diseaseDeadStorageCount" class="form-input" min="0"></div>
+                  <div><label class="form-label text-sm">车辆洗消中心（㎡）</label><input type="number" x-model="addForm.diseaseVehicleWashArea" class="form-input" min="0" step="0.01"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 步骤5: 粪污与资源化 -->
+            <div x-show="addStep === 5">
+              <p class="section-title mb-4">第五步：粪污与资源化</p>
+              <div class="mb-4">
+                <p class="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">粪污收集处理利用</p>
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="form-label text-sm">清粪方式</label>
+                    <select x-model="addForm.wasteCleanMethod" class="form-input">
+                      <option value="">请选择</option>
+                      <option value="1">机械干清</option>
+                      <option value="2">人工干清</option>
+                      <option value="3">人工清理</option>
+                      <option value="4">水冲粪</option>
+                      <option value="5">水泡粪</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="form-label text-sm">漏缝板</label>
+                    <select x-model="addForm.wasteSlatted" class="form-input">
+                      <option value="">请选择</option>
+                      <option value="1">有</option>
+                      <option value="0">无</option>
+                    </select>
+                  </div>
+                  <div><label class="form-label text-sm">自动刮粪机（组）</label><input type="number" x-model="addForm.wasteScraperCount" class="form-input" min="0"></div>
+                  <div><label class="form-label text-sm">集粪池（m³）</label><input type="number" x-model="addForm.wasteCollectionPoolVol" class="form-input" min="0" step="0.01"></div>
+                  <div><label class="form-label text-sm">堆粪棚（㎡）</label><input type="number" x-model="addForm.wasteManureShedArea" class="form-input" min="0" step="0.01"></div>
+                  <div><label class="form-label text-sm">干粪去向</label><input type="text" x-model="addForm.wasteDryManureDest" class="form-input" placeholder="如：还田利用" maxlength="200"></div>
+                  <div><label class="form-label text-sm">液粪去向</label><input type="text" x-model="addForm.wasteLiquidManureDest" class="form-input" placeholder="如：还田利用" maxlength="200"></div>
+                  <div><label class="form-label text-sm">处理单位</label><input type="text" x-model="addForm.wasteProcessUnit" class="form-input" maxlength="200"></div>
+                </div>
+              </div>
+              <div class="mb-4">
+                <p class="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">资源化利用</p>
+                <div class="grid grid-cols-2 gap-4">
+                  <div><label class="form-label text-sm">沼液运输车（辆）</label><input type="number" x-model="addForm.resourceTransportVehicleCount" class="form-input" min="0"></div>
+                  <div><label class="form-label text-sm">沼液输送管网（米）</label><input type="number" x-model="addForm.resourcePipelineLength" class="form-input" min="0" step="0.01"></div>
+                  <div><label class="form-label text-sm">消纳土地共计（亩）</label><input type="number" x-model="addForm.resourceTotalLand" class="form-input" min="0" step="0.01"></div>
+                  <div><label class="form-label text-sm">其中自有（亩）</label><input type="number" x-model="addForm.resourceOwnLand" class="form-input" min="0" step="0.01"></div>
+                  <div><label class="form-label text-sm">周边农户（亩）</label><input type="number" x-model="addForm.resourceFarmerLand" class="form-input" min="0" step="0.01"></div>
+                  <div>
+                    <label class="form-label text-sm">粪污消纳台账是否完善</label>
+                    <select x-model="addForm.resourceLedgerComplete" class="form-input">
+                      <option value="">请选择</option>
+                      <option value="1">是</option>
+                      <option value="0">否</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 步骤6: 其他信息 -->
+            <div x-show="addStep === 6">
+              <p class="section-title mb-4">第六步：其他信息</p>
+              <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                  <label class="form-label text-sm">获得荣誉称号（可多选）</label>
+                  <div class="flex flex-wrap gap-3 mt-1">
+                    <template x-for="h in MOCK_DATA.honorTitles" :key="h.value">
+                      <label class="flex items-center gap-1 cursor-pointer">
+                        <input type="checkbox" :value="h.value" x-model="addForm.honorTitles" class="rounded">
+                        <span class="text-sm" x-text="h.label"></span>
+                      </label>
+                    </template>
+                  </div>
+                </div>
+                <div x-show="addForm.honorTitles.includes('05')" class="col-span-2">
+                  <label class="form-label text-sm"><span class="required-star">*</span>其他称号名称</label>
+                  <input type="text" x-model="addForm.honorTitleOther" class="form-input" :class="addErrors.honorTitleOther ? 'error' : ''" placeholder="请输入其他称号" maxlength="200">
+                  <p x-show="addErrors.honorTitleOther" class="error-msg" x-text="addErrors.honorTitleOther"></p>
+                </div>
+                <div class="col-span-2">
+                  <label class="form-label text-sm">备注</label>
+                  <textarea x-model="addForm.remark" class="form-input" rows="4" placeholder="请输入备注信息" maxlength="2000"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 步骤导航按钮 -->
+          <div class="flex justify-between">
+            <button x-show="addStep > 1" @click="addStep--" class="btn-default px-5 py-2 rounded text-sm">
+              <i class="fas fa-chevron-left mr-1"></i>上一步
+            </button>
+            <div x-show="addStep === 1"></div>
+            <div class="flex gap-3">
+              <button x-show="addStep < 6" @click="nextStep()" class="btn-primary px-5 py-2 rounded text-sm">
+                下一步<i class="fas fa-chevron-right ml-1"></i>
+              </button>
+              <button x-show="addStep === 6" @click="submitAdd()" class="btn-primary px-5 py-2 rounded text-sm">
+                <i class="fas fa-check mr-1"></i>提交
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- SECTION END: 新增企业页面 -->
+
+  </main>
+</div>
+
+<!-- SECTION START: 企业详情弹窗 -->
+<div id="feature-detail-modal" x-show="detailModal.show" class="modal-overlay" @click.self="detailModal.show=false">
+  <div class="modal-box modal-box-lg">
+    <div class="modal-header">
+      <h3 class="text-base font-semibold">养殖企业详情</h3>
+      <button @click="detailModal.show=false" class="text-gray-400 hover:text-gray-700"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" x-show="detailModal.data">
+      <!-- 状态 + 编辑按钮 -->
+      <div class="flex justify-between items-center mb-4">
+        <span class="tag" :class="detailModal.data && detailModal.data.status==='0' ? 'tag-green' : 'tag-red'"
+              x-text="detailModal.data && detailModal.data.status==='0' ? '正常' : '停用'"></span>
+        <button x-show="currentRole === 'county_admin'" @click="openEditPageFromDetail()" class="btn-primary px-3 py-1.5 rounded text-sm">
+          <i class="fas fa-edit mr-1"></i>编辑
+        </button>
+      </div>
+
+      <!-- Tab 页签 -->
+      <div class="border-b border-gray-200 mb-4 flex overflow-x-auto">
+        <template x-for="(tab, i) in detailTabs" :key="i">
+          <button class="tab-btn flex-shrink-0" :class="detailTab===i ? 'active' : ''" @click="detailTab=i" x-text="tab"></button>
+        </template>
+      </div>
+
+      <!-- Tab 内容 -->
+      <div x-show="detailTab===0">
+        <div class="section-title">养殖场名称 & 基本信息</div>
+        <div class="detail-row">
+          <div class="detail-item"><label>最终确定名称</label><p x-text="detailModal.data?.finalName || '——'"></p></div>
+          <div class="detail-item"><label>之前报送名称</label><p x-text="detailModal.data?.previousReportName || '——'"></p></div>
+          <div class="detail-item"><label>直连直报系统名称</label><p x-text="detailModal.data?.directReportName || '——'"></p></div>
+          <div class="detail-item"><label>其他名称</label><p x-text="detailModal.data?.otherName || '——'"></p></div>
+          <div class="detail-item"><label>经度</label><p x-text="detailModal.data?.longitude || '——'"></p></div>
+          <div class="detail-item"><label>纬度</label><p x-text="detailModal.data?.latitude || '——'"></p></div>
+          <div class="detail-item"><label>所属乡镇</label><p x-text="detailModal.data?.town || '——'"></p></div>
+          <div class="detail-item"><label>村</label><p x-text="detailModal.data?.addrVillage || '——'"></p></div>
+          <div class="detail-item"><label>联系人</label><p x-text="detailModal.data?.contactName || '——'"></p></div>
+          <div class="detail-item"><label>联系电话</label><p x-text="detailModal.data?.contactPhone || '——'"></p></div>
+          <div class="detail-item"><label>建场年度</label><p x-text="detailModal.data?.establishYear || '——'"></p></div>
+        </div>
+        <!-- 地图占位 -->
+        <div class="mt-4 border border-gray-200 rounded-lg p-4 bg-gray-50 text-center text-gray-400 text-sm">
+          <i class="fas fa-map-marker-alt text-2xl mb-2 block text-gray-300"></i>
+          <span x-text="(detailModal.data?.longitude && detailModal.data?.latitude) ? `坐标：${detailModal.data.longitude}, ${detailModal.data.latitude}` : '暂未定位'"></span>
+        </div>
+      </div>
+
+      <div x-show="detailTab===1">
+        <div class="section-title">资质证照</div>
+        <div class="detail-row">
+          <div class="detail-item"><label>资质文件号</label><p x-text="detailModal.data?.qualificationNumber || '——'"></p></div>
+          <div class="detail-item"><label>营业执照登记时间</label><p x-text="detailModal.data?.licenseRegDate || '——'"></p></div>
+          <div class="detail-item"><label>营业执照社会信用代码</label><p x-text="detailModal.data?.creditCode || '——'"></p></div>
+          <div class="detail-item"><label>设施农业用地备案登记时间</label><p x-text="detailModal.data?.farmlandRegDate || '——'"></p></div>
+          <div class="detail-item"><label>审批土地（亩）</label><p x-text="detailModal.data?.farmlandArea || '——'"></p></div>
+          <div class="detail-item"><label>环评备案登记时间</label><p x-text="detailModal.data?.envAssessRegDate || '——'"></p></div>
+          <div class="detail-item"><label>环评批复备案号</label><p x-text="detailModal.data?.envApprovalCode || '——'"></p></div>
+          <div class="detail-item"><label>动物防疫合格证编号</label><p x-text="detailModal.data?.animalCertCode || '——'"></p></div>
+        </div>
+        <div class="mt-3">
+          <label class="text-xs text-gray-400">执照附件</label>
+          <div class="flex flex-wrap gap-2 mt-1">
+            <div class="w-20 h-20 bg-gray-100 rounded flex items-center justify-center text-gray-400 text-xs border border-gray-200 cursor-pointer hover:border-blue-400" @click="showImgPreview()">
+              <div class="text-center"><i class="fas fa-image text-lg mb-1 block"></i><span>点击预览</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div x-show="detailTab===2">
+        <div class="section-title">养殖经营</div>
+        <div class="detail-row">
+          <div class="detail-item"><label>养殖类别</label><p x-text="detailModal.data?.breedingCategoryLabel || '——'"></p></div>
+          <div class="detail-item"><label>养殖场类型</label><p x-text="detailModal.data?.farmTypeLabel || '——'"></p></div>
+          <div class="detail-item"><label>设计存栏（头）</label><p x-text="detailModal.data?.designStock || '——'"></p></div>
+          <div class="detail-item"><label>设计出栏（头）</label><p x-text="detailModal.data?.designOutput || '——'"></p></div>
+          <div class="detail-item"><label>经营状况</label>
+            <p><span class="tag" :class="{'tag-green': detailModal.data?.operationStatus==='1','tag-orange': detailModal.data?.operationStatus==='2','tag-blue': detailModal.data?.operationStatus==='3'}" x-text="detailModal.data?.operationStatusLabel || '——'"></span></p>
+          </div>
+          <div class="detail-item" x-show="detailModal.data?.operationStatus==='1'"><label>现存栏（头）</label><p x-text="detailModal.data?.currentStock || '——'"></p></div>
+          <div class="detail-item" x-show="detailModal.data?.operationStatus==='2'"><label>停养年数</label><p x-text="detailModal.data?.suspendedYears || '——'"></p></div>
+          <div class="detail-item" x-show="detailModal.data?.operationStatus==='3'"><label>现养殖畜种</label><p x-text="detailModal.data?.convertedSpecies || '——'"></p></div>
+        </div>
+      </div>
+
+      <div x-show="detailTab===3">
+        <div class="section-title">设施设备</div>
+        <div class="detail-row">
+          <div class="detail-item"><label>圈舍数量（栋）</label><p x-text="detailModal.data?.facilityPenCount ?? '——'"></p></div>
+          <div class="detail-item"><label>圈舍内面积（㎡）</label><p x-text="detailModal.data?.facilityPenArea ?? '——'"></p></div>
+          <div class="detail-item"><label>风机（个）</label><p x-text="detailModal.data?.envFanCount ?? '——'"></p></div>
+          <div class="detail-item"><label>监控摄像头（个）</label><p x-text="detailModal.data?.smartCameraCount ?? '——'"></p></div>
+          <div class="detail-item"><label>兽医室（㎡）</label><p x-text="detailModal.data?.diseaseVetRoomArea ?? '——'"></p></div>
+          <div class="detail-item"><label>消毒室（㎡）</label><p x-text="detailModal.data?.diseaseDisinfectRoomArea ?? '——'"></p></div>
+        </div>
+      </div>
+
+      <div x-show="detailTab===4">
+        <div class="section-title">粪污与资源化</div>
+        <div class="detail-row">
+          <div class="detail-item"><label>清粪方式</label><p x-text="detailModal.data?.wasteCleanMethodLabel || '——'"></p></div>
+          <div class="detail-item"><label>集粪池（m³）</label><p x-text="detailModal.data?.wasteCollectionPoolVol ?? '——'"></p></div>
+          <div class="detail-item"><label>干粪去向</label><p x-text="detailModal.data?.wasteDryManureDest || '——'"></p></div>
+          <div class="detail-item"><label>液粪去向</label><p x-text="detailModal.data?.wasteLiquidManureDest || '——'"></p></div>
+          <div class="detail-item"><label>沼液运输车（辆）</label><p x-text="detailModal.data?.resourceTransportVehicleCount ?? '——'"></p></div>
+          <div class="detail-item"><label>消纳土地共计（亩）</label><p x-text="detailModal.data?.resourceTotalLand ?? '——'"></p></div>
+          <div class="detail-item"><label>粪污消纳台账完善</label><p x-text="detailModal.data?.resourceLedgerCompleteLabel || '——'"></p></div>
+        </div>
+      </div>
+
+      <div x-show="detailTab===5">
+        <div class="section-title">其他信息</div>
+        <div class="detail-row">
+          <div class="detail-item col-span-2"><label>获得荣誉称号</label><p x-text="detailModal.data?.honorTitleLabel || '——'"></p></div>
+          <div class="detail-item col-span-2"><label>备注</label><p x-text="detailModal.data?.remark || '——'"></p></div>
+        </div>
+        <div class="section-title mt-4">关联圈舍列表</div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>圈舍编号</th><th>圈舍名称</th><th>圈舍类型</th><th>设计容量(头)</th><th>当前存栏(头)</th><th>建筑面积(㎡)</th><th>状态</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="p in (detailModal.data?.pigsties || [])" :key="p.code">
+                <tr>
+                  <td x-text="p.code"></td>
+                  <td x-text="p.name"></td>
+                  <td x-text="p.typeLabel"></td>
+                  <td x-text="p.designCapacity"></td>
+                  <td x-text="p.currentStock"></td>
+                  <td x-text="p.buildingArea"></td>
+                  <td><span class="tag tag-green">正常</span></td>
+                </tr>
+              </template>
+              <tr x-show="!(detailModal.data?.pigsties?.length)">
+                <td colspan="7" class="text-center py-4 text-gray-400">暂无圈舍数据</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button @click="detailModal.show=false" class="btn-default px-4 py-1.5 rounded text-sm">关闭</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 企业详情弹窗 -->
+
+<!-- SECTION START: 状态变更确认弹窗 -->
+<div id="feature-status-modal" x-show="statusModal.show" class="modal-overlay" @click.self="statusModal.show=false">
+  <div class="modal-box confirm-dialog">
+    <div class="modal-header">
+      <h3 class="text-base font-semibold" x-text="statusModal.title"></h3>
+      <button @click="statusModal.show=false" class="text-gray-400 hover:text-gray-700"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <p class="text-sm text-gray-700" x-text="statusModal.msg"></p>
+    </div>
+    <div class="modal-footer">
+      <button @click="statusModal.show=false" class="btn-default px-4 py-1.5 rounded text-sm">取消</button>
+      <button @click="doStatusChange()" class="px-4 py-1.5 rounded text-sm text-white" :class="statusModal.targetStatus==='1' ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'" x-text="statusModal.btnText"></button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 状态变更确认弹窗 -->
+
+<!-- SECTION START: 新增成功弹窗 -->
+<div id="feature-success-modal" x-show="successModal.show" class="modal-overlay">
+  <div class="modal-box confirm-dialog">
+    <div class="modal-header">
+      <h3 class="text-base font-semibold text-green-600"><i class="fas fa-check-circle mr-2"></i>新增成功</h3>
+    </div>
+    <div class="modal-body">
+      <div class="bg-green-50 border border-green-200 rounded p-3 text-sm">
+        <p class="font-medium text-gray-700 mb-2">企业管理员账号已创建：</p>
+        <p>用户名：<strong x-text="successModal.username"></strong></p>
+        <p class="mt-1">默认密码：<strong>123456</strong></p>
+        <p class="mt-2 text-gray-500 text-xs">请通知企业管理员登录后及时修改密码。</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button @click="confirmSuccess()" class="btn-primary px-4 py-1.5 rounded text-sm">确认，返回列表</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 新增成功弹窗 -->
+
+<!-- 图片预览弹窗 -->
+<div x-show="imgPreview.show" class="modal-overlay" @click="imgPreview.show=false">
+  <div class="bg-white rounded-lg p-4 max-w-lg w-full mx-4">
+    <div class="text-center">
+      <div class="w-full h-64 bg-gray-100 flex items-center justify-center rounded text-gray-400">
+        <div><i class="fas fa-file-image text-4xl mb-3 block text-gray-300"></i><p class="text-sm">营业执照附件预览（模拟）</p></div>
+      </div>
+      <button @click="imgPreview.show=false" class="mt-3 btn-default px-4 py-1.5 rounded text-sm">关闭</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const MOCK_DATA = {
+  users: [
+    { id: 1, username: 'county_admin01', password: '123456', role: 'county_admin', roleName: '县级管理员', name: '王建国', deptId: 1, dataScope: '1' },
+    { id: 2, username: 'county_staff01', password: '123456', role: 'county_staff', roleName: '县级业务人员', name: '李慧', deptId: 1, dataScope: '1' },
+    { id: 3, username: 'town_gov01', password: '123456', role: 'town_gov_staff', roleName: '乡镇政府业务人员', name: '张明', deptId: 10, dataScope: '4' },
+    { id: 4, username: 'town_vet01', password: '123456', role: 'town_vet_station', roleName: '乡镇畜牧兽医站', name: '刘芳', deptId: 10, dataScope: '4' }
+  ],
+  menus: [
+    {
+      key: 'supervision', label: '智慧监管',
+      children: [
+        { key: 'enterprise', label: '养殖企业信息管理', icon: 'fas fa-building' },
+        { key: 'archive', label: '养殖档案监管', icon: 'fas fa-folder-open' }
+      ]
+    }
+  ],
+  towns: [
+    { value: '1', label: '蓬溪镇' },
+    { value: '2', label: '大石镇' },
+    { value: '3', label: '明月镇' },
+    { value: '4', label: '红江镇' },
+    { value: '5', label: '天福镇' },
+    { value: '6', label: '罗戈乡' },
+    { value: '7', label: '高坪镇' },
+    { value: '8', label: '槐花乡' }
+  ],
+  honorTitles: [
+    { value: '01', label: '标准化示范场' },
+    { value: '02', label: '龙头企业' },
+    { value: '03', label: '示范专业合作社' },
+    { value: '04', label: '示范养殖家庭农场' },
+    { value: '05', label: '其他' }
+  ],
+  enterprises: [
+    {
+      id: 1, finalName: '蓬溪县鑫源生猪养殖有限公司', previousReportName: '鑫源养猪场', directReportName: '蓬溪鑫源生猪场',
+      town: '蓬溪镇', townCode: '1', addrVillage: '金蛇村', contactName: '李明', contactPhone: '13812345001',
+      breedingCategory: '1', breedingCategoryLabel: '生猪', farmType: '1', farmTypeLabel: '规模场',
+      operationStatus: '1', operationStatusLabel: '正常', currentStock: 1200,
+      designStock: 2000, designOutput: 3500, creditCode: '91510921MA67B1KC02',
+      status: '0', createTime: '2024-03-15 10:21:00',
+      establishYear: 2012, qualificationNumber: 'QL-2024-001',
+      licenseRegDate: '2020-01-10', farmlandRegDate: '2019-06-20', farmlandArea: 45.5,
+      envApprovalCode: 'HY-2020-0012', animalCertCode: 'FY-SC-2024-0088',
+      facilityPenCount: 8, facilityPenArea: 2400, envFanCount: 24, smartCameraCount: 12,
+      diseaseVetRoomArea: 30, diseaseDisinfectRoomArea: 20,
+      wasteCleanMethod: '1', wasteCleanMethodLabel: '机械干清', wasteCollectionPoolVol: 500,
+      wasteDryManureDest: '还田利用', wasteLiquidManureDest: '农田灌溉',
+      resourceTransportVehicleCount: 2, resourceTotalLand: 120, resourceLedgerComplete: '1', resourceLedgerCompleteLabel: '是',
+      honorTitles: ['01', '02'], honorTitleLabel: '标准化示范场、龙头企业', remark: '四川省级标准化示范场',
+      pigsties: [
+        { code: 'PY-001', name: '妊娠舍A', typeLabel: '妊娠舍', designCapacity: 300, currentStock: 280, buildingArea: 600 },
+        { code: 'PY-002', name: '分娩舍B', typeLabel: '分娩舍', designCapacity: 150, currentStock: 120, buildingArea: 450 }
+      ]
+    },
+    {
+      id: 2, finalName: '蓬溪县顺泰育肥猪场', previousReportName: '', directReportName: '',
+      town: '大石镇', townCode: '2', addrVillage: '石板村', contactName: '王强', contactPhone: '13912345002',
+      breedingCategory: '1', breedingCategoryLabel: '生猪', farmType: '2', farmTypeLabel: '专业户',
+      operationStatus: '1', operationStatusLabel: '正常', currentStock: 800,
+      designStock: 1000, designOutput: 2000, creditCode: '91510921MA6BK7HQ3X',
+      status: '0', createTime: '2024-04-02 14:30:00',
+      facilityPenCount: 5, facilityPenArea: 1500, envFanCount: 15, smartCameraCount: 8,
+      wasteCleanMethod: '2', wasteCleanMethodLabel: '人工干清',
+      honorTitles: [], honorTitleLabel: '——', pigsties: []
+    },
+    {
+      id: 3, finalName: '明月镇宏达种猪繁育基地', previousReportName: '宏达种猪场',
+      town: '明月镇', townCode: '3', addrVillage: '清水坪村', contactName: '陈志远', contactPhone: '15012345003',
+      breedingCategory: '1', breedingCategoryLabel: '生猪', farmType: '1', farmTypeLabel: '规模场',
+      operationStatus: '1', operationStatusLabel: '正常', currentStock: 500,
+      designStock: 600, designOutput: 1200, creditCode: '91510921MA7BK8KQ4Y',
+      status: '0', createTime: '2024-05-10 09:15:00',
+      establishYear: 2015,
+      facilityPenCount: 12, facilityPenArea: 3600, envFanCount: 36, smartCameraCount: 20,
+      wasteCleanMethod: '1', wasteCleanMethodLabel: '机械干清',
+      honorTitles: ['04'], honorTitleLabel: '示范养殖家庭农场',
+      pigsties: [
+        { code: 'PY-101', name: '种公猪舍', typeLabel: '公猪舍', designCapacity: 50, currentStock: 45, buildingArea: 200 }
+      ]
+    },
+    {
+      id: 4, finalName: '红江镇兴农生猪养殖家庭农场', previousReportName: '',
+      town: '红江镇', townCode: '4', addrVillage: '兴隆村', contactName: '赵春梅', contactPhone: '18712345004',
+      breedingCategory: '1', breedingCategoryLabel: '生猪', farmType: '1', farmTypeLabel: '规模场',
+      operationStatus: '2', operationStatusLabel: '停养', suspendedYears: 2,
+      designStock: 300, designOutput: 600, creditCode: '91510921MA8CF9LP5Z',
+      status: '0', createTime: '2024-06-20 16:45:00',
+      facilityPenCount: 3, facilityPenArea: 600,
+      wasteCleanMethod: '3', wasteCleanMethodLabel: '人工清理',
+      honorTitles: [], honorTitleLabel: '——', pigsties: []
+    },
+    {
+      id: 5, finalName: '天福镇绿野生猪生态养殖场', previousReportName: '',
+      town: '天福镇', townCode: '5', addrVillage: '青草沟村', contactName: '周浩然', contactPhone: '13612345005',
+      breedingCategory: '1', breedingCategoryLabel: '生猪', farmType: '2', farmTypeLabel: '专业户',
+      operationStatus: '1', operationStatusLabel: '正常', currentStock: 450,
+      designStock: 500, designOutput: 1000, creditCode: '91510921MA9DGJMP6A',
+      status: '1', createTime: '2024-07-08 11:00:00',
+      facilityPenCount: 4, facilityPenArea: 1200,
+      wasteCleanMethod: '2', wasteCleanMethodLabel: '人工干清',
+      honorTitles: [], honorTitleLabel: '——', pigsties: []
+    },
+    {
+      id: 6, finalName: '罗戈乡华丰肉猪养殖专业合作社', previousReportName: '',
+      town: '罗戈乡', townCode: '6', addrVillage: '华丰村', contactName: '吴雪梅', contactPhone: '17712345006',
+      breedingCategory: '1', breedingCategoryLabel: '生猪', farmType: '1', farmTypeLabel: '规模场',
+      operationStatus: '3', operationStatusLabel: '转产', convertedSpecies: '肉牛',
+      designStock: 800, designOutput: 1600, creditCode: '91510921MAAE1NPQ7B',
+      status: '0', createTime: '2024-08-15 08:30:00',
+      facilityPenCount: 6, facilityPenArea: 1800,
+      wasteCleanMethod: '4', wasteCleanMethodLabel: '水冲粪',
+      honorTitles: ['03'], honorTitleLabel: '示范专业合作社', pigsties: []
+    },
+    {
+      id: 7, finalName: '高坪镇安达育肥猪养殖场', previousReportName: '',
+      town: '高坪镇', townCode: '7', addrVillage: '安民坝村', contactName: '孙大勇', contactPhone: '15512345007',
+      breedingCategory: '1', breedingCategoryLabel: '生猪', farmType: '2', farmTypeLabel: '专业户',
+      operationStatus: '1', operationStatusLabel: '正常', currentStock: 680,
+      designStock: 800, designOutput: 1600, creditCode: '91510921MABF2OQR8C',
+      status: '0', createTime: '2024-09-01 13:20:00',
+      facilityPenCount: 5, facilityPenArea: 1400,
+      wasteCleanMethod: '1', wasteCleanMethodLabel: '机械干清',
+      honorTitles: [], honorTitleLabel: '——', pigsties: []
+    },
+    {
+      id: 8, finalName: '槐花乡丰收种猪场', previousReportName: '丰收养猪场',
+      town: '槐花乡', townCode: '8', addrVillage: '老槐树村', contactName: '郑文清', contactPhone: '13312345008',
+      breedingCategory: '1', breedingCategoryLabel: '生猪', farmType: '1', farmTypeLabel: '规模场',
+      operationStatus: '1', operationStatusLabel: '正常', currentStock: 350,
+      designStock: 400, designOutput: 800, creditCode: '91510921MACG3PST9D',
+      status: '0', createTime: '2024-10-12 10:55:00',
+      establishYear: 2018,
+      facilityPenCount: 10, facilityPenArea: 2800,
+      wasteCleanMethod: '1', wasteCleanMethodLabel: '机械干清',
+      honorTitles: ['01'], honorTitleLabel: '标准化示范场',
+      pigsties: [
+        { code: 'PY-201', name: '测定站A', typeLabel: '测定站', designCapacity: 80, currentStock: 72, buildingArea: 300 },
+        { code: 'PY-202', name: '种公猪舍B', typeLabel: '公猪舍', designCapacity: 30, currentStock: 28, buildingArea: 150 }
+      ]
+    },
+    {
+      id: 9, finalName: '蓬溪镇绿源生猪合作社', previousReportName: '',
+      town: '蓬溪镇', townCode: '1', addrVillage: '白岩村', contactName: '钱德明', contactPhone: '18912345009',
+      breedingCategory: '1', breedingCategoryLabel: '生猪', farmType: '1', farmTypeLabel: '规模场',
+      operationStatus: '1', operationStatusLabel: '正常', currentStock: 920,
+      designStock: 1200, designOutput: 2400, creditCode: '91510921MADH4QUU0E',
+      status: '0', createTime: '2024-11-05 15:40:00',
+      facilityPenCount: 7, facilityPenArea: 2100,
+      wasteCleanMethod: '2', wasteCleanMethodLabel: '人工干清',
+      honorTitles: ['02'], honorTitleLabel: '龙头企业', pigsties: []
+    },
+    {
+      id: 10, finalName: '大石镇福旺肉猪育肥场', previousReportName: '',
+      town: '大石镇', townCode: '2', addrVillage: '大石坝村', contactName: '冯志远', contactPhone: '15812345010',
+      breedingCategory: '1', breedingCategoryLabel: '生猪', farmType: '2', farmTypeLabel: '专业户',
+      operationStatus: '2', operationStatusLabel: '停养', suspendedYears: 1,
+      designStock: 600, designOutput: 1200, creditCode: '91510921MAEI5RVV1F',
+      status: '0', createTime: '2024-12-01 09:00:00',
+      facilityPenCount: 4, facilityPenArea: 1100,
+      wasteCleanMethod: '3', wasteCleanMethodLabel: '人工清理',
+      honorTitles: [], honorTitleLabel: '——', pigsties: []
+    }
+  ]
+};
+
+function app() {
+  return {
+    currentRole: 'county_admin',
+    currentMenu: 'enterprise',
+    sidebarCollapsed: false,
+    toast: { show: false, msg: '', type: 'success' },
+
+    // 列表筛选
+    listFilter: { finalName: '', breedingCategory: '', farmType: '', town: '', operationStatus: '' },
+    listPage: 1,
+    listPageSize: 10,
+    searchedFilter: { finalName: '', breedingCategory: '', farmType: '', town: '', operationStatus: '' },
+
+    // 详情弹窗
+    detailModal: { show: false, data: null },
+    detailTab: 0,
+    detailTabs: ['基本信息', '资质证照', '养殖经营', '设施设备', '粪污与资源化', '其他信息'],
+
+    // 状态变更弹窗
+    statusModal: { show: false, title: '', msg: '', row: null, targetStatus: '', btnText: '' },
+
+    // 新增/编辑
+    addMode: 'add',
+    addStep: 1,
+    addSteps: ['基本信息', '资质证照', '养殖经营', '设施设备', '粪污与资源化', '其他信息'],
+    addForm: {},
+    addErrors: {},
+    editId: null,
+
+    // 成功弹窗
+    successModal: { show: false, username: '' },
+
+    // 图片预览
+    imgPreview: { show: false },
+
+    getCurrentUser() {
+      return MOCK_DATA.users.find(u => u.role === this.currentRole) || MOCK_DATA.users[0];
+    },
+
+    isCountyRole() {
+      return this.currentRole === 'county_admin' || this.currentRole === 'county_staff';
+    },
+
+    onRoleChange() {
+      this.currentMenu = 'enterprise';
+      this.showToast(`已切换为：${this.getCurrentUser().roleName}`, 'success');
+    },
+
+    logout() {
+      this.showToast('已退出登录', 'success');
+    },
+
+    get filteredList() {
+      let list = MOCK_DATA.enterprises;
+      const f = this.searchedFilter;
+      if (!this.isCountyRole()) {
+        const user = this.getCurrentUser();
+        list = list.filter(e => e.townCode === String(user.deptId).replace(/0$/, '') || e.townCode <= '3');
+      }
+      if (f.finalName) list = list.filter(e => e.finalName.includes(f.finalName));
+      if (f.breedingCategory) list = list.filter(e => e.breedingCategory === f.breedingCategory);
+      if (f.farmType) list = list.filter(e => e.farmType === f.farmType);
+      if (f.town) list = list.filter(e => e.townCode === f.town);
+      if (f.operationStatus) list = list.filter(e => e.operationStatus === f.operationStatus);
+      return list;
+    },
+
+    get paginatedList() {
+      const start = (this.listPage - 1) * Number(this.listPageSize);
+      return this.filteredList.slice(start, start + Number(this.listPageSize));
+    },
+
+    get totalPages() {
+      return Math.max(1, Math.ceil(this.filteredList.length / Number(this.listPageSize)));
+    },
+
+    get pageRange() {
+      const total = this.totalPages;
+      const cur = this.listPage;
+      let start = Math.max(1, cur - 2);
+      let end = Math.min(total, cur + 2);
+      const pages = [];
+      for (let i = start; i <= end; i++) pages.push(i);
+      return pages;
+    },
+
+    doSearch() {
+      this.searchedFilter = { ...this.listFilter };
+      this.listPage = 1;
+    },
+
+    resetFilter() {
+      this.listFilter = { finalName: '', breedingCategory: '', farmType: '', town: '', operationStatus: '' };
+      this.searchedFilter = { ...this.listFilter };
+      this.listPage = 1;
+    },
+
+    exportExcel() {
+      this.showToast(`导出成功！共 ${this.filteredList.length} 条数据，文件名：养殖企业信息_${new Date().toISOString().slice(0,10).replace(/-/g,'')}.xlsx`, 'success');
+    },
+
+    openDetail(row) {
+      this.detailModal.data = row;
+      this.detailTab = 0;
+      this.detailModal.show = true;
+    },
+
+    openEditPageFromDetail() {
+      this.detailModal.show = false;
+      this.openEditPage(this.detailModal.data);
+    },
+
+    openAddPage() {
+      this.addMode = 'add';
+      this.addStep = 1;
+      this.addForm = this.emptyForm();
+      this.addErrors = {};
+      this.editId = null;
+      this.currentMenu = 'enterprise_add';
+    },
+
+    openEditPage(row) {
+      this.addMode = 'edit';
+      this.addStep = 1;
+      this.editId = row.id;
+      this.addForm = {
+        finalName: row.finalName || '',
+        previousReportName: row.previousReportName || '',
+        directReportName: row.directReportName || '',
+        otherName: row.otherName || '',
+        longitude: row.longitude || '',
+        latitude: row.latitude || '',
+        deptTown: row.townCode || '',
+        addrTown: row.town || '',
+        addrVillage: row.addrVillage || '',
+        addrGroup: row.addrGroup || '',
+        contactName: row.contactName || '',
+        contactPhone: row.contactPhone || '',
+        idCard: row.idCard || '',
+        establishYear: row.establishYear || '',
+        qualificationNumber: row.qualificationNumber || '',
+        licenseRegDate: row.licenseRegDate || '',
+        licenseCreditCode: row.creditCode || '',
+        licenseFiles: [],
+        farmlandRegDate: row.farmlandRegDate || '',
+        farmlandArea: row.farmlandArea || '',
+        envAssessRegDate: row.envAssessRegDate || '',
+        envApprovalCode: row.envApprovalCode || '',
+        envApprovalDate: row.envApprovalDate || '',
+        envApprovalDocNo: row.envApprovalDocNo || '',
+        animalCertRegDate: row.animalCertRegDate || '',
+        animalCertCode: row.animalCertCode || '',
+        breedingCategory: row.breedingCategory || '',
+        farmType: row.farmType || '',
+        designStock: row.designStock || '',
+        designOutput: row.designOutput || '',
+        operationStatus: row.operationStatus || '',
+        currentStock: row.currentStock || '',
+        breedingFemaleCount: row.breedingFemaleCount || '',
+        plannedOutput2025: row.plannedOutput2025 || '',
+        suspendedYears: row.suspendedYears || '',
+        resumePossibility: row.resumePossibility || '',
+        convertedSpecies: row.convertedSpecies || '',
+        facilityPenCount: row.facilityPenCount || '',
+        facilityPenArea: row.facilityPenArea || '',
+        envFanCount: row.envFanCount || '',
+        smartCameraCount: row.smartCameraCount || '',
+        diseaseVetRoomArea: row.diseaseVetRoomArea || '',
+        diseaseDisinfectRoomArea: row.diseaseDisinfectRoomArea || '',
+        wasteCleanMethod: row.wasteCleanMethod || '',
+        wasteCollectionPoolVol: row.wasteCollectionPoolVol || '',
+        wasteDryManureDest: row.wasteDryManureDest || '',
+        wasteLiquidManureDest: row.wasteLiquidManureDest || '',
+        resourceTransportVehicleCount: row.resourceTransportVehicleCount || '',
+        resourceTotalLand: row.resourceTotalLand || '',
+        resourceLedgerComplete: row.resourceLedgerComplete || '',
+        honorTitles: row.honorTitles ? [...row.honorTitles] : [],
+        honorTitleOther: row.honorTitleOther || '',
+        remark: row.remark || ''
+      };
+      this.addErrors = {};
+      this.currentMenu = 'enterprise_add';
+    },
+
+    emptyForm() {
+      return {
+        finalName: '', previousReportName: '', directReportName: '', otherName: '',
+        longitude: '', latitude: '', deptTown: '', addrTown: '', addrVillage: '', addrGroup: '',
+        contactName: '', contactPhone: '', idCard: '', establishYear: '',
+        qualificationNumber: '', licenseRegDate: '', licenseCreditCode: '', licenseFiles: [],
+        farmlandRegDate: '', farmlandArea: '', envAssessRegDate: '',
+        envApprovalCode: '', envApprovalDate: '', envApprovalDocNo: '',
+        animalCertRegDate: '', animalCertCode: '',
+        breedingCategory: '', farmType: '', designStock: '', designOutput: '',
+        operationStatus: '', currentStock: '', breedingFemaleCount: '', plannedOutput2025: '',
+        suspendedYears: '', resumePossibility: '', convertedSpecies: '',
+        facilityPenCount: '', facilityPenArea: '', facilityFarrowingCrate: '', facilityGestationStall: '',
+        feedTowerCount: '', feedLineLength: '', feedLineHostCount: '',
+        envFanCount: '', envWetPadArea: '', envControlSystemCount: '', envFloorHeatingArea: '',
+        envHeaterCount: '', envIncubatorCount: '', smartCameraCount: '', smartMgmtSystemCount: '',
+        smartEstrusSystemCount: '', diseaseVetRoomArea: '', diseaseDisinfectRoomArea: '',
+        diseaseDeadStorageCount: '', diseaseVehicleWashArea: '',
+        wasteCleanMethod: '', wasteSlatted: '', wasteScraperCount: '', wasteCollectionPoolVol: '',
+        wasteManureShedArea: '', wasteDryManureDest: '', wasteLiquidManureDest: '', wasteProcessUnit: '',
+        resourceTransportVehicleCount: '', resourcePipelineLength: '', resourceTotalLand: '',
+        resourceOwnLand: '', resourceFarmerLand: '', resourceLedgerComplete: '',
+        honorTitles: [], honorTitleOther: '', remark: ''
+      };
+    },
+
+    leaveAddPage() {
+      if (Object.values(this.addForm).some(v => v !== '' && v !== null && !(Array.isArray(v) && v.length === 0))) {
+        if (!confirm('离开将丢失已填写内容，是否确认？')) return;
+      }
+      this.currentMenu = 'enterprise';
+    },
+
+    validatePhone() {
+      if (this.addForm.contactPhone && !/^1[3-9]\d{9}$/.test(this.addForm.contactPhone)) {
+        this.addErrors.contactPhone = '请输入正确的手机号码';
+      } else {
+        delete this.addErrors.contactPhone;
+      }
+    },
+
+    validateIdCard() {
+      if (this.addForm.idCard && !/^\d{17}[\dXx]$/.test(this.addForm.idCard)) {
+        this.addErrors.idCard = '请输入正确的身份证号码';
+      } else {
+        delete this.addErrors.idCard;
+      }
+    },
+
+    validateCreditCode() {
+      if (this.addForm.licenseCreditCode && !/^[0-9A-Z]{18}$/.test(this.addForm.licenseCreditCode)) {
+        this.addErrors.licenseCreditCode = '社会信用代码必须为18位数字或大写字母';
+      } else {
+        delete this.addErrors.licenseCreditCode;
+      }
+    },
+
+    handleLicenseFiles(e) {
+      const files = Array.from(e.target.files);
+      if (files.length > 10) { alert('最多上传10张'); return; }
+      this.addForm.licenseFiles = files;
+    },
+
+    validateStep(step) {
+      this.addErrors = {};
+      if (step === 1) {
+        if (!this.addForm.finalName) this.addErrors.finalName = '最终确定名称不能为空';
+        if (!this.addForm.deptTown) this.addErrors.deptTown = '请选择所属乡镇';
+        if (!this.addForm.addrTown) this.addErrors.addrTown = '乡镇不能为空';
+        if (!this.addForm.addrVillage) this.addErrors.addrVillage = '村不能为空';
+        if (!this.addForm.contactName) this.addErrors.contactName = '联系人不能为空';
+        if (!this.addForm.contactPhone) { this.addErrors.contactPhone = '联系电话不能为空'; }
+        else if (!/^1[3-9]\d{9}$/.test(this.addForm.contactPhone)) { this.addErrors.contactPhone = '请输入正确的手机号码'; }
+        if (this.addForm.idCard && !/^\d{17}[\dXx]$/.test(this.addForm.idCard)) this.addErrors.idCard = '请输入正确的身份证号码';
+        if (this.addForm.establishYear && (this.addForm.establishYear < 1950 || this.addForm.establishYear > 2099)) this.addErrors.establishYear = '请输入有效的年度（1950-2099）';
+      }
+      if (step === 2) {
+        if (!this.addForm.licenseCreditCode) { this.addErrors.licenseCreditCode = '社会信用代码不能为空'; }
+        else if (!/^[0-9A-Z]{18}$/.test(this.addForm.licenseCreditCode)) { this.addErrors.licenseCreditCode = '社会信用代码必须为18位数字或大写字母'; }
+      }
+      if (step === 3) {
+        if (!this.addForm.breedingCategory) this.addErrors.breedingCategory = '养殖类别不能为空';
+        if (!this.addForm.farmType) this.addErrors.farmType = '养殖场类型不能为空';
+        if (!this.addForm.designStock) this.addErrors.designStock = '设计存栏不能为空';
+        if (!this.addForm.designOutput) this.addErrors.designOutput = '设计出栏不能为空';
+        if (!this.addForm.operationStatus) this.addErrors.operationStatus = '经营状况不能为空';
+      }
+      if (step === 6) {
+        if (this.addForm.honorTitles.includes('05') && !this.addForm.honorTitleOther) {
+          this.addErrors.honorTitleOther = '请输入其他称号名称';
+        }
+      }
+      return Object.keys(this.addErrors).length === 0;
+    },
+
+    nextStep() {
+      if (this.validateStep(this.addStep)) {
+        this.addStep++;
+      }
+    },
+
+    submitAdd() {
+      // 全量校验
+      let allValid = true;
+      for (let i = 1; i <= 6; i++) {
+        if (!this.validateStep(i)) { allValid = false; break; }
+      }
+      if (!allValid) {
+        this.showToast('请完善必填信息后再提交', 'error');
+        return;
+      }
+      if (this.addMode === 'add') {
+        const newId = Date.now();
+        const town = MOCK_DATA.towns.find(t => t.value === this.addForm.deptTown);
+        MOCK_DATA.enterprises.unshift({
+          id: newId,
+          finalName: this.addForm.finalName,
+          previousReportName: this.addForm.previousReportName,
+          town: town ? town.label : this.addForm.addrTown,
+          townCode: this.addForm.deptTown,
+          addrVillage: this.addForm.addrVillage,
+          contactName: this.addForm.contactName,
+          contactPhone: this.addForm.contactPhone,
+          breedingCategory: this.addForm.breedingCategory,
+          breedingCategoryLabel: this.addForm.breedingCategory === '1' ? '生猪' : '',
+          farmType: this.addForm.farmType,
+          farmTypeLabel: {1:'规模场',2:'专业户'}[this.addForm.farmType] || '',
+          operationStatus: this.addForm.operationStatus,
+          operationStatusLabel: {1:'正常',2:'停养',3:'转产'}[this.addForm.operationStatus] || '',
+          designStock: Number(this.addForm.designStock),
+          designOutput: Number(this.addForm.designOutput),
+          creditCode: this.addForm.licenseCreditCode,
+          status: '0',
+          createTime: new Date().toLocaleString('zh-CN', { hour12: false }).replace(/\//g, '-'),
+          pigsties: []
+        });
+        this.successModal.username = this.addForm.contactPhone;
+        this.successModal.show = true;
+      } else {
+        const idx = MOCK_DATA.enterprises.findIndex(e => e.id === this.editId);
+        if (idx !== -1) {
+          const town = MOCK_DATA.towns.find(t => t.value === this.addForm.deptTown);
+          MOCK_DATA.enterprises[idx] = {
+            ...MOCK_DATA.enterprises[idx],
+            finalName: this.addForm.finalName,
+            town: town ? town.label : this.addForm.addrTown,
+            townCode: this.addForm.deptTown,
+            addrVillage: this.addForm.addrVillage,
+            contactName: this.addForm.contactName,
+            contactPhone: this.addForm.contactPhone,
+            designStock: Number(this.addForm.designStock),
+            designOutput: Number(this.addForm.designOutput),
+            operationStatus: this.addForm.operationStatus,
+            operationStatusLabel: {1:'正常',2:'停养',3:'转产'}[this.addForm.operationStatus] || '',
+            creditCode: this.addForm.licenseCreditCode
+          };
+        }
+        this.showToast('保存成功！', 'success');
+        this.currentMenu = 'enterprise';
+      }
+    },
+
+    confirmSuccess() {
+      this.successModal.show = false;
+      this.currentMenu = 'enterprise';
+      this.showToast('企业账号创建成功！', 'success');
+    },
+
+    confirmStatusChange(row) {
+      const isStop = row.status === '0';
+      this.statusModal = {
+        show: true,
+        title: isStop ? '确认停用企业' : '确认启用企业',
+        msg: `确认${isStop ? '停用' : '启用'}企业"${row.finalName}"吗？${isStop ? '停用后该企业端用户将无法登录。' : ''}`,
+        row,
+        targetStatus: isStop ? '1' : '0',
+        btnText: isStop ? '确认停用' : '确认启用'
+      };
+    },
+
+    doStatusChange() {
+      const row = this.statusModal.row;
+      const idx = MOCK_DATA.enterprises.findIndex(e => e.id === row.id);
+      if (idx !== -1) {
+        MOCK_DATA.enterprises[idx].status = this.statusModal.targetStatus;
+      }
+      this.statusModal.show = false;
+      this.showToast(`操作成功：${this.statusModal.targetStatus === '1' ? '已停用' : '已启用'} ${row.finalName}`, 'success');
+    },
+
+    showImgPreview() {
+      this.imgPreview.show = true;
+    },
+
+    showToast(msg, type = 'success') {
+      this.toast = { show: true, msg, type };
+      setTimeout(() => { this.toast.show = false; }, 3000);
+    }
+  };
+}
+</script>
+</body>
+</html>

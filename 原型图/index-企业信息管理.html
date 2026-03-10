@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2024年蓬溪县生猪数字化管理平台 - 企业信息管理原型导航</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body { background: #f0f2f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #262626; }
+    .card { background: #fff; border-radius: 8px; border: 1px solid #e8e8e8; }
+    .tag-done { background: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; border-radius: 4px; font-size: 12px; padding: 1px 8px; }
+    .tag-wip  { background: #fff7e6; color: #fa8c16; border: 1px solid #ffd591; border-radius: 4px; font-size: 12px; padding: 1px 8px; }
+    .tag-todo { background: #f5f5f5; color: #8c8c8c; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 12px; padding: 1px 8px; }
+    .page-link { color: #1677ff; text-decoration: none; font-weight: 500; }
+    .page-link:hover { text-decoration: underline; }
+    .section-title { font-size: 13px; font-weight: 600; color: #595959; letter-spacing: 0.5px; text-transform: uppercase; }
+  </style>
+</head>
+<body class="min-h-screen p-6">
+
+  <!-- Header -->
+  <div class="max-w-4xl mx-auto mb-6">
+    <div class="card p-6">
+      <div class="flex items-start justify-between">
+        <div>
+          <div class="flex items-center gap-3 mb-2">
+            <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+              <i class="fa-solid fa-piggy-bank text-white text-lg"></i>
+            </div>
+            <div>
+              <h1 class="text-xl font-bold text-gray-800">2024年蓬溪县生猪数字化管理平台</h1>
+              <p class="text-sm text-gray-400">可交互 HTML 原型导航 · 企业信息管理模块</p>
+            </div>
+          </div>
+        </div>
+        <div class="text-right text-sm text-gray-400">
+          <div>制作日期：2026-03-09</div>
+          <div class="mt-1">版本：v1.0</div>
+        </div>
+      </div>
+      <!-- Stats -->
+      <div class="flex gap-6 mt-4 pt-4 border-t border-gray-100">
+        <div class="text-sm"><span class="text-2xl font-bold text-blue-600">17</span> <span class="text-gray-400">个HTML文件</span></div>
+        <div class="text-sm"><span class="text-2xl font-bold text-green-500">17</span> <span class="text-gray-400">已完成</span></div>
+        <div class="text-sm"><span class="text-2xl font-bold text-orange-400">0</span> <span class="text-gray-400">制作中</span></div>
+        <div class="text-sm"><span class="text-2xl font-bold text-gray-400">0</span> <span class="text-gray-400">待制作</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Role instructions -->
+  <div class="max-w-4xl mx-auto mb-6">
+    <div class="card p-5">
+      <h2 class="font-semibold text-base mb-3 flex items-center gap-2">
+        <i class="fa-solid fa-users text-blue-500"></i>
+        系统角色说明
+      </h2>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="bg-blue-50 rounded-lg p-4">
+          <div class="font-medium text-blue-700 mb-1">
+            <i class="fa-solid fa-crown text-sm mr-1"></i> 企业管理员（ent_admin）
+          </div>
+          <div class="text-sm text-blue-600">完整权限：查看、编辑企业信息；圈舍增删改查；员工增删改查、状态切换</div>
+          <div class="mt-2 text-xs text-blue-400">模拟账号：王建国（页面右上角角色切换器可选择）</div>
+        </div>
+        <div class="bg-gray-50 rounded-lg p-4">
+          <div class="font-medium text-gray-700 mb-1">
+            <i class="fa-solid fa-user text-sm mr-1"></i> 企业填报员（ent_reporter）
+          </div>
+          <div class="text-sm text-gray-600">只读权限：仅可查看企业信息、圈舍列表、员工列表，无编辑/新增/删除权限</div>
+          <div class="mt-2 text-xs text-gray-400">模拟账号：李小芳（页面右上角角色切换器可选择）</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WEB企业端 - 企业信息管理 -->
+  <div class="max-w-4xl mx-auto">
+    <div class="card overflow-hidden">
+      <div class="px-5 py-4 bg-gray-50 border-b border-gray-100 flex items-center gap-3">
+        <i class="fa-solid fa-desktop text-blue-500"></i>
+        <span class="font-semibold text-gray-700">WEB企业端</span>
+        <span class="text-gray-300 mx-1">›</span>
+        <span class="font-semibold text-gray-600">企业信息管理</span>
+        <span class="text-gray-300 mx-1">›</span>
+        <span class="text-gray-500">基础信息</span>
+      </div>
+
+      <div class="divide-y divide-gray-100">
+
+        <!-- 基础信息 -->
+        <div class="px-5 py-4">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-2">
+                <a href="企业端/企业信息管理/基础信息/WEB企业端-企业信息管理-基础信息.html" class="page-link text-base">
+                  <i class="fa-solid fa-building text-blue-400 mr-1"></i>
+                  企业基础信息 + 圈舍管理
+                </a>
+                <span class="tag-done">✅ 已完成</span>
+              </div>
+              <div class="text-sm text-gray-500 mb-2">
+                对应PRD：<code class="bg-gray-100 px-1 rounded text-xs">WEB企业端-企业信息管理-基础信息.prd.md</code>
+              </div>
+              <div class="text-sm text-gray-500 leading-relaxed">
+                <strong>功能一：企业信息管理</strong> — 查看/编辑企业名称、统一社会信用代码、企业类型、法人代表、联系电话、详细地址、养殖规模；
+                营业执照照片上传/预览；企业坐标只读展示；只读/编辑态切换；保存前全字段校验；取消时二次确认（已修改情况下）。
+                <br>
+                <strong>功能二：圈舍管理</strong> — 圈舍列表分页/搜索/筛选；新增圈舍弹窗（圈舍编号、名称、类型、容量、面积、状态）；
+                编辑圈舍（当前存栏只读）；删除（存栏>0时禁用，含二次确认）；圈舍状态 Tag 颜色区分。
+              </div>
+              <div class="flex items-center gap-4 mt-3 text-xs text-gray-400">
+                <span><i class="fa-solid fa-calendar mr-1"></i>制作日期：2026-03-09</span>
+                <span><i class="fa-solid fa-clock mr-1"></i>最后更新：2026-03-09</span>
+                <span><i class="fa-solid fa-code-branch mr-1"></i>对应PRD v1.1</span>
+              </div>
+            </div>
+            <a href="企业端/企业信息管理/基础信息/WEB企业端-企业信息管理-基础信息.html"
+              class="flex-shrink-0 bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+              <i class="fa-solid fa-eye"></i> 查看原型
+            </a>
+          </div>
+        </div>
+
+        <!-- 员工信息 -->
+        <div class="px-5 py-4">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-2">
+                <a href="企业端/企业信息管理/基础信息/WEB企业端-企业信息管理-员工信息.html" class="page-link text-base">
+                  <i class="fa-solid fa-users text-green-500 mr-1"></i>
+                  员工信息管理
+                </a>
+                <span class="tag-done">✅ 已完成</span>
+              </div>
+              <div class="text-sm text-gray-500 mb-2">
+                对应PRD：<code class="bg-gray-100 px-1 rounded text-xs">WEB企业端-企业信息管理-员工信息.prd.md</code>
+              </div>
+              <div class="text-sm text-gray-500 leading-relaxed">
+                员工列表分页展示（工号、姓名、性别、职位、联系电话、入职日期、状态）；按姓名/职位/状态搜索筛选；
+                新增员工弹窗（全字段含头像上传）；编辑员工（身份证号脱敏展示、离职日期按状态联动）；
+                停用/启用状态切换（含确认弹窗）；删除（在职员工禁用、离职员工含二次确认）；
+                企业管理员/填报员权限差异控制。
+              </div>
+              <div class="flex items-center gap-4 mt-3 text-xs text-gray-400">
+                <span><i class="fa-solid fa-calendar mr-1"></i>制作日期：2026-03-09</span>
+                <span><i class="fa-solid fa-clock mr-1"></i>最后更新：2026-03-09</span>
+                <span><i class="fa-solid fa-code-branch mr-1"></i>对应PRD v1.1</span>
+              </div>
+            </div>
+            <a href="企业端/企业信息管理/基础信息/WEB企业端-企业信息管理-员工信息.html"
+              class="flex-shrink-0 bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+              <i class="fa-solid fa-eye"></i> 查看原型
+            </a>
+          </div>
+        </div>
+
+        <!-- 养殖信息 -->
+        <div class="px-5 py-4">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-2">
+                <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-养殖信息.html" class="page-link text-base">
+                  <i class="fa-solid fa-database text-blue-400 mr-1"></i>
+                  养殖信息管理
+                </a>
+                <span class="tag-done">✅ 已完成</span>
+              </div>
+              <div class="text-sm text-gray-500 mb-2">
+                对应PRD：<code class="bg-gray-100 px-1 rounded text-xs">WEB企业端-养殖信息管理-养殖信息.prd.md</code>
+              </div>
+              <div class="text-sm text-gray-500 leading-relaxed">
+                4级审批流；养殖信息列表（圈舍、存栏量、育肥猪/母猪/仔猪分类数量、填报日期）；新增/编辑弹窗；各状态覆盖；6角色权限控制。
+              </div>
+              <div class="flex items-center gap-4 mt-3 text-xs text-gray-400">
+                <span><i class="fa-solid fa-calendar mr-1"></i>制作日期：2026-03-09</span>
+                <span><i class="fa-solid fa-clock mr-1"></i>最后更新：2026-03-09</span>
+                <span><i class="fa-solid fa-users mr-1"></i>涉及角色：6个角色</span>
+              </div>
+            </div>
+            <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-养殖信息.html"
+              class="flex-shrink-0 bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+              <i class="fa-solid fa-eye"></i> 查看原型
+            </a>
+          </div>
+        </div>
+
+        <!-- 防疫监测记录 -->
+        <div class="px-5 py-4">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-2">
+                <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-防疫监测记录.html" class="page-link text-base">
+                  <i class="fa-solid fa-shield-virus text-purple-500 mr-1"></i>
+                  防疫监测记录填报
+                </a>
+                <span class="tag-done">✅ 已完成</span>
+              </div>
+              <div class="text-sm text-gray-500 mb-2">
+                对应PRD：<code class="bg-gray-100 px-1 rounded text-xs">WEB企业端-养殖信息管理-防疫监测记录.prd.md</code>
+              </div>
+              <div class="text-sm text-gray-500 leading-relaxed">
+                4级审批流；防疫监测记录列表（圈舍、监测日期、监测项目、监测方法、抽检数量、阳性数量、阳性率、检测结论、检测机构）；
+                阳性率自动计算（=阳性数量/抽检数量×100%）只读显示；监测项目涵盖口蹄疫抗体、猪瘟抗体、蓝耳病抗体、伪狂犬病gE抗体、非洲猪瘟病原等；8条MOCK数据，全状态覆盖。
+              </div>
+              <div class="flex items-center gap-4 mt-3 text-xs text-gray-400">
+                <span><i class="fa-solid fa-calendar mr-1"></i>制作日期：2026-03-09</span>
+                <span><i class="fa-solid fa-clock mr-1"></i>最后更新：2026-03-09</span>
+                <span><i class="fa-solid fa-users mr-1"></i>涉及角色：6个角色</span>
+              </div>
+            </div>
+            <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-防疫监测记录.html"
+              class="flex-shrink-0 bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+              <i class="fa-solid fa-eye"></i> 查看原型
+            </a>
+          </div>
+        </div>
+
+        <!-- 消毒记录 -->
+        <div class="px-5 py-4">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-2">
+                <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-消毒记录.html" class="page-link text-base">
+                  <i class="fa-solid fa-spray-can text-cyan-500 mr-1"></i>
+                  消毒记录管理
+                </a>
+                <span class="tag-done">✅ 已完成</span>
+              </div>
+              <div class="text-sm text-gray-500 mb-2">
+                对应PRD：<code class="bg-gray-100 px-1 rounded text-xs">WEB企业端-养殖信息管理-消毒记录.prd.md</code>
+              </div>
+              <div class="text-sm text-gray-500 leading-relaxed">
+                4级审批流；消毒记录列表（消毒地点、消毒日期、消毒方式、消毒药品名称、用量、消毒面积、操作人）；
+                消毒地点涵盖全场/产房/保育舍/育肥舍/进出通道/车辆/其他；消毒药品包括百毒杀、戊二醛、烧碱、石灰乳、聚维酮碘等；9条MOCK数据，全状态覆盖。
+              </div>
+              <div class="flex items-center gap-4 mt-3 text-xs text-gray-400">
+                <span><i class="fa-solid fa-calendar mr-1"></i>制作日期：2026-03-09</span>
+                <span><i class="fa-solid fa-clock mr-1"></i>最后更新：2026-03-09</span>
+                <span><i class="fa-solid fa-users mr-1"></i>涉及角色：6个角色</span>
+              </div>
+            </div>
+            <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-消毒记录.html"
+              class="flex-shrink-0 bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+              <i class="fa-solid fa-eye"></i> 查看原型
+            </a>
+          </div>
+        </div>
+
+        <!-- 病死畜禽无害化处理记录 -->
+        <div class="px-5 py-4">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-2">
+                <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-病死畜禽无害化处理记录.html" class="page-link text-base">
+                  <i class="fa-solid fa-skull text-red-400 mr-1"></i>
+                  病死畜禽无害化处理记录管理
+                </a>
+                <span class="tag-done">✅ 已完成</span>
+              </div>
+              <div class="text-sm text-gray-500 mb-2">
+                对应PRD：<code class="bg-gray-100 px-1 rounded text-xs">WEB企业端-养殖信息管理-病死畜禽无害化处理记录.prd.md</code>
+              </div>
+              <div class="text-sm text-gray-500 leading-relaxed">
+                4级审批流；无害化处理记录列表（圈舍、死亡日期、死亡数量、死亡原因、处理日期、处理方式、处理单位/人、处理数量、无害化证明编号）；
+                业务联动：处理日期须≥死亡日期；处理数量须≤死亡数量；死亡原因选"疾病"时动态显示疾病名称字段；9条MOCK数据，全状态覆盖。
+              </div>
+              <div class="flex items-center gap-4 mt-3 text-xs text-gray-400">
+                <span><i class="fa-solid fa-calendar mr-1"></i>制作日期：2026-03-09</span>
+                <span><i class="fa-solid fa-clock mr-1"></i>最后更新：2026-03-09</span>
+                <span><i class="fa-solid fa-users mr-1"></i>涉及角色：6个角色</span>
+              </div>
+            </div>
+            <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-病死畜禽无害化处理记录.html"
+              class="flex-shrink-0 bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+              <i class="fa-solid fa-eye"></i> 查看原型
+            </a>
+          </div>
+        </div>
+
+        <!-- 兽药使用记录 -->
+        <div class="px-5 py-4">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-2">
+                <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-兽药使用记录.html" class="page-link text-base">
+                  <i class="fa-solid fa-syringe text-orange-400 mr-1"></i>
+                  兽药使用记录填报
+                </a>
+                <span class="tag-done">✅ 已完成</span>
+              </div>
+              <div class="text-sm text-gray-500 mb-2">
+                对应PRD：<code class="bg-gray-100 px-1 rounded text-xs">WEB企业端-养殖信息管理-兽药使用记录.prd.md</code>
+              </div>
+              <div class="text-sm text-gray-500 leading-relaxed">
+                4级审批流（企业填报→乡镇兽医站核实→乡镇政府审核→县级终审入库）；兽药使用记录列表（圈舍、使用日期、药品名称、使用数量、计量单位、使用目的、用药动物数量、兽医姓名、停药日期）；
+                新增/编辑弹窗（含ⓘ提示：药品通用名称、停药期规定）；状态徽标、退回行红色高亮；6角色权限控制；审批弹窗（通过/退回）；直接入库（county_admin）。
+              </div>
+              <div class="flex items-center gap-4 mt-3 text-xs text-gray-400">
+                <span><i class="fa-solid fa-calendar mr-1"></i>制作日期：2026-03-09</span>
+                <span><i class="fa-solid fa-clock mr-1"></i>最后更新：2026-03-09</span>
+                <span><i class="fa-solid fa-users mr-1"></i>涉及角色：6个角色</span>
+              </div>
+            </div>
+            <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-兽药使用记录.html"
+              class="flex-shrink-0 bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+              <i class="fa-solid fa-eye"></i> 查看原型
+            </a>
+          </div>
+        </div>
+
+        <!-- 畜禽疾病诊疗记录 -->
+        <div class="px-5 py-4">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-2">
+                <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-畜禽疾病诊疗记录.html" class="page-link text-base">
+                  <i class="fa-solid fa-virus text-red-400 mr-1"></i>
+                  畜禽疾病诊疗记录管理
+                </a>
+                <span class="tag-done">✅ 已完成</span>
+              </div>
+              <div class="text-sm text-gray-500 mb-2">
+                对应PRD：<code class="bg-gray-100 px-1 rounded text-xs">WEB企业端-养殖信息管理-畜禽疾病诊疗记录.prd.md</code>
+              </div>
+              <div class="text-sm text-gray-500 leading-relaxed">
+                4级审批流；疾病诊疗记录列表（圈舍、发病日期、疾病名称、发病/死亡数量、诊断结果、诊疗兽医、诊疗日期）；
+                新增/编辑弹窗（发病数量/死亡数量联动校验：死亡≤发病）；MOCK数据涵盖猪流感、蓝耳病、口蹄疫疑似、猪瘟疑似、伪狂犬病等8种疾病；全状态覆盖。
+              </div>
+              <div class="flex items-center gap-4 mt-3 text-xs text-gray-400">
+                <span><i class="fa-solid fa-calendar mr-1"></i>制作日期：2026-03-09</span>
+                <span><i class="fa-solid fa-clock mr-1"></i>最后更新：2026-03-09</span>
+                <span><i class="fa-solid fa-users mr-1"></i>涉及角色：6个角色</span>
+              </div>
+            </div>
+            <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-畜禽疾病诊疗记录.html"
+              class="flex-shrink-0 bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+              <i class="fa-solid fa-eye"></i> 查看原型
+            </a>
+          </div>
+        </div>
+
+        <!-- 畜禽免疫记录 -->
+        <div class="px-5 py-4">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-2">
+                <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-畜禽免疫记录.html" class="page-link text-base">
+                  <i class="fa-solid fa-shield-virus text-green-500 mr-1"></i>
+                  畜禽免疫记录管理
+                </a>
+                <span class="tag-done">✅ 已完成</span>
+              </div>
+              <div class="text-sm text-gray-500 mb-2">
+                对应PRD：<code class="bg-gray-100 px-1 rounded text-xs">WEB企业端-养殖信息管理-畜禽免疫记录.prd.md</code>
+              </div>
+              <div class="text-sm text-gray-500 leading-relaxed">
+                4级审批流；免疫记录列表（圈舍、免疫日期、疫苗名称、批准文号、生产厂家、免疫数量/剂量/计量单位、免疫方式、操作兽医、下次免疫日期）；
+                MOCK数据涵盖猪瘟、口蹄疫、蓝耳病、伪狂犬病、圆环病毒等8种疫苗；新增/编辑弹窗含下次免疫日期联动校验。
+              </div>
+              <div class="flex items-center gap-4 mt-3 text-xs text-gray-400">
+                <span><i class="fa-solid fa-calendar mr-1"></i>制作日期：2026-03-09</span>
+                <span><i class="fa-solid fa-clock mr-1"></i>最后更新：2026-03-09</span>
+                <span><i class="fa-solid fa-users mr-1"></i>涉及角色：6个角色</span>
+              </div>
+            </div>
+            <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-畜禽免疫记录.html"
+              class="flex-shrink-0 bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+              <i class="fa-solid fa-eye"></i> 查看原型
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 生产记录 -->
+      <div class="card p-0 overflow-hidden">
+        <div class="flex items-start gap-4 p-5">
+          <div class="flex-1">
+            <div class="flex items-center gap-3 mb-2">
+              <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-生产记录.html" class="page-link text-base">
+                <i class="fa-solid fa-baby text-green-500 mr-1"></i>生产记录管理
+              </a>
+              <span class="tag-done">✅ 已完成</span>
+            </div>
+            <div class="text-sm text-gray-500 mb-2">对应PRD：<code class="bg-gray-100 px-1 rounded text-xs">WEB企业端-养殖信息管理-生产记录.prd.md</code></div>
+            <div class="text-sm text-gray-500">4级审批流；记录日期、公母出生数、死胎数、弱仔数；产仔总数自动计算展示。</div>
+          </div>
+          <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-生产记录.html" class="flex-shrink-0 bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+            <i class="fa-solid fa-eye"></i> 查看原型
+          </a>
+        </div>
+      </div>
+      <!-- 繁育信息 -->
+      <div class="card p-0 overflow-hidden">
+        <div class="flex items-start gap-4 p-5">
+          <div class="flex-1">
+            <div class="flex items-center gap-3 mb-2">
+              <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-繁育信息.html" class="page-link text-base">
+                <i class="fa-solid fa-dna text-purple-500 mr-1"></i>繁育信息管理
+              </a>
+              <span class="tag-done">✅ 已完成</span>
+            </div>
+            <div class="text-sm text-gray-500 mb-2">对应PRD：<code class="bg-gray-100 px-1 rounded text-xs">WEB企业端-养殖信息管理-繁育信息.prd.md</code></div>
+            <div class="text-sm text-gray-500">4级审批流；母猪耳标、配种/分娩/断奶日期；预计分娩日期自动计算（+114天）；产仔总数业务校验。</div>
+          </div>
+          <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-繁育信息.html" class="flex-shrink-0 bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+            <i class="fa-solid fa-eye"></i> 查看原型
+          </a>
+        </div>
+      </div>
+      <!-- 猪只入栏 -->
+      <div class="card p-0 overflow-hidden">
+        <div class="flex items-start gap-4 p-5">
+          <div class="flex-1">
+            <div class="flex items-center gap-3 mb-2">
+              <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-猪只入栏信息.html" class="page-link text-base">
+                <i class="fa-solid fa-arrow-right-to-bracket text-cyan-500 mr-1"></i>猪只入栏信息管理
+              </a>
+              <span class="tag-done">✅ 已完成</span>
+            </div>
+            <div class="text-sm text-gray-500 mb-2">对应PRD：<code class="bg-gray-100 px-1 rounded text-xs">WEB企业端-养殖信息管理-猪只入栏信息.prd.md</code></div>
+            <div class="text-sm text-gray-500">4级审批流；猪只来源（自繁/外购/赠与）；外购时供应商名称动态必填；检疫证明编号。</div>
+          </div>
+          <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-猪只入栏信息.html" class="flex-shrink-0 bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+            <i class="fa-solid fa-eye"></i> 查看原型
+          </a>
+        </div>
+      </div>
+      <!-- 猪只出栏 -->
+      <div class="card p-0 overflow-hidden">
+        <div class="flex items-start gap-4 p-5">
+          <div class="flex-1">
+            <div class="flex items-center gap-3 mb-2">
+              <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-猪只出栏信息.html" class="page-link text-base">
+                <i class="fa-solid fa-arrow-right-from-bracket text-orange-500 mr-1"></i>猪只出栏信息管理
+              </a>
+              <span class="tag-done">✅ 已完成</span>
+            </div>
+            <div class="text-sm text-gray-500 mb-2">对应PRD：<code class="bg-gray-100 px-1 rounded text-xs">WEB企业端-养殖信息管理-猪只出栏信息.prd.md</code></div>
+            <div class="text-sm text-gray-500">4级审批流；出栏类型（销售/死亡淘汰/转群）；出栏数量≤圈舍存栏量校验；检疫证明。</div>
+          </div>
+          <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-猪只出栏信息.html" class="flex-shrink-0 bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+            <i class="fa-solid fa-eye"></i> 查看原型
+          </a>
+        </div>
+      </div>
+      <!-- 猪只断奶 -->
+      <div class="card p-0 overflow-hidden">
+        <div class="flex items-start gap-4 p-5">
+          <div class="flex-1">
+            <div class="flex items-center gap-3 mb-2">
+              <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-猪只断奶信息.html" class="page-link text-base">
+                <i class="fa-solid fa-heart text-pink-500 mr-1"></i>猪只断奶信息管理
+              </a>
+              <span class="tag-done">✅ 已完成</span>
+            </div>
+            <div class="text-sm text-gray-500 mb-2">对应PRD：<code class="bg-gray-100 px-1 rounded text-xs">WEB企业端-养殖信息管理-猪只断奶信息.prd.md</code></div>
+            <div class="text-sm text-gray-500">4级审批流；断奶日龄自动计算；异常日龄（&lt;21或&gt;28天）警示且备注必填。</div>
+          </div>
+          <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-猪只断奶信息.html" class="flex-shrink-0 bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+            <i class="fa-solid fa-eye"></i> 查看原型
+          </a>
+        </div>
+      </div>
+      <!-- 兽药购进 -->
+      <div class="card p-0 overflow-hidden">
+        <div class="flex items-start gap-4 p-5">
+          <div class="flex-1">
+            <div class="flex items-center gap-3 mb-2">
+              <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-兽药购进记录.html" class="page-link text-base">
+                <i class="fa-solid fa-pills text-red-500 mr-1"></i>兽药购进记录填报
+              </a>
+              <span class="tag-done">✅ 已完成</span>
+            </div>
+            <div class="text-sm text-gray-500 mb-2">对应PRD：<code class="bg-gray-100 px-1 rounded text-xs">WEB企业端-养殖信息管理-兽药购进记录.prd.md</code></div>
+            <div class="text-sm text-gray-500">4级审批流；化药/中药/生物制品分类；购进金额自动计算；供应商信息。</div>
+          </div>
+          <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-兽药购进记录.html" class="flex-shrink-0 bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+            <i class="fa-solid fa-eye"></i> 查看原型
+          </a>
+        </div>
+      </div>
+      <!-- 粪污处理 -->
+      <div class="card p-0 overflow-hidden">
+        <div class="flex items-start gap-4 p-5">
+          <div class="flex-1">
+            <div class="flex items-center gap-3 mb-2">
+              <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-粪便及污物无害化处理记录.html" class="page-link text-base">
+                <i class="fa-solid fa-leaf text-lime-600 mr-1"></i>粪便及污物无害化处理记录
+              </a>
+              <span class="tag-done">✅ 已完成</span>
+            </div>
+            <div class="text-sm text-gray-500 mb-2">对应PRD：<code class="bg-gray-100 px-1 rounded text-xs">WEB企业端-养殖信息管理-粪便及污物无害化处理记录.prd.md</code></div>
+            <div class="text-sm text-gray-500">4级审批流；粪污来源、处理方式（堆肥/沼气/还田等）；环保达标情况跟踪。</div>
+          </div>
+          <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-粪便及污物无害化处理记录.html" class="flex-shrink-0 bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+            <i class="fa-solid fa-eye"></i> 查看原型
+          </a>
+        </div>
+      </div>
+      <!-- 配合饲料使用 -->
+      <div class="card p-0 overflow-hidden">
+        <div class="flex items-start gap-4 p-5">
+          <div class="flex-1">
+            <div class="flex items-center gap-3 mb-2">
+              <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-配合饲料使用记录.html" class="page-link text-base">
+                <i class="fa-solid fa-wheat-awn text-amber-500 mr-1"></i>配合饲料使用记录填报
+              </a>
+              <span class="tag-done">✅ 已完成</span>
+            </div>
+            <div class="text-sm text-gray-500 mb-2">对应PRD：<code class="bg-gray-100 px-1 rounded text-xs">WEB企业端-养殖信息管理-配合饲料使用记录.prd.md</code></div>
+            <div class="text-sm text-gray-500">4级审批流；产品类型5种；批准文号按产品类型动态显示/必填（Alpine.js联动）。</div>
+          </div>
+          <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-配合饲料使用记录.html" class="flex-shrink-0 bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+            <i class="fa-solid fa-eye"></i> 查看原型
+          </a>
+        </div>
+      </div>
+      <!-- 饲料购进 -->
+      <div class="card p-0 overflow-hidden">
+        <div class="flex items-start gap-4 p-5">
+          <div class="flex-1">
+            <div class="flex items-center gap-3 mb-2">
+              <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-饲料和饲料添加剂购进记录.html" class="page-link text-base">
+                <i class="fa-solid fa-bags-shopping text-amber-600 mr-1"></i>饲料和饲料添加剂购进记录
+              </a>
+              <span class="tag-done">✅ 已完成</span>
+            </div>
+            <div class="text-sm text-gray-500 mb-2">对应PRD：<code class="bg-gray-100 px-1 rounded text-xs">WEB企业端-养殖信息管理-饲料和饲料添加剂购进记录.prd.md</code></div>
+            <div class="text-sm text-gray-500">4级审批流；批准文号动态必填；购进金额自动计算；供应商信息。</div>
+          </div>
+          <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-饲料和饲料添加剂购进记录.html" class="flex-shrink-0 bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+            <i class="fa-solid fa-eye"></i> 查看原型
+          </a>
+        </div>
+      </div>
+      <!-- 畜禽产品销售 -->
+      <div class="card p-0 overflow-hidden">
+        <div class="flex items-start gap-4 p-5">
+          <div class="flex-1">
+            <div class="flex items-center gap-3 mb-2">
+              <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-畜禽及其产品销售记录.html" class="page-link text-base">
+                <i class="fa-solid fa-store text-emerald-500 mr-1"></i>畜禽及其产品销售记录填报
+              </a>
+              <span class="tag-done">✅ 已完成</span>
+            </div>
+            <div class="text-sm text-gray-500 mb-2">对应PRD：<code class="bg-gray-100 px-1 rounded text-xs">WEB企业端-养殖信息管理-畜禽及其产品销售记录.prd.md</code></div>
+            <div class="text-sm text-gray-500">4级审批流；活猪/猪肉/仔猪/种猪等销售类型；销售金额自动计算；检疫证明编号。</div>
+          </div>
+          <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-畜禽及其产品销售记录.html" class="flex-shrink-0 bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+            <i class="fa-solid fa-eye"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <!-- Footer stats -->
+      <div class="px-5 py-3 bg-gray-50 border-t border-gray-100 text-xs text-gray-400">
+        本次累计共 17 个文件 · 全部完成 ✅ · 最后更新：2026-03-09 · 涉及角色：企业管理员、企业填报员、乡镇兽医站、乡镇政府业务人员、县级业务人员、县级管理员
+      </div>
+    </div>
+  </div>
+
+  <!-- Other index links -->
+  <div class="max-w-4xl mx-auto mt-6">
+    <div class="card p-5">
+      <h3 class="font-semibold text-sm text-gray-500 mb-3 flex items-center gap-2">
+        <i class="fa-solid fa-folder-open text-gray-400"></i> 其他模块入口
+      </h3>
+      <div class="flex flex-wrap gap-3">
+        <a href="index-项目申报.html" class="text-sm text-blue-500 hover:underline flex items-center gap-1">
+          <i class="fa-solid fa-file-invoice text-xs"></i> 项目申报
+        </a>
+        <a href="index-生猪知识讲堂.html" class="text-sm text-blue-500 hover:underline flex items-center gap-1">
+          <i class="fa-solid fa-book-open text-xs"></i> 生猪知识讲堂
+        </a>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

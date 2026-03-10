@@ -1,0 +1,1105 @@
+<!--
+  功能名称：企业信息管理 + 圈舍管理
+  对应PRD：doc_prd/WEB/企业端/企业信息管理/基础信息/WEB企业端-企业信息管理-基础信息.prd.md
+  所属端口：WEB企业端
+  所属模块：企业信息管理 → 基础信息
+  制作日期：2026-03-09
+  最后更新：2026-03-09
+  角色说明：企业管理员（ent_admin）、企业填报员（ent_reporter）
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>企业信息管理 - 基础信息 | 蓬溪县生猪数字化管理平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    /* SHARED STYLES */
+    :root {
+      --primary: #1677ff;
+      --bg: #f0f2f5;
+      --card-bg: #ffffff;
+      --border: #e8e8e8;
+      --text-main: #262626;
+      --text-sub: #595959;
+      --text-hint: #8c8c8c;
+      --success: #52c41a;
+      --warning: #faad14;
+      --error: #ff4d4f;
+      --disabled: #bfbfbf;
+    }
+    body { background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: var(--text-main); font-size: 14px; }
+    .sidebar { width: 240px; min-width: 240px; background: #001529; }
+    .sidebar.collapsed { width: 60px; min-width: 60px; }
+    .topbar { height: 60px; background: #fff; border-bottom: 1px solid var(--border); }
+    .content-area { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+    .main-content { flex: 1; overflow-y: auto; padding: 16px; }
+
+    /* Nav menu */
+    .nav-item { color: rgba(255,255,255,0.65); cursor: pointer; transition: all 0.2s; }
+    .nav-item:hover { color: #fff; background: rgba(255,255,255,0.08); }
+    .nav-item.active { color: #fff; background: var(--primary); }
+    .nav-sub-item { color: rgba(255,255,255,0.55); cursor: pointer; padding: 8px 16px 8px 52px; font-size: 13px; }
+    .nav-sub-item:hover { color: #fff; background: rgba(255,255,255,0.08); }
+    .nav-sub-item.active { color: #fff; background: var(--primary); }
+
+    /* Card */
+    .card { background: #fff; border-radius: 6px; border: 1px solid var(--border); }
+
+    /* Buttons */
+    .btn-primary { background: var(--primary); color: #fff; border: none; border-radius: 4px; padding: 6px 16px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; transition: opacity 0.2s; }
+    .btn-primary:hover { opacity: 0.85; }
+    .btn-primary:disabled { background: var(--disabled); cursor: not-allowed; opacity: 1; }
+    .btn-default { background: #fff; color: var(--text-main); border: 1px solid var(--border); border-radius: 4px; padding: 6px 16px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
+    .btn-default:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-danger { background: #fff; color: var(--error); border: 1px solid var(--error); border-radius: 4px; padding: 6px 12px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+    .btn-danger:hover { background: var(--error); color: #fff; }
+    .btn-link { background: none; border: none; color: var(--primary); cursor: pointer; font-size: 13px; padding: 0 4px; }
+    .btn-link:hover { opacity: 0.8; }
+    .btn-link-warning { background: none; border: none; color: var(--warning); cursor: pointer; font-size: 13px; padding: 0 4px; }
+    .btn-link-danger { background: none; border: none; color: var(--error); cursor: pointer; font-size: 13px; padding: 0 4px; }
+    .btn-link-danger:disabled { color: var(--disabled); cursor: not-allowed; }
+    .btn-link-success { background: none; border: none; color: var(--success); cursor: pointer; font-size: 13px; padding: 0 4px; }
+
+    /* Table */
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th { background: #fafafa; padding: 10px 12px; text-align: left; font-weight: 500; border-bottom: 1px solid var(--border); white-space: nowrap; color: var(--text-sub); font-size: 13px; }
+    .data-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); color: var(--text-main); font-size: 13px; }
+    .data-table tr:nth-child(even) td { background: #fafafa; }
+    .data-table tr:hover td { background: #e6f4ff; }
+    .data-table .op-col { position: sticky; right: 0; background: #fff; z-index: 1; }
+    .data-table tr:nth-child(even) .op-col { background: #fafafa; }
+    .data-table tr:hover .op-col { background: #e6f4ff; }
+
+    /* Tags/badges */
+    .tag { display: inline-flex; align-items: center; padding: 1px 8px; border-radius: 4px; font-size: 12px; }
+    .tag-success { background: #f6ffed; color: var(--success); border: 1px solid #b7eb8f; }
+    .tag-warning { background: #fffbe6; color: var(--warning); border: 1px solid #ffe58f; }
+    .tag-error { background: #fff2f0; color: var(--error); border: 1px solid #ffccc7; }
+    .tag-default { background: #f5f5f5; color: var(--text-hint); border: 1px solid #d9d9d9; }
+    .tag-blue { background: #e6f4ff; color: var(--primary); border: 1px solid #91caff; }
+
+    /* Form */
+    .form-label { font-size: 13px; color: var(--text-sub); text-align: right; padding-right: 8px; line-height: 32px; }
+    .required-star { color: var(--error); margin-right: 2px; }
+    .form-input { width: 100%; border: 1px solid var(--border); border-radius: 4px; padding: 5px 10px; font-size: 13px; color: var(--text-main); outline: none; box-sizing: border-box; height: 32px; }
+    .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(22,119,255,0.1); }
+    .form-input:disabled, .form-input[readonly] { background: #f5f5f5; color: var(--text-hint); cursor: not-allowed; }
+    .form-select { width: 100%; border: 1px solid var(--border); border-radius: 4px; padding: 5px 10px; font-size: 13px; color: var(--text-main); outline: none; box-sizing: border-box; height: 32px; background: #fff; }
+    .form-select:focus { border-color: var(--primary); }
+    .form-select:disabled { background: #f5f5f5; color: var(--text-hint); cursor: not-allowed; }
+    .form-textarea { width: 100%; border: 1px solid var(--border); border-radius: 4px; padding: 6px 10px; font-size: 13px; color: var(--text-main); outline: none; box-sizing: border-box; resize: vertical; min-height: 72px; }
+    .form-textarea:focus { border-color: var(--primary); }
+    .error-msg { color: var(--error); font-size: 12px; margin-top: 2px; }
+
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+    .modal-box { background: #fff; border-radius: 8px; box-shadow: 0 6px 32px rgba(0,0,0,0.18); min-width: 520px; max-width: 90vw; max-height: 90vh; overflow-y: auto; }
+    .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .modal-body { padding: 20px 24px; }
+    .modal-footer { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+
+    /* Tab */
+    .tab-bar { display: flex; border-bottom: 2px solid var(--border); }
+    .tab-item { padding: 10px 20px; cursor: pointer; font-size: 14px; color: var(--text-sub); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
+    .tab-item.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 500; }
+    .tab-item:hover { color: var(--primary); }
+
+    /* Pagination */
+    .pagination { display: flex; align-items: center; gap: 4px; }
+    .page-btn { min-width: 32px; height: 32px; border: 1px solid var(--border); background: #fff; border-radius: 4px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; padding: 0 8px; }
+    .page-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .page-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .page-btn:disabled { color: var(--disabled); cursor: not-allowed; }
+
+    /* Info items (readonly view) */
+    .info-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px 24px; }
+    .info-item label { font-size: 12px; color: var(--text-hint); display: block; margin-bottom: 2px; }
+    .info-item .info-val { font-size: 14px; color: var(--text-main); line-height: 22px; }
+
+    /* Photo upload */
+    .photo-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .photo-thumb { width: 80px; height: 80px; border: 1px solid var(--border); border-radius: 4px; object-fit: cover; cursor: pointer; }
+    .photo-add-btn { width: 80px; height: 80px; border: 1px dashed var(--border); border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; color: var(--text-hint); font-size: 12px; gap: 4px; }
+    .photo-add-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .photo-item { position: relative; }
+    .photo-del-btn { position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; background: var(--error); border-radius: 50%; color: #fff; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+    /* Toast notification */
+    .toast-container { position: fixed; top: 72px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+    .toast { padding: 10px 16px; border-radius: 6px; font-size: 13px; display: flex; align-items: center; gap: 8px; min-width: 200px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slideIn 0.3s ease; }
+    .toast-success { background: #f6ffed; border: 1px solid #b7eb8f; color: #389e0d; }
+    .toast-error { background: #fff2f0; border: 1px solid #ffccc7; color: #cf1322; }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+    /* Skeleton */
+    .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 400% 100%; animation: skeleton 1.4s ease infinite; border-radius: 4px; }
+    @keyframes skeleton { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+
+    /* Image preview modal */
+    .img-preview-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; display: flex; align-items: center; justify-content: center; cursor: zoom-out; }
+    .img-preview-overlay img { max-width: 90vw; max-height: 90vh; object-fit: contain; border-radius: 4px; }
+
+    /* Tooltip */
+    [title] { position: relative; }
+
+    /* Breadcrumb */
+    .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-hint); margin-bottom: 12px; }
+    .breadcrumb a { color: var(--text-hint); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--primary); }
+    .breadcrumb .current { color: var(--text-main); }
+
+    /* Confirm dialog */
+    .confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1100; display: flex; align-items: center; justify-content: center; }
+    .confirm-box { background: #fff; border-radius: 8px; padding: 24px; width: 380px; box-shadow: 0 6px 32px rgba(0,0,0,0.18); }
+  </style>
+</head>
+<body x-data="app()" x-init="init()">
+
+<!-- Toast Container -->
+<div class="toast-container">
+  <template x-for="toast in toasts" :key="toast.id">
+    <div :class="['toast', toast.type === 'success' ? 'toast-success' : 'toast-error']">
+      <i :class="toast.type === 'success' ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark'"></i>
+      <span x-text="toast.message"></span>
+    </div>
+  </template>
+</div>
+
+<!-- Image Preview -->
+<div class="img-preview-overlay" x-show="previewImg" @click="previewImg=null" x-cloak>
+  <img :src="previewImg" alt="预览">
+</div>
+
+<!-- Confirm Dialog -->
+<div class="confirm-overlay" x-show="confirmDialog.show" x-cloak>
+  <div class="confirm-box">
+    <div class="flex items-start gap-3 mb-5">
+      <i class="fa-solid fa-triangle-exclamation text-orange-400 text-xl mt-0.5"></i>
+      <div>
+        <div class="font-medium text-[15px] mb-1" x-text="confirmDialog.title"></div>
+        <div class="text-gray-500 text-sm" x-text="confirmDialog.message"></div>
+      </div>
+    </div>
+    <div class="flex justify-end gap-2">
+      <button class="btn-default" @click="confirmDialog.show=false; confirmDialog.onCancel && confirmDialog.onCancel()">取消</button>
+      <button class="btn-primary" @click="confirmDialog.show=false; confirmDialog.onConfirm && confirmDialog.onConfirm()">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- Layout -->
+<div class="flex h-screen overflow-hidden">
+
+  <!-- SECTION START: 侧边菜单 -->
+  <aside :class="['sidebar flex-shrink-0 flex flex-col transition-all', sidebarCollapsed ? 'collapsed' : '']">
+    <!-- Logo -->
+    <div class="flex items-center gap-3 px-4 py-4 border-b border-white/10">
+      <div class="w-8 h-8 bg-blue-500 rounded flex items-center justify-center flex-shrink-0">
+        <i class="fa-solid fa-piggy-bank text-white text-sm"></i>
+      </div>
+      <span class="text-white font-semibold text-sm leading-tight whitespace-nowrap overflow-hidden" x-show="!sidebarCollapsed">蓬溪生猪管理平台</span>
+    </div>
+    <!-- Menu -->
+    <nav class="flex-1 overflow-y-auto py-2">
+      <div class="nav-item flex items-center gap-3 px-4 py-3" @click="toggleMenu('enterprise')">
+        <i class="fa-solid fa-building fa-fw"></i>
+        <span x-show="!sidebarCollapsed" class="flex-1">企业信息管理</span>
+        <i class="fa-solid fa-chevron-down text-xs transition-transform" x-show="!sidebarCollapsed" :class="openMenus.includes('enterprise') ? 'rotate-180' : ''"></i>
+      </div>
+      <div x-show="openMenus.includes('enterprise')" x-cloak>
+        <div :class="['nav-sub-item', currentPage === 'enterprise-info' ? 'active' : '']" @click="currentPage='enterprise-info'; currentTab='enterprise'" x-show="!sidebarCollapsed">企业基础信息</div>
+        <div :class="['nav-sub-item', currentPage === 'pigsty' ? 'active' : '']" @click="currentPage='pigsty'; currentTab='pigsty'" x-show="!sidebarCollapsed">圈舍管理</div>
+        <div :class="['nav-sub-item', currentPage === 'employee' ? 'active' : '']" @click="currentPage='employee'" x-show="!sidebarCollapsed">员工信息</div>
+      </div>
+
+      <div class="nav-item flex items-center gap-3 px-4 py-3">
+        <i class="fa-solid fa-pen-to-square fa-fw"></i>
+        <span x-show="!sidebarCollapsed">养殖信息管理</span>
+      </div>
+      <div class="nav-item flex items-center gap-3 px-4 py-3">
+        <i class="fa-solid fa-chart-line fa-fw"></i>
+        <span x-show="!sidebarCollapsed">统计分析</span>
+      </div>
+      <div class="nav-item flex items-center gap-3 px-4 py-3">
+        <i class="fa-solid fa-folder-open fa-fw"></i>
+        <span x-show="!sidebarCollapsed">项目信息管理</span>
+      </div>
+      <div class="nav-item flex items-center gap-3 px-4 py-3">
+        <i class="fa-solid fa-newspaper fa-fw"></i>
+        <span x-show="!sidebarCollapsed">政策资讯</span>
+      </div>
+    </nav>
+    <!-- Collapse toggle -->
+    <div class="px-4 py-3 border-t border-white/10 cursor-pointer flex items-center gap-3 nav-item" @click="sidebarCollapsed=!sidebarCollapsed">
+      <i :class="sidebarCollapsed ? 'fa-solid fa-angles-right' : 'fa-solid fa-angles-left'" class="fa-fw"></i>
+      <span x-show="!sidebarCollapsed" class="text-sm">收起菜单</span>
+    </div>
+  </aside>
+  <!-- SECTION END: 侧边菜单 -->
+
+  <!-- Main area -->
+  <div class="flex-1 flex flex-col overflow-hidden">
+
+    <!-- SECTION START: 顶部导航 -->
+    <header class="topbar flex items-center justify-between px-5 flex-shrink-0">
+      <div class="flex items-center gap-3">
+        <span class="text-base font-semibold text-gray-700">2024年蓬溪县生猪数字化管理平台</span>
+        <span class="text-gray-300">|</span>
+        <span class="text-sm text-gray-500">WEB企业端</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <!-- Role switcher -->
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-gray-400">当前角色：</span>
+          <select class="border border-gray-200 rounded px-2 py-1 text-xs text-gray-700" x-model="currentRole" @change="switchRole()">
+            <option value="ent_admin">企业管理员</option>
+            <option value="ent_reporter">企业填报员</option>
+          </select>
+        </div>
+        <div class="w-px h-5 bg-gray-200"></div>
+        <div class="flex items-center gap-2 cursor-pointer">
+          <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+            <i class="fa-solid fa-user text-blue-600 text-sm"></i>
+          </div>
+          <span class="text-sm text-gray-700" x-text="MOCK_DATA.currentUser.name"></span>
+        </div>
+        <button class="text-gray-400 hover:text-red-500 text-sm" @click="showToast('已退出登录', 'success')">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </header>
+    <!-- SECTION END: 顶部导航 -->
+
+    <!-- Content -->
+    <div class="content-area">
+      <div class="main-content">
+
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+          <a href="#">首页</a>
+          <i class="fa-solid fa-chevron-right text-xs"></i>
+          <a href="#">企业信息管理</a>
+          <i class="fa-solid fa-chevron-right text-xs"></i>
+          <span class="current" x-text="currentPage === 'pigsty' ? '圈舍管理' : '企业基础信息'"></span>
+        </div>
+
+        <!-- ===== SECTION START: 企业基础信息 ===== -->
+        <section id="feature-enterprise-info" x-show="currentPage === 'enterprise-info'">
+          <div class="card">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <h2 class="font-semibold text-base">企业基础信息</h2>
+              <div class="flex gap-2">
+                <template x-if="!entForm.editMode">
+                  <button class="btn-primary" x-show="hasPermission('farm:enterprise:edit')" @click="enterEditMode()">
+                    <i class="fa-solid fa-pen"></i> 编辑
+                  </button>
+                </template>
+                <template x-if="entForm.editMode">
+                  <div class="flex gap-2">
+                    <button class="btn-primary" :disabled="entForm.saving" @click="saveEnterprise()">
+                      <i class="fa-solid fa-floppy-disk"></i>
+                      <span x-text="entForm.saving ? '保存中...' : '保存'"></span>
+                    </button>
+                    <button class="btn-default" @click="cancelEditEnterprise()">
+                      <i class="fa-solid fa-xmark"></i> 取消
+                    </button>
+                  </div>
+                </template>
+              </div>
+            </div>
+
+            <!-- Loading skeleton -->
+            <div x-show="entForm.loading" class="p-6 grid grid-cols-2 gap-5">
+              <template x-for="i in 8">
+                <div>
+                  <div class="skeleton h-4 w-24 mb-2"></div>
+                  <div class="skeleton h-8 w-full"></div>
+                </div>
+              </template>
+            </div>
+
+            <!-- Content -->
+            <div class="p-6" x-show="!entForm.loading">
+              <div class="grid grid-cols-2 gap-x-8 gap-y-5">
+                <!-- 企业ID (readonly) -->
+                <div>
+                  <div class="form-label text-left mb-1 text-xs text-gray-400">企业ID</div>
+                  <input type="text" class="form-input" :value="MOCK_DATA.enterprise.enterprise_id" disabled>
+                </div>
+                <!-- 企业名称 -->
+                <div>
+                  <div class="form-label text-left mb-1 text-xs" :class="entForm.editMode ? 'text-gray-600' : 'text-gray-400'">
+                    <span class="required-star" x-show="entForm.editMode">*</span>企业名称
+                  </div>
+                  <input type="text" class="form-input" x-model="entForm.data.enterprise_name" :disabled="!entForm.editMode"
+                    @blur="validateField('enterprise_name')" maxlength="100">
+                  <div class="error-msg" x-text="entForm.errors.enterprise_name" x-show="entForm.errors.enterprise_name"></div>
+                </div>
+                <!-- 统一社会信用代码 -->
+                <div>
+                  <div class="form-label text-left mb-1 text-xs" :class="entForm.editMode ? 'text-gray-600' : 'text-gray-400'">
+                    <span class="required-star" x-show="entForm.editMode">*</span>统一社会信用代码
+                  </div>
+                  <input type="text" class="form-input" x-model="entForm.data.credit_code" :disabled="!entForm.editMode"
+                    @blur="validateField('credit_code')" maxlength="18">
+                  <div class="error-msg" x-text="entForm.errors.credit_code" x-show="entForm.errors.credit_code"></div>
+                </div>
+                <!-- 企业类型 -->
+                <div>
+                  <div class="form-label text-left mb-1 text-xs" :class="entForm.editMode ? 'text-gray-600' : 'text-gray-400'">
+                    <span class="required-star" x-show="entForm.editMode">*</span>企业类型
+                  </div>
+                  <template x-if="!entForm.editMode">
+                    <input type="text" class="form-input" :value="getEnterpriseTypeName(entForm.data.enterprise_type)" disabled>
+                  </template>
+                  <template x-if="entForm.editMode">
+                    <select class="form-select" x-model="entForm.data.enterprise_type" @change="validateField('enterprise_type')">
+                      <option value="">请选择企业类型</option>
+                      <template x-for="opt in MOCK_DATA.dict.enterpriseType" :key="opt.value">
+                        <option :value="opt.value" x-text="opt.label"></option>
+                      </template>
+                    </select>
+                  </template>
+                  <div class="error-msg" x-text="entForm.errors.enterprise_type" x-show="entForm.errors.enterprise_type"></div>
+                </div>
+                <!-- 法人代表 -->
+                <div>
+                  <div class="form-label text-left mb-1 text-xs" :class="entForm.editMode ? 'text-gray-600' : 'text-gray-400'">
+                    <span class="required-star" x-show="entForm.editMode">*</span>法人代表
+                  </div>
+                  <input type="text" class="form-input" x-model="entForm.data.legal_person" :disabled="!entForm.editMode"
+                    @blur="validateField('legal_person')" maxlength="50">
+                  <div class="error-msg" x-text="entForm.errors.legal_person" x-show="entForm.errors.legal_person"></div>
+                </div>
+                <!-- 联系电话 -->
+                <div>
+                  <div class="form-label text-left mb-1 text-xs" :class="entForm.editMode ? 'text-gray-600' : 'text-gray-400'">
+                    <span class="required-star" x-show="entForm.editMode">*</span>联系电话
+                  </div>
+                  <input type="text" class="form-input" x-model="entForm.data.contact_phone" :disabled="!entForm.editMode"
+                    @blur="validateField('contact_phone')" maxlength="11">
+                  <div class="error-msg" x-text="entForm.errors.contact_phone" x-show="entForm.errors.contact_phone"></div>
+                </div>
+                <!-- 详细地址 (full width) -->
+                <div class="col-span-2">
+                  <div class="form-label text-left mb-1 text-xs" :class="entForm.editMode ? 'text-gray-600' : 'text-gray-400'">
+                    <span class="required-star" x-show="entForm.editMode">*</span>详细地址
+                  </div>
+                  <input type="text" class="form-input" x-model="entForm.data.address" :disabled="!entForm.editMode"
+                    @blur="validateField('address')" maxlength="200">
+                  <div class="error-msg" x-text="entForm.errors.address" x-show="entForm.errors.address"></div>
+                </div>
+                <!-- 养殖规模 -->
+                <div>
+                  <div class="form-label text-left mb-1 text-xs" :class="entForm.editMode ? 'text-gray-600' : 'text-gray-400'">
+                    <span class="required-star" x-show="entForm.editMode">*</span>养殖规模（头）
+                  </div>
+                  <input type="number" class="form-input" x-model="entForm.data.breeding_scale" :disabled="!entForm.editMode"
+                    @blur="validateField('breeding_scale')" min="1" max="999999">
+                  <div class="error-msg" x-text="entForm.errors.breeding_scale" x-show="entForm.errors.breeding_scale"></div>
+                </div>
+                <!-- 状态 (readonly) -->
+                <div>
+                  <div class="form-label text-left mb-1 text-xs text-gray-400">状态</div>
+                  <div class="h-8 flex items-center">
+                    <span :class="MOCK_DATA.enterprise.status === '0' ? 'tag tag-success' : 'tag tag-default'"
+                      x-text="MOCK_DATA.enterprise.status === '0' ? '正常' : '停用'"></span>
+                  </div>
+                </div>
+                <!-- 企业坐标 -->
+                <div>
+                  <div class="form-label text-left mb-1 text-xs text-gray-400">企业坐标（经度/纬度）</div>
+                  <input type="text" class="form-input" :value="getLocationText()" disabled>
+                </div>
+                <!-- 创建者 -->
+                <div>
+                  <div class="form-label text-left mb-1 text-xs text-gray-400">创建者</div>
+                  <input type="text" class="form-input" :value="MOCK_DATA.enterprise.create_by" disabled>
+                </div>
+                <!-- 创建时间 -->
+                <div>
+                  <div class="form-label text-left mb-1 text-xs text-gray-400">创建时间</div>
+                  <input type="text" class="form-input" :value="MOCK_DATA.enterprise.create_time" disabled>
+                </div>
+                <!-- 更新者 -->
+                <div>
+                  <div class="form-label text-left mb-1 text-xs text-gray-400">更新者</div>
+                  <input type="text" class="form-input" :value="MOCK_DATA.enterprise.update_by" disabled>
+                </div>
+                <!-- 更新时间 -->
+                <div>
+                  <div class="form-label text-left mb-1 text-xs text-gray-400">更新时间</div>
+                  <input type="text" class="form-input" :value="MOCK_DATA.enterprise.update_time" disabled>
+                </div>
+                <!-- 营业执照照片 (full width) -->
+                <div class="col-span-2">
+                  <div class="form-label text-left mb-2 text-xs text-gray-400">营业执照照片</div>
+                  <div class="photo-list">
+                    <template x-for="(photo, idx) in entForm.photos" :key="idx">
+                      <div class="photo-item">
+                        <img :src="photo" class="photo-thumb" @click="previewImg = photo" alt="执照照片">
+                        <div class="photo-del-btn" x-show="entForm.editMode" @click="removePhoto(idx)">
+                          <i class="fa-solid fa-xmark"></i>
+                        </div>
+                      </div>
+                    </template>
+                    <div class="photo-add-btn" x-show="entForm.editMode && entForm.photos.length < 5" @click="simulateUpload()">
+                      <i class="fa-solid fa-plus text-lg"></i>
+                      <span>上传照片</span>
+                      <span class="text-xs text-gray-400" x-text="entForm.photos.length + '/5'"></span>
+                    </div>
+                  </div>
+                  <div class="text-xs text-gray-400 mt-1" x-show="entForm.editMode">支持 jpg/jpeg/png/gif，单张不超过5MB，最多5张</div>
+                  <div class="error-msg" x-text="entForm.errors.license_photo" x-show="entForm.errors.license_photo"></div>
+                </div>
+                <!-- 备注 (full width) -->
+                <div class="col-span-2">
+                  <div class="form-label text-left mb-1 text-xs" :class="entForm.editMode ? 'text-gray-600' : 'text-gray-400'">备注</div>
+                  <textarea class="form-textarea" x-model="entForm.data.remark" :disabled="!entForm.editMode"
+                    @blur="validateField('remark')" maxlength="500" rows="3"></textarea>
+                  <div class="flex justify-between">
+                    <div class="error-msg" x-text="entForm.errors.remark" x-show="entForm.errors.remark"></div>
+                    <div class="text-xs text-gray-400 text-right" x-show="entForm.editMode" x-text="(entForm.data.remark || '').length + '/500'"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <!-- SECTION END: 企业基础信息 -->
+
+        <!-- ===== SECTION START: 圈舍管理 ===== -->
+        <section id="feature-pigsty" x-show="currentPage === 'pigsty'">
+          <div class="card">
+            <!-- Filter area -->
+            <div class="px-5 py-4 border-b border-gray-100">
+              <div class="flex items-center gap-3 flex-wrap">
+                <input type="text" class="form-input" style="width:200px" placeholder="请输入圈舍名称" x-model="pigstyFilter.name">
+                <select class="form-select" style="width:160px" x-model="pigstyFilter.type">
+                  <option value="">圈舍类型（全部）</option>
+                  <template x-for="opt in MOCK_DATA.dict.pigstyType" :key="opt.value">
+                    <option :value="opt.value" x-text="opt.label"></option>
+                  </template>
+                </select>
+                <select class="form-select" style="width:160px" x-model="pigstyFilter.status">
+                  <option value="">圈舍状态（全部）</option>
+                  <template x-for="opt in MOCK_DATA.dict.pigstyStatus" :key="opt.value">
+                    <option :value="opt.value" x-text="opt.label"></option>
+                  </template>
+                </select>
+                <button class="btn-primary" @click="searchPigsty()"><i class="fa-solid fa-magnifying-glass"></i> 查询</button>
+                <button class="btn-default" @click="resetPigstyFilter()"><i class="fa-solid fa-rotate-left"></i> 重置</button>
+                <div class="flex-1"></div>
+                <button class="btn-primary" x-show="hasPermission('farm:pigsty:add')" @click="openPigstyModal('add')">
+                  <i class="fa-solid fa-plus"></i> 新增
+                </button>
+              </div>
+            </div>
+
+            <!-- Table -->
+            <div style="overflow-x: auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>圈舍编号</th>
+                    <th>圈舍名称</th>
+                    <th>圈舍类型</th>
+                    <th>设计容量（头）</th>
+                    <th>当前存栏（头）</th>
+                    <th>建筑面积（㎡）</th>
+                    <th>状态</th>
+                    <th>创建时间</th>
+                    <th class="op-col">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template x-for="row in pigstyPagedData" :key="row.pigsty_id">
+                    <tr>
+                      <td x-text="row.pigsty_code || '—'"></td>
+                      <td x-text="row.pigsty_name"></td>
+                      <td x-text="getPigstyTypeName(row.pigsty_type)"></td>
+                      <td x-text="row.design_capacity"></td>
+                      <td :class="row.current_stock > 0 ? 'font-semibold text-gray-800' : ''" x-text="row.current_stock"></td>
+                      <td x-text="row.building_area != null ? row.building_area.toFixed(2) : '—'"></td>
+                      <td>
+                        <span :class="getPigstyStatusClass(row.status)" class="tag" x-text="getPigstyStatusName(row.status)"></span>
+                      </td>
+                      <td x-text="row.create_time"></td>
+                      <td class="op-col" style="white-space:nowrap">
+                        <button class="btn-link" x-show="hasPermission('farm:pigsty:edit')" @click="openPigstyModal('edit', row)">编辑</button>
+                        <button
+                          :class="row.current_stock > 0 ? 'btn-link-danger opacity-40' : 'btn-link-danger'"
+                          :disabled="row.current_stock > 0"
+                          :title="row.current_stock > 0 ? '存在存栏记录，无法删除' : ''"
+                          x-show="hasPermission('farm:pigsty:remove')"
+                          @click="row.current_stock > 0 ? showToast('该圈舍存在存栏记录（当前存栏' + row.current_stock + '头），无法删除', 'error') : confirmDeletePigsty(row)">
+                          删除
+                        </button>
+                      </td>
+                    </tr>
+                  </template>
+                  <tr x-show="pigstyFilteredData.length === 0">
+                    <td colspan="9" class="text-center text-gray-400 py-8">
+                      <i class="fa-solid fa-inbox text-3xl mb-2 block"></i>暂无数据
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="flex items-center justify-between px-5 py-3 border-t border-gray-100 flex-shrink-0">
+              <span class="text-sm text-gray-400">共 <strong x-text="pigstyFilteredData.length"></strong> 条</span>
+              <div class="flex items-center gap-3">
+                <span class="text-sm text-gray-400">每页
+                  <select class="border border-gray-200 rounded px-1 py-0.5 text-xs mx-1" x-model="pigstyPage.size" @change="pigstyPage.current=1">
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                  </select>条
+                </span>
+                <div class="pagination">
+                  <button class="page-btn" :disabled="pigstyPage.current <= 1" @click="pigstyPage.current--">
+                    <i class="fa-solid fa-chevron-left text-xs"></i>
+                  </button>
+                  <template x-for="p in pigstyPageNumbers" :key="p">
+                    <button :class="['page-btn', pigstyPage.current === p ? 'active' : '']" @click="pigstyPage.current = p" x-text="p"></button>
+                  </template>
+                  <button class="page-btn" :disabled="pigstyPage.current >= pigstyTotalPages" @click="pigstyPage.current++">
+                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <!-- SECTION END: 圈舍管理 -->
+
+      </div><!-- /main-content -->
+    </div><!-- /content-area -->
+  </div><!-- /main area -->
+</div><!-- /layout -->
+
+<!-- ===== SECTION START: 圈舍新增/编辑弹窗 ===== -->
+<div id="feature-pigsty-modal" class="modal-overlay" x-show="pigstyModal.show" x-cloak>
+  <div class="modal-box" style="min-width:580px">
+    <div class="modal-header">
+      <span class="font-semibold text-base" x-text="pigstyModal.mode === 'add' ? '新增圈舍' : '编辑圈舍'"></span>
+      <button class="text-gray-400 hover:text-gray-600" @click="closePigstyModal()"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="grid grid-cols-2 gap-x-6 gap-y-4">
+        <!-- 圈舍编号 -->
+        <div>
+          <label class="form-label text-left block mb-1">圈舍编号 <span class="text-xs text-gray-400">（选填，不填时自动生成）</span></label>
+          <input type="text" class="form-input" x-model="pigstyModal.data.pigsty_code" maxlength="50"
+            @blur="validatePigstyField('pigsty_code')" placeholder="不填时系统自动生成">
+          <div class="error-msg" x-text="pigstyModal.errors.pigsty_code" x-show="pigstyModal.errors.pigsty_code"></div>
+        </div>
+        <!-- 圈舍名称 -->
+        <div>
+          <label class="form-label text-left block mb-1"><span class="required-star">*</span>圈舍名称</label>
+          <input type="text" class="form-input" x-model="pigstyModal.data.pigsty_name" maxlength="100"
+            @blur="validatePigstyField('pigsty_name')" placeholder="请输入圈舍名称">
+          <div class="error-msg" x-text="pigstyModal.errors.pigsty_name" x-show="pigstyModal.errors.pigsty_name"></div>
+        </div>
+        <!-- 圈舍类型 -->
+        <div>
+          <label class="form-label text-left block mb-1"><span class="required-star">*</span>圈舍类型</label>
+          <select class="form-select" x-model="pigstyModal.data.pigsty_type" @change="validatePigstyField('pigsty_type')">
+            <option value="">请选择圈舍类型</option>
+            <template x-for="opt in MOCK_DATA.dict.pigstyType" :key="opt.value">
+              <option :value="opt.value" x-text="opt.label"></option>
+            </template>
+          </select>
+          <div class="error-msg" x-text="pigstyModal.errors.pigsty_type" x-show="pigstyModal.errors.pigsty_type"></div>
+        </div>
+        <!-- 设计容量 -->
+        <div>
+          <label class="form-label text-left block mb-1"><span class="required-star">*</span>设计容量（头）</label>
+          <input type="number" class="form-input" x-model="pigstyModal.data.design_capacity" min="1" max="9999"
+            @blur="validatePigstyField('design_capacity')" placeholder="请输入设计容量">
+          <div class="error-msg" x-text="pigstyModal.errors.design_capacity" x-show="pigstyModal.errors.design_capacity"></div>
+        </div>
+        <!-- 当前存栏 (edit only) -->
+        <div x-show="pigstyModal.mode === 'edit'">
+          <label class="form-label text-left block mb-1">当前存栏（头）<span class="text-xs text-gray-400">（只读）</span></label>
+          <input type="number" class="form-input" :value="pigstyModal.data.current_stock" disabled>
+        </div>
+        <!-- 建筑面积 -->
+        <div>
+          <label class="form-label text-left block mb-1">建筑面积（㎡）<span class="text-xs text-gray-400">（选填）</span></label>
+          <input type="number" class="form-input" x-model="pigstyModal.data.building_area" min="0.01" max="99999.99" step="0.01"
+            @blur="validatePigstyField('building_area')" placeholder="请输入建筑面积">
+          <div class="error-msg" x-text="pigstyModal.errors.building_area" x-show="pigstyModal.errors.building_area"></div>
+        </div>
+        <!-- 状态 -->
+        <div>
+          <label class="form-label text-left block mb-1"><span class="required-star">*</span>状态</label>
+          <select class="form-select" x-model="pigstyModal.data.status" @change="validatePigstyField('status')">
+            <option value="">请选择状态</option>
+            <template x-for="opt in MOCK_DATA.dict.pigstyStatus" :key="opt.value">
+              <option :value="opt.value" x-text="opt.label"></option>
+            </template>
+          </select>
+          <div class="error-msg" x-text="pigstyModal.errors.status" x-show="pigstyModal.errors.status"></div>
+        </div>
+        <!-- 备注 -->
+        <div class="col-span-2">
+          <label class="form-label text-left block mb-1">备注</label>
+          <textarea class="form-textarea" x-model="pigstyModal.data.remark" maxlength="500" rows="3" placeholder="请输入备注"
+            @blur="validatePigstyField('remark')"></textarea>
+          <div class="flex justify-between">
+            <div class="error-msg" x-text="pigstyModal.errors.remark" x-show="pigstyModal.errors.remark"></div>
+            <div class="text-xs text-gray-400 text-right" x-text="(pigstyModal.data.remark || '').length + '/500'"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-default" @click="closePigstyModal()">取消</button>
+      <button class="btn-primary" :disabled="pigstyModal.submitting" @click="submitPigsty()">
+        <i class="fa-solid fa-circle-notch fa-spin" x-show="pigstyModal.submitting"></i>
+        <span x-text="pigstyModal.submitting ? '提交中...' : '确定'"></span>
+      </button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 圈舍新增/编辑弹窗 -->
+
+<script>
+const MOCK_DATA = {
+  currentUser: {
+    id: 1,
+    name: '王建国',
+    role: 'ent_admin',
+    roleName: '企业管理员',
+    enterpriseId: 1001,
+    enterpriseName: '蓬溪县鑫源生猪养殖有限公司',
+    permissions: [
+      'farm:enterprise:query', 'farm:enterprise:edit',
+      'farm:pigsty:list', 'farm:pigsty:add', 'farm:pigsty:edit', 'farm:pigsty:remove',
+      'farm:employee:list', 'farm:employee:add', 'farm:employee:edit', 'farm:employee:remove', 'farm:employee:changeStatus'
+    ]
+  },
+
+  enterprise: {
+    enterprise_id: 1001,
+    user_id: 1,
+    enterprise_name: '蓬溪县鑫源生猪养殖有限公司',
+    credit_code: '91510921MA624E2L3A',
+    enterprise_type: '1',
+    legal_person: '王建国',
+    contact_phone: '13812345678',
+    address: '四川省遂宁市蓬溪县蓬溪镇工业园区A区3号',
+    longitude: 105.701234,
+    latitude: 30.753456,
+    breeding_scale: 2500,
+    license_photo: 'https://via.placeholder.com/80x80/e6f4ff/1677ff?text=执照1,https://via.placeholder.com/80x80/f6ffed/52c41a?text=执照2',
+    status: '0',
+    del_flag: '0',
+    create_by: 'admin',
+    create_time: '2024-01-15 09:23:41',
+    update_by: '王建国',
+    update_time: '2025-12-20 14:37:22',
+    remark: '蓬溪县规模最大的生猪养殖企业之一，主要养殖长白猪和杜洛克猪。'
+  },
+
+  pigstyList: [
+    { pigsty_id: 1, enterprise_id: 1001, pigsty_code: 'PS-A01', pigsty_name: 'A区1号公圈舍', pigsty_type: '1', design_capacity: 200, current_stock: 186, building_area: 450.00, status: '0', del_flag: '0', create_by: 'admin', create_time: '2024-01-20 10:00:00', update_by: '王建国', update_time: '2025-11-15 09:30:00', remark: '主要公猪培育圈舍' },
+    { pigsty_id: 2, enterprise_id: 1001, pigsty_code: 'PS-A02', pigsty_name: 'A区2号母圈舍', pigsty_type: '2', design_capacity: 150, current_stock: 142, building_area: 380.00, status: '0', del_flag: '0', create_by: 'admin', create_time: '2024-01-20 10:15:00', update_by: '王建国', update_time: '2025-10-20 11:00:00', remark: '' },
+    { pigsty_id: 3, enterprise_id: 1001, pigsty_code: 'PS-B01', pigsty_name: 'B区保育舍', pigsty_type: '3', design_capacity: 300, current_stock: 0, building_area: 600.00, status: '1', del_flag: '0', create_by: '王建国', create_time: '2024-02-05 14:30:00', update_by: '王建国', update_time: '2025-09-10 16:20:00', remark: '保育猪专用舍，正在进行清洁消毒' },
+    { pigsty_id: 4, enterprise_id: 1001, pigsty_code: 'PS-C01', pigsty_name: 'C区育肥舍1号', pigsty_type: '4', design_capacity: 500, current_stock: 487, building_area: 1200.00, status: '0', del_flag: '0', create_by: '王建国', create_time: '2024-02-10 08:00:00', update_by: '张明', update_time: '2025-12-01 08:30:00', remark: '' },
+    { pigsty_id: 5, enterprise_id: 1001, pigsty_code: 'PS-C02', pigsty_name: 'C区育肥舍2号', pigsty_type: '4', design_capacity: 500, current_stock: 412, building_area: 1200.00, status: '0', del_flag: '0', create_by: '张明', create_time: '2024-03-01 09:00:00', update_by: '张明', update_time: '2025-11-28 10:10:00', remark: '' },
+    { pigsty_id: 6, enterprise_id: 1001, pigsty_code: 'PS-D01', pigsty_name: 'D区产房1号', pigsty_type: '5', design_capacity: 80, current_stock: 76, building_area: 200.00, status: '0', del_flag: '0', create_by: '李芳', create_time: '2024-03-15 11:00:00', update_by: '李芳', update_time: '2025-12-05 09:00:00', remark: '分娩母猪专用' },
+    { pigsty_id: 7, enterprise_id: 1001, pigsty_code: 'PS-E01', pigsty_name: '隔离检疫舍', pigsty_type: '6', design_capacity: 50, current_stock: 0, building_area: 120.50, status: '2', del_flag: '0', create_by: '赵强', create_time: '2024-04-01 15:00:00', update_by: '赵强', update_time: '2025-08-20 14:00:00', remark: '正在维修改造，预计下月完工' },
+    { pigsty_id: 8, enterprise_id: 1001, pigsty_code: 'PS-B02', pigsty_name: 'B区母圈舍2号', pigsty_type: '2', design_capacity: 120, current_stock: 98, building_area: null, status: '0', del_flag: '0', create_by: '王建国', create_time: '2024-05-10 09:30:00', update_by: '王建国', update_time: '2025-12-08 14:00:00', remark: '' },
+    { pigsty_id: 9, enterprise_id: 1001, pigsty_code: 'PS-F01', pigsty_name: 'F区保育舍2号', pigsty_type: '3', design_capacity: 250, current_stock: 220, building_area: 520.00, status: '0', del_flag: '0', create_by: '李芳', create_time: '2024-06-20 10:00:00', update_by: '李芳', update_time: '2025-11-30 16:00:00', remark: '' },
+    { pigsty_id: 10, enterprise_id: 1001, pigsty_code: null, pigsty_name: '临时存放圈', pigsty_type: '6', design_capacity: 30, current_stock: 0, building_area: null, status: '1', del_flag: '0', create_by: '张明', create_time: '2024-08-15 13:00:00', update_by: '张明', update_time: '2025-10-01 09:00:00', remark: '临时用于转运隔离' }
+  ],
+
+  dict: {
+    enterpriseType: [
+      { value: '1', label: '规模养殖场' },
+      { value: '2', label: '家庭农场' },
+      { value: '3', label: '散养户' },
+      { value: '4', label: '合作社' }
+    ],
+    pigstyType: [
+      { value: '1', label: '公圈舍' },
+      { value: '2', label: '母圈舍' },
+      { value: '3', label: '保育舍' },
+      { value: '4', label: '育肥舍' },
+      { value: '5', label: '产房' },
+      { value: '6', label: '隔离舍' }
+    ],
+    pigstyStatus: [
+      { value: '0', label: '使用中' },
+      { value: '1', label: '空栏' },
+      { value: '2', label: '维修中' }
+    ]
+  }
+};
+
+function app() {
+  return {
+    MOCK_DATA: MOCK_DATA,
+    currentRole: 'ent_admin',
+    sidebarCollapsed: false,
+    openMenus: ['enterprise'],
+    currentPage: 'enterprise-info',
+    previewImg: null,
+    toasts: [],
+
+    // Enterprise form state
+    entForm: {
+      loading: false,
+      editMode: false,
+      saving: false,
+      data: { ...MOCK_DATA.enterprise },
+      originalData: null,
+      photos: [],
+      errors: {}
+    },
+
+    // Pigsty list state
+    pigstyFilter: { name: '', type: '', status: '' },
+    pigstyFilteredData: [...MOCK_DATA.pigstyList],
+    pigstyPage: { current: 1, size: 20 },
+
+    // Pigsty modal state
+    pigstyModal: {
+      show: false,
+      mode: 'add',
+      data: {},
+      errors: {},
+      submitting: false
+    },
+
+    // Confirm dialog
+    confirmDialog: { show: false, title: '', message: '', onConfirm: null, onCancel: null },
+
+    init() {
+      this.entForm.loading = true;
+      this.entForm.photos = MOCK_DATA.enterprise.license_photo
+        ? MOCK_DATA.enterprise.license_photo.split(',').filter(p => p.trim())
+        : [];
+      setTimeout(() => { this.entForm.loading = false; }, 800);
+    },
+
+    toggleMenu(key) {
+      if (this.openMenus.includes(key)) {
+        this.openMenus = this.openMenus.filter(m => m !== key);
+      } else {
+        this.openMenus.push(key);
+      }
+    },
+
+    hasPermission(perm) {
+      return MOCK_DATA.currentUser.permissions.includes(perm);
+    },
+
+    switchRole() {
+      const role = this.currentRole;
+      if (role === 'ent_admin') {
+        MOCK_DATA.currentUser.name = '王建国';
+        MOCK_DATA.currentUser.role = 'ent_admin';
+        MOCK_DATA.currentUser.permissions = [
+          'farm:enterprise:query', 'farm:enterprise:edit',
+          'farm:pigsty:list', 'farm:pigsty:add', 'farm:pigsty:edit', 'farm:pigsty:remove',
+          'farm:employee:list', 'farm:employee:add', 'farm:employee:edit', 'farm:employee:remove', 'farm:employee:changeStatus'
+        ];
+      } else {
+        MOCK_DATA.currentUser.name = '李小芳';
+        MOCK_DATA.currentUser.role = 'ent_reporter';
+        MOCK_DATA.currentUser.permissions = ['farm:enterprise:query', 'farm:pigsty:list', 'farm:employee:list'];
+        if (this.entForm.editMode) this.entForm.editMode = false;
+      }
+      this.showToast(`已切换为「${role === 'ent_admin' ? '企业管理员' : '企业填报员'}」`, 'success');
+    },
+
+    // ---- Enterprise info ----
+    getEnterpriseTypeName(val) {
+      const opt = MOCK_DATA.dict.enterpriseType.find(o => o.value === val);
+      return opt ? opt.label : '—';
+    },
+    getLocationText() {
+      const ent = MOCK_DATA.enterprise;
+      if (!ent.longitude && !ent.latitude) return '暂未定位，请使用小程序端获取企业位置';
+      return `经度：${Number(ent.longitude).toFixed(6)}，纬度：${Number(ent.latitude).toFixed(6)}`;
+    },
+
+    enterEditMode() {
+      this.entForm.originalData = JSON.stringify(this.entForm.data);
+      this.entForm.editMode = true;
+      this.entForm.errors = {};
+    },
+
+    cancelEditEnterprise() {
+      const hasChanged = JSON.stringify(this.entForm.data) !== this.entForm.originalData;
+      if (hasChanged) {
+        this.confirmDialog = {
+          show: true,
+          title: '确定放弃修改吗？',
+          message: '当前有未保存的修改内容，放弃后将恢复原始数据。',
+          onConfirm: () => {
+            this.entForm.data = JSON.parse(this.entForm.originalData);
+            this.entForm.editMode = false;
+            this.entForm.errors = {};
+          },
+          onCancel: null
+        };
+      } else {
+        this.entForm.editMode = false;
+        this.entForm.errors = {};
+      }
+    },
+
+    validateField(field) {
+      const d = this.entForm.data;
+      delete this.entForm.errors[field];
+      if (field === 'enterprise_name') {
+        if (!d.enterprise_name) this.entForm.errors.enterprise_name = '企业名称不能为空';
+        else if (d.enterprise_name.length > 100) this.entForm.errors.enterprise_name = '企业名称最大100字符';
+      }
+      if (field === 'credit_code') {
+        if (!d.credit_code) this.entForm.errors.credit_code = '统一社会信用代码不能为空';
+        else if (!/^[0-9A-Za-z]{18}$/.test(d.credit_code)) this.entForm.errors.credit_code = '统一社会信用代码格式不正确，须为18位数字或字母';
+      }
+      if (field === 'enterprise_type') {
+        if (!d.enterprise_type) this.entForm.errors.enterprise_type = '请选择企业类型';
+      }
+      if (field === 'legal_person') {
+        if (!d.legal_person) this.entForm.errors.legal_person = '法人代表不能为空';
+        else if (d.legal_person.length > 50) this.entForm.errors.legal_person = '法人代表最大50字符';
+      }
+      if (field === 'contact_phone') {
+        if (!d.contact_phone) this.entForm.errors.contact_phone = '联系电话不能为空';
+        else if (!/^1[3-9]\d{9}$/.test(d.contact_phone)) this.entForm.errors.contact_phone = '手机号格式不正确，须为11位手机号';
+      }
+      if (field === 'address') {
+        if (!d.address) this.entForm.errors.address = '详细地址不能为空';
+        else if (d.address.length > 200) this.entForm.errors.address = '详细地址最大200字符';
+      }
+      if (field === 'breeding_scale') {
+        const v = Number(d.breeding_scale);
+        if (!d.breeding_scale) this.entForm.errors.breeding_scale = '养殖规模不能为空';
+        else if (!Number.isInteger(v) || v < 1 || v > 999999) this.entForm.errors.breeding_scale = '养殖规模须在1～999999之间，且为正整数';
+      }
+      if (field === 'remark') {
+        if (d.remark && d.remark.length > 500) this.entForm.errors.remark = '备注最大500字符';
+      }
+    },
+
+    saveEnterprise() {
+      const fields = ['enterprise_name', 'credit_code', 'enterprise_type', 'legal_person', 'contact_phone', 'address', 'breeding_scale', 'remark'];
+      fields.forEach(f => this.validateField(f));
+      if (Object.values(this.entForm.errors).some(e => e)) return;
+      this.entForm.saving = true;
+      setTimeout(() => {
+        Object.assign(MOCK_DATA.enterprise, this.entForm.data);
+        MOCK_DATA.enterprise.update_by = MOCK_DATA.currentUser.name;
+        MOCK_DATA.enterprise.update_time = new Date().toLocaleString('zh-CN');
+        this.entForm.editMode = false;
+        this.entForm.saving = false;
+        this.showToast('保存成功', 'success');
+      }, 1200);
+    },
+
+    simulateUpload() {
+      if (this.entForm.photos.length >= 5) {
+        this.entForm.errors.license_photo = '最多上传5张营业执照照片';
+        return;
+      }
+      const colors = ['e6f4ff/1677ff', 'f6ffed/52c41a', 'fffbe6/faad14', 'fff2f0/ff4d4f', 'f9f0ff/722ed1'];
+      const col = colors[this.entForm.photos.length];
+      this.entForm.photos.push(`https://via.placeholder.com/80x80/${col}?text=执照${this.entForm.photos.length + 1}`);
+      delete this.entForm.errors.license_photo;
+    },
+
+    removePhoto(idx) {
+      this.entForm.photos.splice(idx, 1);
+    },
+
+    // ---- Pigsty ----
+    getPigstyTypeName(val) {
+      const opt = MOCK_DATA.dict.pigstyType.find(o => o.value === val);
+      return opt ? opt.label : '—';
+    },
+    getPigstyStatusName(val) {
+      const opt = MOCK_DATA.dict.pigstyStatus.find(o => o.value === val);
+      return opt ? opt.label : '—';
+    },
+    getPigstyStatusClass(val) {
+      if (val === '0') return 'tag-success';
+      if (val === '1') return 'tag-default';
+      if (val === '2') return 'tag-warning';
+      return 'tag-default';
+    },
+
+    searchPigsty() {
+      const { name, type, status } = this.pigstyFilter;
+      this.pigstyFilteredData = MOCK_DATA.pigstyList.filter(row => {
+        const nameMatch = !name || row.pigsty_name.includes(name);
+        const typeMatch = !type || row.pigsty_type === type;
+        const statusMatch = !status || row.status === status;
+        return nameMatch && typeMatch && statusMatch;
+      });
+      this.pigstyPage.current = 1;
+    },
+
+    resetPigstyFilter() {
+      this.pigstyFilter = { name: '', type: '', status: '' };
+      this.pigstyFilteredData = [...MOCK_DATA.pigstyList];
+      this.pigstyPage.current = 1;
+    },
+
+    get pigstyTotalPages() {
+      return Math.max(1, Math.ceil(this.pigstyFilteredData.length / Number(this.pigstyPage.size)));
+    },
+
+    get pigstyPageNumbers() {
+      const total = this.pigstyTotalPages;
+      const cur = this.pigstyPage.current;
+      const pages = [];
+      for (let i = Math.max(1, cur - 2); i <= Math.min(total, cur + 2); i++) pages.push(i);
+      return pages;
+    },
+
+    get pigstyPagedData() {
+      const size = Number(this.pigstyPage.size);
+      const start = (this.pigstyPage.current - 1) * size;
+      return this.pigstyFilteredData.slice(start, start + size);
+    },
+
+    openPigstyModal(mode, row) {
+      this.pigstyModal.mode = mode;
+      this.pigstyModal.errors = {};
+      this.pigstyModal.submitting = false;
+      if (mode === 'add') {
+        this.pigstyModal.data = {
+          pigsty_code: '',
+          pigsty_name: '',
+          pigsty_type: '',
+          design_capacity: '',
+          current_stock: 0,
+          building_area: '',
+          status: '0',
+          remark: ''
+        };
+      } else {
+        this.pigstyModal.data = { ...row };
+      }
+      this.pigstyModal.show = true;
+    },
+
+    closePigstyModal() {
+      this.pigstyModal.show = false;
+    },
+
+    validatePigstyField(field) {
+      const d = this.pigstyModal.data;
+      delete this.pigstyModal.errors[field];
+      if (field === 'pigsty_name') {
+        if (!d.pigsty_name) this.pigstyModal.errors.pigsty_name = '圈舍名称不能为空';
+        else if (d.pigsty_name.length > 100) this.pigstyModal.errors.pigsty_name = '圈舍名称最大100字符';
+      }
+      if (field === 'pigsty_type') {
+        if (!d.pigsty_type) this.pigstyModal.errors.pigsty_type = '请选择圈舍类型';
+      }
+      if (field === 'design_capacity') {
+        const v = Number(d.design_capacity);
+        if (!d.design_capacity) this.pigstyModal.errors.design_capacity = '设计容量不能为空';
+        else if (!Number.isInteger(v) || v < 1 || v > 9999) this.pigstyModal.errors.design_capacity = '设计容量须在1～9999之间，且为正整数';
+      }
+      if (field === 'status') {
+        if (d.status === '' || d.status === null || d.status === undefined) this.pigstyModal.errors.status = '请选择圈舍状态';
+      }
+      if (field === 'pigsty_code') {
+        if (d.pigsty_code && d.pigsty_code.length > 50) this.pigstyModal.errors.pigsty_code = '圈舍编号最大50字符';
+      }
+      if (field === 'building_area') {
+        if (d.building_area !== '' && d.building_area !== null && d.building_area !== undefined) {
+          const v = Number(d.building_area);
+          if (isNaN(v) || v < 0.01 || v > 99999.99) this.pigstyModal.errors.building_area = '建筑面积须在0.01～99999.99之间';
+        }
+      }
+      if (field === 'remark') {
+        if (d.remark && d.remark.length > 500) this.pigstyModal.errors.remark = '备注最大500字符';
+      }
+    },
+
+    submitPigsty() {
+      const fields = ['pigsty_name', 'pigsty_type', 'design_capacity', 'status', 'pigsty_code', 'building_area', 'remark'];
+      fields.forEach(f => this.validatePigstyField(f));
+      if (Object.values(this.pigstyModal.errors).some(e => e)) return;
+      this.pigstyModal.submitting = true;
+      setTimeout(() => {
+        const d = this.pigstyModal.data;
+        if (this.pigstyModal.mode === 'add') {
+          const newId = Math.max(...MOCK_DATA.pigstyList.map(p => p.pigsty_id)) + 1;
+          const newRow = {
+            ...d,
+            pigsty_id: newId,
+            enterprise_id: 1001,
+            pigsty_code: d.pigsty_code || `PS-AUTO${String(newId).padStart(3, '0')}`,
+            current_stock: 0,
+            design_capacity: Number(d.design_capacity),
+            building_area: d.building_area !== '' ? Number(d.building_area) : null,
+            del_flag: '0',
+            create_by: MOCK_DATA.currentUser.name,
+            create_time: new Date().toLocaleString('zh-CN'),
+            update_by: MOCK_DATA.currentUser.name,
+            update_time: new Date().toLocaleString('zh-CN')
+          };
+          MOCK_DATA.pigstyList.unshift(newRow);
+          this.showToast('新增成功', 'success');
+        } else {
+          const idx = MOCK_DATA.pigstyList.findIndex(p => p.pigsty_id === d.pigsty_id);
+          if (idx >= 0) {
+            MOCK_DATA.pigstyList[idx] = {
+              ...MOCK_DATA.pigstyList[idx],
+              ...d,
+              design_capacity: Number(d.design_capacity),
+              building_area: d.building_area !== '' ? Number(d.building_area) : null,
+              update_by: MOCK_DATA.currentUser.name,
+              update_time: new Date().toLocaleString('zh-CN')
+            };
+          }
+          this.showToast('修改成功', 'success');
+        }
+        this.pigstyFilteredData = [...MOCK_DATA.pigstyList];
+        this.pigstyModal.submitting = false;
+        this.pigstyModal.show = false;
+      }, 900);
+    },
+
+    confirmDeletePigsty(row) {
+      this.confirmDialog = {
+        show: true,
+        title: '确认删除',
+        message: `确定删除圈舍「${row.pigsty_name}」吗？此操作不可恢复。`,
+        onConfirm: () => {
+          const idx = MOCK_DATA.pigstyList.findIndex(p => p.pigsty_id === row.pigsty_id);
+          if (idx >= 0) MOCK_DATA.pigstyList.splice(idx, 1);
+          this.pigstyFilteredData = [...MOCK_DATA.pigstyList];
+          this.showToast('删除成功', 'success');
+        },
+        onCancel: null
+      };
+    },
+
+    showToast(message, type = 'success') {
+      const id = Date.now();
+      this.toasts.push({ id, message, type });
+      setTimeout(() => { this.toasts = this.toasts.filter(t => t.id !== id); }, 2000);
+    }
+  };
+}
+</script>
+</body>
+</html>

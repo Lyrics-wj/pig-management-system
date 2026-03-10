@@ -1,0 +1,850 @@
+<!--
+  功能名称：生猪知识讲堂后台管理-在线交流管理
+  对应PRD：doc_prd/WEB/生猪知识讲堂/后台管理/WEB-生猪知识讲堂后台管理-在线交流管理.prd.md
+  所属端口：生猪知识讲堂后台管理系统（监管端）
+  所属模块：论坛板块管理、论坛内容管理、问答管理
+  制作日期：2026-03-06
+  最后更新：2026-03-06
+  角色说明：县级管理员(county_admin)、县级业务人员(county_staff)
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在线交流管理 - 生猪知识讲堂后台</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  [x-cloak] { display: none !important; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f4f8; color: #1e293b; }
+  .sidebar { width: 220px; background: linear-gradient(180deg, #0f4c2a 0%, #1a6e3a 60%, #166534 100%); display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-brand { padding: 20px 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .sidebar-brand-icon { width: 36px; height: 36px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.25); }
+  .sidebar-group-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: rgba(255,255,255,0.4); text-transform: uppercase; padding: 12px 16px 4px; }
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 9px 16px; font-size: 13.5px; color: rgba(255,255,255,0.7); cursor: pointer; transition: all 0.15s ease; margin: 1px 8px; border-radius: 8px; }
+  .sidebar-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .sidebar-item.active { background: rgba(255,255,255,0.18); color: #fff; font-weight: 600; box-shadow: inset 3px 0 0 #86efac; }
+  .sidebar-item .si-icon { width: 16px; text-align: center; opacity: 0.85; }
+  .sidebar-user { padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.1); }
+  .sidebar-user-avatar { width: 30px; height: 30px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; }
+  .btn-primary { display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #16a34a, #15803d); color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 13.5px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; box-shadow: 0 1px 3px rgba(22,163,74,0.3); }
+  .btn-primary:hover { background: linear-gradient(135deg, #15803d, #166534); box-shadow: 0 4px 12px rgba(22,163,74,0.35); transform: translateY(-1px); }
+  .btn-secondary { display: inline-flex; align-items: center; gap: 6px; background: #fff; color: #475569; padding: 8px 14px; border-radius: 8px; font-size: 13.5px; font-weight: 500; cursor: pointer; border: 1px solid #cbd5e1; transition: all 0.15s; }
+  .btn-secondary:hover { background: #f8fafc; border-color: #94a3b8; }
+  .act-btn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid transparent; transition: all 0.15s; white-space: nowrap; }
+  .act-edit   { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; } .act-edit:hover   { background: #dbeafe; }
+  .act-stop   { background: #fffbeb; color: #d97706; border-color: #fde68a; } .act-stop:hover   { background: #fef3c7; }
+  .act-start  { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; } .act-start:hover  { background: #dcfce7; }
+  .act-delete { background: #fef2f2; color: #dc2626; border-color: #fecaca; } .act-delete:hover { background: #fee2e2; }
+  .act-publish{ background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; } .act-publish:hover{ background: #dcfce7; }
+  .act-down   { background: #fffbeb; color: #d97706; border-color: #fde68a; } .act-down:hover   { background: #fef3c7; }
+  .act-review { background: #faf5ff; color: #7c3aed; border-color: #ddd6fe; } .act-review:hover { background: #ede9fe; }
+  .act-pass   { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; } .act-pass:hover   { background: #dcfce7; }
+  .act-reject { background: #fef2f2; color: #dc2626; border-color: #fecaca; } .act-reject:hover { background: #fee2e2; }
+  .act-view   { background: #f0f9ff; color: #0284c7; border-color: #bae6fd; } .act-view:hover   { background: #e0f2fe; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-size: 11.5px; font-weight: 500; }
+  .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; display: inline-block; }
+  .badge-success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; } .badge-success::before { background: #22c55e; }
+  .badge-warning { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; } .badge-warning::before { background: #f59e0b; }
+  .badge-danger  { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; } .badge-danger::before  { background: #ef4444; }
+  .badge-gray    { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; } .badge-gray::before    { background: #94a3b8; }
+  .badge-blue    { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; } .badge-blue::before    { background: #3b82f6; }
+  .badge-purple  { background: #faf5ff; color: #7c3aed; border: 1px solid #ddd6fe; } .badge-purple::before  { background: #8b5cf6; }
+  .form-label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 5px; }
+  .form-input { width: 100%; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; font-size: 13.5px; color: #1e293b; background: #fff; transition: border-color 0.15s, box-shadow 0.15s; outline: none; }
+  .form-input:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.12); }
+  .form-select { width: 100%; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; font-size: 13.5px; background: #fff; outline: none; cursor: pointer; transition: border-color 0.15s; }
+  .form-select:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.12); }
+  .form-error { font-size: 11.5px; color: #ef4444; margin-top: 4px; }
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table thead tr { background: #f8fafc; border-bottom: 2px solid #e8edf2; }
+  .table-th { padding: 11px 14px; text-align: left; font-size: 11.5px; font-weight: 700; color: #64748b; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; }
+  .table-td { padding: 12px 14px; font-size: 13.5px; color: #374151; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+  .data-table tbody tr { transition: background 0.12s; }
+  .data-table tbody tr:hover { background: #f8fafc; }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+  .filter-bar { background: #fff; border-radius: 12px; padding: 14px 18px; border: 1px solid #e8edf2; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .filter-select { border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 6px 10px; font-size: 13px; outline: none; background: #fff; color: #374151; cursor: pointer; transition: border-color 0.15s; }
+  .filter-select:focus { border-color: #16a34a; }
+  .filter-input { border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 6px 10px; font-size: 13px; outline: none; color: #374151; transition: border-color 0.15s; }
+  .filter-input:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.1); }
+  .content-card { background: #fff; border-radius: 12px; border: 1px solid #e8edf2; box-shadow: 0 1px 3px rgba(0,0,0,0.04); overflow: hidden; }
+  .stat-card { background: #fff; border-radius: 12px; padding: 16px 20px; border: 1px solid #e8edf2; box-shadow: 0 1px 3px rgba(0,0,0,0.04); transition: transform 0.2s, box-shadow 0.2s; }
+  .stat-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.45); backdrop-filter: blur(3px); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .modal-box { background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); width: 100%; max-width: 480px; animation: modal-in 0.2s ease; }
+  .modal-box-lg { background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; animation: modal-in 0.2s ease; }
+  .modal-box-xl { background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); width: 100%; max-width: 860px; max-height: 90vh; overflow-y: auto; animation: modal-in 0.2s ease; }
+  @keyframes modal-in { from { opacity: 0; transform: translateY(-12px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid #f1f5f9; }
+  .modal-header h3 { font-size: 16px; font-weight: 700; color: #0f172a; }
+  .modal-close { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; color: #94a3b8; transition: all 0.15s; background: none; border: none; }
+  .modal-close:hover { background: #f1f5f9; color: #475569; }
+  .modal-body { padding: 20px 22px; }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 22px; border-top: 1px solid #f1f5f9; background: #f8fafc; border-radius: 0 0 16px 16px; }
+  .page-btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; font-size: 13px; cursor: pointer; border: 1px solid #e2e8f0; color: #475569; background: #fff; transition: all 0.15s; }
+  .page-btn:hover:not(:disabled) { background: #f0fdf4; border-color: #86efac; color: #16a34a; }
+  .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .section-title { font-size: 18px; font-weight: 700; color: #0f172a; }
+  .section-sub { font-size: 13px; color: #64748b; margin-top: 2px; }
+  .tab-pill { padding: 5px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 500; cursor: pointer; border: 1.5px solid #e2e8f0; color: #64748b; background: #fff; transition: all 0.15s; }
+  .tab-pill:hover { border-color: #86efac; color: #16a34a; }
+  .tab-pill.active-all    { background: #1e293b; color: #fff; border-color: #1e293b; }
+  .tab-pill.active-warn   { background: #f59e0b; color: #fff; border-color: #f59e0b; }
+  .tab-pill.active-ok     { background: #16a34a; color: #fff; border-color: #16a34a; }
+  .tab-pill.active-danger { background: #ef4444; color: #fff; border-color: #ef4444; }
+  .tab-pill.active-blue   { background: #2563eb; color: #fff; border-color: #2563eb; }
+  .star-filled { color: #f59e0b; } .star-empty { color: #e2e8f0; }
+</style>
+
+</head>
+<body class="bg-gray-50 min-h-screen" x-data="app()" x-cloak>
+
+<script>
+const MOCK_DATA = {
+  currentUser: { user_id: 999, username: 'admin', nick_name: '李管理员', roleName: '县级管理员' },
+
+  boards: [
+    { board_id: 1, board_name: '养殖技术交流', board_desc: '分享生猪养殖技术心得，探讨养殖难题', board_icon: '', sort_order: 1, post_count: 45, status: '0', create_time: '2026-01-01 09:00:00', create_by: 'admin' },
+    { board_id: 2, board_name: '疾病防控讨论', board_desc: '交流猪病防控经验，探讨疫情应对策略', board_icon: '', sort_order: 2, post_count: 32, status: '0', create_time: '2026-01-01 09:05:00', create_by: 'admin' },
+    { board_id: 3, board_name: '政策法规解读', board_desc: '解读最新生猪养殖政策，分享补贴申报经验', board_icon: '', sort_order: 3, post_count: 18, status: '0', create_time: '2026-01-01 09:10:00', create_by: 'admin' },
+    { board_id: 4, board_name: '市场行情分析', board_desc: '分析猪肉市场行情，交流销售经验', board_icon: '', sort_order: 4, post_count: 0, status: '1', create_time: '2026-01-01 09:15:00', create_by: 'admin' },
+  ],
+
+  posts: [
+    { post_id: 1, board_id: 1, board_name: '养殖技术交流', user_nickname: '张大山', user_avatar: '', title: '关于生猪夏季降温的几点经验分享', content: '今年夏天特别热，我们场的猪出现了热应激反应，后来采取了以下措施...\n1. 安装降温水帘\n2. 加强通风换气\n3. 调整饲喂时间\n效果不错，分享给大家！', image_urls: '', view_count: 238, reply_count: 15, is_top: '0', is_featured: '1', create_time: '2026-02-15 10:00:00' },
+    { post_id: 2, board_id: 2, board_name: '疾病防控讨论', user_nickname: '李二牛', user_avatar: '', title: '求助：猪突然出现腹泻症状怎么处理', content: '我场最近有几头猪出现腹泻，粪便呈黄色水样，精神萎靡，请问大家有没有遇到过这种情况？', image_urls: '', view_count: 456, reply_count: 28, is_top: '1', is_featured: '0', create_time: '2026-02-18 14:30:00' },
+    { post_id: 3, board_id: 1, board_name: '养殖技术交流', user_nickname: '王小明', user_avatar: '', title: '新手养猪一年总结：踩过的坑和收获', content: '养猪第一年，踩了不少坑，也学到了很多，写下来分享给同样是新手的朋友...', image_urls: '', view_count: 892, reply_count: 67, is_top: '0', is_featured: '1', create_time: '2026-02-20 09:00:00' },
+    { post_id: 4, board_id: 3, board_name: '政策法规解读', user_nickname: '赵五', user_avatar: '', title: '2026年生猪养殖补贴申报指南（详细版）', content: '今年的补贴申报材料和去年有些变化，我整理了一下...', image_urls: '', view_count: 1245, reply_count: 42, is_top: '1', is_featured: '1', create_time: '2026-02-22 11:00:00' },
+  ],
+
+  replies: [
+    { reply_id: 1, post_id: 1, user_nickname: '孙六', content: '我们场也遇到过这个问题，水帘降温确实有效，建议同时配合电风扇。', create_time: '2026-02-15 11:00:00' },
+    { reply_id: 2, post_id: 1, user_nickname: '钱七', content: '感谢分享！我想问一下水帘安装的朝向有什么讲究？', create_time: '2026-02-15 14:00:00' },
+    { reply_id: 3, post_id: 2, user_nickname: '张大山', content: '这种症状要警惕传染性胃肠炎，建议马上隔离，联系当地兽医。', create_time: '2026-02-18 16:00:00' },
+  ],
+
+  qaQuestions: [
+    { question_id: 1, user_nickname: '张大山', question_category: '1', title: '生猪夏季热应激怎么处理？', description: '最近气温很高，猪出现了食欲下降、喘气等症状，请问有什么好的处理方法？', view_count: 356, answer_count: 2, question_status: '1', create_time: '2026-02-10 09:00:00' },
+    { question_id: 2, user_nickname: '李二牛', question_category: '2', title: '猪瘟和蓝耳病能同时预防吗？', description: '想给我场的猪同时打猪瘟和蓝耳病疫苗，这样可以吗？有没有副作用？', view_count: 289, answer_count: 1, question_status: '1', create_time: '2026-02-12 14:00:00' },
+    { question_id: 3, user_nickname: '王小明', question_category: '3', title: '自配料和成品料哪个更划算？', description: '我的猪场规模200头，想请教一下用自配料还是买成品料更合适？', view_count: 178, answer_count: 0, question_status: '0', create_time: '2026-02-20 10:00:00' },
+    { question_id: 4, user_nickname: '赵五', question_category: '4', title: '最近猪肉价格会涨吗？', description: '现在猪肉价格还可以，有没有专家预测一下接下来的走势？', view_count: 456, answer_count: 1, question_status: '2', create_time: '2026-02-22 11:00:00' },
+    { question_id: 5, user_nickname: '孙六', question_category: '5', title: '新建猪场需要哪些审批手续？', description: '想新建一个100头规模的养猪场，请问需要办理哪些手续和证件？', view_count: 234, answer_count: 0, question_status: '0', create_time: '2026-03-01 09:00:00' },
+  ],
+
+  qaAnswers: [
+    { answer_id: 1, question_id: 1, user_nickname: '李管理员', is_expert: '1', is_accepted: '0', content: '热应激处理方案：1）加强通风降温，安装水帘、风扇；2）调整饲喂时间到清晨和傍晚；3）供给充足清洁的凉水；4）可在饲料中添加维生素C和电解质...', create_time: '2026-02-10 15:00:00' },
+    { answer_id: 2, question_id: 1, user_nickname: '张大山', is_expert: '0', is_accepted: '1', content: '我们场用喷淋系统效果很好，每隔2小时喷一次，能有效降低体感温度。', create_time: '2026-02-11 09:00:00' },
+  ],
+};
+
+function app() {
+  return {
+    activeMenu: 'board',
+
+    CAT_MAP: { '1': '养殖技术', '2': '疫病防治', '3': '饲料营养', '4': '市场价格', '5': '政策法规' },
+    QSTATUS_MAP: { '0': '待回答', '1': '已回答', '2': '已采纳' },
+
+    // ===== 论坛板块管理 =====
+    boards: JSON.parse(JSON.stringify(MOCK_DATA.boards)),
+    boardModal: false, boardModalMode: 'add', editingBoard: null,
+    boardForm: { board_name: '', board_desc: '', board_icon: '', sort_order: 0 },
+    boardFormErrors: {},
+    confirmModal: false, confirmTitle: '', confirmMsg: '', confirmAction: null,
+
+    openBoardModal(mode, item=null) {
+      this.boardModalMode = mode; this.boardFormErrors = {};
+      if (mode==='edit' && item) {
+        this.editingBoard = item;
+        this.boardForm = { board_name: item.board_name, board_desc: item.board_desc||'', board_icon: item.board_icon||'', sort_order: item.sort_order };
+      } else {
+        this.editingBoard = null;
+        this.boardForm = { board_name: '', board_desc: '', board_icon: '', sort_order: 0 };
+      }
+      this.boardModal = true;
+    },
+
+    validateBoardForm() {
+      this.boardFormErrors = {};
+      if (!this.boardForm.board_name.trim()) this.boardFormErrors.board_name = '请输入板块名称';
+      else if (this.boardForm.board_name.length > 50) this.boardFormErrors.board_name = '板块名称不能超过50个字符';
+      const so = parseInt(this.boardForm.sort_order);
+      if (isNaN(so)||so<0||so>999) this.boardFormErrors.sort_order = '排序序号为0~999的整数';
+      return Object.keys(this.boardFormErrors).length === 0;
+    },
+
+    submitBoardForm() {
+      if (!this.validateBoardForm()) return;
+      if (this.boardModalMode === 'add') {
+        this.boards.push({ board_id: Date.now(), ...this.boardForm, sort_order: parseInt(this.boardForm.sort_order), post_count: 0, status: '0', create_time: new Date().toLocaleString('zh-CN'), create_by: MOCK_DATA.currentUser.username });
+        this.boards.sort((a,b)=>a.sort_order-b.sort_order);
+        this.showToast('新增成功');
+      } else {
+        const idx = this.boards.findIndex(b=>b.board_id===this.editingBoard.board_id);
+        if (idx>-1) Object.assign(this.boards[idx], { ...this.boardForm, sort_order: parseInt(this.boardForm.sort_order) });
+        this.boards.sort((a,b)=>a.sort_order-b.sort_order);
+        this.showToast('修改成功');
+      }
+      this.boardModal = false;
+    },
+
+    showConfirm(title, msg, action) { this.confirmTitle=title; this.confirmMsg=msg; this.confirmAction=action; this.confirmModal=true; },
+    doConfirm() { if(this.confirmAction) this.confirmAction(); this.confirmModal=false; },
+
+    deleteBoard(item) {
+      if (item.post_count > 0) { this.showToast('该板块下有帖子，不可删除', 'error'); return; }
+      this.showConfirm('删除板块', `确定删除「${item.board_name}」？`, () => {
+        this.boards = this.boards.filter(b=>b.board_id!==item.board_id);
+        this.showToast('删除成功');
+      });
+    },
+
+    toggleBoardStatus(item) {
+      const isNormal = item.status === '0';
+      this.showConfirm(isNormal?'停用板块':'启用板块', isNormal?`确定停用「${item.board_name}」？停用后网站端该板块不展示。`:`确定启用「${item.board_name}」？`, () => {
+        item.status = isNormal ? '1' : '0';
+        this.showToast(isNormal?'已停用':'已启用');
+      });
+    },
+
+    // ===== 论坛内容管理 =====
+    posts: JSON.parse(JSON.stringify(MOCK_DATA.posts)),
+    postFilter: { board_id: '', keyword: '' },
+    postPage: 1, postPageSize: 10,
+    replyModal: false, replyPost: null,
+    replies: JSON.parse(JSON.stringify(MOCK_DATA.replies)),
+
+    get filteredPosts() {
+      return this.posts.filter(p => {
+        if (this.postFilter.board_id && p.board_id != this.postFilter.board_id) return false;
+        if (this.postFilter.keyword && !p.title.includes(this.postFilter.keyword)) return false;
+        return true;
+      });
+    },
+    get pagedPosts() { const s=(this.postPage-1)*this.postPageSize; return this.filteredPosts.slice(s,s+this.postPageSize); },
+    get postTotalPages() { return Math.ceil(this.filteredPosts.length/this.postPageSize)||1; },
+
+    get currentPostReplies() {
+      if (!this.replyPost) return [];
+      return this.replies.filter(r=>r.post_id===this.replyPost.post_id);
+    },
+
+    togglePostTop(item) {
+      this.showConfirm(item.is_top==='1'?'取消置顶':'置顶帖子', `确定${item.is_top==='1'?'取消置顶':'置顶'}该帖子？`, () => {
+        item.is_top = item.is_top==='1' ? '0' : '1';
+        this.showToast('操作成功');
+      });
+    },
+
+    togglePostFeatured(item) {
+      this.showConfirm(item.is_featured==='1'?'取消加精':'加精帖子', `确定${item.is_featured==='1'?'取消加精':'加精'}该帖子？`, () => {
+        item.is_featured = item.is_featured==='1' ? '0' : '1';
+        this.showToast('操作成功');
+      });
+    },
+
+    deletePost(item) {
+      this.showConfirm('删除帖子', `确定删除「${item.title}」？删除后网站端该帖子不再展示。`, () => {
+        this.posts = this.posts.filter(p=>p.post_id!==item.post_id);
+        this.showToast('删除成功');
+      });
+    },
+
+    openReplyModal(post) { this.replyPost = post; this.replyModal = true; },
+
+    deleteReply(reply) {
+      this.showConfirm('删除回复', '确定删除该条回复？', () => {
+        this.replies = this.replies.filter(r=>r.reply_id!==reply.reply_id);
+        if (this.replyPost) {
+          const p = this.posts.find(p=>p.post_id===this.replyPost.post_id);
+          if (p) p.reply_count = Math.max(0, p.reply_count-1);
+        }
+        this.showToast('删除成功');
+      });
+    },
+
+    // ===== 问答管理 =====
+    questions: JSON.parse(JSON.stringify(MOCK_DATA.qaQuestions)),
+    answers: JSON.parse(JSON.stringify(MOCK_DATA.qaAnswers)),
+    qaFilter: { question_category: '', question_status: '' },
+    qaPage: 1, qaPageSize: 10,
+    qaDetailModal: false, currentQuestion: null,
+    answerModal: false, answerForm: { content: '' }, answerFormErrors: {},
+
+    get filteredQuestions() {
+      return this.questions.filter(q => {
+        if (this.qaFilter.question_category && q.question_category !== this.qaFilter.question_category) return false;
+        if (this.qaFilter.question_status !== '' && q.question_status !== this.qaFilter.question_status) return false;
+        return true;
+      });
+    },
+    get pagedQuestions() { const s=(this.qaPage-1)*this.qaPageSize; return this.filteredQuestions.slice(s,s+this.qaPageSize); },
+    get qaTotalPages() { return Math.ceil(this.filteredQuestions.length/this.qaPageSize)||1; },
+
+    qStatusClass(s) { return {'0':'badge-warning','1':'badge-success','2':'badge-blue'}[s]||'badge-gray'; },
+
+    get currentQuestionAnswers() {
+      if (!this.currentQuestion) return [];
+      return this.answers.filter(a=>a.question_id===this.currentQuestion.question_id);
+    },
+
+    openQADetail(q) { this.currentQuestion = q; this.qaDetailModal = true; },
+
+    deleteQuestion(q) {
+      this.showConfirm('删除问题', `确定删除「${q.title}」？删除后网站端该问题不再展示。`, () => {
+        this.questions = this.questions.filter(item=>item.question_id!==q.question_id);
+        this.showToast('删除成功');
+      });
+    },
+
+    openAnswerModal(q) { this.currentQuestion = q; this.answerForm = { content: '' }; this.answerFormErrors = {}; this.answerModal = true; },
+
+    submitAnswer() {
+      this.answerFormErrors = {};
+      if (!this.answerForm.content.trim() || this.answerForm.content.length < 10) {
+        this.answerFormErrors.content = '回答内容最少10个字符';
+        return;
+      }
+      const q = this.questions.find(q=>q.question_id===this.currentQuestion.question_id);
+      this.answers.push({ answer_id: Date.now(), question_id: this.currentQuestion.question_id, user_nickname: MOCK_DATA.currentUser.nick_name, is_expert: '1', is_accepted: '0', content: this.answerForm.content, create_time: new Date().toLocaleString('zh-CN') });
+      if (q) { q.answer_count++; q.question_status = '1'; }
+      this.answerModal = false;
+      this.showToast('回答成功，已标记为专家回答');
+    },
+
+    deleteAnswer(ans) {
+      this.showConfirm('删除回答', '确定删除该条回答？', () => {
+        this.answers = this.answers.filter(a=>a.answer_id!==ans.answer_id);
+        const q = this.questions.find(q=>q.question_id===ans.question_id);
+        if (q) {
+          q.answer_count = Math.max(0, q.answer_count-1);
+          const remaining = this.answers.filter(a=>a.question_id===q.question_id);
+          if (remaining.length===0) q.question_status = '0';
+        }
+        this.showToast('删除成功');
+      });
+    },
+
+    toast: { show: false, msg: '', type: 'success' },
+    showToast(msg, type='success') { this.toast={show:true,msg,type}; setTimeout(()=>this.toast.show=false, 2500); },
+  };
+}
+</script>
+
+<div class="flex h-screen overflow-hidden">
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="sidebar-brand-icon">
+          <i class="fas fa-comments text-white" style="font-size:15px"></i>
+        </div>
+        <div>
+          <div style="font-size:13.5px;font-weight:700;color:#fff;line-height:1.2">知识讲堂</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px">在线交流管理</div>
+        </div>
+      </div>
+    </div>
+    <nav style="flex:1;padding:12px 0;overflow-y:auto">
+      <div class="sidebar-group-label">交流管理</div>
+      <div class="sidebar-item" :class="activeMenu==='board' ? 'active' : ''" @click="activeMenu='board'">
+        <i class="fas fa-th-large si-icon"></i> 论坛板块
+      </div>
+      <div class="sidebar-item" :class="activeMenu==='post' ? 'active' : ''" @click="activeMenu='post'">
+        <i class="fas fa-comment-dots si-icon"></i> 帖子管理
+      </div>
+      <div class="sidebar-item" :class="activeMenu==='qa' ? 'active' : ''" @click="activeMenu='qa'">
+        <i class="fas fa-question-circle si-icon"></i> 问答管理
+      </div>
+      <div class="sidebar-group-label" style="margin-top:16px">系统</div>
+      <div class="sidebar-item" @click="window.open('../../index-生猪知识讲堂.html','_blank')" style="cursor:pointer">
+        <i class="fas fa-th-large si-icon"></i> 返回导航
+      </div>
+    </nav>
+    <div class="sidebar-user">
+      <div class="flex items-center gap-2">
+        <div class="sidebar-user-avatar">
+          <i class="fas fa-user" style="font-size:11px"></i>
+        </div>
+        <div>
+          <div style="font-size:12.5px;font-weight:600;color:#fff" x-text="MOCK_DATA.currentUser.nick_name"></div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.5)" x-text="MOCK_DATA.currentUser.roleName"></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 主内容 -->
+  <main class="flex-1 overflow-auto" style="background:#f0f4f8">
+
+    <!-- SECTION START: 论坛板块管理 -->
+    <div id="feature-board" x-show="activeMenu==='board'" class="p-6">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-xl font-bold text-gray-800">论坛板块管理</h1>
+          <p class="text-sm text-gray-500 mt-0.5">管理论坛板块，有帖子的板块不可删除</p>
+        </div>
+        <button class="btn-primary" @click="openBoardModal('add')">
+          <i class="fas fa-plus"></i> 新增板块
+        </button>
+      </div>
+
+      <div class="content-card">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="table-th">板块ID</th>
+              <th class="table-th">图标</th>
+              <th class="table-th">板块名称</th>
+              <th class="table-th">板块描述</th>
+              <th class="table-th">排序</th>
+              <th class="table-th">帖子数</th>
+              <th class="table-th">状态</th>
+              <th class="table-th">创建时间</th>
+              <th class="table-th">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="item in boards" :key="item.board_id">
+              <tr>
+                <td class="table-td text-gray-400 text-xs" x-text="item.board_id"></td>
+                <td class="table-td">
+                  <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-comments text-green-500"></i>
+                  </div>
+                </td>
+                <td class="table-td font-medium" x-text="item.board_name"></td>
+                <td class="table-td text-gray-500 text-xs max-w-xs truncate" x-text="item.board_desc||'-'"></td>
+                <td class="table-td" x-text="item.sort_order"></td>
+                <td class="table-td">
+                  <span class="font-medium" :class="item.post_count>0?'text-blue-600':'text-gray-400'" x-text="item.post_count"></span>
+                </td>
+                <td class="table-td">
+                  <span :class="item.status==='0'?'badge-success':'badge-gray'" x-text="item.status==='0'?'正常':'停用'"></span>
+                </td>
+                <td class="table-td text-xs text-gray-400" x-text="item.create_time.substring(0,10)"></td>
+                <td class="table-td">
+                  <div class="flex gap-1">
+                    <button class="act-btn act-edit" @click="openBoardModal('edit',item)">编辑</button>
+                    <button class="btn-sm" :class="item.status==='0'?'bg-amber-100 text-amber-700 hover:bg-amber-200':'bg-green-100 text-green-700 hover:bg-green-200'" @click="toggleBoardStatus(item)" x-text="item.status==='0'?'停用':'启用'"></button>
+                    <button class="act-btn act-delete" @click="deleteBoard(item)">删除</button>
+                  </div>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <!-- SECTION END: 论坛板块管理 -->
+
+    <!-- SECTION START: 论坛内容管理 -->
+    <div id="feature-post" x-show="activeMenu==='post'" class="p-6">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-xl font-bold text-gray-800">论坛内容管理</h1>
+          <p class="text-sm text-gray-500 mt-0.5">管理帖子和回复，支持置顶/加精/删除违规内容</p>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2">
+            <label class="text-sm text-gray-500">所属板块</label>
+            <select class="form-select w-40" x-model="postFilter.board_id">
+              <option value="">全部板块</option>
+              <template x-for="b in boards" :key="b.board_id">
+                <option :value="b.board_id" x-text="b.board_name"></option>
+              </template>
+            </select>
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="text-sm text-gray-500">标题搜索</label>
+            <input type="text" class="form-input w-48" x-model="postFilter.keyword" placeholder="请输入标题关键词">
+          </div>
+          <button class="btn-primary" @click="postPage=1"><i class="fas fa-search"></i> 查询</button>
+          <button class="btn-secondary" @click="postFilter={board_id:'',keyword:''}; postPage=1">重置</button>
+        </div>
+      </div>
+
+      <div class="content-card">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="table-th">标题</th>
+              <th class="table-th">所属板块</th>
+              <th class="table-th">发帖人</th>
+              <th class="table-th">查看数</th>
+              <th class="table-th">回复数</th>
+              <th class="table-th">置顶</th>
+              <th class="table-th">加精</th>
+              <th class="table-th">发帖时间</th>
+              <th class="table-th">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="item in pagedPosts" :key="item.post_id">
+              <tr>
+                <td class="table-td">
+                  <div class="font-medium text-gray-800 max-w-xs truncate" x-text="item.title"></div>
+                </td>
+                <td class="table-td"><span class="badge badge-blue" x-text="item.board_name"></span></td>
+                <td class="table-td text-gray-600" x-text="item.user_nickname"></td>
+                <td class="table-td" x-text="item.view_count"></td>
+                <td class="table-td" x-text="item.reply_count"></td>
+                <td class="table-td">
+                  <span class="badge badge-warning" x-show="item.is_top==='1'">置顶</span>
+                  <span class="text-gray-300 text-xs" x-show="item.is_top==='0'">-</span>
+                </td>
+                <td class="table-td">
+                  <span class="badge badge-purple" x-show="item.is_featured==='1'">精华</span>
+                  <span class="text-gray-300 text-xs" x-show="item.is_featured==='0'">-</span>
+                </td>
+                <td class="table-td text-xs text-gray-400" x-text="item.create_time.substring(0,10)"></td>
+                <td class="table-td">
+                  <div class="flex flex-wrap gap-1">
+                    <button class="btn-sm" :class="item.is_top==='0'?'bg-amber-100 text-amber-700 hover:bg-amber-200':'bg-gray-100 text-gray-600 hover:bg-gray-200'" @click="togglePostTop(item)" x-text="item.is_top==='1'?'取消置顶':'置顶'"></button>
+                    <button class="btn-sm" :class="item.is_featured==='0'?'bg-purple-100 text-purple-700 hover:bg-purple-200':'bg-gray-100 text-gray-600 hover:bg-gray-200'" @click="togglePostFeatured(item)" x-text="item.is_featured==='1'?'取消加精':'加精'"></button>
+                    <button class="act-btn act-edit" @click="openReplyModal(item)">
+                      查看回复(<span x-text="item.reply_count"></span>)
+                    </button>
+                    <button class="act-btn act-delete" @click="deletePost(item)">删除</button>
+                  </div>
+                </td>
+              </tr>
+            </template>
+            <tr x-show="pagedPosts.length===0">
+              <td colspan="9" class="table-td text-center text-gray-400 py-12">暂无数据</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+          <div class="text-sm text-gray-500">共 <span class="font-medium" x-text="filteredPosts.length"></span> 条</div>
+          <div class="flex items-center gap-2">
+            <button class="page-btn" :disabled="postPage===1" @click="postPage--">上一页</button>
+            <span class="text-sm text-gray-600"><span x-text="postPage"></span> / <span x-text="postTotalPages"></span></span>
+            <button class="page-btn" :disabled="postPage>=postTotalPages" @click="postPage++">下一页</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- SECTION END: 论坛内容管理 -->
+
+    <!-- SECTION START: 问答管理 -->
+    <div id="feature-qa" x-show="activeMenu==='qa'" class="p-6">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-xl font-bold text-gray-800">问答管理</h1>
+          <p class="text-sm text-gray-500 mt-0.5">管理用户提问，以专家身份回答问题（自动标记为专家回答）</p>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2">
+            <label class="text-sm text-gray-500">问题分类</label>
+            <select class="form-select w-32" x-model="qaFilter.question_category">
+              <option value="">全部</option>
+              <option value="1">养殖技术</option>
+              <option value="2">疫病防治</option>
+              <option value="3">饲料营养</option>
+              <option value="4">市场价格</option>
+              <option value="5">政策法规</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="text-sm text-gray-500">问题状态</label>
+            <select class="form-select w-28" x-model="qaFilter.question_status">
+              <option value="">全部</option>
+              <option value="0">待回答</option>
+              <option value="1">已回答</option>
+              <option value="2">已采纳</option>
+            </select>
+          </div>
+          <button class="btn-primary" @click="qaPage=1"><i class="fas fa-search"></i> 查询</button>
+          <button class="btn-secondary" @click="qaFilter={question_category:'',question_status:''}; qaPage=1">重置</button>
+        </div>
+      </div>
+
+      <div class="content-card">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="table-th">问题标题</th>
+              <th class="table-th">分类</th>
+              <th class="table-th">状态</th>
+              <th class="table-th">提问人</th>
+              <th class="table-th">查看数</th>
+              <th class="table-th">回答数</th>
+              <th class="table-th">提问时间</th>
+              <th class="table-th">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="q in pagedQuestions" :key="q.question_id">
+              <tr>
+                <td class="table-td">
+                  <div class="font-medium text-gray-800 max-w-xs cursor-pointer hover:text-green-600" x-text="q.title" @click="openQADetail(q)"></div>
+                </td>
+                <td class="table-td"><span class="badge-blue text-xs" x-text="CAT_MAP[q.question_category]||q.question_category"></span></td>
+                <td class="table-td"><span :class="qStatusClass(q.question_status)" x-text="QSTATUS_MAP[q.question_status]"></span></td>
+                <td class="table-td text-gray-600" x-text="q.user_nickname"></td>
+                <td class="table-td" x-text="q.view_count"></td>
+                <td class="table-td">
+                  <span :class="q.answer_count>0?'font-medium text-green-600':'text-gray-400'" x-text="q.answer_count"></span>
+                </td>
+                <td class="table-td text-xs text-gray-400" x-text="q.create_time.substring(0,10)"></td>
+                <td class="table-td">
+                  <div class="flex gap-1">
+                    <button class="act-btn act-edit" @click="openQADetail(q)">详情</button>
+                    <button class="act-btn act-start" @click="openAnswerModal(q)">回答</button>
+                    <button class="act-btn act-delete" @click="deleteQuestion(q)">删除</button>
+                  </div>
+                </td>
+              </tr>
+            </template>
+            <tr x-show="pagedQuestions.length===0">
+              <td colspan="8" class="table-td text-center text-gray-400 py-12">暂无数据</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+          <div class="text-sm text-gray-500">共 <span class="font-medium" x-text="filteredQuestions.length"></span> 条</div>
+          <div class="flex items-center gap-2">
+            <button class="page-btn" :disabled="qaPage===1" @click="qaPage--">上一页</button>
+            <span class="text-sm text-gray-600"><span x-text="qaPage"></span> / <span x-text="qaTotalPages"></span></span>
+            <button class="page-btn" :disabled="qaPage>=qaTotalPages" @click="qaPage++">下一页</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- SECTION END: 问答管理 -->
+
+  </main>
+</div>
+
+<!-- 板块新增/编辑弹窗 -->
+<div class="modal-overlay" x-show="boardModal" @click.self="boardModal=false">
+  <div class="modal-box">
+    <div class="modal-header"><h3 x-text="boardModalMode==='add'?'新增板块':'编辑板块'"></h3><button class="modal-close" @click="boardModal=false"><i class="fas fa-times"></i></button></div>
+    <div class="p-5 space-y-4">
+      <template x-if="boardModalMode==='edit' && editingBoard">
+        <div class="bg-gray-50 rounded-lg p-3 text-xs text-gray-500">
+          板块ID：<span x-text="editingBoard.board_id"></span> &nbsp; 帖子数：<span x-text="editingBoard.post_count"></span>
+          &nbsp; 创建时间：<span x-text="editingBoard.create_time.substring(0,10)"></span>
+        </div>
+      </template>
+      <div>
+        <label class="form-label">板块名称 <span class="text-red-500">*</span></label>
+        <input type="text" class="form-input" :class="boardFormErrors.board_name?'border-red-400':''" x-model="boardForm.board_name" placeholder="请输入板块名称" maxlength="50">
+        <p class="form-error" x-show="boardFormErrors.board_name" x-text="boardFormErrors.board_name"></p>
+      </div>
+      <div>
+        <label class="form-label">板块描述</label>
+        <textarea class="form-input" x-model="boardForm.board_desc" rows="2" placeholder="请输入板块描述（选填）" maxlength="200"></textarea>
+      </div>
+      <div>
+        <label class="form-label">板块图标</label>
+        <div class="border-2 border-dashed border-gray-200 rounded-lg p-3 text-center cursor-pointer hover:border-green-400 bg-gray-50" @click="boardForm.board_icon='mock://icon.png'; showToast('图标上传成功（模拟）')">
+          <i class="fas fa-image text-gray-300 text-xl mb-1"></i>
+          <p class="text-xs text-gray-400">点击上传图标（选填）</p>
+          <p class="text-xs text-green-500 mt-1" x-show="boardForm.board_icon">✓ 已上传（模拟）</p>
+        </div>
+      </div>
+      <div>
+        <label class="form-label">排序序号 <span class="text-red-500">*</span></label>
+        <input type="number" class="form-input" :class="boardFormErrors.sort_order?'border-red-400':''" x-model="boardForm.sort_order" min="0" max="999" placeholder="0">
+        <p class="form-error" x-show="boardFormErrors.sort_order" x-text="boardFormErrors.sort_order"></p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" @click="boardModal=false">取消</button>
+      <button class="btn-primary" @click="submitBoardForm">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 帖子回复列表弹窗 -->
+<div class="modal-overlay" x-show="replyModal" @click.self="replyModal=false">
+  <div class="modal-box-xl">
+    <div class="flex items-center justify-between p-5 border-b sticky top-0 bg-white z-10">
+      <div>
+        <h3 class="font-semibold text-gray-800">帖子回复管理</h3>
+        <p class="text-xs text-gray-400 mt-0.5" x-show="replyPost" x-text="replyPost&&replyPost.title"></p>
+      </div>
+      <button @click="replyModal=false" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="p-5">
+      <table class="w-full border border-gray-200 rounded-lg overflow-hidden">
+        <thead>
+          <tr>
+            <th class="table-th">回复人</th>
+            <th class="table-th">回复内容</th>
+            <th class="table-th">回复时间</th>
+            <th class="table-th">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <template x-for="r in currentPostReplies" :key="r.reply_id">
+            <tr>
+              <td class="table-td font-medium text-sm" x-text="r.user_nickname"></td>
+              <td class="table-td text-sm text-gray-600 max-w-sm" x-text="r.content"></td>
+              <td class="table-td text-xs text-gray-400" x-text="r.create_time.substring(0,10)"></td>
+              <td class="table-td">
+                <button class="act-btn act-delete" @click="deleteReply(r)">删除</button>
+              </td>
+            </tr>
+          </template>
+          <tr x-show="currentPostReplies.length===0">
+            <td colspan="4" class="table-td text-center text-gray-400 py-8">暂无回复</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="flex justify-end px-5 py-4 border-t bg-gray-50 rounded-b-xl sticky bottom-0">
+      <button class="btn-secondary" @click="replyModal=false">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 问题详情弹窗 -->
+<div class="modal-overlay" x-show="qaDetailModal" @click.self="qaDetailModal=false">
+  <div class="modal-box-xl">
+    <div class="flex items-center justify-between p-5 border-b sticky top-0 bg-white z-10">
+      <h3 class="font-semibold text-gray-800">问题详情</h3>
+      <div class="flex gap-2">
+        <button class="btn-primary" @click="qaDetailModal=false; openAnswerModal(currentQuestion)">
+          <i class="fas fa-reply"></i> 回答问题
+        </button>
+        <button @click="qaDetailModal=false" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+      </div>
+    </div>
+    <div class="p-5" x-show="currentQuestion">
+      <!-- 问题信息 -->
+      <div class="bg-blue-50 rounded-xl p-4 mb-5">
+        <div class="flex items-start justify-between mb-3">
+          <div>
+            <h2 class="font-bold text-gray-800 text-lg" x-text="currentQuestion&&currentQuestion.title"></h2>
+            <div class="flex items-center gap-3 mt-2 text-xs text-gray-500">
+              <span><i class="fas fa-user mr-1"></i><span x-text="currentQuestion&&currentQuestion.user_nickname"></span></span>
+              <span><i class="fas fa-tag mr-1"></i><span x-text="currentQuestion&&CAT_MAP[currentQuestion.question_category]"></span></span>
+              <span><i class="fas fa-clock mr-1"></i><span x-text="currentQuestion&&currentQuestion.create_time.substring(0,10)"></span></span>
+            </div>
+          </div>
+          <span :class="currentQuestion&&qStatusClass(currentQuestion.question_status)" x-text="currentQuestion&&QSTATUS_MAP[currentQuestion.question_status]"></span>
+        </div>
+        <p class="text-sm text-gray-600" x-text="currentQuestion&&currentQuestion.description"></p>
+      </div>
+
+      <!-- 回答列表 -->
+      <h3 class="font-semibold text-gray-700 mb-3">
+        回答列表（<span x-text="currentQuestionAnswers.length"></span>条）
+      </h3>
+      <div class="space-y-4">
+        <template x-for="ans in currentQuestionAnswers" :key="ans.answer_id">
+          <div class="border rounded-xl p-4" :class="ans.is_accepted==='1'?'border-green-300 bg-green-50':'border-gray-200'">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium" :class="ans.is_expert==='1'?'bg-orange-100 text-orange-700':'bg-gray-100 text-gray-600'" x-text="ans.user_nickname[0]"></div>
+                <span class="font-medium text-sm" x-text="ans.user_nickname"></span>
+                <span class="badge-expert" x-show="ans.is_expert==='1'">专家</span>
+                <span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs font-medium" x-show="ans.is_accepted==='1'">✓ 最佳答案</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-gray-400" x-text="ans.create_time.substring(0,10)"></span>
+                <button class="act-btn act-delete" @click="deleteAnswer(ans)">删除</button>
+              </div>
+            </div>
+            <p class="text-sm text-gray-700" x-text="ans.content"></p>
+          </div>
+        </template>
+        <div class="text-center text-gray-400 py-6 border-2 border-dashed rounded-xl" x-show="currentQuestionAnswers.length===0">
+          暂无回答，点击「回答问题」以专家身份回答
+        </div>
+      </div>
+    </div>
+    <div class="flex justify-end px-5 py-4 border-t bg-gray-50 rounded-b-xl sticky bottom-0">
+      <button class="btn-secondary" @click="qaDetailModal=false">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 回答问题弹窗 -->
+<div class="modal-overlay" x-show="answerModal" @click.self="answerModal=false">
+  <div class="modal-box">
+    <div class="flex items-center justify-between p-5 border-b">
+      <div>
+        <h3 class="font-semibold text-gray-800">回答问题</h3>
+        <p class="text-xs text-gray-400 mt-0.5">以专家身份回答，将自动标记为「专家回答」</p>
+      </div>
+      <button @click="answerModal=false" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="p-5 space-y-4">
+      <div class="bg-gray-50 rounded-lg p-3 text-sm text-gray-600" x-show="currentQuestion">
+        <strong>问题：</strong><span x-text="currentQuestion&&currentQuestion.title"></span>
+      </div>
+      <div class="bg-orange-50 border border-orange-200 rounded-lg p-3 flex items-center gap-2">
+        <i class="fas fa-star text-orange-500 text-sm"></i>
+        <span class="text-xs text-orange-700">您的回答将被标记为「专家回答」，展示在网站端优先位置</span>
+      </div>
+      <div>
+        <label class="form-label">回答内容 <span class="text-red-500">*</span></label>
+        <textarea class="form-input" :class="answerFormErrors.content?'border-red-400':''" x-model="answerForm.content" rows="5" placeholder="请输入回答内容（最少10个字符）"></textarea>
+        <p class="form-error" x-show="answerFormErrors.content" x-text="answerFormErrors.content"></p>
+      </div>
+      <div>
+        <label class="form-label">配图（选填，最多5张）</label>
+        <div class="border-2 border-dashed border-gray-200 rounded-lg p-3 text-center cursor-pointer hover:border-green-400 bg-gray-50" @click="showToast('图片上传成功（模拟）')">
+          <i class="fas fa-image text-gray-300 text-xl mb-1"></i>
+          <p class="text-xs text-gray-400">点击上传配图（选填）</p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" @click="answerModal=false">取消</button>
+      <button class="btn-primary" @click="submitAnswer"><i class="fas fa-paper-plane mr-1"></i>提交回答</button>
+    </div>
+  </div>
+</div>
+
+<!-- 二次确认弹窗 -->
+<div class="modal-overlay" x-show="confirmModal" @click.self="confirmModal=false">
+  <div style="background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.15);width:100%;max-width:400px;padding:28px;animation:modal-in 0.2s ease">
+    <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:20px">
+      <div style="width:44px;height:44px;background:#fef3c7;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <i class="fas fa-exclamation-triangle" style="color:#d97706;font-size:18px"></i>
+      </div>
+      <div>
+        <h3 style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:6px" x-text="confirmTitle"></h3>
+        <p style="font-size:13.5px;color:#64748b;line-height:1.5" x-text="confirmMsg"></p>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px">
+      <button class="btn-secondary" @click="confirmModal=false">取消</button>
+      <button class="btn-primary" @click="doConfirm">
+        <i class="fas fa-check" style="font-size:11px"></i> 确认操作
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast 提示 -->
+<div style="position:fixed;bottom:24px;right:24px;z-index:100;transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1)"
+  :style="toast.show ? 'opacity:1;transform:translateY(0)' : 'opacity:0;transform:translateY(16px);pointer-events:none'">
+  <div style="display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.12);font-size:13.5px;font-weight:600;color:#fff;min-width:200px"
+    :style="toast.type==='error' ? 'background:linear-gradient(135deg,#ef4444,#dc2626)' : 'background:linear-gradient(135deg,#16a34a,#15803d)'">
+    <div style="width:28px;height:28px;background:rgba(255,255,255,0.2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <i :class="toast.type==='error' ? 'fas fa-times' : 'fas fa-check'" style="font-size:12px"></i>
+    </div>
+    <span x-text="toast.msg"></span>
+  </div>
+</div>
+
+</body>
+</html>

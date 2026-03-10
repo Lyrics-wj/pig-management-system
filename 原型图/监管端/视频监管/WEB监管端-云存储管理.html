@@ -1,0 +1,525 @@
+<!--
+  功能名称：云存储管理
+  对应PRD：doc_prd/WEB/监管端/视频监管/WEB监管端-云存储管理.prd.md
+  所属端口：WEB监管端
+  所属模块：视频监管
+  制作日期：2026-03-10
+  最后更新：2026-03-10
+  角色说明：county_admin可编辑存储策略；county_staff仅查看；乡镇和企业角色无权限访问
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>云存储管理 - 蓬溪县生猪数字化管理平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    /* SHARED STYLES */
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; }
+    .sidebar { width: 240px; min-width: 240px; background: #001529; }
+    .menu-item { padding: 10px 20px; cursor: pointer; color: rgba(255,255,255,0.65); font-size: 14px; transition: all 0.2s; }
+    .menu-item:hover { background: rgba(255,255,255,0.1); color: white; }
+    .menu-item.active { background: #1677ff; color: white; }
+    .stat-card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); transition: all 0.2s; }
+    .stat-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .status-badge { padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 500; }
+    .tag-normal { background: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
+    .tag-near { background: #fff7e6; color: #fa8c16; border: 1px solid #ffd591; }
+    .tag-full { background: #fff2f0; color: #ff4d4f; border: 1px solid #ffccc7; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+    .modal { background: white; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+    .form-input { border: 1px solid #d9d9d9; border-radius: 4px; padding: 6px 10px; width: 100%; font-size: 14px; outline: none; transition: border-color 0.2s; }
+    .form-input:focus { border-color: #1677ff; }
+    .form-input:disabled { background: #f5f5f5; color: #8c8c8c; }
+    .form-input.error { border-color: #ff4d4f; }
+    .error-msg { color: #ff4d4f; font-size: 12px; margin-top: 2px; }
+    table { border-collapse: collapse; width: 100%; }
+    th { background: #fafafa; font-weight: 600; font-size: 13px; color: #595959; border-bottom: 1px solid #e8e8e8; padding: 12px 8px; text-align: left; white-space: nowrap; }
+    td { padding: 10px 8px; font-size: 13px; color: #262626; border-bottom: 1px solid #f0f0f0; white-space: nowrap; }
+    tr:nth-child(even) td { background: #fafafa; }
+    tr:hover td { background: #e6f4ff; }
+    .btn-primary { background: #1677ff; color: white; border: none; border-radius: 4px; padding: 6px 16px; font-size: 14px; cursor: pointer; }
+    .btn-primary:hover { background: #4096ff; }
+    .btn-default { background: white; color: #262626; border: 1px solid #d9d9d9; border-radius: 4px; padding: 6px 16px; font-size: 14px; cursor: pointer; }
+    .btn-default:hover { border-color: #1677ff; color: #1677ff; }
+    .pagination-btn { border: 1px solid #d9d9d9; background: white; padding: 4px 10px; border-radius: 4px; font-size: 13px; cursor: pointer; }
+    .pagination-btn:hover, .pagination-btn.active { border-color: #1677ff; color: #1677ff; }
+    .success-toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); background: #f6ffed; border: 1px solid #b7eb8f; color: #52c41a; padding: 10px 24px; border-radius: 6px; font-size: 14px; z-index: 9999; }
+    /* 告警横幅 */
+    .alarm-banner-orange { background: #fff7e6; border-bottom: 1px solid #ffd591; color: #fa8c16; }
+    .alarm-banner-red { background: #fff2f0; border-bottom: 1px solid #ffccc7; color: #f5222d; animation: banner-pulse 2s infinite; }
+    @keyframes banner-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.7; } }
+    /* 进度环 */
+    .ring-wrap { position: relative; display: inline-flex; }
+    .ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  </style>
+</head>
+<body x-data="storageApp()" x-init="init()">
+
+<div class="flex h-screen overflow-hidden">
+
+  <!-- SECTION START: 侧边菜单 -->
+  <aside class="sidebar flex flex-col flex-shrink-0">
+    <div class="p-4 border-b" style="border-color: rgba(255,255,255,0.08);">
+      <div class="flex items-center space-x-2">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: #1677ff;">
+          <i class="fas fa-video text-white text-sm"></i>
+        </div>
+        <div>
+          <div class="text-white font-bold text-sm">蓬溪县生猪数字化</div>
+          <div class="text-xs text-gray-400">管理平台 · 监管端</div>
+        </div>
+      </div>
+    </div>
+    <nav class="flex-1 py-3">
+      <div class="px-4 mb-2 text-xs text-gray-500">视频监管</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-视频监管驾驶舱.html'"><i class="fas fa-tachometer-alt mr-2"></i>视频监管驾驶舱</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-视频设备信息管理.html'"><i class="fas fa-camera mr-2"></i>视频设备信息管理</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-视频监控实时查看.html'"><i class="fas fa-desktop mr-2"></i>视频监控实时查看</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-视频监控告警管理.html'"><i class="fas fa-bell mr-2"></i>视频监控告警管理</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-视频监控历史回放.html'"><i class="fas fa-history mr-2"></i>视频监控历史回放</div>
+      <div class="menu-item active"><i class="fas fa-cloud mr-2"></i>云存储管理</div>
+    </nav>
+    <div class="p-3 border-t" style="border-color: rgba(255,255,255,0.08);">
+      <select x-model="currentRole" @change="switchRole()" class="w-full text-sm px-2 py-1 rounded text-white" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
+        <option value="county_admin" style="background:#001529">县级管理员</option>
+        <option value="county_staff" style="background:#001529">县级业务人员</option>
+        <option value="town_gov_staff" style="background:#001529">乡镇政府业务人员</option>
+        <option value="ent_admin" style="background:#001529">企业管理员</option>
+      </select>
+    </div>
+  </aside>
+  <!-- SECTION END: 侧边菜单 -->
+
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <!-- 顶部 -->
+    <template x-if="currentRole === 'town_gov_staff' || currentRole === 'ent_admin'">
+      <div class="flex-1 flex items-center justify-center bg-gray-100">
+        <div class="text-center text-gray-400">
+          <i class="fas fa-lock text-5xl mb-4"></i>
+          <p class="text-lg font-medium">无权限访问</p>
+          <p class="text-sm mt-2">云存储管理仅对县级角色开放</p>
+        </div>
+      </div>
+    </template>
+
+    <template x-if="currentRole !== 'town_gov_staff' && currentRole !== 'ent_admin'">
+      <div class="flex flex-col h-full overflow-hidden">
+        <!-- 告警横幅 -->
+        <div x-show="storageData.usageRate >= 70" class="flex items-center justify-between px-6 py-2 flex-shrink-0" :class="storageData.usageRate >= 85 ? 'alarm-banner-red' : 'alarm-banner-orange'">
+          <div class="flex items-center space-x-2">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span class="text-sm font-medium" x-text="storageData.usageRate >= 85 ? `存储空间不足（使用率 ${storageData.usageRate}%），请及时清理或扩容！` : `存储使用率已达 ${storageData.usageRate}%，请关注存储空间`"></span>
+          </div>
+          <i class="fas fa-times cursor-pointer text-sm opacity-60 hover:opacity-100"></i>
+        </div>
+
+        <!-- 顶部导航 -->
+        <header class="bg-white border-b px-6 flex items-center justify-between flex-shrink-0" style="height: 56px; border-color: #e8e8e8;">
+          <div>
+            <span class="text-gray-400 text-sm">视频监管</span>
+            <span class="text-gray-400 text-sm mx-2">/</span>
+            <span class="text-gray-700 text-sm font-medium">云存储管理</span>
+          </div>
+          <div class="flex items-center space-x-3">
+            <div class="relative">
+              <i class="fas fa-bell text-gray-500 text-lg cursor-pointer"></i>
+              <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">3</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <div class="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-bold">张</div>
+              <span class="text-sm text-gray-600" x-text="currentRoleName"></span>
+              <i class="fas fa-sign-out-alt text-gray-400 cursor-pointer"></i>
+            </div>
+          </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-5">
+
+          <!-- SECTION START: 存储指标卡片区 -->
+          <div class="grid grid-cols-4 gap-4 mb-5">
+            <!-- 总容量 -->
+            <div class="stat-card">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-sm text-gray-500">总容量</span>
+                <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: #e6f4ff;">
+                  <i class="fas fa-cloud text-blue-500"></i>
+                </div>
+              </div>
+              <div class="text-3xl font-bold text-gray-800 mb-1">50.00 <span class="text-base font-normal text-gray-500">TB</span></div>
+              <!-- 进度条 -->
+              <div class="w-full bg-gray-100 rounded-full h-1.5 mt-2">
+                <div class="h-1.5 rounded-full bg-blue-400" style="width: 100%;"></div>
+              </div>
+            </div>
+            <!-- 已用容量 -->
+            <div class="stat-card">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-sm text-gray-500">已用容量</span>
+                <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: #fff2e8;">
+                  <i class="fas fa-hdd text-orange-500"></i>
+                </div>
+              </div>
+              <div class="text-3xl font-bold mb-1" :class="storageData.usageRate >= 85 ? 'text-red-500' : storageData.usageRate >= 70 ? 'text-orange-500' : 'text-green-500'">43.75 <span class="text-base font-normal text-gray-500">TB</span></div>
+              <div class="w-full bg-gray-100 rounded-full h-1.5 mt-2">
+                <div class="h-1.5 rounded-full" :class="storageData.usageRate >= 85 ? 'bg-red-400' : storageData.usageRate >= 70 ? 'bg-orange-400' : 'bg-green-400'" style="width: 87.5%;"></div>
+              </div>
+            </div>
+            <!-- 剩余容量 -->
+            <div class="stat-card">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-sm text-gray-500">剩余容量</span>
+                <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: #f6ffed;">
+                  <i class="fas fa-database text-green-500"></i>
+                </div>
+              </div>
+              <div class="text-3xl font-bold text-green-500 mb-1">6.25 <span class="text-base font-normal text-gray-500">TB</span></div>
+              <div class="w-full bg-gray-100 rounded-full h-1.5 mt-2">
+                <div class="h-1.5 rounded-full bg-green-300" style="width: 12.5%;"></div>
+              </div>
+            </div>
+            <!-- 使用率 -->
+            <div class="stat-card">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-sm text-gray-500">使用率</span>
+                <div class="w-10 h-10 rounded-lg flex items-center justify-center" :class="storageData.usageRate >= 85 ? 'bg-red-50' : 'bg-orange-50'">
+                  <i class="fas fa-chart-pie" :class="storageData.usageRate >= 85 ? 'text-red-500' : 'text-orange-500'"></i>
+                </div>
+              </div>
+              <div class="text-3xl font-bold mb-1" :class="storageData.usageRate >= 85 ? 'text-red-500' : 'text-orange-500'" x-text="`${storageData.usageRate}%`">87.5%</div>
+              <div class="w-full bg-gray-100 rounded-full h-1.5 mt-2">
+                <div class="h-1.5 rounded-full" :class="storageData.usageRate >= 85 ? 'bg-red-400' : 'bg-orange-400'" :style="`width: ${storageData.usageRate}%;`"></div>
+              </div>
+            </div>
+          </div>
+          <!-- SECTION END: 存储指标卡片区 -->
+
+          <!-- 中部：设备明细 + 趋势图 -->
+          <div class="grid grid-cols-5 gap-5 mb-5">
+
+            <!-- SECTION START: 设备存储明细列表 -->
+            <div class="col-span-3 bg-white rounded-lg shadow-sm overflow-hidden flex flex-col" style="max-height: 400px;">
+              <div class="flex items-center justify-between px-4 py-3 border-b" style="border-color: #f0f0f0;">
+                <span class="font-medium text-gray-700 text-sm">设备存储明细</span>
+                <div class="flex space-x-2">
+                  <input x-model="deviceSearch" @input="filterDeviceList()" type="text" placeholder="搜索设备名称" class="form-input text-sm" style="width: 160px; padding: 4px 8px;">
+                  <button @click="filterDeviceList()" class="btn-primary text-sm py-1">查询</button>
+                  <button @click="deviceSearch=''; filteredDeviceList=[...deviceList]" class="btn-default text-sm py-1">重置</button>
+                </div>
+              </div>
+              <div class="overflow-auto flex-1">
+                <table>
+                  <thead>
+                    <tr>
+                      <th style="width:60px">序号</th>
+                      <th style="width:120px">设备编号</th>
+                      <th style="width:160px">设备名称</th>
+                      <th style="width:160px">使用单位</th>
+                      <th style="width:120px">今日录像时长</th>
+                      <th style="width:100px">存储占用</th>
+                      <th style="width:110px">最早录像日期</th>
+                      <th style="width:160px">最新录像时间</th>
+                      <th style="width:100px">存储状态</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <template x-for="(row, idx) in pagedDeviceList" :key="row.deviceCode">
+                      <tr>
+                        <td x-text="(devicePage-1)*devicePageSize + idx + 1"></td>
+                        <td x-text="row.deviceCode"></td>
+                        <td class="truncate" style="max-width:160px" x-text="row.deviceName"></td>
+                        <td class="truncate" style="max-width:160px" x-text="row.enterpriseName"></td>
+                        <td x-text="row.todayRecordHours.toFixed(2) + ' 小时'"></td>
+                        <td x-text="row.storageUsedGB.toFixed(2) + ' GB'"></td>
+                        <td x-text="row.earliestRecordDate || '—'"></td>
+                        <td x-text="row.latestRecordTime || '—'"></td>
+                        <td>
+                          <span class="status-badge" :class="row.storageStatus==='0'?'tag-normal':row.storageStatus==='1'?'tag-near':'tag-full'" x-text="row.storageStatus==='0'?'正常':row.storageStatus==='1'?'接近上限':'存储满'"></span>
+                        </td>
+                      </tr>
+                    </template>
+                  </tbody>
+                </table>
+              </div>
+              <div class="flex items-center justify-between px-4 py-2 border-t flex-shrink-0" style="border-color: #f0f0f0;">
+                <span class="text-xs text-gray-400">共 <span x-text="filteredDeviceList.length"></span> 台</span>
+                <div class="flex space-x-1">
+                  <button class="pagination-btn" @click="devicePage=Math.max(1,devicePage-1)" :disabled="devicePage===1">&#8249;</button>
+                  <template x-for="p in deviceTotalPages" :key="p">
+                    <button class="pagination-btn text-xs" :class="p===devicePage?'active':''" @click="devicePage=p" x-text="p"></button>
+                  </template>
+                  <button class="pagination-btn" @click="devicePage=Math.min(deviceTotalPages,devicePage+1)" :disabled="devicePage===deviceTotalPages">&#8250;</button>
+                </div>
+              </div>
+            </div>
+            <!-- SECTION END: 设备存储明细列表 -->
+
+            <!-- SECTION START: 存储使用趋势图 -->
+            <div class="col-span-2 bg-white rounded-lg shadow-sm p-4" style="max-height: 400px;">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="font-medium text-gray-700 text-sm">存储使用趋势（近30天）</h3>
+                <span class="text-xs text-gray-400">日均新增: <span class="font-medium text-blue-500">15.62 GB</span></span>
+              </div>
+              <div style="height: 300px;">
+                <canvas id="trendChart"></canvas>
+              </div>
+            </div>
+            <!-- SECTION END: 存储使用趋势图 -->
+          </div>
+
+          <!-- SECTION START: 存储策略配置 -->
+          <div class="bg-white rounded-lg shadow-sm p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-semibold text-gray-800">存储策略配置</h3>
+              <div class="flex space-x-2">
+                <template x-if="currentRole === 'county_admin' && !policyEditing">
+                  <button @click="policyEditing=true" class="btn-default text-sm"><i class="fas fa-edit mr-1"></i>编辑策略</button>
+                </template>
+                <template x-if="policyEditing">
+                  <div class="flex space-x-2">
+                    <button @click="savePolicy()" class="btn-primary text-sm"><i class="fas fa-save mr-1"></i>保存</button>
+                    <button @click="cancelPolicyEdit()" class="btn-default text-sm">取消</button>
+                  </div>
+                </template>
+              </div>
+            </div>
+            <div class="grid grid-cols-4 gap-6">
+              <!-- 录像保留天数 -->
+              <div>
+                <label class="block text-sm text-gray-500 mb-2">录像保留天数</label>
+                <template x-if="!policyEditing">
+                  <div class="text-2xl font-bold text-gray-800">30 <span class="text-sm font-normal text-gray-500">天</span></div>
+                </template>
+                <template x-if="policyEditing">
+                  <div class="flex items-center space-x-2">
+                    <input x-model.number="policyForm.retentionDays" type="number" min="7" max="90" class="form-input" :class="policyErrors.retentionDays?'error':''" style="width: 80px;">
+                    <span class="text-sm text-gray-500">天</span>
+                  </div>
+                </template>
+                <p class="text-xs text-gray-400 mt-1">范围: 7~90天</p>
+                <p class="error-msg" x-show="policyErrors.retentionDays" x-text="policyErrors.retentionDays"></p>
+              </div>
+              <!-- 告警阈值 -->
+              <div>
+                <label class="block text-sm text-gray-500 mb-2">存储告警阈值</label>
+                <template x-if="!policyEditing">
+                  <div class="text-2xl font-bold text-gray-800">85 <span class="text-sm font-normal text-gray-500">%</span></div>
+                </template>
+                <template x-if="policyEditing">
+                  <div class="flex items-center space-x-2">
+                    <input x-model.number="policyForm.alarmThreshold" type="number" min="50" max="95" class="form-input" :class="policyErrors.alarmThreshold?'error':''" style="width: 80px;">
+                    <span class="text-sm text-gray-500">%</span>
+                  </div>
+                </template>
+                <p class="text-xs text-gray-400 mt-1">范围: 50~95%</p>
+                <p class="error-msg" x-show="policyErrors.alarmThreshold" x-text="policyErrors.alarmThreshold"></p>
+              </div>
+              <!-- 录像质量 -->
+              <div>
+                <label class="block text-sm text-gray-500 mb-2">录像质量</label>
+                <template x-if="!policyEditing">
+                  <div class="text-2xl font-bold text-gray-800">高清 <span class="text-sm font-normal text-gray-500">HD</span></div>
+                </template>
+                <template x-if="policyEditing">
+                  <select x-model="policyForm.recordQuality" class="form-input" style="width: 140px;">
+                    <option value="1">标清 SD (720×576)</option>
+                    <option value="2">高清 HD (1280×720)</option>
+                    <option value="3">超清 FHD (1920×1080)</option>
+                  </select>
+                </template>
+                <p class="text-xs text-gray-400 mt-1">影响存储消耗速率</p>
+              </div>
+              <!-- 录像模式 -->
+              <div>
+                <label class="block text-sm text-gray-500 mb-2">录像模式</label>
+                <template x-if="!policyEditing">
+                  <div class="text-2xl font-bold text-gray-800 text-base leading-8">全天录像</div>
+                </template>
+                <template x-if="policyEditing">
+                  <select x-model="policyForm.recordMode" class="form-input" style="width: 180px;">
+                    <option value="1">全天录像（24小时）</option>
+                    <option value="2">仅告警时段录像</option>
+                  </select>
+                </template>
+                <p class="text-xs text-gray-400 mt-1">全天录像消耗更多存储</p>
+              </div>
+            </div>
+            <div class="mt-3 pt-3 border-t text-xs text-gray-400" style="border-color: #f0f0f0;">
+              <i class="fas fa-info-circle mr-1"></i>
+              最后更新：2026-02-15 09:30:00 | 更新人：张监管员
+            </div>
+          </div>
+          <!-- SECTION END: 存储策略配置 -->
+        </div>
+      </div>
+    </template>
+  </div>
+</div>
+
+<!-- 保存策略确认弹窗 -->
+<div class="modal-overlay" x-show="showSaveConfirm" x-transition>
+  <div class="modal" style="width: 420px;">
+    <div class="px-6 py-5">
+      <div class="flex items-start space-x-3">
+        <i class="fas fa-exclamation-circle text-yellow-400 text-xl mt-0.5"></i>
+        <div>
+          <h4 class="font-semibold text-gray-800 mb-2">确认修改录像保留天数？</h4>
+          <p class="text-sm text-gray-600">修改录像保留天数将影响超期录像的自动清理周期，确认修改吗？</p>
+        </div>
+      </div>
+    </div>
+    <div class="flex justify-end space-x-3 px-6 py-4 border-t bg-gray-50">
+      <button @click="showSaveConfirm=false" class="btn-default">取消</button>
+      <button @click="confirmSavePolicy()" class="btn-primary">确认修改</button>
+    </div>
+  </div>
+</div>
+
+<div class="success-toast" x-show="showToast" x-transition><i class="fas fa-check-circle mr-2"></i><span x-text="toastMsg"></span></div>
+
+<script>
+const MOCK_DATA = {
+  storageOverview: { totalCapacityTB: 50.00, usedCapacityTB: 43.75, freeCapacityTB: 6.25, usageRate: 87.5, alarmThreshold: 85 },
+  deviceList: [
+    { deviceCode: 'CAM-0001', deviceName: '鸿鹄养殖场-大门入口', enterpriseName: '蓬溪县鸿鹄畜牧有限公司', todayRecordHours: 23.50, storageUsedGB: 842.30, earliestRecordDate: '2026-01-10', latestRecordTime: '2026-03-10 15:00:00', storageStatus: '1' },
+    { deviceCode: 'CAM-0002', deviceName: '鸿鹄养殖场-猪舍A区', enterpriseName: '蓬溪县鸿鹄畜牧有限公司', todayRecordHours: 23.50, storageUsedGB: 820.15, earliestRecordDate: '2026-01-10', latestRecordTime: '2026-03-10 15:00:00', storageStatus: '1' },
+    { deviceCode: 'CAM-0003', deviceName: '金源牧业-猪舍B区', enterpriseName: '蓬溪县金源牧业有限公司', todayRecordHours: 23.50, storageUsedGB: 815.80, earliestRecordDate: '2026-01-11', latestRecordTime: '2026-03-10 15:00:00', storageStatus: '1' },
+    { deviceCode: 'CAM-0004', deviceName: '天府农场-围栏监控', enterpriseName: '蓬溪县天府农场', todayRecordHours: 0.00, storageUsedGB: 560.40, earliestRecordDate: '2026-01-12', latestRecordTime: '2026-03-08 14:22:00', storageStatus: '0' },
+    { deviceCode: 'CAM-0005', deviceName: '裕丰猪场-生产区入口', enterpriseName: '蓬溪县裕丰猪场', todayRecordHours: 0.00, storageUsedGB: 380.20, earliestRecordDate: '2026-01-15', latestRecordTime: '2026-03-07 09:15:00', storageStatus: '0' },
+    { deviceCode: 'CAM-0006', deviceName: '绿源牧业-东门', enterpriseName: '蓬溪县绿源牧业有限公司', todayRecordHours: 23.50, storageUsedGB: 795.60, earliestRecordDate: '2026-01-16', latestRecordTime: '2026-03-10 15:00:00', storageStatus: '1' },
+    { deviceCode: 'CAM-0007', deviceName: '华兴养殖-仓库区', enterpriseName: '蓬溪县华兴养殖基地', todayRecordHours: 23.50, storageUsedGB: 760.90, earliestRecordDate: '2026-01-18', latestRecordTime: '2026-03-10 15:00:00', storageStatus: '0' },
+    { deviceCode: 'CAM-0008', deviceName: '鸿鹄养殖场-饲料仓库', enterpriseName: '蓬溪县鸿鹄畜牧有限公司', todayRecordHours: 23.50, storageUsedGB: 730.45, earliestRecordDate: '2026-01-20', latestRecordTime: '2026-03-10 15:00:00', storageStatus: '0' },
+    { deviceCode: 'CAM-0009', deviceName: '金源牧业-大门入口', enterpriseName: '蓬溪县金源牧业有限公司', todayRecordHours: 0.00, storageUsedGB: 420.30, earliestRecordDate: '2026-01-22', latestRecordTime: '2026-03-05 11:30:00', storageStatus: '0' },
+    { deviceCode: 'CAM-0010', deviceName: '天府农场-猪舍C区', enterpriseName: '蓬溪县天府农场', todayRecordHours: 23.50, storageUsedGB: 690.75, earliestRecordDate: '2026-01-25', latestRecordTime: '2026-03-10 15:00:00', storageStatus: '0' },
+    { deviceCode: 'CAM-0011', deviceName: '裕丰猪场-消毒间', enterpriseName: '蓬溪县裕丰猪场', todayRecordHours: 23.50, storageUsedGB: 620.50, earliestRecordDate: '2026-02-01', latestRecordTime: '2026-03-10 15:00:00', storageStatus: '0' },
+    { deviceCode: 'CAM-0012', deviceName: '绿源牧业-猪舍A区', enterpriseName: '蓬溪县绿源牧业有限公司', todayRecordHours: 23.50, storageUsedGB: 580.20, earliestRecordDate: '2026-02-05', latestRecordTime: '2026-03-10 15:00:00', storageStatus: '2' },
+  ],
+  trendData: (() => {
+    const data = [];
+    const base = new Date('2026-02-09');
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(base);
+      d.setDate(d.getDate() + i);
+      data.push({ date: d.toISOString().slice(0,10), addedGB: 14 + Math.random() * 5, cumulativeTB: 40 + (i * 0.12) });
+    }
+    return data;
+  })()
+};
+
+function storageApp() {
+  return {
+    currentRole: 'county_admin',
+    currentRoleName: '县级管理员',
+    storageData: MOCK_DATA.storageOverview,
+    deviceList: [...MOCK_DATA.deviceList],
+    filteredDeviceList: [...MOCK_DATA.deviceList],
+    deviceSearch: '',
+    devicePage: 1,
+    devicePageSize: 10,
+    policyEditing: false,
+    policyForm: { retentionDays: 30, alarmThreshold: 85, recordQuality: '2', recordMode: '1' },
+    policyFormBackup: null,
+    policyErrors: {},
+    showSaveConfirm: false,
+    pendingSaveDays: false,
+    showToast: false,
+    toastMsg: '',
+
+    get pagedDeviceList() {
+      const start = (this.devicePage - 1) * this.devicePageSize;
+      return this.filteredDeviceList.slice(start, start + this.devicePageSize);
+    },
+    get deviceTotalPages() { return Math.max(1, Math.ceil(this.filteredDeviceList.length / this.devicePageSize)); },
+
+    init() {
+      this.$nextTick(() => { this.initTrendChart(); });
+    },
+
+    switchRole() {
+      const map = { county_admin: '县级管理员', county_staff: '县级业务人员', town_gov_staff: '乡镇政府业务人员', ent_admin: '企业管理员' };
+      this.currentRoleName = map[this.currentRole];
+      if (this.currentRole !== 'county_admin') this.policyEditing = false;
+    },
+
+    filterDeviceList() {
+      if (!this.deviceSearch) {
+        this.filteredDeviceList = [...this.deviceList];
+      } else {
+        this.filteredDeviceList = this.deviceList.filter(d => d.deviceName.includes(this.deviceSearch));
+      }
+      this.devicePage = 1;
+    },
+
+    initTrendChart() {
+      const ctx = document.getElementById('trendChart');
+      if (!ctx) return;
+      const data = MOCK_DATA.trendData;
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.map(d => d.date.slice(5)),
+          datasets: [{
+            label: '新增存储量 (GB)',
+            data: data.map(d => parseFloat(d.addedGB.toFixed(2))),
+            borderColor: '#1890ff',
+            backgroundColor: 'rgba(24,144,255,0.15)',
+            fill: true,
+            tension: 0.4,
+            pointRadius: 2,
+            pointBackgroundColor: '#1890ff',
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false },
+            tooltip: { callbacks: { label: (ctx) => ` 新增: ${ctx.raw} GB` } }
+          },
+          scales: {
+            x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 10 }, color: '#8c8c8c', maxTicksLimit: 8 } },
+            y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11 }, color: '#8c8c8c' }, beginAtZero: true }
+          }
+        }
+      });
+    },
+
+    savePolicy() {
+      this.policyErrors = {};
+      const d = parseInt(this.policyForm.retentionDays);
+      const t = parseInt(this.policyForm.alarmThreshold);
+      if (!d || d < 7 || d > 90) { this.policyErrors.retentionDays = '录像保留天数须为 7~90 之间的整数'; return; }
+      if (!t || t < 50 || t > 95) { this.policyErrors.alarmThreshold = '告警阈值须为 50~95 之间的整数'; return; }
+
+      if (d !== 30) {
+        this.showSaveConfirm = true;
+        this.pendingSaveDays = true;
+      } else {
+        this.confirmSavePolicy();
+      }
+    },
+
+    confirmSavePolicy() {
+      this.showSaveConfirm = false;
+      this.policyEditing = false;
+      this.showSuccessToast('存储策略保存成功！');
+    },
+
+    cancelPolicyEdit() {
+      this.policyForm = { retentionDays: 30, alarmThreshold: 85, recordQuality: '2', recordMode: '1' };
+      this.policyEditing = false;
+      this.policyErrors = {};
+    },
+
+    showSuccessToast(msg) {
+      this.toastMsg = msg;
+      this.showToast = true;
+      setTimeout(() => { this.showToast = false; }, 2500);
+    }
+  };
+}
+</script>
+</body>
+</html>

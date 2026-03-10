@@ -1,0 +1,620 @@
+<!--
+  功能名称：档案统计分析
+  对应PRD：doc_prd/WEB/监管端/智慧监管/电子档案管理/WEB监管端-档案统计分析.prd.md
+  所属端口：WEB监管端
+  所属模块：智慧监管 - 电子档案管理
+  制作日期：2026-03-09
+  最后更新：2026-03-09
+  角色说明：县级管理员/业务人员可导出统计报告，乡镇角色仅可查看
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>档案统计分析 - WEB监管端</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* SHARED STYLES */
+    [x-cloak] { display: none !important; }
+    body { font-size: 14px; background-color: #f0f2f5; color: #262626; }
+    .sidebar-item.active { background-color: #1677ff; color: #fff; }
+    .sidebar-item:hover:not(.active) { background-color: #e6f4ff; color: #1677ff; }
+    .btn-primary { background-color: #1677ff; color: #fff; border: 1px solid #1677ff; }
+    .btn-primary:hover { background-color: #0958d9; }
+    .btn-default { background-color: #fff; color: #262626; border: 1px solid #d9d9d9; }
+    .btn-default:hover { border-color: #1677ff; color: #1677ff; }
+    .form-input { padding: 5px 9px; border: 1px solid #d9d9d9; border-radius: 4px; outline: none; font-size: 13px; color: #262626; }
+    .form-input:focus { border-color: #1677ff; box-shadow: 0 0 0 2px rgba(22,119,255,0.1); }
+    .form-label { font-size: 12px; font-weight: 500; color: #595959; margin-bottom: 3px; display: block; }
+    .breadcrumb { font-size: 13px; color: #8c8c8c; }
+    .breadcrumb span { color: #262626; }
+    .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; padding: 8px 20px; border-radius: 6px; font-size: 13px; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .toast-success { background-color: #f6ffed; border: 1px solid #b7eb8f; color: #52c41a; }
+    .toast-error { background-color: #fff2f0; border: 1px solid #ffa39e; color: #ff4d4f; }
+    .toast-info { background-color: #e6f7ff; border: 1px solid #91d5ff; color: #1677ff; }
+    /* Stats grid */
+    .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; padding: 16px; }
+    .stat-card { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: hidden; }
+    .stat-card.full-width { grid-column: span 2; }
+    .stat-card-header { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .stat-card-title { font-size: 14px; font-weight: 600; color: #262626; flex: 1; min-width: 0; }
+    .mini-btn { padding: 2px 8px; font-size: 12px; background: #fff; border: 1px solid #d9d9d9; border-radius: 3px; cursor: pointer; color: #595959; white-space: nowrap; }
+    .mini-btn:hover { border-color: #1677ff; color: #1677ff; }
+    .mini-btn.active { background-color: #1677ff; color: #fff; border-color: #1677ff; }
+    .gran-group { display: flex; border: 1px solid #d9d9d9; border-radius: 4px; overflow: hidden; }
+    .gran-btn { padding: 2px 10px; font-size: 12px; cursor: pointer; background: #fff; color: #595959; border: none; border-right: 1px solid #d9d9d9; }
+    .gran-btn:last-child { border-right: none; }
+    .gran-btn:hover { background: #f0f7ff; color: #1677ff; }
+    .gran-btn.active { background-color: #1677ff; color: #fff; }
+    .chart-area { padding: 16px; position: relative; }
+    .chart-area canvas { display: block; }
+    .dual-chart { display: flex; }
+    .dual-chart .left-40 { flex: 0 0 40%; padding: 16px; border-right: 1px solid #f0f0f0; }
+    .dual-chart .right-60 { flex: 0 0 60%; padding: 16px; }
+    .dual-chart .left-60 { flex: 0 0 60%; padding: 16px; border-right: 1px solid #f0f0f0; }
+    .dual-chart .right-40 { flex: 0 0 40%; padding: 16px; }
+    .data-table-area { border-top: 1px solid #f0f0f0; }
+    .data-table-area table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .data-table-area thead th { background: #fafafa; padding: 7px 12px; color: #595959; font-weight: 600; text-align: left; border-bottom: 1px solid #e8e8e8; }
+    .data-table-area tbody td { padding: 7px 12px; border-bottom: 1px solid #f0f0f0; }
+    .data-table-area tbody tr:nth-child(even) td { background: #fafafa; }
+    /* Heatmap */
+    .heatmap-wrap { overflow: auto; max-height: 380px; }
+    .heatmap-table { border-collapse: collapse; font-size: 12px; min-width: 1000px; }
+    .heatmap-table th { background: #fafafa; padding: 7px 10px; font-weight: 600; color: #595959; border: 1px solid #e8e8e8; white-space: nowrap; text-align: center; position: sticky; top: 0; z-index: 2; }
+    .heatmap-table th:first-child { position: sticky; left: 0; z-index: 3; background: #fafafa; text-align: left; }
+    .heatmap-table td { padding: 6px 10px; border: 1px solid #f0f0f0; text-align: center; font-size: 12px; white-space: nowrap; }
+    .heatmap-table td:first-child { position: sticky; left: 0; background: #fafafa; font-weight: 500; z-index: 1; text-align: left; min-width: 140px; border-right: 1px solid #e8e8e8; }
+    .hm-0 { background: #fff1f0 !important; color: #f5222d; }
+    .hm-1 { background: #f6ffed !important; color: #389e0d; }
+    .hm-2 { background: #d9f7be !important; color: #237804; }
+    .hm-3 { background: #b7eb8f !important; color: #135200; }
+    .hm-4 { background: #73d13d !important; color: #fff; }
+    .hm-total { background: #e6f4ff !important; color: #1677ff; font-weight: 600; }
+  </style>
+</head>
+<body x-data="app()" x-cloak>
+
+<!-- Toast -->
+<div x-show="toast.show" class="toast" :class="{'toast-success':toast.type==='success','toast-error':toast.type==='error','toast-info':toast.type==='info'}" x-text="toast.msg" x-transition></div>
+
+<!-- 顶部导航栏 -->
+<header class="fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 z-50 flex items-center px-4 justify-between shadow-sm">
+  <div class="flex items-center gap-3">
+    <i class="fas fa-pig text-blue-500 text-xl"></i>
+    <span class="font-semibold text-gray-800 text-base">2024年蓬溪县生猪数字化管理平台</span>
+    <span class="text-gray-300">|</span>
+    <span class="text-sm text-gray-500">监管端</span>
+  </div>
+  <div class="flex items-center gap-3">
+    <select x-model="currentRole" @change="onRoleChange()" class="text-sm border border-gray-300 rounded px-2 py-1 text-gray-700 bg-white">
+      <template x-for="u in MOCK_DATA.users" :key="u.role">
+        <option :value="u.role" x-text="`${u.roleName}（${u.username}）`"></option>
+      </template>
+    </select>
+    <div class="flex items-center gap-2 text-sm text-gray-700">
+      <i class="fas fa-user-circle text-gray-400"></i>
+      <span x-text="currentUser().name"></span>
+      <span class="text-xs text-gray-400" x-text="`[${currentUser().roleName}]`"></span>
+    </div>
+    <button @click="showToast('已退出登录','success')" class="text-sm text-gray-500 hover:text-blue-500 transition-colors">
+      <i class="fas fa-sign-out-alt mr-1"></i>退出
+    </button>
+  </div>
+</header>
+
+<!-- 主体布局 -->
+<div class="flex" style="margin-top:56px; height:calc(100vh - 56px);">
+
+  <!-- 侧边菜单 -->
+  <aside class="bg-white border-r border-gray-200 flex-shrink-0 overflow-y-auto" style="width:220px;">
+    <div class="py-2">
+      <div class="px-4 py-1 text-xs text-gray-400 font-medium mt-2 uppercase tracking-wide">智慧监管</div>
+      <div class="sidebar-item px-4 py-2 cursor-pointer flex items-center gap-2 transition-colors text-sm" @click="window.location.href='../养殖企业管理/WEB监管端-养殖企业信息管理.html'">
+        <i class="fas fa-industry w-4 text-center text-gray-400"></i><span>养殖企业信息管理</span>
+      </div>
+      <div class="sidebar-item px-4 py-2 cursor-pointer flex items-center gap-2 transition-colors text-sm" @click="window.location.href='../养殖企业管理/WEB监管端-养殖档案监管.html'">
+        <i class="fas fa-folder-open w-4 text-center text-gray-400"></i><span>养殖档案监管</span>
+      </div>
+      <div class="px-4 py-1 text-xs text-gray-400 font-medium mt-3 uppercase tracking-wide border-t border-gray-100 pt-2">电子档案管理</div>
+      <div class="sidebar-item px-4 py-2 cursor-pointer flex items-center gap-2 transition-colors text-sm" @click="window.location.href='WEB监管端-档案台账总览.html'">
+        <i class="fas fa-table w-4 text-center text-gray-400"></i><span>档案台账总览</span>
+      </div>
+      <div class="sidebar-item px-4 py-2 cursor-pointer flex items-center gap-2 transition-colors text-sm" @click="window.location.href='WEB监管端-档案分类检索.html'">
+        <i class="fas fa-search w-4 text-center text-gray-400"></i><span>档案分类检索</span>
+      </div>
+      <div class="sidebar-item active px-4 py-2 cursor-pointer flex items-center gap-2 transition-colors text-sm">
+        <i class="fas fa-chart-bar w-4 text-center"></i><span>档案统计分析</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 主内容区 -->
+  <main class="flex-1 flex flex-col overflow-hidden">
+
+    <!-- 面包屑 + 标题 -->
+    <div class="px-5 pt-3 pb-2 bg-white border-b border-gray-100 flex-shrink-0">
+      <div class="breadcrumb mb-1">智慧监管 / 电子档案管理 / <span>档案统计分析</span></div>
+      <h1 class="text-base font-semibold text-gray-800">档案统计分析</h1>
+    </div>
+
+    <!-- SECTION START: 全局筛选栏 -->
+    <div id="feature-filter" class="bg-white px-5 py-3 border-b border-gray-200 flex-shrink-0">
+      <div class="flex flex-wrap gap-3 items-end">
+        <div>
+          <label class="form-label">时间范围</label>
+          <div class="flex items-center gap-1">
+            <input type="date" x-model="filter.startTime" class="form-input">
+            <span class="text-gray-400 text-xs">至</span>
+            <input type="date" x-model="filter.endTime" class="form-input">
+          </div>
+        </div>
+        <div x-show="isCounty()">
+          <label class="form-label">所属乡镇</label>
+          <select x-model="filter.town" class="form-input" style="width:120px">
+            <option value="">全部</option>
+            <template x-for="t in MOCK_DATA.towns" :key="t"><option :value="t" x-text="t"></option></template>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">企业名称</label>
+          <input type="text" x-model="filter.entName" class="form-input" style="width:160px" placeholder="模糊搜索" maxlength="100">
+        </div>
+        <div class="flex gap-2">
+          <button @click="doQuery()" class="btn-primary px-3 py-1.5 rounded text-sm">
+            <i class="fas fa-search mr-1"></i>查询
+          </button>
+          <button @click="resetFilter()" class="btn-default px-3 py-1.5 rounded text-sm">
+            <i class="fas fa-redo mr-1"></i>重置
+          </button>
+          <button x-show="isCounty()" @click="exportReport()" class="btn-default px-3 py-1.5 rounded text-sm">
+            <i class="fas fa-file-excel mr-1 text-green-500"></i>导出统计报告
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- SECTION END: 全局筛选栏 -->
+
+    <!-- SECTION START: 统计面板 -->
+    <div id="feature-stats" class="flex-1 overflow-y-auto">
+      <div class="stats-grid">
+
+        <!-- 统计卡片1：存出栏统计 -->
+        <div class="stat-card" id="card-stock">
+          <div class="stat-card-header">
+            <span class="stat-card-title"><i class="fas fa-chart-line mr-2 text-blue-500"></i>存出栏统计</span>
+            <div class="gran-group">
+              <div class="gran-btn" :class="stockGran==='month'?'active':''" @click="stockGran='month'; renderStockChart()">按月</div>
+              <div class="gran-btn" :class="stockGran==='quarter'?'active':''" @click="stockGran='quarter'; renderStockChart()">按季</div>
+              <div class="gran-btn" :class="stockGran==='year'?'active':''" @click="stockGran='year'; renderStockChart()">按年</div>
+            </div>
+            <template x-if="isCounty()">
+              <div class="flex gap-1">
+                <button class="mini-btn" @click="exportCard('存出栏统计')"><i class="fas fa-table mr-1"></i>导出数据</button>
+                <button class="mini-btn" @click="exportChart('存出栏统计')"><i class="fas fa-image mr-1"></i>导出图表</button>
+              </div>
+            </template>
+            <button class="mini-btn" @click="tableOpen.stock=!tableOpen.stock" x-text="tableOpen.stock?'收起表格':'展开表格'"></button>
+          </div>
+          <div class="chart-area" style="height:260px;"><canvas id="stockChart"></canvas></div>
+          <div class="data-table-area" x-show="tableOpen.stock">
+            <table>
+              <thead><tr><th>时间周期</th><th>存栏量(头)</th><th>出栏量(头)</th><th>出栏环比增长率</th></tr></thead>
+              <tbody>
+                <tr><td>2026-03</td><td>19,800</td><td>1,750</td><td class="text-green-500">+4.2%</td></tr>
+                <tr><td>2026-02</td><td>19,000</td><td>1,680</td><td class="text-green-500">+8.4%</td></tr>
+                <tr><td>2026-01</td><td>18,100</td><td>1,480</td><td class="text-red-500">-4.5%</td></tr>
+                <tr><td>2025-12</td><td>17,200</td><td>1,550</td><td class="text-green-500">+14.8%</td></tr>
+                <tr><td>2025-11</td><td>16,500</td><td>1,350</td><td class="text-red-500">-3.6%</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 统计卡片2：免疫防疫统计 -->
+        <div class="stat-card" id="card-immunity">
+          <div class="stat-card-header">
+            <span class="stat-card-title"><i class="fas fa-syringe mr-2 text-green-500"></i>免疫防疫统计</span>
+            <div class="flex items-center gap-2 text-sm">
+              <span class="text-gray-500">免疫覆盖率</span>
+              <span class="bg-green-50 border border-green-200 text-green-600 px-2 py-0.5 rounded-full text-sm font-bold">87.50%</span>
+            </div>
+            <template x-if="isCounty()">
+              <div class="flex gap-1">
+                <button class="mini-btn" @click="exportCard('免疫防疫统计')"><i class="fas fa-table mr-1"></i>导出数据</button>
+                <button class="mini-btn" @click="exportChart('免疫防疫统计')"><i class="fas fa-image mr-1"></i>导出图表</button>
+              </div>
+            </template>
+            <button class="mini-btn" @click="tableOpen.immunity=!tableOpen.immunity" x-text="tableOpen.immunity?'收起表格':'展开表格'"></button>
+          </div>
+          <div class="chart-area" style="height:260px;"><canvas id="immunityChart"></canvas></div>
+          <div class="data-table-area" x-show="tableOpen.immunity">
+            <table>
+              <thead><tr><th>疫苗名称</th><th>免疫数量(头/只)</th><th>免疫记录数(条)</th><th>占比</th></tr></thead>
+              <tbody>
+                <tr><td>猪口蹄疫O型灭活疫苗</td><td>12,450</td><td>89</td><td>28.5%</td></tr>
+                <tr><td>猪瘟活疫苗</td><td>9,800</td><td>72</td><td>22.4%</td></tr>
+                <tr><td>猪繁殖与呼吸综合征活疫苗</td><td>7,600</td><td>58</td><td>17.4%</td></tr>
+                <tr><td>猪圆环病毒灭活疫苗</td><td>5,200</td><td>45</td><td>11.9%</td></tr>
+                <tr><td>猪伪狂犬病活疫苗</td><td>3,800</td><td>34</td><td>8.7%</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 统计卡片3：无害化处理统计 -->
+        <div class="stat-card" id="card-disposal">
+          <div class="stat-card-header">
+            <span class="stat-card-title"><i class="fas fa-recycle mr-2 text-orange-400"></i>无害化处理统计</span>
+            <template x-if="isCounty()">
+              <div class="flex gap-1">
+                <button class="mini-btn" @click="exportCard('无害化处理统计')"><i class="fas fa-table mr-1"></i>导出数据</button>
+                <button class="mini-btn" @click="exportChart('无害化处理统计')"><i class="fas fa-image mr-1"></i>导出图表</button>
+              </div>
+            </template>
+            <button class="mini-btn" @click="tableOpen.disposal=!tableOpen.disposal" x-text="tableOpen.disposal?'收起表格':'展开表格'"></button>
+          </div>
+          <div class="dual-chart" style="min-height:260px;">
+            <div class="left-40" style="min-height:240px;"><canvas id="disposalPie"></canvas></div>
+            <div class="right-60" style="min-height:240px;"><canvas id="disposalLine"></canvas></div>
+          </div>
+          <div class="data-table-area" x-show="tableOpen.disposal">
+            <table>
+              <thead><tr><th>处理方式</th><th>病死处理数量(头/只)</th><th>粪便产生量(吨)</th><th>污水产生量(吨)</th><th>记录数(条)</th><th>占比</th></tr></thead>
+              <tbody>
+                <tr><td>生物降解</td><td>45</td><td>120.5</td><td>85.2</td><td>38</td><td>42.2%</td></tr>
+                <tr><td>深埋处理</td><td>28</td><td>65.3</td><td>42.1</td><td>24</td><td>26.7%</td></tr>
+                <tr><td>焚烧处理</td><td>12</td><td>28.7</td><td>18.4</td><td>16</td><td>17.8%</td></tr>
+                <tr><td>好氧堆肥</td><td>5</td><td>210.8</td><td>156.3</td><td>12</td><td>13.3%</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 统计卡片4：投入品使用统计 -->
+        <div class="stat-card" id="card-input">
+          <div class="stat-card-header">
+            <span class="stat-card-title"><i class="fas fa-boxes mr-2 text-purple-500"></i>投入品使用统计</span>
+            <template x-if="isCounty()">
+              <div class="flex gap-1">
+                <button class="mini-btn" @click="exportCard('投入品使用统计')"><i class="fas fa-table mr-1"></i>导出数据</button>
+                <button class="mini-btn" @click="exportChart('投入品使用统计')"><i class="fas fa-image mr-1"></i>导出图表</button>
+              </div>
+            </template>
+            <button class="mini-btn" @click="tableOpen.input=!tableOpen.input" x-text="tableOpen.input?'收起表格':'展开表格'"></button>
+          </div>
+          <div class="chart-area" style="height:260px;"><canvas id="inputChart"></canvas></div>
+          <div class="data-table-area" x-show="tableOpen.input">
+            <table>
+              <thead><tr><th>投入品类别</th><th>记录数(条)</th><th>涉及企业数</th><th>产品种类数</th></tr></thead>
+              <tbody>
+                <tr><td>兽药使用</td><td>456</td><td>8</td><td>34</td></tr>
+                <tr><td>兽药采购</td><td>312</td><td>8</td><td>28</td></tr>
+                <tr><td>饲料使用</td><td>687</td><td>8</td><td>22</td></tr>
+                <tr><td>饲料采购</td><td>523</td><td>8</td><td>18</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 统计卡片5：疾病诊疗统计 -->
+        <div class="stat-card" id="card-disease">
+          <div class="stat-card-header">
+            <span class="stat-card-title"><i class="fas fa-stethoscope mr-2 text-red-500"></i>疾病诊疗统计</span>
+            <template x-if="isCounty()">
+              <div class="flex gap-1">
+                <button class="mini-btn" @click="exportCard('疾病诊疗统计')"><i class="fas fa-table mr-1"></i>导出数据</button>
+                <button class="mini-btn" @click="exportChart('疾病诊疗统计')"><i class="fas fa-image mr-1"></i>导出图表</button>
+              </div>
+            </template>
+            <button class="mini-btn" @click="tableOpen.disease=!tableOpen.disease" x-text="tableOpen.disease?'收起表格':'展开表格'"></button>
+          </div>
+          <div class="dual-chart" style="min-height:260px;">
+            <div class="left-40" style="min-height:240px;"><canvas id="diseasePie"></canvas></div>
+            <div class="right-60" style="min-height:240px;"><canvas id="diseaseLine"></canvas></div>
+          </div>
+          <div class="data-table-area" x-show="tableOpen.disease">
+            <table>
+              <thead><tr><th>月份</th><th>诊疗记录数(条)</th><th>涉及企业数</th><th>环比增长率</th></tr></thead>
+              <tbody>
+                <tr><td>2026-03</td><td>6</td><td>4</td><td class="text-red-500">-33.3%</td></tr>
+                <tr><td>2026-02</td><td>9</td><td>5</td><td class="text-green-500">+28.6%</td></tr>
+                <tr><td>2026-01</td><td>7</td><td>4</td><td class="text-red-500">-41.7%</td></tr>
+                <tr><td>2025-12</td><td>12</td><td>6</td><td class="text-green-500">+50.0%</td></tr>
+                <tr><td>2025-11</td><td>8</td><td>5</td><td class="text-green-500">+60.0%</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 统计卡片6：销售统计 -->
+        <div class="stat-card" id="card-sales">
+          <div class="stat-card-header">
+            <span class="stat-card-title"><i class="fas fa-shopping-cart mr-2 text-blue-500"></i>销售统计</span>
+            <template x-if="isCounty()">
+              <div class="flex gap-1">
+                <button class="mini-btn" @click="exportCard('销售统计')"><i class="fas fa-table mr-1"></i>导出数据</button>
+                <button class="mini-btn" @click="exportChart('销售统计')"><i class="fas fa-image mr-1"></i>导出图表</button>
+              </div>
+            </template>
+            <button class="mini-btn" @click="tableOpen.sales=!tableOpen.sales" x-text="tableOpen.sales?'收起表格':'展开表格'"></button>
+          </div>
+          <div class="dual-chart" style="min-height:260px;">
+            <div class="left-60" style="min-height:240px;"><canvas id="salesBar"></canvas></div>
+            <div class="right-40" style="min-height:240px;"><canvas id="salesPie"></canvas></div>
+          </div>
+          <div class="data-table-area" x-show="tableOpen.sales">
+            <table>
+              <thead><tr><th>月份</th><th>销售数量</th><th>涉及企业数</th><th>主要去向</th></tr></thead>
+              <tbody>
+                <tr><td>2026-03</td><td>1,720 头</td><td>7</td><td>本县屠宰场</td></tr>
+                <tr><td>2026-02</td><td>1,580 头</td><td>6</td><td>本县屠宰场</td></tr>
+                <tr><td>2026-01</td><td>1,350 头</td><td>5</td><td>外县屠宰场</td></tr>
+                <tr><td>2025-12</td><td>1,680 头</td><td>7</td><td>本县屠宰场</td></tr>
+                <tr><td>2025-11</td><td>1,480 头</td><td>6</td><td>本县屠宰场</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 统计卡片7：档案填报情况统计（占满两列） -->
+        <div class="stat-card full-width" id="card-filing">
+          <div class="stat-card-header">
+            <span class="stat-card-title"><i class="fas fa-th mr-2 text-orange-400"></i>档案填报情况统计（热力表格）</span>
+            <div class="flex items-center gap-3 text-xs flex-wrap">
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded inline-block" style="background:#fff1f0;border:1px solid #ffa39e;"></span>0条</span>
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded inline-block" style="background:#f6ffed;border:1px solid #b7eb8f;"></span>1-5条</span>
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded inline-block" style="background:#d9f7be;border:1px solid #73d13d;"></span>6-20条</span>
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded inline-block" style="background:#b7eb8f;border:1px solid #52c41a;"></span>21-50条</span>
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded inline-block" style="background:#73d13d;border:1px solid #389e0d;"></span>51+条</span>
+            </div>
+            <template x-if="isCounty()">
+              <button class="mini-btn" @click="exportCard('档案填报情况统计')"><i class="fas fa-table mr-1"></i>导出数据</button>
+            </template>
+          </div>
+          <div class="p-4">
+            <div class="heatmap-wrap">
+              <table class="heatmap-table" id="filingTable">
+                <thead x-html="filingTableHead()"></thead>
+                <tbody x-html="filingTableBody()"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <!-- SECTION END: 统计面板 -->
+
+  </main>
+</div>
+
+<script>
+function app() {
+  return {
+    MOCK_DATA: {
+      users: [
+        { role: 'county_admin', roleName: '县级管理员', name: '张管理', username: 'county_admin', dataScope: 1 },
+        { role: 'county_staff', roleName: '县级业务人员', name: '李业务', username: 'county_staff', dataScope: 1 },
+        { role: 'town_gov_staff', roleName: '乡镇政府业务人员', name: '王乡镇', username: 'town_gov', town: '蓬南镇', dataScope: 4 },
+        { role: 'town_vet_station', roleName: '乡镇畜牧兽医站', name: '陈兽医', username: 'town_vet', town: '蓬南镇', dataScope: 4 }
+      ],
+      towns: ['蓬南镇','大石镇','吉星镇','板桥乡','新会镇','明月镇','任隆镇','宝梵镇'],
+      stockData: {
+        month: { labels:['2025-04','2025-05','2025-06','2025-07','2025-08','2025-09','2025-10','2025-11','2025-12','2026-01','2026-02','2026-03'], stock:[12450,13200,13800,14100,15200,14800,16000,16500,17200,18100,19000,19800], outbound:[820,950,1100,1050,1250,1180,1400,1350,1550,1480,1680,1750] },
+        quarter: { labels:['2025-Q1','2025-Q2','2025-Q3','2025-Q4','2026-Q1'], stock:[11200,14100,15200,17200,19800], outbound:[2600,3100,3630,4300,4910] },
+        year: { labels:['2023','2024','2025','2026'], stock:[8500,11200,17200,19800], outbound:[8200,10500,13630,4910] }
+      },
+      vaccines: [{name:'猪口蹄疫O型灭活疫苗',qty:12450},{name:'猪瘟活疫苗',qty:9800},{name:'猪繁殖与呼吸综合征活疫苗',qty:7600},{name:'猪圆环病毒灭活疫苗',qty:5200},{name:'猪伪狂犬病活疫苗',qty:3800},{name:'猪细小病毒病灭活疫苗',qty:2100},{name:'猪传染性胃肠炎疫苗',qty:1500},{name:'仔猪副伤寒活疫苗',qty:890},{name:'其他',qty:350}],
+      disposalData: [{method:'生物降解',count:38},{method:'深埋处理',count:24},{method:'焚烧处理',count:16},{method:'好氧堆肥',count:12}],
+      disposalTrend: {labels:['2025-10','2025-11','2025-12','2026-01','2026-02','2026-03'],values:[8,5,12,7,9,6]},
+      inputData: [{type:'兽药使用',count:456},{type:'兽药采购',count:312},{type:'饲料使用',count:687},{type:'饲料采购',count:523}],
+      diseaseDistrib: [{result:'痊愈',count:34},{result:'好转',count:22},{result:'死亡',count:8},{result:'转出治疗',count:5}],
+      diseaseTrend: {labels:['2025-10','2025-11','2025-12','2026-01','2026-02','2026-03'],counts:[5,8,12,7,9,6]},
+      salesMonthly: {labels:['2025-10','2025-11','2025-12','2026-01','2026-02','2026-03'],qtys:[1250,1480,1680,1350,1580,1720]},
+      salesDest: [{dest:'本县屠宰场',qty:4580},{dest:'外县屠宰场',qty:2340},{dest:'农贸市场',qty:1120},{dest:'超市直供',qty:680},{dest:'其他',qty:480}],
+      enterprises: ['蓬南鑫源养殖场','大石家和农场','吉星绿源养猪合作社','板桥丰收散养场','新会现代养殖有限公司','明月兴旺家庭农场','任隆牧业散养专业户','宝梵金猪养殖园'],
+      catLabels: ['养殖信息','繁育信息','断奶信息','入栏信息','转栏信息','出栏信息','免疫记录','消毒记录','防疫监测','兽药购进','兽药使用','饲料购进','饲料使用','疾病诊疗','病死处理','粪污处理','生产记录','销售记录'],
+      filingData: [
+        [128,96,64,45,32,87,234,156,12,67,89,134,156,8,5,48,96,76],
+        [56,34,22,18,15,41,98,0,6,23,34,67,78,3,2,19,45,33],
+        [89,67,43,28,21,63,145,78,9,45,56,89,112,6,4,34,67,51],
+        [23,15,8,0,5,19,42,28,3,12,0,34,41,1,0,0,22,17],
+        [210,178,134,89,67,156,423,267,23,112,145,234,278,15,9,89,178,134],
+        [34,0,0,12,8,28,67,45,4,18,22,45,52,2,1,12,31,24],
+        [18,12,7,5,0,14,32,0,2,8,9,23,27,0,0,0,16,12],
+        [167,134,89,67,54,123,345,198,18,89,112,178,201,12,7,67,145,112]
+      ]
+    },
+    currentRole: 'county_admin',
+    filter: { startTime: '', endTime: '', town: '', entName: '' },
+    stockGran: 'month',
+    tableOpen: { stock: false, immunity: false, disposal: false, input: false, disease: false, sales: false },
+    charts: {},
+    toast: { show: false, msg: '', type: 'info' },
+
+    currentUser() { return this.MOCK_DATA.users.find(u => u.role === this.currentRole) || this.MOCK_DATA.users[0]; },
+    isCounty() { return ['county_admin','county_staff'].includes(this.currentRole); },
+
+    onRoleChange() { this.showToast('已切换至：' + this.currentUser().roleName, 'info'); },
+
+    doQuery() {
+      if (this.filter.startTime && this.filter.endTime && this.filter.startTime > this.filter.endTime) {
+        this.showToast('开始时间不能晚于结束时间', 'error'); return;
+      }
+      this.renderAllCharts();
+      this.showToast('统计数据已刷新', 'info');
+    },
+
+    resetFilter() {
+      const end = new Date().toISOString().split('T')[0];
+      const start = new Date(new Date().setFullYear(new Date().getFullYear()-1)).toISOString().split('T')[0];
+      this.filter = { startTime: start, endTime: end, town: '', entName: '' };
+      this.doQuery();
+    },
+
+    renderStockChart() {
+      const d = this.MOCK_DATA.stockData[this.stockGran];
+      if (this.charts.stock) this.charts.stock.destroy();
+      const ctx = document.getElementById('stockChart').getContext('2d');
+      this.charts.stock = new Chart(ctx, {
+        type: 'line',
+        data: { labels: d.labels, datasets: [
+          { label:'存栏量(头)', data:d.stock, borderColor:'#1677ff', backgroundColor:'rgba(22,119,255,0.08)', tension:0.3, fill:true, pointRadius:4 },
+          { label:'出栏量(头)', data:d.outbound, borderColor:'#52c41a', backgroundColor:'rgba(82,196,26,0.08)', tension:0.3, fill:true, pointRadius:4 }
+        ] },
+        options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'top'},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y.toLocaleString()} 头`}}}, scales:{y:{beginAtZero:false,ticks:{callback:v=>v.toLocaleString()}}} }
+      });
+    },
+
+    renderImmunityChart() {
+      if (this.charts.immunity) this.charts.immunity.destroy();
+      const ctx = document.getElementById('immunityChart').getContext('2d');
+      const d = this.MOCK_DATA.vaccines;
+      this.charts.immunity = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: d.map(v => v.name.length>10?v.name.slice(0,10)+'…':v.name), datasets: [{ label:'免疫数量(头/只)', data:d.map(v=>v.qty), backgroundColor:'#1677ff', borderRadius:4 }] },
+        options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},tooltip:{callbacks:{title:items=>d[items[0].dataIndex].name,label:c=>`免疫数量: ${c.parsed.y.toLocaleString()} 头/只`}}}, scales:{y:{beginAtZero:true,ticks:{callback:v=>v.toLocaleString()}}} }
+      });
+    },
+
+    renderDisposalCharts() {
+      if (this.charts.disposalPie) this.charts.disposalPie.destroy();
+      const ctx1 = document.getElementById('disposalPie').getContext('2d');
+      this.charts.disposalPie = new Chart(ctx1, {
+        type: 'pie',
+        data: { labels:this.MOCK_DATA.disposalData.map(d=>d.method), datasets:[{data:this.MOCK_DATA.disposalData.map(d=>d.count),backgroundColor:['#1677ff','#52c41a','#fa8c16','#f5222d']}] },
+        options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>`${c.label}: ${c.parsed} 条`}}} }
+      });
+      if (this.charts.disposalLine) this.charts.disposalLine.destroy();
+      const ctx2 = document.getElementById('disposalLine').getContext('2d');
+      this.charts.disposalLine = new Chart(ctx2, {
+        type: 'line',
+        data: { labels:this.MOCK_DATA.disposalTrend.labels, datasets:[{label:'病死数量(头/只)',data:this.MOCK_DATA.disposalTrend.values,borderColor:'#f5222d',backgroundColor:'rgba(245,34,45,0.1)',tension:0.3,fill:true,pointRadius:4}] },
+        options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'top'}} }
+      });
+    },
+
+    renderInputChart() {
+      if (this.charts.input) this.charts.input.destroy();
+      const ctx = document.getElementById('inputChart').getContext('2d');
+      this.charts.input = new Chart(ctx, {
+        type: 'bar',
+        data: { labels:this.MOCK_DATA.inputData.map(d=>d.type), datasets:[{label:'记录数(条)',data:this.MOCK_DATA.inputData.map(d=>d.count),backgroundColor:['#1677ff','#52c41a','#fa8c16','#722ed1'],borderRadius:4}] },
+        options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`记录数: ${c.parsed.y} 条`}}}, scales:{y:{beginAtZero:true}} }
+      });
+    },
+
+    renderDiseaseCharts() {
+      if (this.charts.diseasePie) this.charts.diseasePie.destroy();
+      const ctx1 = document.getElementById('diseasePie').getContext('2d');
+      this.charts.diseasePie = new Chart(ctx1, {
+        type: 'pie',
+        data: { labels:this.MOCK_DATA.diseaseDistrib.map(d=>d.result), datasets:[{data:this.MOCK_DATA.diseaseDistrib.map(d=>d.count),backgroundColor:['#52c41a','#1677ff','#f5222d','#fa8c16']}] },
+        options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>`${c.label}: ${c.parsed} 条`}}} }
+      });
+      if (this.charts.diseaseLine) this.charts.diseaseLine.destroy();
+      const ctx2 = document.getElementById('diseaseLine').getContext('2d');
+      this.charts.diseaseLine = new Chart(ctx2, {
+        type: 'line',
+        data: { labels:this.MOCK_DATA.diseaseTrend.labels, datasets:[{label:'诊疗记录数(条)',data:this.MOCK_DATA.diseaseTrend.counts,borderColor:'#f5222d',backgroundColor:'rgba(245,34,45,0.1)',tension:0.3,fill:true,pointRadius:4}] },
+        options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'top'}} }
+      });
+    },
+
+    renderSalesCharts() {
+      if (this.charts.salesBar) this.charts.salesBar.destroy();
+      const ctx1 = document.getElementById('salesBar').getContext('2d');
+      this.charts.salesBar = new Chart(ctx1, {
+        type: 'bar',
+        data: { labels:this.MOCK_DATA.salesMonthly.labels, datasets:[{label:'销售数量(头)',data:this.MOCK_DATA.salesMonthly.qtys,backgroundColor:'#1677ff',borderRadius:4}] },
+        options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`销售数量: ${c.parsed.y.toLocaleString()} 头`}}} }
+      });
+      if (this.charts.salesPie) this.charts.salesPie.destroy();
+      const ctx2 = document.getElementById('salesPie').getContext('2d');
+      this.charts.salesPie = new Chart(ctx2, {
+        type: 'pie',
+        data: { labels:this.MOCK_DATA.salesDest.map(d=>d.dest), datasets:[{data:this.MOCK_DATA.salesDest.map(d=>d.qty),backgroundColor:['#1677ff','#52c41a','#fa8c16','#722ed1','#8c8c8c']}] },
+        options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>`${c.label}: ${c.parsed.toLocaleString()} 头`}}} }
+      });
+    },
+
+    filingTableHead() {
+      let h = '<tr><th>企业名称</th>';
+      this.MOCK_DATA.catLabels.forEach(c => { h += `<th>${c}</th>`; });
+      h += '<th>合计</th></tr>';
+      return h;
+    },
+
+    filingTableBody() {
+      const data = this.MOCK_DATA.filingData;
+      const ents = this.MOCK_DATA.enterprises;
+      function hmClass(v) { if(v===0) return 'hm-0'; if(v<=5) return 'hm-1'; if(v<=20) return 'hm-2'; if(v<=50) return 'hm-3'; return 'hm-4'; }
+      let html = '';
+      ents.forEach((e, ei) => {
+        const row = data[ei];
+        const total = row.reduce((s,v)=>s+v, 0);
+        html += `<tr><td>${e}</td>`;
+        row.forEach(v => { html += `<td class="${hmClass(v)}">${v}</td>`; });
+        html += `<td class="hm-total">${total}</td></tr>`;
+      });
+      // 合计行
+      html += '<tr><td style="font-weight:600;background:#f5f5f5;">合计</td>';
+      this.MOCK_DATA.catLabels.forEach((_, ci) => {
+        const sum = ents.reduce((s, _, ei) => s + data[ei][ci], 0);
+        html += `<td class="hm-total">${sum}</td>`;
+      });
+      const grand = data.flat().reduce((s,v)=>s+v, 0);
+      html += `<td class="hm-total" style="font-weight:700;">${grand}</td></tr>`;
+      return html;
+    },
+
+    renderAllCharts() {
+      this.$nextTick(() => {
+        this.renderStockChart();
+        this.renderImmunityChart();
+        this.renderDisposalCharts();
+        this.renderInputChart();
+        this.renderDiseaseCharts();
+        this.renderSalesCharts();
+      });
+    },
+
+    exportCard(name) {
+      const ts = new Date().toISOString().replace(/[-:T]/g,'').slice(0,15);
+      this.showToast(`导出成功：${name}_${ts}.xlsx`, 'success');
+    },
+
+    exportChart(name) {
+      const ts = new Date().toISOString().replace(/[-:T]/g,'').slice(0,15);
+      this.showToast(`图表导出成功：${name}_${ts}.png`, 'success');
+    },
+
+    exportReport() {
+      const s = this.filter.startTime || '2025-03-09';
+      const e = this.filter.endTime || '2026-03-09';
+      const ts = new Date().toISOString().replace(/[-:T]/g,'').slice(0,15);
+      this.showToast(`导出成功：档案统计分析_${s}至${e}_${ts}.xlsx`, 'success');
+    },
+
+    showToast(msg, type = 'info') {
+      this.toast = { show: true, msg, type };
+      setTimeout(() => { this.toast.show = false; }, 3000);
+    },
+
+    init() {
+      const end = new Date().toISOString().split('T')[0];
+      const start = new Date(new Date().setFullYear(new Date().getFullYear()-1)).toISOString().split('T')[0];
+      this.filter.startTime = start;
+      this.filter.endTime = end;
+      this.renderAllCharts();
+    }
+  };
+}
+</script>
+</body>
+</html>

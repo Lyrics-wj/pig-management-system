@@ -1,0 +1,718 @@
+<!--
+  功能名称：生猪知识讲堂后台管理-数据分析
+  对应PRD：doc_prd/WEB/生猪知识讲堂/后台管理/WEB-生猪知识讲堂后台管理-数据分析.prd.md
+  所属端口：生猪知识讲堂后台管理系统（监管端）
+  所属模块：概览看板、用户分析、课程分析、内容分析、活动分析
+  制作日期：2026-03-06
+  最后更新：2026-03-06
+  角色说明：县级管理员(county_admin)、县级业务人员(county_staff)
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数据分析 - 生猪知识讲堂后台</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  [x-cloak] { display: none !important; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f4f8; color: #1e293b; }
+  .sidebar { width: 220px; background: linear-gradient(180deg, #0f4c2a 0%, #1a6e3a 60%, #166534 100%); display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-brand { padding: 20px 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .sidebar-brand-icon { width: 36px; height: 36px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.25); }
+  .sidebar-group-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: rgba(255,255,255,0.4); text-transform: uppercase; padding: 12px 16px 4px; }
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 9px 16px; font-size: 13.5px; color: rgba(255,255,255,0.7); cursor: pointer; transition: all 0.15s ease; margin: 1px 8px; border-radius: 8px; }
+  .sidebar-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .sidebar-item.active { background: rgba(255,255,255,0.18); color: #fff; font-weight: 600; box-shadow: inset 3px 0 0 #86efac; }
+  .sidebar-item .si-icon { width: 16px; text-align: center; opacity: 0.85; }
+  .sidebar-user { padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.1); }
+  .sidebar-user-avatar { width: 30px; height: 30px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; }
+  .btn-primary { display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #16a34a, #15803d); color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 13.5px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; box-shadow: 0 1px 3px rgba(22,163,74,0.3); }
+  .btn-primary:hover { background: linear-gradient(135deg, #15803d, #166534); box-shadow: 0 4px 12px rgba(22,163,74,0.35); transform: translateY(-1px); }
+  .btn-secondary { display: inline-flex; align-items: center; gap: 6px; background: #fff; color: #475569; padding: 8px 14px; border-radius: 8px; font-size: 13.5px; font-weight: 500; cursor: pointer; border: 1px solid #cbd5e1; transition: all 0.15s; }
+  .btn-secondary:hover { background: #f8fafc; border-color: #94a3b8; }
+  .act-btn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid transparent; transition: all 0.15s; white-space: nowrap; }
+  .act-edit   { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; } .act-edit:hover   { background: #dbeafe; }
+  .act-stop   { background: #fffbeb; color: #d97706; border-color: #fde68a; } .act-stop:hover   { background: #fef3c7; }
+  .act-start  { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; } .act-start:hover  { background: #dcfce7; }
+  .act-delete { background: #fef2f2; color: #dc2626; border-color: #fecaca; } .act-delete:hover { background: #fee2e2; }
+  .act-publish{ background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; } .act-publish:hover{ background: #dcfce7; }
+  .act-down   { background: #fffbeb; color: #d97706; border-color: #fde68a; } .act-down:hover   { background: #fef3c7; }
+  .act-review { background: #faf5ff; color: #7c3aed; border-color: #ddd6fe; } .act-review:hover { background: #ede9fe; }
+  .act-pass   { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; } .act-pass:hover   { background: #dcfce7; }
+  .act-reject { background: #fef2f2; color: #dc2626; border-color: #fecaca; } .act-reject:hover { background: #fee2e2; }
+  .act-view   { background: #f0f9ff; color: #0284c7; border-color: #bae6fd; } .act-view:hover   { background: #e0f2fe; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-size: 11.5px; font-weight: 500; }
+  .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; display: inline-block; }
+  .badge-success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; } .badge-success::before { background: #22c55e; }
+  .badge-warning { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; } .badge-warning::before { background: #f59e0b; }
+  .badge-danger  { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; } .badge-danger::before  { background: #ef4444; }
+  .badge-gray    { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; } .badge-gray::before    { background: #94a3b8; }
+  .badge-blue    { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; } .badge-blue::before    { background: #3b82f6; }
+  .badge-purple  { background: #faf5ff; color: #7c3aed; border: 1px solid #ddd6fe; } .badge-purple::before  { background: #8b5cf6; }
+  .form-label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 5px; }
+  .form-input { width: 100%; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; font-size: 13.5px; color: #1e293b; background: #fff; transition: border-color 0.15s, box-shadow 0.15s; outline: none; }
+  .form-input:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.12); }
+  .form-select { width: 100%; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; font-size: 13.5px; background: #fff; outline: none; cursor: pointer; transition: border-color 0.15s; }
+  .form-select:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.12); }
+  .form-error { font-size: 11.5px; color: #ef4444; margin-top: 4px; }
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table thead tr { background: #f8fafc; border-bottom: 2px solid #e8edf2; }
+  .table-th { padding: 11px 14px; text-align: left; font-size: 11.5px; font-weight: 700; color: #64748b; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; }
+  .table-td { padding: 12px 14px; font-size: 13.5px; color: #374151; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+  .data-table tbody tr { transition: background 0.12s; }
+  .data-table tbody tr:hover { background: #f8fafc; }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+  .filter-bar { background: #fff; border-radius: 12px; padding: 14px 18px; border: 1px solid #e8edf2; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .filter-select { border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 6px 10px; font-size: 13px; outline: none; background: #fff; color: #374151; cursor: pointer; transition: border-color 0.15s; }
+  .filter-select:focus { border-color: #16a34a; }
+  .filter-input { border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 6px 10px; font-size: 13px; outline: none; color: #374151; transition: border-color 0.15s; }
+  .filter-input:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.1); }
+  .content-card { background: #fff; border-radius: 12px; border: 1px solid #e8edf2; box-shadow: 0 1px 3px rgba(0,0,0,0.04); overflow: hidden; }
+  .stat-card { background: #fff; border-radius: 12px; padding: 16px 20px; border: 1px solid #e8edf2; box-shadow: 0 1px 3px rgba(0,0,0,0.04); transition: transform 0.2s, box-shadow 0.2s; }
+  .stat-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.45); backdrop-filter: blur(3px); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .modal-box { background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); width: 100%; max-width: 480px; animation: modal-in 0.2s ease; }
+  .modal-box-lg { background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; animation: modal-in 0.2s ease; }
+  .modal-box-xl { background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); width: 100%; max-width: 860px; max-height: 90vh; overflow-y: auto; animation: modal-in 0.2s ease; }
+  @keyframes modal-in { from { opacity: 0; transform: translateY(-12px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid #f1f5f9; }
+  .modal-header h3 { font-size: 16px; font-weight: 700; color: #0f172a; }
+  .modal-close { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; color: #94a3b8; transition: all 0.15s; background: none; border: none; }
+  .modal-close:hover { background: #f1f5f9; color: #475569; }
+  .modal-body { padding: 20px 22px; }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 22px; border-top: 1px solid #f1f5f9; background: #f8fafc; border-radius: 0 0 16px 16px; }
+  .page-btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; font-size: 13px; cursor: pointer; border: 1px solid #e2e8f0; color: #475569; background: #fff; transition: all 0.15s; }
+  .page-btn:hover:not(:disabled) { background: #f0fdf4; border-color: #86efac; color: #16a34a; }
+  .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .section-title { font-size: 18px; font-weight: 700; color: #0f172a; }
+  .section-sub { font-size: 13px; color: #64748b; margin-top: 2px; }
+  .tab-pill { padding: 5px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 500; cursor: pointer; border: 1.5px solid #e2e8f0; color: #64748b; background: #fff; transition: all 0.15s; }
+  .tab-pill:hover { border-color: #86efac; color: #16a34a; }
+  .tab-pill.active-all    { background: #1e293b; color: #fff; border-color: #1e293b; }
+  .tab-pill.active-warn   { background: #f59e0b; color: #fff; border-color: #f59e0b; }
+  .tab-pill.active-ok     { background: #16a34a; color: #fff; border-color: #16a34a; }
+  .tab-pill.active-danger { background: #ef4444; color: #fff; border-color: #ef4444; }
+  .tab-pill.active-blue   { background: #2563eb; color: #fff; border-color: #2563eb; }
+  .star-filled { color: #f59e0b; } .star-empty { color: #e2e8f0; }
+</style>
+
+</head>
+<body class="bg-gray-50 min-h-screen" x-data="app()" x-cloak>
+
+<script>
+const MOCK_DATA = {
+  currentUser: { nick_name: '李管理员', roleName: '县级管理员' },
+
+  overview: {
+    user_total: 1286, user_today: 23,
+    course_total: 18, article_total: 56, post_total: 95, question_total: 134,
+    learn_today: 389, learn_total: 15670,
+    active_trainings: 3, enrollment_total: 456,
+    trend_7d: [
+      { date: '02-28', count: 15 }, { date: '03-01', count: 18 }, { date: '03-02', count: 22 },
+      { date: '03-03', count: 19 }, { date: '03-04', count: 25 }, { date: '03-05', count: 21 }, { date: '03-06', count: 23 }
+    ],
+    trend_30d: [
+      { date: '02-06', count: 12 }, { date: '02-07', count: 15 }, { date: '02-08', count: 18 },
+      { date: '02-09', count: 14 }, { date: '02-10', count: 20 }, { date: '02-11', count: 16 },
+      { date: '02-12', count: 22 }, { date: '02-13', count: 19 }, { date: '02-14', count: 28 },
+      { date: '02-15', count: 24 }, { date: '02-16', count: 17 }, { date: '02-17', count: 21 },
+      { date: '02-18', count: 19 }, { date: '02-19', count: 23 }, { date: '02-20', count: 20 },
+      { date: '02-21', count: 15 }, { date: '02-22', count: 18 }, { date: '02-23', count: 22 },
+      { date: '02-24', count: 25 }, { date: '02-25', count: 20 }, { date: '02-26', count: 17 },
+      { date: '02-27', count: 19 }, { date: '02-28', count: 15 }, { date: '03-01', count: 18 },
+      { date: '03-02', count: 22 }, { date: '03-03', count: 19 }, { date: '03-04', count: 25 },
+      { date: '03-05', count: 21 }, { date: '03-06', count: 23 }, { date: '03-07', count: 0 }
+    ],
+  },
+
+  userSource: { platform: 234, kc_portal: 1052 },
+  activeUsers: [
+    { nick_name: '张大山', learn_hours: 48.5, post_count: 32, question_count: 15 },
+    { nick_name: '李二牛', learn_hours: 42.0, post_count: 28, question_count: 8 },
+    { nick_name: '王小明', learn_hours: 38.5, post_count: 45, question_count: 22 },
+    { nick_name: '赵五', learn_hours: 35.0, post_count: 19, question_count: 6 },
+    { nick_name: '孙六', learn_hours: 31.5, post_count: 23, question_count: 11 },
+  ],
+
+  hotCourses: [
+    { name: '非洲猪瘟综合防控技术', learn_count: 2089 },
+    { name: '生猪标准化养殖技术全程管理', learn_count: 1245 },
+    { name: '养猪政策法规解读', learn_count: 876 },
+    { name: '生猪饲料配方与营养管理', learn_count: 543 },
+    { name: '生猪环保养殖与粪污处理', learn_count: 320 },
+  ],
+
+  scoreCourses: [
+    { name: '非洲猪瘟综合防控技术', score: 4.9, review_count: 156, learn_count: 2089 },
+    { name: '生猪标准化养殖技术全程管理', score: 4.8, review_count: 89, learn_count: 1245 },
+    { name: '生猪饲料配方与营养管理', score: 4.6, review_count: 62, learn_count: 876 },
+    { name: '生猪环保养殖与粪污处理', score: 4.5, review_count: 38, learn_count: 543 },
+    { name: '养猪政策法规解读', score: 4.3, review_count: 25, learn_count: 320 },
+  ],
+
+  policyRank: [
+    { title: '2026年生猪养殖补贴政策解读', read_count: 3456, publish_time: '2026-01-10' },
+    { title: '非洲猪瘟防控政策更新通知', read_count: 2890, publish_time: '2026-01-20' },
+    { title: '蓬溪县生猪养殖规范化管理实施意见', read_count: 2234, publish_time: '2025-12-15' },
+  ],
+
+  articleRank: [
+    { title: '2026年生猪市场行情分析与展望', read_count: 1580, publish_time: '2026-02-01' },
+    { title: '非洲猪瘟疫苗研发最新进展', read_count: 2345, publish_time: '2026-02-05' },
+    { title: '四川省生猪产业发展规划解读', read_count: 1234, publish_time: '2026-02-15' },
+  ],
+
+  postRank: [
+    { title: '新手养猪一年总结：踩过的坑和收获', reply_count: 67, create_time: '2026-02-20' },
+    { title: '关于生猪夏季降温的几点经验分享', reply_count: 42, create_time: '2026-02-22' },
+    { title: '求助：猪突然出现腹泻症状怎么处理', reply_count: 28, create_time: '2026-02-18' },
+  ],
+
+  activityParticipation: [
+    { name: '2026年春季生猪养殖技术培训班', enrollment: 68, approved: 60, rate: '88.2%' },
+    { name: '非洲猪瘟生物安全防控在线培训', enrollment: 145, approved: 138, rate: '95.2%' },
+    { name: '养猪户经验交流座谈会', enrollment: 48, approved: 45, rate: '93.8%' },
+  ],
+
+  activityTypeDistrib: [
+    { type: '专题培训', count: 8 },
+    { type: '技术指导', count: 5 },
+    { type: '政策宣讲', count: 4 },
+    { type: '经验交流', count: 3 },
+  ],
+};
+
+function app() {
+  return {
+    activeTab: 'overview',
+    overviewPeriod: '7',
+    userTrendDim: 'day',
+    learnTrendDim: 'day',
+
+    charts: {},
+
+    switchTab(tab) {
+      this.activeTab = tab;
+      this.$nextTick(() => {
+        if (tab==='overview') this.initOverviewChart();
+        if (tab==='user') { this.initUserTrendChart(); this.initUserSourceChart(); }
+        if (tab==='course') { this.initHotCourseChart(); this.initLearnTrendChart(); }
+        if (tab==='activity') this.initActivityTypeChart();
+      });
+    },
+
+    initOverviewChart() {
+      this.destroyChart('overviewTrendChart');
+      const d = this.overviewPeriod==='7' ? MOCK_DATA.overview.trend_7d : MOCK_DATA.overview.trend_30d;
+      const ctx = document.getElementById('overviewTrendChart');
+      if (!ctx) return;
+      this.charts.overviewTrend = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: d.map(i=>i.date),
+          datasets: [{ label: '新增用户', data: d.map(i=>i.count), borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,0.08)', tension: 0.4, fill: true, pointRadius: 3 }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 5 } } } }
+      });
+    },
+
+    initUserTrendChart() {
+      this.destroyChart('userTrendChart');
+      const data = [12, 15, 18, 22, 19, 25, 23];
+      const labels = ['02-28','03-01','03-02','03-03','03-04','03-05','03-06'];
+      const ctx = document.getElementById('userTrendChart');
+      if (!ctx) return;
+      this.charts.userTrend = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets: [{ label: '新增用户', data, borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,0.08)', tension: 0.4, fill: true, pointRadius: 4 }] },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+      });
+    },
+
+    initUserSourceChart() {
+      this.destroyChart('userSourceChart');
+      const ctx = document.getElementById('userSourceChart');
+      if (!ctx) return;
+      this.charts.userSource = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['独立注册用户(kc_portal)', '平台用户(platform)'],
+          datasets: [{ data: [MOCK_DATA.userSource.kc_portal, MOCK_DATA.userSource.platform], backgroundColor: ['#16a34a', '#0ea5e9'], borderWidth: 0 }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } } }
+      });
+    },
+
+    initHotCourseChart() {
+      this.destroyChart('hotCourseChart');
+      const ctx = document.getElementById('hotCourseChart');
+      if (!ctx) return;
+      const courses = MOCK_DATA.hotCourses;
+      this.charts.hotCourse = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: courses.map(c=>c.name.length>12 ? c.name.substring(0,12)+'...' : c.name),
+          datasets: [{ label: '学习人数', data: courses.map(c=>c.learn_count), backgroundColor: 'rgba(22,163,74,0.7)', borderRadius: 6 }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } }, indexAxis: 'y' }
+      });
+    },
+
+    initLearnTrendChart() {
+      this.destroyChart('learnTrendChart');
+      const ctx = document.getElementById('learnTrendChart');
+      if (!ctx) return;
+      const labels = ['02-28','03-01','03-02','03-03','03-04','03-05','03-06'];
+      const data = [3600, 4200, 5100, 3900, 6300, 5400, 4800];
+      this.charts.learnTrend = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets: [{ label: '学习时长(分钟)', data: data.map(d=>Math.round(d/60)), borderColor: '#0ea5e9', backgroundColor: 'rgba(14,165,233,0.08)', tension: 0.4, fill: true, pointRadius: 4 }] },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+      });
+    },
+
+    initActivityTypeChart() {
+      this.destroyChart('activityTypeChart');
+      const ctx = document.getElementById('activityTypeChart');
+      if (!ctx) return;
+      this.charts.activityType = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: MOCK_DATA.activityTypeDistrib.map(d=>d.type),
+          datasets: [{ data: MOCK_DATA.activityTypeDistrib.map(d=>d.count), backgroundColor: ['#16a34a','#0ea5e9','#f59e0b','#8b5cf6'], borderWidth: 0 }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } } }
+      });
+    },
+
+    destroyChart(id) {
+      if (this.charts[id.replace('Chart','')]) {
+        try { this.charts[id.replace('Chart','')].destroy(); } catch(e) {}
+      }
+      const key = Object.keys(this.charts).find(k => {
+        const el = document.getElementById(id);
+        return el && el._chart === this.charts[k];
+      });
+      if (key) {
+        try { this.charts[key].destroy(); } catch(e) {}
+      }
+      Chart.getChart(id) && Chart.getChart(id).destroy();
+    },
+
+    init() {
+      this.$nextTick(() => this.initOverviewChart());
+    },
+
+    MOCK_DATA,
+  };
+}
+</script>
+
+<div class="flex h-screen overflow-hidden">
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="flex items-center gap-3">
+        <div class="sidebar-brand-icon">
+          <i class="fas fa-chart-line text-white" style="font-size:15px"></i>
+        </div>
+        <div>
+          <div style="font-size:13.5px;font-weight:700;color:#fff;line-height:1.2">知识讲堂</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px">数据分析</div>
+        </div>
+      </div>
+    </div>
+    <nav style="flex:1;padding:12px 0;overflow-y:auto">
+      <div class="sidebar-group-label">数据看板</div>
+      <div class="sidebar-item" :class="activeTab==='overview' ? 'active' : ''" @click="switchTab('overview')">
+        <i class="fas fa-tachometer-alt si-icon"></i> 概览
+      </div>
+      <div class="sidebar-item" :class="activeTab==='user' ? 'active' : ''" @click="switchTab('user')">
+        <i class="fas fa-users si-icon"></i> 用户分析
+      </div>
+      <div class="sidebar-item" :class="activeTab==='course' ? 'active' : ''" @click="switchTab('course')">
+        <i class="fas fa-play-circle si-icon"></i> 课程分析
+      </div>
+      <div class="sidebar-item" :class="activeTab==='content' ? 'active' : ''" @click="switchTab('content')">
+        <i class="fas fa-newspaper si-icon"></i> 内容分析
+      </div>
+      <div class="sidebar-item" :class="activeTab==='activity' ? 'active' : ''" @click="switchTab('activity')">
+        <i class="fas fa-calendar-check si-icon"></i> 活动分析
+      </div>
+      <div class="sidebar-group-label" style="margin-top:16px">系统</div>
+      <div class="sidebar-item" @click="window.open('../../index-生猪知识讲堂.html','_blank')" style="cursor:pointer">
+        <i class="fas fa-th-large si-icon"></i> 返回导航
+      </div>
+    </nav>
+    <div class="sidebar-user">
+      <div class="flex items-center gap-2">
+        <div class="sidebar-user-avatar">
+          <i class="fas fa-user" style="font-size:11px"></i>
+        </div>
+        <div>
+          <div style="font-size:12.5px;font-weight:600;color:#fff" x-text="MOCK_DATA.currentUser.nick_name"></div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.5)">县级管理员</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 主内容 -->
+  <main class="flex-1 overflow-auto" style="background:#f0f4f8">
+  <div style="padding:24px">
+
+  <!-- SECTION START: 概览看板 -->
+  <div id="feature-overview" x-show="activeTab==='overview'">
+    <!-- 统计卡片第一行 -->
+    <div class="grid grid-cols-4 gap-4 mb-4">
+      <div class="stat-card" style="display:flex;align-items:flex-start;gap:14px">
+        <div style="width:40px;height:40px;background:#dcfce7;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-bottom:12px"><i class="fas fa-users text-green-600"></i></div>
+        <div>
+          <div style="font-size:26px;font-weight:700;color:#0f172a;margin-bottom:2px" x-text="MOCK_DATA.overview.user_total.toLocaleString()"></div>
+          <div style="font-size:12px;color:#64748b;font-weight:500">注册用户总数</div>
+          <div style="font-size:11.5px;color:#16a34a;margin-top:4px">↑ 今日新增 <span x-text="MOCK_DATA.overview.user_today"></span></div>
+        </div>
+      </div>
+      <div class="stat-card" style="display:flex;align-items:flex-start;gap:14px">
+        <div style="width:40px;height:40px;background:#dbeafe;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-bottom:12px"><i class="fas fa-play-circle text-blue-600"></i></div>
+        <div>
+          <div style="font-size:26px;font-weight:700;color:#0f172a;margin-bottom:2px" x-text="MOCK_DATA.overview.course_total"></div>
+          <div style="font-size:12px;color:#64748b;font-weight:500">课程总数</div>
+          <div style="font-size:11.5px;color:#2563eb;margin-top:4px">已发布课程</div>
+        </div>
+      </div>
+      <div class="stat-card" style="display:flex;align-items:flex-start;gap:14px">
+        <div style="width:40px;height:40px;background:#ede9fe;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-bottom:12px"><i class="fas fa-comments text-purple-600"></i></div>
+        <div>
+          <div style="font-size:26px;font-weight:700;color:#0f172a;margin-bottom:2px" x-text="MOCK_DATA.overview.post_total"></div>
+          <div style="font-size:12px;color:#64748b;font-weight:500">论坛帖子总数</div>
+          <div style="font-size:11.5px;color:#7c3aed;margin-top:4px">社区活跃度</div>
+        </div>
+      </div>
+      <div class="stat-card" style="display:flex;align-items:flex-start;gap:14px">
+        <div style="width:40px;height:40px;background:#fef3c7;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-bottom:12px"><i class="fas fa-newspaper text-amber-600"></i></div>
+        <div>
+          <div style="font-size:26px;font-weight:700;color:#0f172a;margin-bottom:2px" x-text="MOCK_DATA.overview.article_total"></div>
+          <div style="font-size:12px;color:#64748b;font-weight:500">行业动态文章</div>
+          <div style="font-size:11.5px;color:#d97706;margin-top:4px">已发布</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 统计卡片第二行 -->
+    <div class="grid grid-cols-4 gap-4 mb-4">
+      <div class="stat-card" style="display:flex;align-items:flex-start;gap:14px">
+        <div style="width:40px;height:40px;background:#e0e7ff;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-bottom:12px"><i class="fas fa-graduation-cap text-indigo-600"></i></div>
+        <div>
+          <div style="font-size:26px;font-weight:700;color:#0f172a;margin-bottom:2px" x-text="MOCK_DATA.overview.learn_today.toLocaleString()"></div>
+          <div style="font-size:12px;color:#64748b;font-weight:500">今日学习人次</div>
+          <div style="font-size:11.5px;color:#4f46e5;margin-top:4px">实时统计</div>
+        </div>
+      </div>
+      <div class="stat-card" style="display:flex;align-items:flex-start;gap:14px">
+        <div style="width:40px;height:40px;background:#ccfbf1;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-bottom:12px"><i class="fas fa-book-open text-teal-600"></i></div>
+        <div>
+          <div style="font-size:26px;font-weight:700;color:#0f172a;margin-bottom:2px" x-text="MOCK_DATA.overview.learn_total.toLocaleString()"></div>
+          <div style="font-size:12px;color:#64748b;font-weight:500">课程总学习人次</div>
+          <div style="font-size:11.5px;color:#0d9488;margin-top:4px">累计数据</div>
+        </div>
+      </div>
+      <div class="stat-card" style="display:flex;align-items:flex-start;gap:14px">
+        <div class="stat-icon bg-red-100"><i class="fas fa-question-circle text-red-600"></i></div>
+        <div>
+          <div style="font-size:26px;font-weight:700;color:#0f172a;margin-bottom:2px" x-text="MOCK_DATA.overview.question_total"></div>
+          <div style="font-size:12px;color:#64748b;font-weight:500">问答问题总数</div>
+          <div class="stat-trend text-red-600">互动活跃</div>
+        </div>
+      </div>
+      <div class="stat-card" style="display:flex;align-items:flex-start;gap:14px">
+        <div style="width:40px;height:40px;background:#ffedd5;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-bottom:12px"><i class="fas fa-calendar-check text-orange-600"></i></div>
+        <div>
+          <div style="font-size:26px;font-weight:700;color:#0f172a;margin-bottom:2px" x-text="MOCK_DATA.overview.enrollment_total"></div>
+          <div style="font-size:12px;color:#64748b;font-weight:500">报名总人次</div>
+          <div style="font-size:11.5px;color:#ea580c;margin-top:4px"><span x-text="MOCK_DATA.overview.active_trainings"></span> 个活动进行中</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 用户注册趋势图 -->
+    <div class="chart-card">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="chart-title mb-0">用户注册趋势</h2>
+        <div class="flex gap-2">
+          <button class="btn-sm px-3 py-1.5 text-xs" :class="overviewPeriod==='7'?'bg-green-600 text-white':'bg-gray-100 text-gray-600 hover:bg-gray-200'" @click="overviewPeriod='7'; initOverviewChart()">近7天</button>
+          <button class="btn-sm px-3 py-1.5 text-xs" :class="overviewPeriod==='30'?'bg-green-600 text-white':'bg-gray-100 text-gray-600 hover:bg-gray-200'" @click="overviewPeriod='30'; initOverviewChart()">近30天</button>
+        </div>
+      </div>
+      <canvas id="overviewTrendChart" height="80"></canvas>
+    </div>
+  </div>
+  <!-- SECTION END: 概览看板 -->
+
+  <!-- SECTION START: 用户分析 -->
+  <div id="feature-user" x-show="activeTab==='user'">
+    <div class="grid grid-cols-2 gap-5 mb-5">
+      <div class="chart-card">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="chart-title mb-0">用户注册趋势</h2>
+          <div class="flex gap-1">
+            <button class="btn-sm px-2 py-1 text-xs" :class="userTrendDim==='day'?'bg-green-600 text-white':'bg-gray-100 text-gray-600'" @click="userTrendDim='day'; initUserTrendChart()">按日</button>
+            <button class="btn-sm px-2 py-1 text-xs" :class="userTrendDim==='week'?'bg-green-600 text-white':'bg-gray-100 text-gray-600'" @click="userTrendDim='week'; initUserTrendChart()">按周</button>
+            <button class="btn-sm px-2 py-1 text-xs" :class="userTrendDim==='month'?'bg-green-600 text-white':'bg-gray-100 text-gray-600'" @click="userTrendDim='month'; initUserTrendChart()">按月</button>
+          </div>
+        </div>
+        <canvas id="userTrendChart" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <h2 class="chart-title">用户来源分布</h2>
+        <div class="flex items-center justify-center">
+          <canvas id="userSourceChart" height="220" style="max-width:280px"></canvas>
+        </div>
+        <div class="grid grid-cols-2 gap-3 mt-3">
+          <div class="bg-green-50 rounded-lg p-3 text-center">
+            <div class="text-xl font-bold text-green-600" x-text="MOCK_DATA.userSource.kc_portal.toLocaleString()"></div>
+            <div class="text-xs text-gray-500">独立注册用户</div>
+          </div>
+          <div class="bg-blue-50 rounded-lg p-3 text-center">
+            <div class="text-xl font-bold text-blue-600" x-text="MOCK_DATA.userSource.platform.toLocaleString()"></div>
+            <div class="text-xs text-gray-500">平台用户</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 活跃用户排行 -->
+    <div class="chart-card">
+      <h2 class="chart-title">活跃用户排行（Top 10）</h2>
+      <table class="w-full">
+        <thead>
+          <tr>
+            <th class="table-th">排名</th>
+            <th class="table-th">昵称</th>
+            <th class="table-th">学习时长</th>
+            <th class="table-th">发帖数</th>
+            <th class="table-th">提问数</th>
+          </tr>
+        </thead>
+        <tbody>
+          <template x-for="(u, idx) in MOCK_DATA.activeUsers" :key="u.nick_name">
+            <tr class="hover:bg-gray-50">
+              <td class="table-td">
+                <div class="rank-num" :class="idx===0?'bg-amber-400 text-white':idx===1?'bg-gray-300 text-gray-700':idx===2?'bg-amber-600 text-white':'bg-gray-100 text-gray-500'" x-text="idx+1"></div>
+              </td>
+              <td class="table-td font-medium" x-text="u.nick_name"></td>
+              <td class="table-td"><span class="font-semibold text-green-600" x-text="u.learn_hours + 'h'"></span></td>
+              <td class="table-td" x-text="u.post_count"></td>
+              <td class="table-td" x-text="u.question_count"></td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <!-- SECTION END: 用户分析 -->
+
+  <!-- SECTION START: 课程分析 -->
+  <div id="feature-course" x-show="activeTab==='course'">
+    <div class="grid grid-cols-2 gap-5 mb-5">
+      <div class="chart-card">
+        <h2 class="chart-title">课程学习热度排行（Top 10）</h2>
+        <canvas id="hotCourseChart" height="250"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="chart-title mb-0">学习时长趋势</h2>
+          <div class="flex gap-1">
+            <button class="btn-sm px-2 py-1 text-xs" :class="learnTrendDim==='day'?'bg-green-600 text-white':'bg-gray-100 text-gray-600'" @click="learnTrendDim='day'; initLearnTrendChart()">按日</button>
+            <button class="btn-sm px-2 py-1 text-xs" :class="learnTrendDim==='week'?'bg-green-600 text-white':'bg-gray-100 text-gray-600'" @click="learnTrendDim='week'; initLearnTrendChart()">按周</button>
+            <button class="btn-sm px-2 py-1 text-xs" :class="learnTrendDim==='month'?'bg-green-600 text-white':'bg-gray-100 text-gray-600'" @click="learnTrendDim='month'; initLearnTrendChart()">按月</button>
+          </div>
+        </div>
+        <canvas id="learnTrendChart" height="250"></canvas>
+      </div>
+    </div>
+
+    <!-- 课程评分排行 -->
+    <div class="chart-card">
+      <h2 class="chart-title">课程评分排行</h2>
+      <table class="w-full">
+        <thead>
+          <tr>
+            <th class="table-th">排名</th>
+            <th class="table-th">课程名称</th>
+            <th class="table-th">评分</th>
+            <th class="table-th">评价数</th>
+            <th class="table-th">学习人数</th>
+          </tr>
+        </thead>
+        <tbody>
+          <template x-for="(c, idx) in MOCK_DATA.scoreCourses" :key="c.name">
+            <tr class="hover:bg-gray-50">
+              <td class="table-td">
+                <div class="rank-num" :class="idx===0?'bg-amber-400 text-white':idx===1?'bg-gray-300 text-gray-700':idx===2?'bg-amber-600 text-white':'bg-gray-100 text-gray-500'" x-text="idx+1"></div>
+              </td>
+              <td class="table-td font-medium" x-text="c.name"></td>
+              <td class="table-td">
+                <div class="flex items-center gap-1.5">
+                  <span class="font-bold text-amber-500 text-lg" x-text="c.score"></span>
+                  <div class="flex">
+                    <template x-for="i in 5" :key="i">
+                      <i class="fas fa-star text-xs" :class="i<=Math.round(c.score)?'text-amber-400':'text-gray-200'"></i>
+                    </template>
+                  </div>
+                </div>
+              </td>
+              <td class="table-td" x-text="c.review_count"></td>
+              <td class="table-td" x-text="c.learn_count.toLocaleString()"></td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <!-- SECTION END: 课程分析 -->
+
+  <!-- SECTION START: 内容分析 -->
+  <div id="feature-content" x-show="activeTab==='content'">
+    <div class="grid grid-cols-3 gap-5">
+      <!-- 政策资讯阅读排行 -->
+      <div class="chart-card">
+        <h2 class="chart-title">政策资讯阅读排行（Top 10）</h2>
+        <div class="space-y-3">
+          <template x-for="(p, idx) in MOCK_DATA.policyRank" :key="p.title">
+            <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+              <div class="rank-num shrink-0" :class="idx===0?'bg-amber-400 text-white':idx===1?'bg-gray-300 text-gray-700':idx===2?'bg-amber-600 text-white':'bg-gray-100 text-gray-500'" x-text="idx+1"></div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium text-gray-800 truncate" x-text="p.title"></div>
+                <div class="text-xs text-gray-400 mt-1 flex items-center gap-2">
+                  <span><i class="fas fa-eye mr-1"></i><span x-text="p.read_count.toLocaleString()"></span> 次阅读</span>
+                  <span x-text="p.publish_time"></span>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- 行业动态阅读排行 -->
+      <div class="chart-card">
+        <h2 class="chart-title">行业动态阅读排行（Top 10）</h2>
+        <div class="space-y-3">
+          <template x-for="(a, idx) in MOCK_DATA.articleRank" :key="a.title">
+            <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+              <div class="rank-num shrink-0" :class="idx===0?'bg-amber-400 text-white':idx===1?'bg-gray-300 text-gray-700':idx===2?'bg-amber-600 text-white':'bg-gray-100 text-gray-500'" x-text="idx+1"></div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium text-gray-800 truncate" x-text="a.title"></div>
+                <div class="text-xs text-gray-400 mt-1 flex items-center gap-2">
+                  <span><i class="fas fa-eye mr-1"></i><span x-text="a.read_count.toLocaleString()"></span> 次阅读</span>
+                  <span x-text="a.publish_time"></span>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- 论坛帖子热度排行 -->
+      <div class="chart-card">
+        <h2 class="chart-title">论坛帖子热度排行（Top 10）</h2>
+        <div class="space-y-3">
+          <template x-for="(p, idx) in MOCK_DATA.postRank" :key="p.title">
+            <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+              <div class="rank-num shrink-0" :class="idx===0?'bg-amber-400 text-white':idx===1?'bg-gray-300 text-gray-700':idx===2?'bg-amber-600 text-white':'bg-gray-100 text-gray-500'" x-text="idx+1"></div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium text-gray-800 truncate" x-text="p.title"></div>
+                <div class="text-xs text-gray-400 mt-1 flex items-center gap-2">
+                  <span><i class="fas fa-reply mr-1"></i><span x-text="p.reply_count"></span> 条回复</span>
+                  <span x-text="p.create_time"></span>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- SECTION END: 内容分析 -->
+
+  <!-- SECTION START: 活动分析 -->
+  <div id="feature-activity" x-show="activeTab==='activity'">
+    <div class="grid grid-cols-2 gap-5">
+      <!-- 培训参与统计表格 -->
+      <div class="chart-card">
+        <h2 class="chart-title">培训活动参与统计</h2>
+        <table class="w-full">
+          <thead>
+            <tr>
+              <th class="table-th">活动名称</th>
+              <th class="table-th">报名数</th>
+              <th class="table-th">通过数</th>
+              <th class="table-th">参与率</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="a in MOCK_DATA.activityParticipation" :key="a.name">
+              <tr class="hover:bg-gray-50">
+                <td class="table-td font-medium max-w-xs truncate text-xs" x-text="a.name"></td>
+                <td class="table-td" x-text="a.enrollment"></td>
+                <td class="table-td text-green-600 font-medium" x-text="a.approved"></td>
+                <td class="table-td">
+                  <div class="flex items-center gap-2">
+                    <div class="flex-1 bg-gray-200 rounded-full h-1.5">
+                      <div class="bg-green-500 h-1.5 rounded-full" :style="'width:' + a.rate"></div>
+                    </div>
+                    <span class="text-xs font-medium text-green-600" x-text="a.rate"></span>
+                  </div>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 活动类型分布饼图 -->
+      <div class="chart-card">
+        <h2 class="chart-title">活动类型分布</h2>
+        <div class="flex items-center justify-center">
+          <canvas id="activityTypeChart" height="260" style="max-width:300px"></canvas>
+        </div>
+        <div class="grid grid-cols-2 gap-2 mt-3">
+          <template x-for="(d, idx) in MOCK_DATA.activityTypeDistrib" :key="d.type">
+            <div class="flex items-center gap-2 bg-gray-50 rounded-lg p-2">
+              <div class="w-3 h-3 rounded-full shrink-0" :class="['bg-green-600','bg-blue-500','bg-amber-500','bg-purple-500'][idx]"></div>
+              <span class="text-xs text-gray-600" x-text="d.type + '：' + d.count + '场'"></span>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- SECTION END: 活动分析 -->
+
+</div>
+  </main>
+</div>
+
+<!-- Toast 提示 -->
+<div style="position:fixed;bottom:24px;right:24px;z-index:100;transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1)"
+  :style="toast.show ? 'opacity:1;transform:translateY(0)' : 'opacity:0;transform:translateY(16px);pointer-events:none'">
+  <div style="display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.12);font-size:13.5px;font-weight:600;color:#fff;min-width:200px"
+    :style="toast.type==='error' ? 'background:linear-gradient(135deg,#ef4444,#dc2626)' : 'background:linear-gradient(135deg,#16a34a,#15803d)'">
+    <div style="width:28px;height:28px;background:rgba(255,255,255,0.2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <i :class="toast.type==='error' ? 'fas fa-times' : 'fas fa-check'" style="font-size:12px"></i>
+    </div>
+    <span x-text="toast.msg"></span>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,1542 @@
+<!--
+  功能名称：检验检疫无害化分析
+  对应PRD：doc_prd/WEB/监管端/决策分析/检验检疫无害化分析/WEB监管端-检验检疫无害化分析.prd.md
+  所属端口：WEB监管端
+  所属模块：决策分析
+  制作日期：2026-03-10
+  最后更新：2026-03-10
+  角色说明：县级管理员(county_admin)、县级业务人员(county_staff)、乡镇政府业务人员(town_gov_staff)、乡镇畜牧兽医站(town_vet_station)
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>检验检疫无害化分析 - 蓬溪县生猪数字化管理平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    /* SHARED STYLES */
+    * { box-sizing: border-box; }
+    body { background: #f0f2f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; margin: 0; min-width: 1280px; }
+
+    /* 顶部导航 */
+    .top-nav { position: fixed; top: 0; left: 0; right: 0; height: 60px; background: #001529; z-index: 100; display: flex; align-items: center; padding: 0 20px; gap: 16px; }
+    .nav-logo { color: #fff; font-size: 16px; font-weight: 600; white-space: nowrap; }
+    .nav-spacer { flex: 1; }
+    .nav-user { color: rgba(255,255,255,0.85); font-size: 13px; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .nav-role-badge { background: #1677ff; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+
+    /* 侧边菜单 */
+    .sidebar { position: fixed; top: 60px; left: 0; bottom: 0; width: 220px; background: #001529; overflow-y: auto; z-index: 90; }
+    .sidebar-menu-item { padding: 12px 20px; color: rgba(255,255,255,0.65); font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all 0.2s; }
+    .sidebar-menu-item:hover { color: #fff; background: rgba(255,255,255,0.08); }
+    .sidebar-menu-item.active { color: #fff; background: #1677ff; }
+    .sidebar-submenu { background: rgba(0,0,0,0.2); }
+    .sidebar-submenu .sidebar-menu-item { padding-left: 40px; font-size: 13px; }
+    .sidebar-group-title { padding: 8px 20px; color: rgba(255,255,255,0.35); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 8px; }
+
+    /* 主内容区 */
+    .main-content { margin-left: 220px; margin-top: 60px; padding: 16px; min-height: calc(100vh - 60px); }
+
+    /* 页面标题栏 */
+    .page-header { background: #fff; border-radius: 8px; padding: 14px 20px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #e8e8e8; }
+    .page-title { font-size: 16px; font-weight: 600; color: #262626; }
+    .breadcrumb { font-size: 12px; color: #8c8c8c; margin-top: 4px; }
+
+    /* 筛选栏 */
+    .filter-bar { background: #fff; border-radius: 8px; padding: 12px 20px; margin-bottom: 12px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; border: 1px solid #e8e8e8; }
+    .filter-label { font-size: 13px; color: #595959; white-space: nowrap; }
+    .filter-select { border: 1px solid #d9d9d9; border-radius: 6px; padding: 5px 10px; font-size: 13px; color: #262626; background: #fff; cursor: pointer; outline: none; }
+    .filter-select:focus { border-color: #1677ff; box-shadow: 0 0 0 2px rgba(22,119,255,0.1); }
+    .granularity-btn { padding: 5px 14px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 13px; cursor: pointer; background: #fff; color: #595959; transition: all 0.2s; }
+    .granularity-btn.active { background: #1677ff; color: #fff; border-color: #1677ff; }
+    .filter-divider { width: 1px; height: 24px; background: #e8e8e8; }
+    .btn-primary { background: #1677ff; color: #fff; border: none; border-radius: 6px; padding: 6px 16px; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
+    .btn-primary:hover { background: #4096ff; }
+    .btn-default { background: #fff; color: #595959; border: 1px solid #d9d9d9; border-radius: 6px; padding: 6px 16px; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
+    .btn-default:hover { border-color: #1677ff; color: #1677ff; }
+    .btn-danger { background: #fff; color: #ff4d4f; border: 1px solid #ff4d4f; border-radius: 6px; padding: 6px 16px; font-size: 13px; cursor: pointer; }
+
+    /* 下拉菜单 */
+    .dropdown { position: relative; display: inline-block; }
+    .dropdown-menu { position: absolute; right: 0; top: 100%; margin-top: 4px; background: #fff; border: 1px solid #e8e8e8; border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,0.12); min-width: 140px; z-index: 200; }
+    .dropdown-item { padding: 10px 16px; font-size: 13px; color: #262626; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    .dropdown-item:hover { background: #f5f5f5; }
+
+    /* 分析卡片 */
+    .analysis-card { background: #fff; border-radius: 8px; border: 1px solid #e8e8e8; margin-bottom: 12px; overflow: hidden; }
+    .card-header { background: #fafafa; border-bottom: 1px solid #e8e8e8; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; }
+    .card-title { font-size: 14px; font-weight: 600; color: #262626; display: flex; align-items: center; gap: 8px; }
+    .card-body { padding: 16px 20px; }
+
+    /* 指标数字卡片 */
+    .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .kpi-card { background: #fafafa; border: 1px solid #e8e8e8; border-radius: 8px; padding: 16px 20px; }
+    .kpi-label { font-size: 12px; color: #8c8c8c; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .kpi-value { font-size: 28px; font-weight: 700; color: #262626; line-height: 1; }
+    .kpi-unit { font-size: 13px; font-weight: 400; color: #8c8c8c; margin-left: 4px; }
+    .kpi-change { font-size: 12px; margin-top: 8px; display: flex; align-items: center; gap: 4px; }
+    .change-up { color: #52c41a; }
+    .change-down { color: #ff4d4f; }
+    .change-neutral { color: #8c8c8c; }
+
+    /* 表格样式 */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .data-table th { background: #fafafa; padding: 10px 12px; text-align: left; color: #595959; font-weight: 600; border-bottom: 1px solid #e8e8e8; white-space: nowrap; }
+    .data-table td { padding: 10px 12px; border-bottom: 1px solid #f0f2f5; color: #262626; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:nth-child(even) td { background: #fafafa; }
+    .data-table tr:hover td { background: #e6f4ff; }
+    .data-table .total-row td { font-weight: 600; background: #f0f7ff !important; }
+
+    /* 表格滚动容器 */
+    .table-scroll { overflow-x: auto; }
+    .table-scroll .data-table { min-width: 600px; }
+    .sticky-col { position: sticky; right: 0; background: #fff; }
+    tr:nth-child(even) .sticky-col { background: #fafafa !important; }
+    tr:hover .sticky-col { background: #e6f4ff !important; }
+    .total-row .sticky-col { background: #f0f7ff !important; }
+
+    /* 状态标签 */
+    .tag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+    .tag-green { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; }
+    .tag-yellow { background: #fffbe6; color: #d48806; border: 1px solid #ffe58f; }
+    .tag-red { background: #fff1f0; color: #cf1322; border: 1px solid #ffa39e; }
+    .tag-blue { background: #e6f4ff; color: #0958d9; border: 1px solid #91caff; }
+    .tag-gray { background: #fafafa; color: #595959; border: 1px solid #d9d9d9; }
+
+    /* 图表容器 */
+    .chart-container { height: 320px; }
+    .chart-container-sm { height: 280px; }
+    .chart-container-lg { height: 380px; }
+
+    /* 可折叠表格 */
+    .collapsible-section { border-top: 1px solid #f0f2f5; }
+    .collapse-toggle { padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: #fafafa; font-size: 13px; color: #595959; border: none; width: 100%; text-align: left; }
+    .collapse-toggle:hover { background: #f0f2f5; }
+
+    /* 弹窗 */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+    .modal-box { background: #fff; border-radius: 10px; box-shadow: 0 8px 32px rgba(0,0,0,0.18); width: 720px; max-width: calc(100vw - 32px); max-height: calc(100vh - 48px); display: flex; flex-direction: column; }
+    .modal-box-sm { width: 500px; }
+    .modal-box-lg { width: 860px; }
+    .modal-header { padding: 16px 24px; border-bottom: 1px solid #e8e8e8; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+    .modal-title { font-size: 15px; font-weight: 600; color: #262626; }
+    .modal-close { background: none; border: none; font-size: 18px; color: #8c8c8c; cursor: pointer; padding: 4px 8px; border-radius: 4px; }
+    .modal-close:hover { color: #262626; background: #f0f2f5; }
+    .modal-body { padding: 20px 24px; overflow-y: auto; flex: 1; }
+    .modal-footer { padding: 12px 24px; border-top: 1px solid #e8e8e8; display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-shrink: 0; }
+
+    /* 上传区域 */
+    .upload-area { border: 2px dashed #d9d9d9; border-radius: 8px; padding: 32px; text-align: center; cursor: pointer; transition: all 0.2s; background: #fafafa; }
+    .upload-area:hover { border-color: #1677ff; background: #e6f4ff; }
+    .upload-icon { font-size: 36px; color: #bfbfbf; margin-bottom: 12px; }
+    .upload-hint { font-size: 13px; color: #8c8c8c; }
+    .upload-hint strong { color: #1677ff; cursor: pointer; }
+
+    /* Tab 页签 */
+    .tab-bar { display: flex; border-bottom: 1px solid #e8e8e8; margin-bottom: 16px; }
+    .tab-item { padding: 10px 20px; font-size: 13px; cursor: pointer; color: #595959; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s; }
+    .tab-item.active { color: #1677ff; border-bottom-color: #1677ff; font-weight: 500; }
+    .tab-item:hover:not(.active) { color: #262626; }
+
+    /* 分页 */
+    .pagination { display: flex; align-items: center; justify-content: flex-end; gap: 6px; padding: 12px 20px; border-top: 1px solid #f0f2f5; }
+    .page-btn { min-width: 32px; height: 32px; border: 1px solid #d9d9d9; border-radius: 6px; background: #fff; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #595959; padding: 0 6px; }
+    .page-btn.active { background: #1677ff; border-color: #1677ff; color: #fff; }
+    .page-btn:hover:not(.active) { border-color: #1677ff; color: #1677ff; }
+    .page-total { font-size: 13px; color: #8c8c8c; }
+
+    /* 加载状态 */
+    .loading-mask { display: flex; align-items: center; justify-content: center; min-height: 200px; flex-direction: column; gap: 12px; color: #8c8c8c; font-size: 13px; }
+    .spinner { width: 28px; height: 28px; border: 3px solid #e8e8e8; border-top-color: #1677ff; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* 空状态 */
+    .empty-state { display: flex; align-items: center; justify-content: center; min-height: 180px; flex-direction: column; gap: 10px; color: #8c8c8c; font-size: 13px; }
+    .empty-icon { font-size: 36px; color: #d9d9d9; }
+
+    /* 通知 Toast */
+    .toast { position: fixed; top: 80px; right: 24px; z-index: 2000; display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #e8e8e8; border-radius: 8px; padding: 12px 18px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); font-size: 13px; color: #262626; min-width: 260px; transition: all 0.3s; }
+    .toast-success { border-left: 4px solid #52c41a; }
+    .toast-error { border-left: 4px solid #ff4d4f; }
+    .toast-info { border-left: 4px solid #1677ff; }
+
+    /* 预警标识 */
+    .warning-badge { color: #ff4d4f; font-size: 12px; margin-left: 4px; }
+
+    /* 表单 */
+    .form-item { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 13px; color: #595959; margin-bottom: 6px; }
+    .form-label.required::before { content: '*'; color: #ff4d4f; margin-right: 4px; }
+    .form-input { width: 100%; border: 1px solid #d9d9d9; border-radius: 6px; padding: 7px 12px; font-size: 13px; color: #262626; outline: none; transition: border-color 0.2s; }
+    .form-input:focus { border-color: #1677ff; box-shadow: 0 0 0 2px rgba(22,119,255,0.1); }
+    .form-error { font-size: 12px; color: #ff4d4f; margin-top: 4px; display: none; }
+    .form-error.show { display: block; }
+
+    /* 地图模拟 */
+    .map-placeholder { background: linear-gradient(135deg, #e8f4ff 0%, #f0f7e6 100%); border-radius: 8px; height: 320px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; border: 1px solid #d9e8f5; position: relative; overflow: hidden; }
+    .map-town { position: absolute; background: rgba(24,144,255,0.15); border: 1px solid rgba(24,144,255,0.4); border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #0958d9; font-weight: 500; transition: all 0.2s; }
+    .map-town:hover { z-index: 10; transform: scale(1.05); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+    .map-town.heat-low { background: rgba(255,241,240,0.8); border-color: rgba(255,120,117,0.4); color: #cf1322; }
+    .map-town.heat-mid { background: rgba(255,120,117,0.5); border-color: rgba(207,19,34,0.5); color: #fff; }
+    .map-town.heat-high { background: rgba(207,19,34,0.85); border-color: rgba(130,0,20,0.6); color: #fff; }
+    .map-town .warn-icon { position: absolute; top: 2px; right: 2px; font-size: 10px; color: #ff4d4f; }
+
+    /* 死猪热力图色系 */
+    .map-town.dead-low { background: rgba(255,247,230,0.8); border-color: rgba(255,169,64,0.4); color: #d46b08; }
+    .map-town.dead-mid { background: rgba(255,169,64,0.5); border-color: rgba(250,140,22,0.5); color: #fff; }
+    .map-town.dead-high { background: rgba(207,19,34,0.8); border-color: rgba(130,0,20,0.6); color: #fff; }
+
+    .col-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .col-4060 { display: grid; grid-template-columns: 40% 60%; gap: 16px; }
+    .col-6040 { display: grid; grid-template-columns: 60% 40%; gap: 16px; }
+
+    /* 角色切换浮层 */
+    .role-switcher { position: fixed; bottom: 24px; right: 24px; z-index: 500; }
+    .role-switcher-btn { background: #1677ff; color: #fff; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 20px; cursor: pointer; box-shadow: 0 4px 14px rgba(22,119,255,0.4); }
+    .role-list { position: absolute; bottom: 60px; right: 0; background: #fff; border: 1px solid #e8e8e8; border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,0.12); min-width: 200px; overflow: hidden; }
+    .role-item { padding: 12px 16px; font-size: 13px; cursor: pointer; color: #262626; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #f0f2f5; }
+    .role-item:last-child { border-bottom: none; }
+    .role-item:hover { background: #f5f5f5; }
+    .role-item.current { background: #e6f4ff; color: #0958d9; }
+  </style>
+</head>
+<body x-data="app()" x-init="init()">
+
+  <!-- 顶部导航栏 -->
+  <div class="top-nav">
+    <i class="fa fa-leaf" style="color:#52c41a;font-size:18px;"></i>
+    <span class="nav-logo">蓬溪县生猪数字化管理平台</span>
+    <div class="nav-spacer"></div>
+    <span class="nav-role-badge" x-text="currentUser.roleName"></span>
+    <div class="nav-user">
+      <i class="fa fa-user-circle"></i>
+      <span x-text="currentUser.name"></span>
+      <span style="color:rgba(255,255,255,0.4);margin:0 4px;">|</span>
+      <span style="color:rgba(255,255,255,0.6);font-size:12px;cursor:pointer;" @click="logout()">退出登录</span>
+    </div>
+  </div>
+
+  <!-- 侧边菜单 -->
+  <div class="sidebar">
+    <div class="sidebar-group-title">决策分析</div>
+    <div class="sidebar-submenu">
+      <div class="sidebar-menu-item" @click="showToast('功能跳转：养殖分析','info')">
+        <i class="fa fa-bar-chart"></i> 养殖分析
+      </div>
+      <div class="sidebar-menu-item active">
+        <i class="fa fa-medkit"></i> 检验检疫无害化分析
+      </div>
+      <div class="sidebar-menu-item" @click="showToast('功能跳转：市场贸易分析','info')">
+        <i class="fa fa-line-chart"></i> 市场贸易分析
+      </div>
+    </div>
+    <div class="sidebar-group-title">智慧监管</div>
+    <div class="sidebar-submenu">
+      <div class="sidebar-menu-item" @click="showToast('功能跳转：养殖企业管理','info')">
+        <i class="fa fa-building"></i> 养殖企业管理
+      </div>
+      <div class="sidebar-menu-item" @click="showToast('功能跳转：视频监管','info')">
+        <i class="fa fa-video-camera"></i> 视频监管
+      </div>
+      <div class="sidebar-menu-item" @click="showToast('功能跳转：电子档案管理','info')">
+        <i class="fa fa-folder-open"></i> 电子档案管理
+      </div>
+    </div>
+    <div class="sidebar-group-title">系统管理</div>
+    <div class="sidebar-submenu">
+      <div class="sidebar-menu-item" @click="showToast('功能跳转：系统参数设置','info')">
+        <i class="fa fa-cog"></i> 参数设置
+      </div>
+    </div>
+  </div>
+
+  <!-- 主内容区 -->
+  <div class="main-content">
+
+    <!-- 页面标题 -->
+    <div class="page-header">
+      <div>
+        <div class="page-title"><i class="fa fa-shield" style="color:#1677ff;margin-right:8px;"></i>检验检疫无害化分析</div>
+        <div class="breadcrumb">决策分析 / 检验检疫无害化分析</div>
+      </div>
+    </div>
+
+    <!-- SECTION START: 全局筛选条件 -->
+    <section id="feature-filter">
+      <div class="filter-bar">
+        <span class="filter-label">统计年度：</span>
+        <select class="filter-select" x-model="filter.year" @change="refreshAll()">
+          <option value="2026">2026年</option>
+          <option value="2025">2025年</option>
+          <option value="2024">2024年</option>
+          <option value="2023">2023年</option>
+          <option value="2022">2022年</option>
+          <option value="2021">2021年</option>
+          <option value="2020">2020年</option>
+        </select>
+
+        <template x-if="!isTownRole()">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="filter-label">所属乡镇：</span>
+            <select class="filter-select" x-model="filter.area" @change="refreshAll()">
+              <option value="">全县</option>
+              <template x-for="t in MOCK_DATA.towns" :key="t.code">
+                <option :value="t.code" x-text="t.name"></option>
+              </template>
+            </select>
+          </div>
+        </template>
+
+        <div class="filter-divider"></div>
+        <span class="filter-label">时间粒度：</span>
+        <div style="display:flex;gap:4px;">
+          <button class="granularity-btn" :class="{active: filter.granularity==='month'}" @click="setGranularity('month')">按月</button>
+          <button class="granularity-btn" :class="{active: filter.granularity==='quarter'}" @click="setGranularity('quarter')">按季</button>
+          <button class="granularity-btn" :class="{active: filter.granularity==='year'}" @click="setGranularity('year')">按年</button>
+        </div>
+
+        <div class="nav-spacer" style="flex:1;"></div>
+
+        <template x-if="currentUser.role === 'county_admin'">
+          <div class="dropdown" x-data="{open:false}">
+            <button class="btn-default" @click="open=!open">
+              <i class="fa fa-database"></i> 数据管理 <i class="fa fa-chevron-down" style="font-size:10px;"></i>
+            </button>
+            <div class="dropdown-menu" x-show="open" @click.away="open=false">
+              <div class="dropdown-item" @click="open=false; openImportQuarantine()">
+                <i class="fa fa-upload" style="color:#1677ff;"></i> 导入检疫数据
+              </div>
+              <div class="dropdown-item" @click="open=false; openImportInsurance()">
+                <i class="fa fa-upload" style="color:#52c41a;"></i> 导入保险数据
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <template x-if="currentUser.role === 'county_admin' || currentUser.role === 'county_staff'">
+          <button class="btn-primary" @click="exportReport()">
+            <i class="fa fa-download"></i> 导出分析报告
+          </button>
+        </template>
+      </div>
+    </section>
+    <!-- SECTION END: 全局筛选条件 -->
+
+    <!-- SECTION START: 检疫年度核心指标 -->
+    <section id="feature-kpi">
+      <div class="analysis-card">
+        <div class="card-header">
+          <div class="card-title"><i class="fa fa-tachometer" style="color:#1677ff;"></i> 检疫年度核心指标</div>
+          <span style="font-size:12px;color:#8c8c8c;" x-text="filter.year + '年度'"></span>
+        </div>
+        <div class="card-body">
+          <div class="kpi-grid">
+            <!-- 检验检疫总量 -->
+            <div class="kpi-card">
+              <div class="kpi-label"><i class="fa fa-check-circle" style="color:#1677ff;"></i> 检验检疫总量</div>
+              <div class="kpi-value">12,840<span class="kpi-unit">头次</span></div>
+              <div class="kpi-change change-up"><i class="fa fa-arrow-up"></i> 较去年同期 +8.3%</div>
+            </div>
+            <!-- 产地检疫 -->
+            <div class="kpi-card">
+              <div class="kpi-label"><i class="fa fa-home" style="color:#52c41a;"></i> 产地检疫数量</div>
+              <div class="kpi-value">7,523<span class="kpi-unit">头次</span></div>
+              <div class="kpi-change change-up"><i class="fa fa-arrow-up"></i> 较去年同期 +12.1%</div>
+            </div>
+            <!-- 屠宰检疫 -->
+            <div class="kpi-card">
+              <div class="kpi-label"><i class="fa fa-scissors" style="color:#faad14;"></i> 屠宰检疫数量</div>
+              <div class="kpi-value">4,891<span class="kpi-unit">头次</span></div>
+              <div class="kpi-change change-down"><i class="fa fa-arrow-down"></i> 较去年同期 -3.2%</div>
+            </div>
+            <!-- 检疫合格率 -->
+            <div class="kpi-card">
+              <div class="kpi-label"><i class="fa fa-star" style="color:#52c41a;"></i> 检验检疫合格率</div>
+              <div class="kpi-value" style="color:#52c41a;">97.6<span class="kpi-unit">%</span></div>
+              <div class="kpi-change change-neutral">合格率 ≥ 95%，状态良好</div>
+            </div>
+            <!-- 疫病发现数量 -->
+            <div class="kpi-card">
+              <div class="kpi-label"><i class="fa fa-bug" style="color:#ff4d4f;"></i> 疫病发现数量</div>
+              <div class="kpi-value">43<span class="kpi-unit">例</span></div>
+              <div class="kpi-change change-down"><i class="fa fa-arrow-down"></i> 较去年同期 -18.9%</div>
+            </div>
+            <!-- 病死猪处理数量 -->
+            <div class="kpi-card">
+              <div class="kpi-label"><i class="fa fa-recycle" style="color:#8c8c8c;"></i> 病死猪处理数量</div>
+              <div class="kpi-value">312<span class="kpi-unit">头</span></div>
+              <div class="kpi-change change-neutral"><i class="fa fa-minus"></i> 较去年同期 —</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- SECTION END: 检疫年度核心指标 -->
+
+    <!-- SECTION START: 检疫类目分布 + 检验检疫趋势 -->
+    <section id="feature-category-trend">
+      <div class="col-2">
+        <!-- 检疫类目分布 -->
+        <div class="analysis-card">
+          <div class="card-header">
+            <div class="card-title"><i class="fa fa-pie-chart" style="color:#faad14;"></i> 检疫类目分布</div>
+          </div>
+          <div class="card-body">
+            <div class="col-4060" style="align-items:start;">
+              <div id="chart-category-pie" class="chart-container-sm"></div>
+              <div class="table-scroll">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>检疫类目</th>
+                      <th>数量(头次)</th>
+                      <th>占比</th>
+                      <th>合格率</th>
+                      <th>同比变化</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <template x-for="row in MOCK_DATA.categoryData" :key="row.type">
+                      <tr>
+                        <td x-text="row.name"></td>
+                        <td x-text="row.quantity.toLocaleString()"></td>
+                        <td x-text="row.ratio + '%'"></td>
+                        <td>
+                          <span :class="row.qualifiedRate >= 99 ? 'tag tag-green' : (row.qualifiedRate >= 95 ? 'tag tag-yellow' : 'tag tag-red')" x-text="row.qualifiedRate + '%'"></span>
+                        </td>
+                        <td>
+                          <span :class="row.yoyChange > 0 ? 'change-up' : (row.yoyChange < 0 ? 'change-down' : 'change-neutral')">
+                            <span x-text="row.yoyChange > 0 ? '↑' + row.yoyChange + '%' : (row.yoyChange < 0 ? '↓' + Math.abs(row.yoyChange) + '%' : '—')"></span>
+                          </span>
+                        </td>
+                      </tr>
+                    </template>
+                    <tr class="total-row">
+                      <td>合计</td>
+                      <td>12,840</td>
+                      <td>100%</td>
+                      <td><span class="tag tag-green">97.6%</span></td>
+                      <td><span class="change-up">↑8.3%</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 检验检疫趋势 -->
+        <div class="analysis-card">
+          <div class="card-header">
+            <div class="card-title"><i class="fa fa-area-chart" style="color:#1677ff;"></i> 检验检疫趋势</div>
+          </div>
+          <div class="card-body" style="padding:12px 12px;">
+            <div id="chart-quarantine-trend" class="chart-container"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- SECTION END: 检疫类目分布 + 检验检疫趋势 -->
+
+    <!-- SECTION START: 疫病数量及分布 -->
+    <section id="feature-disease">
+      <div class="analysis-card">
+        <div class="card-header">
+          <div class="card-title"><i class="fa fa-bug" style="color:#ff4d4f;"></i> 疫病数量及分布</div>
+          <button class="collapse-toggle" style="width:auto;padding:4px 12px;background:#f5f5f5;border-radius:6px;border:1px solid #e8e8e8;" @click="disease.tableOpen = !disease.tableOpen">
+            <span x-text="disease.tableOpen ? '收起数据' : '展开数据'"></span>
+            <i :class="disease.tableOpen ? 'fa fa-chevron-up' : 'fa fa-chevron-down'" style="font-size:10px;margin-left:6px;"></i>
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="col-2">
+            <!-- 疫病 Top10 柱状图 -->
+            <div>
+              <div style="font-size:12px;color:#8c8c8c;margin-bottom:8px;">Top10 疫病类型（发病数量）</div>
+              <div id="chart-disease-bar" class="chart-container"></div>
+            </div>
+            <!-- 乡镇热力图 -->
+            <div>
+              <div style="font-size:12px;color:#8c8c8c;margin-bottom:8px;">乡镇疫病分布热力图（点击乡镇查看下钻明细）</div>
+              <div class="map-placeholder" style="height:300px;">
+                <div style="position:absolute;font-size:12px;color:#8c8c8c;top:8px;left:12px;">蓬溪县行政区划</div>
+                <template x-for="town in MOCK_DATA.diseaseTownMap" :key="town.code">
+                  <div class="map-town"
+                    :class="town.level === 'high' ? 'heat-high' : (town.level === 'mid' ? 'heat-mid' : 'heat-low')"
+                    :style="`left:${town.x}%;top:${town.y}%;width:${town.w}%;height:${town.h}%;`"
+                    @click="openDiseaseDrilldown(town)"
+                    :title="`${town.name}: ${town.count}例，涉及${town.enterprises}家企业`">
+                    <span x-text="town.name.replace('镇','').replace('乡','')"></span>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </div>
+
+          <!-- 可折叠数据表格 -->
+          <div class="collapsible-section" x-show="disease.tableOpen" x-transition>
+            <div class="table-scroll" style="padding:16px 0 0;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>疫病名称</th>
+                    <th>发病数量(例)</th>
+                    <th>涉及企业数</th>
+                    <th>涉及乡镇</th>
+                    <th>高发月份</th>
+                    <th>同比变化</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template x-for="row in MOCK_DATA.diseaseTableData" :key="row.name">
+                    <tr>
+                      <td x-text="row.name"></td>
+                      <td x-text="row.count"></td>
+                      <td x-text="row.enterprises"></td>
+                      <td x-text="row.towns"></td>
+                      <td x-text="row.peakMonth"></td>
+                      <td>
+                        <span :class="row.yoy > 0 ? 'change-up' : (row.yoy < 0 ? 'change-down' : 'change-neutral')"
+                          x-text="row.yoy > 0 ? '↑' + row.yoy + '%' : (row.yoy < 0 ? '↓' + Math.abs(row.yoy) + '%' : '—')">
+                        </span>
+                      </td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- SECTION END: 疫病数量及分布 -->
+
+    <!-- SECTION START: 病死猪数量及分布 -->
+    <section id="feature-dead-animal">
+      <div class="analysis-card">
+        <div class="card-header">
+          <div class="card-title"><i class="fa fa-exclamation-triangle" style="color:#faad14;"></i> 病死猪数量及分布</div>
+          <button class="collapse-toggle" style="width:auto;padding:4px 12px;background:#f5f5f5;border-radius:6px;border:1px solid #e8e8e8;" @click="dead.tableOpen = !dead.tableOpen">
+            <span x-text="dead.tableOpen ? '收起数据' : '展开数据'"></span>
+            <i :class="dead.tableOpen ? 'fa fa-chevron-up' : 'fa fa-chevron-down'" style="font-size:10px;margin-left:6px;"></i>
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="col-2">
+            <!-- 折线趋势图 -->
+            <div>
+              <div style="font-size:12px;color:#8c8c8c;margin-bottom:8px;">月度病死猪趋势（本年度 vs 去年同期）</div>
+              <div id="chart-dead-trend" class="chart-container"></div>
+            </div>
+            <!-- 乡镇热力图 -->
+            <div>
+              <div style="font-size:12px;color:#8c8c8c;margin-bottom:8px;">乡镇病死猪分布（▲ = 病死率超5%预警）</div>
+              <div class="map-placeholder" style="height:300px;">
+                <div style="position:absolute;font-size:12px;color:#8c8c8c;top:8px;left:12px;">蓬溪县行政区划</div>
+                <template x-for="town in MOCK_DATA.deadTownMap" :key="town.code">
+                  <div class="map-town"
+                    :class="town.level === 'high' ? 'dead-high' : (town.level === 'mid' ? 'dead-mid' : 'dead-low')"
+                    :style="`left:${town.x}%;top:${town.y}%;width:${town.w}%;height:${town.h}%;`"
+                    @click="openDeadDrilldown(town)"
+                    :title="`${town.name}: 病死${town.deadQty}头，病死率${town.deadRate}%`">
+                    <span x-text="town.name.replace('镇','').replace('乡','')"></span>
+                    <span class="warn-icon" x-show="town.overThreshold">▲</span>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </div>
+
+          <!-- 可折叠表格 -->
+          <div class="collapsible-section" x-show="dead.tableOpen" x-transition>
+            <div class="table-scroll" style="padding:16px 0 0;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>乡镇</th>
+                    <th>病死数量(头)</th>
+                    <th>存栏总量(头)</th>
+                    <th>病死率</th>
+                    <th>涉及企业数</th>
+                    <th>主要死因</th>
+                    <th>同比变化</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template x-for="row in MOCK_DATA.deadTableData" :key="row.town">
+                    <tr>
+                      <td x-text="row.town"></td>
+                      <td x-text="row.deadQty"></td>
+                      <td x-text="row.stock.toLocaleString()"></td>
+                      <td>
+                        <span :style="row.deadRate >= 5 ? 'color:#f5222d;font-weight:600;' : (row.deadRate >= 3 ? 'color:#faad14;' : 'color:#262626;')"
+                          x-text="row.deadRate + '%'"></span>
+                        <span x-show="row.deadRate >= 5" class="warning-badge">▲</span>
+                      </td>
+                      <td x-text="row.enterprises"></td>
+                      <td x-text="row.mainCause"></td>
+                      <td>
+                        <span :class="row.yoy > 0 ? 'change-up' : (row.yoy < 0 ? 'change-down' : 'change-neutral')"
+                          x-text="row.yoy > 0 ? '↑' + row.yoy + '%' : (row.yoy < 0 ? '↓' + Math.abs(row.yoy) + '%' : '—')">
+                        </span>
+                      </td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- SECTION END: 病死猪数量及分布 -->
+
+    <!-- SECTION START: 病死猪处理情况分析 -->
+    <section id="feature-disposal">
+      <div class="analysis-card">
+        <div class="card-header">
+          <div class="card-title"><i class="fa fa-recycle" style="color:#52c41a;"></i> 病死猪处理情况分析</div>
+        </div>
+        <div class="card-body">
+          <div class="col-4060">
+            <div id="chart-disposal-pie" class="chart-container"></div>
+            <div id="chart-disposal-trend" class="chart-container"></div>
+          </div>
+          <!-- 汇总表格（始终展示） -->
+          <div style="margin-top:16px;">
+            <div style="font-size:13px;font-weight:600;color:#262626;margin-bottom:8px;">处理方式汇总</div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>处理方法</th>
+                  <th>处理数量(头)</th>
+                  <th>占比</th>
+                  <th>涉及企业数</th>
+                  <th>同比变化</th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="row in MOCK_DATA.disposalTableData" :key="row.method">
+                  <tr>
+                    <td x-text="row.name"></td>
+                    <td x-text="row.quantity"></td>
+                    <td x-text="row.ratio + '%'"></td>
+                    <td x-text="row.enterprises"></td>
+                    <td>
+                      <span :class="row.yoy > 0 ? 'change-up' : (row.yoy < 0 ? 'change-down' : 'change-neutral')"
+                        x-text="row.yoy > 0 ? '↑' + row.yoy + '%' : (row.yoy < 0 ? '↓' + Math.abs(row.yoy) + '%' : '—')">
+                      </span>
+                    </td>
+                  </tr>
+                </template>
+                <tr class="total-row">
+                  <td>合计</td>
+                  <td>312</td>
+                  <td>100%</td>
+                  <td>—</td>
+                  <td>—</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- SECTION END: 病死猪处理情况分析 -->
+
+    <!-- SECTION START: 免疫防疫覆盖分析 -->
+    <section id="feature-immunity">
+      <div class="analysis-card">
+        <div class="card-header">
+          <div class="card-title"><i class="fa fa-heartbeat" style="color:#ff4d4f;"></i> 免疫防疫覆盖分析</div>
+        </div>
+        <div class="card-body">
+          <div class="col-2">
+            <div id="chart-immunity-bar" class="chart-container"></div>
+            <div class="table-scroll">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>疫苗名称</th>
+                    <th>免疫数量(头次)</th>
+                    <th>免疫企业数</th>
+                    <th>应免数量(头)</th>
+                    <th>免疫覆盖率</th>
+                    <th>同比变化</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template x-for="row in MOCK_DATA.immunityData" :key="row.vaccine">
+                    <tr>
+                      <td>
+                        <span x-text="row.vaccine"></span>
+                        <span class="tag tag-red" x-show="row.isMandatory" style="font-size:10px;margin-left:4px;">强制</span>
+                      </td>
+                      <td x-text="row.immuneQty.toLocaleString()"></td>
+                      <td x-text="row.enterprises"></td>
+                      <td x-text="row.requiredQty.toLocaleString()"></td>
+                      <td>
+                        <span :style="row.isMandatory && row.coverageRate < 90 ? 'color:#f5222d;font-weight:700;' : ''"
+                          x-text="row.coverageRate + '%'"></span>
+                        <span x-show="row.isMandatory && row.coverageRate < 90" class="warning-badge">⚠</span>
+                      </td>
+                      <td>
+                        <span :class="row.yoy > 0 ? 'change-up' : (row.yoy < 0 ? 'change-down' : 'change-neutral')"
+                          x-text="row.yoy > 0 ? '↑' + row.yoy + '%' : (row.yoy < 0 ? '↓' + Math.abs(row.yoy) + '%' : '—')">
+                        </span>
+                      </td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- SECTION END: 免疫防疫覆盖分析 -->
+
+    <!-- SECTION START: 生猪保险统计 -->
+    <section id="feature-insurance">
+      <div class="analysis-card">
+        <div class="card-header">
+          <div class="card-title"><i class="fa fa-shield" style="color:#8c8c8c;"></i> 生猪保险统计</div>
+          <button class="collapse-toggle" style="width:auto;padding:4px 12px;background:#f5f5f5;border-radius:6px;border:1px solid #e8e8e8;" @click="insurance.tableOpen = !insurance.tableOpen">
+            <span x-text="insurance.tableOpen ? '收起明细' : '展开明细'"></span>
+            <i :class="insurance.tableOpen ? 'fa fa-chevron-up' : 'fa fa-chevron-down'" style="font-size:10px;margin-left:6px;"></i>
+          </button>
+        </div>
+        <div class="card-body">
+          <!-- 保险统计卡片 -->
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
+            <div class="kpi-card">
+              <div class="kpi-label"><i class="fa fa-certificate" style="color:#1677ff;"></i> 本年度投保总数</div>
+              <div class="kpi-value">8,560<span class="kpi-unit">头</span></div>
+              <div class="kpi-change change-up"><i class="fa fa-arrow-up"></i> 较去年同期 +15.2%</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label"><i class="fa fa-file-text" style="color:#fa8c16;"></i> 本年度理赔总数</div>
+              <div class="kpi-value">234<span class="kpi-unit">头</span></div>
+              <div class="kpi-change change-up"><i class="fa fa-arrow-up"></i> 较去年同期 +6.8%</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label"><i class="fa fa-money" style="color:#52c41a;"></i> 本年度理赔金额</div>
+              <div class="kpi-value">23.56<span class="kpi-unit">万元</span></div>
+              <div class="kpi-change change-up"><i class="fa fa-arrow-up"></i> 较去年同期 +9.4%</div>
+            </div>
+          </div>
+
+          <!-- 月度组合图 -->
+          <div id="chart-insurance-combo" class="chart-container"></div>
+
+          <!-- 可折叠明细表格 -->
+          <div class="collapsible-section" x-show="insurance.tableOpen" x-transition style="margin-top:12px;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>月份</th>
+                  <th>投保数量(头)</th>
+                  <th>理赔数量(头)</th>
+                  <th>理赔金额(元)</th>
+                  <th>理赔率</th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="row in MOCK_DATA.insuranceMonthly" :key="row.month">
+                  <tr>
+                    <td x-text="row.month + '月'"></td>
+                    <td x-text="row.insured.toLocaleString()"></td>
+                    <td x-text="row.claimed"></td>
+                    <td x-text="row.amount.toLocaleString('zh-CN', {minimumFractionDigits: 2})"></td>
+                    <td x-text="row.insured > 0 ? (row.claimed / row.insured * 100).toFixed(1) + '%' : '—'"></td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- SECTION END: 生猪保险统计 -->
+
+  </div><!-- /main-content -->
+
+
+  <!-- SECTION START: 导入检疫数据弹窗 -->
+  <section id="feature-import-quarantine">
+    <div class="modal-overlay" x-show="modals.importQuarantine" x-transition @click.self="modals.importQuarantine=false">
+      <div class="modal-box">
+        <div class="modal-header">
+          <div class="modal-title"><i class="fa fa-upload" style="color:#1677ff;margin-right:8px;"></i>导入检疫数据</div>
+          <button class="modal-close" @click="modals.importQuarantine=false"><i class="fa fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="upload-area" @click="simulateFileSelect('quarantine')">
+            <div class="upload-icon"><i class="fa fa-cloud-upload"></i></div>
+            <div style="font-size:14px;color:#595959;margin-bottom:8px;">点击或拖拽 Excel 文件到此区域上传</div>
+            <div class="upload-hint">仅支持 <strong>.xlsx、.xls</strong> 格式，文件大小不超过 10MB</div>
+          </div>
+          <div style="margin-top:12px;display:flex;align-items:center;gap:8px;">
+            <a href="#" style="color:#1677ff;font-size:13px;" @click.prevent="showToast('检疫数据导入模板已下载','success')">
+              <i class="fa fa-download"></i> 下载检疫数据导入模板
+            </a>
+          </div>
+          <template x-if="importResult.quarantine">
+            <div style="margin-top:16px;padding:12px 16px;border-radius:8px;" :class="importResult.quarantine.failCount > 0 ? 'bg-red-50 border border-red-200' : 'bg-green-50 border border-green-200'">
+              <div style="font-size:13px;font-weight:600;" x-text="importResult.quarantine.failCount > 0 ? `导入完成：成功 ${importResult.quarantine.successCount} 条，失败 ${importResult.quarantine.failCount} 条` : `导入成功，共导入 ${importResult.quarantine.successCount} 条数据`"></div>
+              <template x-if="importResult.quarantine.errors && importResult.quarantine.errors.length">
+                <div style="margin-top:8px;">
+                  <template x-for="err in importResult.quarantine.errors" :key="err.rowNum">
+                    <div style="font-size:12px;color:#ff4d4f;margin-top:4px;" x-text="`第${err.rowNum}行：${err.message}`"></div>
+                  </template>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-default" @click="modals.importQuarantine=false">关闭</button>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- SECTION END: 导入检疫数据弹窗 -->
+
+
+  <!-- SECTION START: 导入保险数据弹窗 -->
+  <section id="feature-import-insurance">
+    <div class="modal-overlay" x-show="modals.importInsurance" x-transition @click.self="modals.importInsurance=false">
+      <div class="modal-box modal-box-lg">
+        <div class="modal-header">
+          <div class="modal-title"><i class="fa fa-upload" style="color:#52c41a;margin-right:8px;"></i>导入保险数据</div>
+          <button class="modal-close" @click="modals.importInsurance=false"><i class="fa fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="tab-bar">
+            <div class="tab-item" :class="{active: insuranceTab==='excel'}" @click="insuranceTab='excel'">Excel 导入</div>
+            <div class="tab-item" :class="{active: insuranceTab==='manual'}" @click="insuranceTab='manual'">手动录入</div>
+          </div>
+
+          <!-- Excel 导入 -->
+          <div x-show="insuranceTab==='excel'">
+            <div class="upload-area" @click="simulateFileSelect('insurance')">
+              <div class="upload-icon"><i class="fa fa-cloud-upload"></i></div>
+              <div style="font-size:14px;color:#595959;margin-bottom:8px;">点击或拖拽 Excel 文件到此区域上传</div>
+              <div class="upload-hint">仅支持 <strong>.xlsx、.xls</strong> 格式，文件大小不超过 10MB</div>
+            </div>
+            <div style="margin-top:12px;">
+              <a href="#" style="color:#1677ff;font-size:13px;" @click.prevent="showToast('保险数据导入模板已下载','success')">
+                <i class="fa fa-download"></i> 下载保险数据导入模板
+              </a>
+            </div>
+            <template x-if="importResult.insurance">
+              <div style="margin-top:16px;padding:12px 16px;border-radius:8px;background:#f6ffed;border:1px solid #b7eb8f;">
+                <div style="font-size:13px;font-weight:600;color:#389e0d;" x-text="`导入成功，共导入 ${importResult.insurance.successCount} 条数据`"></div>
+              </div>
+            </template>
+          </div>
+
+          <!-- 手动录入 -->
+          <div x-show="insuranceTab==='manual'">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+              <div class="form-item">
+                <label class="form-label required">统计年月</label>
+                <input type="month" class="form-input" x-model="insuranceForm.statMonth">
+                <div class="form-error" :class="{show: insuranceFormErrors.statMonth}" x-text="insuranceFormErrors.statMonth"></div>
+              </div>
+              <div class="form-item">
+                <label class="form-label">所属乡镇</label>
+                <select class="form-input" x-model="insuranceForm.areaName">
+                  <option value="">全县汇总</option>
+                  <template x-for="t in MOCK_DATA.towns" :key="t.code">
+                    <option :value="t.name" x-text="t.name"></option>
+                  </template>
+                </select>
+              </div>
+              <div class="form-item">
+                <label class="form-label required">投保数量（头）</label>
+                <input type="number" class="form-input" x-model="insuranceForm.insuredQty" min="0" max="9999999" placeholder="请输入投保数量">
+                <div class="form-error" :class="{show: insuranceFormErrors.insuredQty}" x-text="insuranceFormErrors.insuredQty"></div>
+              </div>
+              <div class="form-item">
+                <label class="form-label required">理赔数量（头）</label>
+                <input type="number" class="form-input" x-model="insuranceForm.claimedQty" min="0" max="9999999" placeholder="不超过投保数量">
+                <div class="form-error" :class="{show: insuranceFormErrors.claimedQty}" x-text="insuranceFormErrors.claimedQty"></div>
+              </div>
+              <div class="form-item" style="grid-column:1/-1;">
+                <label class="form-label required">理赔金额（元）</label>
+                <input type="number" class="form-input" x-model="insuranceForm.claimedAmount" min="0" step="0.01" placeholder="请输入理赔金额">
+                <div class="form-error" :class="{show: insuranceFormErrors.claimedAmount}" x-text="insuranceFormErrors.claimedAmount"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-default" @click="modals.importInsurance=false">取消</button>
+          <button class="btn-primary" x-show="insuranceTab==='manual'" @click="submitInsuranceForm()">
+            <i class="fa fa-check"></i> 提交保存
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- SECTION END: 导入保险数据弹窗 -->
+
+
+  <!-- SECTION START: 疫病下钻明细弹窗 -->
+  <section id="feature-disease-drilldown">
+    <div class="modal-overlay" x-show="modals.diseaseDrilldown" x-transition @click.self="modals.diseaseDrilldown=false">
+      <div class="modal-box">
+        <div class="modal-header">
+          <div class="modal-title" x-text="(disease.selectedTown || '') + ' - 疫病明细'"></div>
+          <button class="modal-close" @click="modals.diseaseDrilldown=false"><i class="fa fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>企业名称</th>
+                <th>疫病名称</th>
+                <th>发病数量(例)</th>
+                <th>最近发病日期</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="row in MOCK_DATA.diseaseDrillData" :key="row.enterprise + row.disease">
+                <tr>
+                  <td x-text="row.enterprise"></td>
+                  <td x-text="row.disease"></td>
+                  <td x-text="row.count"></td>
+                  <td x-text="row.latestDate"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+          <div class="pagination">
+            <span class="page-total">共 8 条</span>
+            <button class="page-btn active">1</button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-default" @click="modals.diseaseDrilldown=false">关闭</button>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- SECTION END: 疫病下钻明细弹窗 -->
+
+
+  <!-- SECTION START: 病死猪下钻明细弹窗 -->
+  <section id="feature-dead-drilldown">
+    <div class="modal-overlay" x-show="modals.deadDrilldown" x-transition @click.self="modals.deadDrilldown=false">
+      <div class="modal-box modal-box-lg">
+        <div class="modal-header">
+          <div class="modal-title" x-text="(dead.selectedTown || '') + ' - 病死猪明细'"></div>
+          <button class="modal-close" @click="modals.deadDrilldown=false"><i class="fa fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>企业名称</th>
+                <th>病死数量(头)</th>
+                <th>死因</th>
+                <th>处理方法</th>
+                <th>记录日期</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="row in MOCK_DATA.deadDrillData" :key="row.enterprise + row.date">
+                <tr>
+                  <td x-text="row.enterprise"></td>
+                  <td x-text="row.qty"></td>
+                  <td x-text="row.cause"></td>
+                  <td x-text="row.disposal"></td>
+                  <td x-text="row.date"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+          <div class="pagination">
+            <span class="page-total">共 10 条</span>
+            <button class="page-btn active">1</button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-default" @click="modals.deadDrilldown=false">关闭</button>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- SECTION END: 病死猪下钻明细弹窗 -->
+
+
+  <!-- Toast 通知 -->
+  <div x-show="toast.visible" x-transition class="toast" :class="'toast-' + toast.type">
+    <i :class="toast.type==='success' ? 'fa fa-check-circle' : (toast.type==='error' ? 'fa fa-times-circle' : 'fa fa-info-circle')"
+      :style="toast.type==='success' ? 'color:#52c41a;' : (toast.type==='error' ? 'color:#ff4d4f;' : 'color:#1677ff;')"></i>
+    <span x-text="toast.message"></span>
+  </div>
+
+
+  <!-- 角色切换浮层 -->
+  <div class="role-switcher" x-data="{open:false}">
+    <div class="role-list" x-show="open" @click.away="open=false" x-transition>
+      <div style="padding:10px 16px;font-size:12px;color:#8c8c8c;font-weight:600;border-bottom:1px solid #f0f2f5;">切换角色</div>
+      <template x-for="u in MOCK_DATA.users" :key="u.role">
+        <div class="role-item" :class="{current: currentUser.role === u.role}" @click="switchRole(u); open=false">
+          <i class="fa fa-user-circle" :style="u.role.includes('county') ? 'color:#1677ff;' : 'color:#52c41a;'"></i>
+          <span x-text="u.roleName"></span>
+          <i class="fa fa-check" x-show="currentUser.role === u.role" style="margin-left:auto;color:#1677ff;"></i>
+        </div>
+      </template>
+    </div>
+    <button class="role-switcher-btn" @click="open=!open" title="切换角色">
+      <i class="fa fa-exchange"></i>
+    </button>
+  </div>
+
+
+  <script>
+    const MOCK_DATA = {
+      // 用户列表（多角色）
+      users: [
+        { id: 1, username: 'county_admin', password: '123456', role: 'county_admin', roleName: '县级管理员', name: '王建国', deptId: 'dept_county' },
+        { id: 2, username: 'county_staff', password: '123456', role: 'county_staff', roleName: '县级业务人员', name: '李明华', deptId: 'dept_county' },
+        { id: 3, username: 'town_gov',    password: '123456', role: 'town_gov_staff', roleName: '乡镇政府业务人员', name: '张小芳', deptId: 'dept_town_pxzhen' },
+        { id: 4, username: 'town_vet',    password: '123456', role: 'town_vet_station', roleName: '乡镇畜牧兽医站', name: '刘兽医', deptId: 'dept_town_pxzhen' }
+      ],
+
+      // 乡镇列表
+      towns: [
+        { code: 'dept_pxzhen', name: '蓬溪镇' },
+        { code: 'dept_chisan', name: '赤城镇' },
+        { code: 'dept_wufeng', name: '吉星镇' },
+        { code: 'dept_mingxiu', name: '明月镇' },
+        { code: 'dept_xinghe', name: '新会镇' },
+        { code: 'dept_shuangjiang', name: '新星镇' },
+        { code: 'dept_renhe', name: '任隆镇' },
+        { code: 'dept_sanfeng', name: '三凤镇' },
+        { code: 'dept_fulou', name: '福德镇' },
+        { code: 'dept_baoli', name: '宝梵镇' }
+      ],
+
+      // 检疫类目分布数据
+      categoryData: [
+        { type: 'production', name: '产地检疫', quantity: 7523, ratio: 58.6, qualifiedRate: 98.2, yoyChange: 12.1 },
+        { type: 'slaughter', name: '屠宰检疫', quantity: 4891, ratio: 38.1, qualifiedRate: 97.1, yoyChange: -3.2 },
+        { type: 'transport', name: '调运检疫', quantity: 426,  ratio: 3.3,  qualifiedRate: 96.0, yoyChange: 5.4 }
+      ],
+
+      // 检疫趋势月度数据
+      quarantineTrend: [
+        { period: '1月',  production: 580, slaughter: 380, transport: 32, qualifiedRate: 97.8 },
+        { period: '2月',  production: 430, slaughter: 290, transport: 25, qualifiedRate: 96.5 },
+        { period: '3月',  production: 680, slaughter: 420, transport: 38, qualifiedRate: 98.1 },
+        { period: '4月',  production: 720, slaughter: 460, transport: 42, qualifiedRate: 97.3 },
+        { period: '5月',  production: 650, slaughter: 410, transport: 35, qualifiedRate: 94.2 },
+        { period: '6月',  production: 590, slaughter: 380, transport: 30, qualifiedRate: 97.6 },
+        { period: '7月',  production: 610, slaughter: 400, transport: 36, qualifiedRate: 98.4 },
+        { period: '8月',  production: 640, slaughter: 420, transport: 40, qualifiedRate: 98.0 },
+        { period: '9月',  production: 690, slaughter: 440, transport: 41, qualifiedRate: 97.9 },
+        { period: '10月', production: 620, slaughter: 390, transport: 38, qualifiedRate: 98.2 },
+        { period: '11月', production: 660, slaughter: 410, transport: 46, qualifiedRate: 97.5 },
+        { period: '12月', production: 653, slaughter: 491, transport: 23, qualifiedRate: 97.7 }
+      ],
+
+      // 疫病 Top10 数据
+      diseaseTop10: [
+        { name: '猪蓝耳病', count: 12, enterprises: 8 },
+        { name: '猪瘟', count: 8,  enterprises: 6 },
+        { name: '猪圆环病毒病', count: 7,  enterprises: 5 },
+        { name: '猪传染性胃肠炎', count: 5,  enterprises: 4 },
+        { name: '猪链球菌病', count: 4,  enterprises: 3 },
+        { name: '猪口蹄疫', count: 3,  enterprises: 3 },
+        { name: '猪伪狂犬病', count: 2,  enterprises: 2 },
+        { name: '仔猪黄痢', count: 1,  enterprises: 1 },
+        { name: '猪附红细胞体', count: 1,  enterprises: 1 }
+      ],
+
+      // 疫病乡镇热力图数据（模拟地图位置）
+      diseaseTownMap: [
+        { code: 'dept_pxzhen',    name: '蓬溪镇',  count: 12, enterprises: 5, level: 'high', x: 35, y: 35, w: 18, h: 14 },
+        { code: 'dept_chisan',    name: '赤城镇',  count: 8,  enterprises: 3, level: 'mid',  x: 58, y: 20, w: 16, h: 14 },
+        { code: 'dept_wufeng',    name: '吉星镇',  count: 7,  enterprises: 4, level: 'mid',  x: 15, y: 20, w: 15, h: 12 },
+        { code: 'dept_mingxiu',   name: '明月镇',  count: 5,  enterprises: 2, level: 'low',  x: 60, y: 55, w: 15, h: 12 },
+        { code: 'dept_xinghe',    name: '新会镇',  count: 4,  enterprises: 3, level: 'low',  x: 15, y: 55, w: 14, h: 12 },
+        { code: 'dept_shuangjiang',name: '新星镇', count: 3,  enterprises: 2, level: 'low',  x: 38, y: 65, w: 15, h: 12 },
+        { code: 'dept_renhe',     name: '任隆镇',  count: 2,  enterprises: 1, level: 'low',  x: 75, y: 40, w: 14, h: 12 },
+        { code: 'dept_sanfeng',   name: '三凤镇',  count: 1,  enterprises: 1, level: 'low',  x: 4,  y: 42, w: 12, h: 10 },
+        { code: 'dept_fulou',     name: '福德镇',  count: 1,  enterprises: 1, level: 'low',  x: 76, y: 65, w: 12, h: 10 },
+        { code: 'dept_baoli',     name: '宝梵镇',  count: 0,  enterprises: 0, level: 'low',  x: 42, y: 10, w: 12, h: 10 }
+      ],
+
+      // 疫病表格数据
+      diseaseTableData: [
+        { name: '猪蓝耳病',     count: 12, enterprises: 8, towns: '蓬溪镇、赤城镇、吉星镇', peakMonth: '5月',  yoy: 20.0 },
+        { name: '猪瘟',         count: 8,  enterprises: 6, towns: '蓬溪镇、赤城镇',           peakMonth: '3月',  yoy: -12.5 },
+        { name: '猪圆环病毒病', count: 7,  enterprises: 5, towns: '蓬溪镇、吉星镇、新会镇',   peakMonth: '7月',  yoy: 0 },
+        { name: '猪传染性胃肠炎', count: 5, enterprises: 4, towns: '蓬溪镇、明月镇、+1个',    peakMonth: '1月',  yoy: -25.0 },
+        { name: '猪链球菌病',   count: 4,  enterprises: 3, towns: '赤城镇、新星镇',            peakMonth: '8月',  yoy: 33.3 },
+        { name: '猪口蹄疫',     count: 3,  enterprises: 3, towns: '蓬溪镇、吉星镇',            peakMonth: '12月', yoy: 0 },
+        { name: '猪伪狂犬病',   count: 2,  enterprises: 2, towns: '任隆镇',                    peakMonth: '6月',  yoy: -50.0 },
+        { name: '仔猪黄痢',     count: 1,  enterprises: 1, towns: '三凤镇',                    peakMonth: '4月',  yoy: 0 },
+        { name: '猪附红细胞体', count: 1,  enterprises: 1, towns: '福德镇',                    peakMonth: '9月',  yoy: 0 }
+      ],
+
+      // 疫病下钻数据
+      diseaseDrillData: [
+        { enterprise: '蓬溪鑫源养殖场', disease: '猪蓝耳病', count: 4, latestDate: '2026-09-12' },
+        { enterprise: '蓬溪鑫源养殖场', disease: '猪瘟',     count: 2, latestDate: '2026-07-03' },
+        { enterprise: '蓬远生态农场',   disease: '猪蓝耳病', count: 3, latestDate: '2026-10-18' },
+        { enterprise: '蓬远生态农场',   disease: '猪圆环病毒病', count: 2, latestDate: '2026-08-22' },
+        { enterprise: '溪盛养殖基地',   disease: '猪瘟',     count: 2, latestDate: '2026-06-15' },
+        { enterprise: '溪盛养殖基地',   disease: '猪传染性胃肠炎', count: 1, latestDate: '2026-02-08' },
+        { enterprise: '欣欣牧业',       disease: '猪链球菌病', count: 1, latestDate: '2026-09-28' },
+        { enterprise: '昌泰生猪养殖',   disease: '猪蓝耳病', count: 2, latestDate: '2026-11-05' }
+      ],
+
+      // 病死猪月度趋势
+      deadTrend: {
+        current:  [22, 15, 28, 31, 35, 27, 24, 30, 29, 33, 26, 32],
+        lastYear: [18, 20, 25, 22, 30, 28, 21, 27, 25, 31, 24, 28]
+      },
+
+      // 病死猪乡镇热力图
+      deadTownMap: [
+        { code: 'dept_pxzhen',    name: '蓬溪镇',  deadQty: 98,  deadRate: 5.8, stock: 1690,  enterprises: 5, overThreshold: true,  level: 'high', x: 35, y: 35, w: 18, h: 14 },
+        { code: 'dept_chisan',    name: '赤城镇',  deadQty: 62,  deadRate: 4.2, stock: 1476,  enterprises: 4, overThreshold: false, level: 'mid',  x: 58, y: 20, w: 16, h: 14 },
+        { code: 'dept_wufeng',    name: '吉星镇',  deadQty: 55,  deadRate: 3.8, stock: 1447,  enterprises: 3, overThreshold: false, level: 'mid',  x: 15, y: 20, w: 15, h: 12 },
+        { code: 'dept_mingxiu',   name: '明月镇',  deadQty: 38,  deadRate: 2.6, stock: 1462,  enterprises: 3, overThreshold: false, level: 'low',  x: 60, y: 55, w: 15, h: 12 },
+        { code: 'dept_xinghe',    name: '新会镇',  deadQty: 26,  deadRate: 2.1, stock: 1238,  enterprises: 2, overThreshold: false, level: 'low',  x: 15, y: 55, w: 14, h: 12 },
+        { code: 'dept_shuangjiang',name: '新星镇', deadQty: 18,  deadRate: 1.8, stock: 1000,  enterprises: 2, overThreshold: false, level: 'low',  x: 38, y: 65, w: 15, h: 12 },
+        { code: 'dept_renhe',     name: '任隆镇',  deadQty: 8,   deadRate: 1.2, stock: 667,   enterprises: 1, overThreshold: false, level: 'low',  x: 75, y: 40, w: 14, h: 12 },
+        { code: 'dept_sanfeng',   name: '三凤镇',  deadQty: 5,   deadRate: 0.9, stock: 556,   enterprises: 1, overThreshold: false, level: 'low',  x: 4,  y: 42, w: 12, h: 10 },
+        { code: 'dept_fulou',     name: '福德镇',  deadQty: 6,   deadRate: 6.3, stock: 952,   enterprises: 1, overThreshold: true,  level: 'high', x: 76, y: 65, w: 12, h: 10 },
+        { code: 'dept_baoli',     name: '宝梵镇',  deadQty: 2,   deadRate: 0.5, stock: 400,   enterprises: 1, overThreshold: false, level: 'low',  x: 42, y: 10, w: 12, h: 10 }
+      ],
+
+      // 病死猪乡镇表格
+      deadTableData: [
+        { town: '蓬溪镇', deadQty: 98,  stock: 1690, deadRate: 5.8, enterprises: 5, mainCause: '疾病', yoy: 15.3 },
+        { town: '赤城镇', deadQty: 62,  stock: 1476, deadRate: 4.2, enterprises: 4, mainCause: '疾病', yoy: -8.2 },
+        { town: '吉星镇', deadQty: 55,  stock: 1447, deadRate: 3.8, enterprises: 3, mainCause: '疾病', yoy: 5.1 },
+        { town: '明月镇', deadQty: 38,  stock: 1462, deadRate: 2.6, enterprises: 3, mainCause: '难产', yoy: -20.0 },
+        { town: '新会镇', deadQty: 26,  stock: 1238, deadRate: 2.1, enterprises: 2, mainCause: '疾病', yoy: 0 },
+        { town: '新星镇', deadQty: 18,  stock: 1000, deadRate: 1.8, enterprises: 2, mainCause: '受伤', yoy: -10.0 },
+        { town: '任隆镇', deadQty: 8,   stock: 667,  deadRate: 1.2, enterprises: 1, mainCause: '疾病', yoy: 0 },
+        { town: '福德镇', deadQty: 6,   stock: 952,  deadRate: 6.3, enterprises: 1, mainCause: '疾病', yoy: 50.0 },
+        { town: '三凤镇', deadQty: 5,   stock: 556,  deadRate: 0.9, enterprises: 1, mainCause: '老龄', yoy: -16.7 },
+        { town: '宝梵镇', deadQty: 2,   stock: 400,  deadRate: 0.5, enterprises: 1, mainCause: '疾病', yoy: 0 }
+      ],
+
+      // 病死猪下钻明细
+      deadDrillData: [
+        { enterprise: '蓬溪鑫源养殖场', qty: 32, cause: '猪蓝耳病', disposal: '委托集中处理', date: '2026-09-15' },
+        { enterprise: '蓬溪鑫源养殖场', qty: 18, cause: '猪瘟', disposal: '焚烧', date: '2026-07-08' },
+        { enterprise: '蓬远生态农场',   qty: 25, cause: '猪蓝耳病', disposal: '化尸', date: '2026-10-20' },
+        { enterprise: '蓬远生态农场',   qty: 10, cause: '受伤', disposal: '掩埋', date: '2026-08-14' },
+        { enterprise: '溪盛养殖基地',   qty: 8,  cause: '猪瘟', disposal: '委托集中处理', date: '2026-06-22' },
+        { enterprise: '昌泰生猪养殖',   qty: 5,  cause: '疾病', disposal: '焚烧', date: '2026-11-02' }
+      ],
+
+      // 处理方式汇总
+      disposalTableData: [
+        { method: 'burn',    name: '焚烧',       quantity: 85,  ratio: 27.2, enterprises: 12, yoy: 5.0 },
+        { method: 'dissolve',name: '化尸',       quantity: 72,  ratio: 23.1, enterprises: 10, yoy: -8.3 },
+        { method: 'bury',    name: '掩埋',       quantity: 48,  ratio: 15.4, enterprises: 8,  yoy: -15.0 },
+        { method: 'ferment', name: '发酵',       quantity: 35,  ratio: 11.2, enterprises: 6,  yoy: 30.0 },
+        { method: 'entrust', name: '委托集中处理', quantity: 72, ratio: 23.1, enterprises: 14, yoy: 20.0 }
+      ],
+
+      // 处理趋势月度数据
+      disposalTrend: [
+        { period: '1月',  burn: 8,  dissolve: 6,  bury: 4,  ferment: 3,  entrust: 6 },
+        { period: '2月',  burn: 5,  dissolve: 4,  bury: 3,  ferment: 2,  entrust: 4 },
+        { period: '3月',  burn: 9,  dissolve: 7,  bury: 5,  ferment: 3,  entrust: 7 },
+        { period: '4月',  burn: 10, dissolve: 8,  bury: 5,  ferment: 4,  entrust: 8 },
+        { period: '5月',  burn: 12, dissolve: 9,  bury: 6,  ferment: 4,  entrust: 9 },
+        { period: '6月',  burn: 8,  dissolve: 6,  bury: 4,  ferment: 3,  entrust: 6 },
+        { period: '7月',  burn: 7,  dissolve: 5,  bury: 3,  ferment: 2,  entrust: 5 },
+        { period: '8月',  burn: 9,  dissolve: 7,  bury: 4,  ferment: 3,  entrust: 7 },
+        { period: '9月',  burn: 8,  dissolve: 6,  bury: 4,  ferment: 3,  entrust: 6 },
+        { period: '10月', burn: 9,  dissolve: 7,  bury: 5,  ferment: 4,  entrust: 7 },
+        { period: '11月', burn: 7,  dissolve: 5,  bury: 3,  ferment: 3,  entrust: 5 },
+        { period: '12月', burn: 3,  dissolve: 2,  bury: 2,  ferment: 1,  entrust: 2 }
+      ],
+
+      // 免疫防疫覆盖数据
+      immunityData: [
+        { vaccine: '猪瘟疫苗',       isMandatory: true,  immuneQty: 8420, enterprises: 22, requiredQty: 9250, coverageRate: 91.0, yoy: 3.2 },
+        { vaccine: '口蹄疫疫苗',     isMandatory: true,  immuneQty: 7850, enterprises: 21, requiredQty: 9250, coverageRate: 84.9, yoy: -2.1 },
+        { vaccine: '高致病性猪蓝耳病疫苗', isMandatory: true, immuneQty: 8100, enterprises: 20, requiredQty: 9250, coverageRate: 87.6, yoy: 1.8 },
+        { vaccine: '猪圆环病毒疫苗',  isMandatory: false, immuneQty: 5200, enterprises: 16, requiredQty: 9250, coverageRate: 56.2, yoy: 8.5 },
+        { vaccine: '猪伪狂犬病疫苗',  isMandatory: false, immuneQty: 3800, enterprises: 12, requiredQty: 9250, coverageRate: 41.1, yoy: 15.3 },
+        { vaccine: '猪链球菌疫苗',    isMandatory: false, immuneQty: 2400, enterprises: 8,  requiredQty: 9250, coverageRate: 25.9, yoy: 20.0 },
+        { vaccine: '猪传染性胃肠炎疫苗', isMandatory: false, immuneQty: 1800, enterprises: 6, requiredQty: 9250, coverageRate: 19.5, yoy: -5.3 },
+        { vaccine: '细小病毒疫苗',    isMandatory: false, immuneQty: 1200, enterprises: 5,  requiredQty: 9250, coverageRate: 13.0, yoy: 0 }
+      ],
+
+      // 保险月度数据
+      insuranceMonthly: [
+        { month: '1',  insured: 680,  claimed: 18, amount: 18000.00 },
+        { month: '2',  insured: 520,  claimed: 12, amount: 12000.00 },
+        { month: '3',  insured: 760,  claimed: 22, amount: 22000.00 },
+        { month: '4',  insured: 810,  claimed: 25, amount: 25000.00 },
+        { month: '5',  insured: 870,  claimed: 28, amount: 28500.00 },
+        { month: '6',  insured: 720,  claimed: 20, amount: 20000.00 },
+        { month: '7',  insured: 650,  claimed: 16, amount: 16000.00 },
+        { month: '8',  insured: 740,  claimed: 22, amount: 22000.00 },
+        { month: '9',  insured: 780,  claimed: 24, amount: 24000.00 },
+        { month: '10', insured: 830,  claimed: 26, amount: 26000.00 },
+        { month: '11', insured: 700,  claimed: 18, amount: 18000.00 },
+        { month: '12', insured: 500,  claimed: 3,  amount: 3500.00 }
+      ]
+    };
+
+    function app() {
+      return {
+        currentUser: MOCK_DATA.users[0],
+        filter: { year: '2026', area: '', granularity: 'month' },
+        disease: { tableOpen: false, selectedTown: '' },
+        dead: { tableOpen: false, selectedTown: '' },
+        insurance: { tableOpen: false },
+        modals: { importQuarantine: false, importInsurance: false, diseaseDrilldown: false, deadDrilldown: false },
+        importResult: { quarantine: null, insurance: null },
+        insuranceTab: 'excel',
+        insuranceForm: { statMonth: '', areaName: '', insuredQty: '', claimedQty: '', claimedAmount: '' },
+        insuranceFormErrors: {},
+        toast: { visible: false, message: '', type: 'success' },
+        MOCK_DATA,
+
+        init() {
+          this.$nextTick(() => {
+            this.renderCharts();
+          });
+        },
+
+        isTownRole() {
+          return ['town_gov_staff', 'town_vet_station'].includes(this.currentUser.role);
+        },
+
+        setGranularity(g) {
+          this.filter.granularity = g;
+          this.refreshAll();
+        },
+
+        refreshAll() {
+          this.showToast('数据已刷新，筛选条件：' + this.filter.year + '年 ' + (this.filter.area ? '指定乡镇' : '全县') + ' ' + {month:'按月', quarter:'按季', year:'按年'}[this.filter.granularity], 'success');
+          setTimeout(() => this.renderCharts(), 300);
+        },
+
+        renderCharts() {
+          this.renderCategoryPie();
+          this.renderQuarantineTrend();
+          this.renderDiseaseBar();
+          this.renderDeadTrend();
+          this.renderDisposalPie();
+          this.renderDisposalTrend();
+          this.renderImmunityBar();
+          this.renderInsuranceCombo();
+        },
+
+        renderCategoryPie() {
+          const el = document.getElementById('chart-category-pie');
+          if (!el) return;
+          const chart = echarts.init(el);
+          chart.setOption({
+            tooltip: { trigger: 'item', formatter: '{b}: {c}头次 ({d}%)' },
+            legend: { bottom: 0, textStyle: { fontSize: 11 } },
+            series: [{
+              type: 'pie', radius: ['40%', '68%'], center: ['50%', '45%'],
+              data: [
+                { name: '产地检疫', value: 7523, itemStyle: { color: '#1890ff' } },
+                { name: '屠宰检疫', value: 4891, itemStyle: { color: '#52c41a' } },
+                { name: '调运检疫', value: 426,  itemStyle: { color: '#faad14' } }
+              ],
+              label: { show: false }
+            }]
+          });
+        },
+
+        renderQuarantineTrend() {
+          const el = document.getElementById('chart-quarantine-trend');
+          if (!el) return;
+          const chart = echarts.init(el);
+          const data = MOCK_DATA.quarantineTrend;
+          chart.setOption({
+            tooltip: {
+              trigger: 'axis', axisPointer: { type: 'cross' },
+              formatter: (params) => {
+                let t = params[0].name + '<br/>';
+                params.forEach(p => { t += p.marker + p.seriesName + ': ' + p.value + (p.seriesName === '合格率' ? '%' : '头次') + '<br/>'; });
+                return t;
+              }
+            },
+            legend: { data: ['产地检疫','屠宰检疫','调运检疫','合格率'], bottom: 0, textStyle: { fontSize: 11 } },
+            grid: { top: 12, bottom: 60, left: 50, right: 55 },
+            xAxis: { type: 'category', data: data.map(d => d.period) },
+            yAxis: [
+              { type: 'value', name: '头次', nameTextStyle: { fontSize: 11 } },
+              { type: 'value', name: '合格率(%)', min: 90, max: 100, nameTextStyle: { fontSize: 11 } }
+            ],
+            series: [
+              { name: '产地检疫', type: 'bar', stack: 'total', data: data.map(d => d.production), itemStyle: { color: '#1890ff' } },
+              { name: '屠宰检疫', type: 'bar', stack: 'total', data: data.map(d => d.slaughter), itemStyle: { color: '#52c41a' } },
+              { name: '调运检疫', type: 'bar', stack: 'total', data: data.map(d => d.transport),  itemStyle: { color: '#faad14' } },
+              {
+                name: '合格率', type: 'line', yAxisIndex: 1,
+                data: data.map(d => d.qualifiedRate),
+                itemStyle: { color: '#f5222d' },
+                lineStyle: { color: '#f5222d' },
+                symbol: 'circle',
+                symbolSize: (val) => val < 95 ? 12 : 6,
+                markPoint: { data: data.filter(d => d.qualifiedRate < 95).map((d, i) => ({ name: '低于95%', coord: [data.indexOf(d), d.qualifiedRate], itemStyle: { color: '#f5222d' } })) }
+              }
+            ]
+          });
+        },
+
+        renderDiseaseBar() {
+          const el = document.getElementById('chart-disease-bar');
+          if (!el) return;
+          const chart = echarts.init(el);
+          const data = MOCK_DATA.diseaseTop10.slice().reverse();
+          chart.setOption({
+            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: (p) => `${p[0].name}<br/>发病数量: ${p[0].value}例<br/>涉及企业数: ${data.find(d=>d.name===p[0].name)?.enterprises}家` },
+            grid: { top: 8, bottom: 8, left: 100, right: 20 },
+            xAxis: { type: 'value', name: '发病数量(例)' },
+            yAxis: { type: 'category', data: data.map(d => d.name), axisLabel: { fontSize: 11 } },
+            series: [{
+              type: 'bar', data: data.map(d => d.count),
+              itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#f5222d' }, { offset: 1, color: '#ff7a45' }] } },
+              barMaxWidth: 20, label: { show: true, position: 'right', fontSize: 11 }
+            }]
+          });
+        },
+
+        renderDeadTrend() {
+          const el = document.getElementById('chart-dead-trend');
+          if (!el) return;
+          const chart = echarts.init(el);
+          const months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+          chart.setOption({
+            tooltip: {
+              trigger: 'axis',
+              formatter: (p) => `${p[0].name}<br/>本年度: ${p[0].value}头<br/>去年同期: ${p[1]?.value}头`
+            },
+            legend: { data: ['本年度','去年同期'], bottom: 0, textStyle: { fontSize: 11 } },
+            grid: { top: 12, bottom: 50, left: 50, right: 20 },
+            xAxis: { type: 'category', data: months },
+            yAxis: { type: 'value', name: '头' },
+            series: [
+              { name: '本年度', type: 'line', data: MOCK_DATA.deadTrend.current, itemStyle: { color: '#1890ff' }, lineStyle: { color: '#1890ff', width: 2 }, symbol: 'circle', symbolSize: 6 },
+              { name: '去年同期', type: 'line', data: MOCK_DATA.deadTrend.lastYear, itemStyle: { color: '#bfbfbf' }, lineStyle: { color: '#bfbfbf', type: 'dashed', width: 2 }, symbol: 'circle', symbolSize: 5 }
+            ]
+          });
+        },
+
+        renderDisposalPie() {
+          const el = document.getElementById('chart-disposal-pie');
+          if (!el) return;
+          const chart = echarts.init(el);
+          const colors = { burn: '#f5222d', dissolve: '#fa8c16', bury: '#a0d911', ferment: '#52c41a', entrust: '#1890ff' };
+          chart.setOption({
+            title: { text: '处理方式占比', textStyle: { fontSize: 13, fontWeight: 600 }, top: 0 },
+            tooltip: { trigger: 'item', formatter: '{b}: {c}头 ({d}%)' },
+            legend: { bottom: 0, textStyle: { fontSize: 11 } },
+            series: [{
+              type: 'pie', radius: ['40%', '68%'], center: ['50%', '48%'],
+              data: MOCK_DATA.disposalTableData.map(d => ({ name: d.name, value: d.quantity, itemStyle: { color: colors[d.method] } })),
+              label: { show: false }
+            }]
+          });
+        },
+
+        renderDisposalTrend() {
+          const el = document.getElementById('chart-disposal-trend');
+          if (!el) return;
+          const chart = echarts.init(el);
+          const data = MOCK_DATA.disposalTrend;
+          chart.setOption({
+            title: { text: '月度处理趋势', textStyle: { fontSize: 13, fontWeight: 600 }, top: 0 },
+            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+            legend: { data: ['焚烧','化尸','掩埋','发酵','委托集中处理'], bottom: 0, textStyle: { fontSize: 10 } },
+            grid: { top: 30, bottom: 60, left: 40, right: 10 },
+            xAxis: { type: 'category', data: data.map(d => d.period) },
+            yAxis: { type: 'value', name: '头' },
+            series: [
+              { name: '焚烧',       type: 'bar', stack: 's', data: data.map(d => d.burn),    itemStyle: { color: '#f5222d' } },
+              { name: '化尸',       type: 'bar', stack: 's', data: data.map(d => d.dissolve), itemStyle: { color: '#fa8c16' } },
+              { name: '掩埋',       type: 'bar', stack: 's', data: data.map(d => d.bury),    itemStyle: { color: '#a0d911' } },
+              { name: '发酵',       type: 'bar', stack: 's', data: data.map(d => d.ferment),  itemStyle: { color: '#52c41a' } },
+              { name: '委托集中处理', type: 'bar', stack: 's', data: data.map(d => d.entrust), itemStyle: { color: '#1890ff' } }
+            ]
+          });
+        },
+
+        renderImmunityBar() {
+          const el = document.getElementById('chart-immunity-bar');
+          if (!el) return;
+          const chart = echarts.init(el);
+          const data = MOCK_DATA.immunityData;
+          chart.setOption({
+            tooltip: {
+              trigger: 'axis', axisPointer: { type: 'shadow' },
+              formatter: (p) => {
+                const d = data.find(x => x.vaccine === p[0].name);
+                return `${p[0].name}<br/>免疫数量: ${p[0].value}头次<br/>免疫企业数: ${d?.enterprises}家<br/>免疫覆盖率: ${d?.coverageRate}%`;
+              }
+            },
+            grid: { top: 12, bottom: 80, left: 50, right: 20 },
+            xAxis: { type: 'category', data: data.map(d => d.vaccine), axisLabel: { fontSize: 10, rotate: 20 } },
+            yAxis: { type: 'value', name: '头次' },
+            series: [{
+              type: 'bar', barMaxWidth: 36,
+              data: data.map(d => ({ value: d.immuneQty, itemStyle: { color: d.isMandatory ? '#f5222d' : '#1890ff' } })),
+              label: { show: true, position: 'top', fontSize: 10, formatter: (p) => data[p.dataIndex]?.coverageRate + '%' }
+            }]
+          });
+        },
+
+        renderInsuranceCombo() {
+          const el = document.getElementById('chart-insurance-combo');
+          if (!el) return;
+          const chart = echarts.init(el);
+          const data = MOCK_DATA.insuranceMonthly;
+          chart.setOption({
+            tooltip: {
+              trigger: 'axis', axisPointer: { type: 'cross' },
+              formatter: (p) => {
+                let t = p[0].name + '月<br/>';
+                p.forEach(x => { t += x.marker + x.seriesName + ': ' + x.value.toLocaleString() + (x.seriesName === '理赔金额' ? '元' : '头') + '<br/>'; });
+                return t;
+              }
+            },
+            legend: { data: ['投保数量','理赔数量','理赔金额'], bottom: 0, textStyle: { fontSize: 11 } },
+            grid: { top: 12, bottom: 50, left: 55, right: 65 },
+            xAxis: { type: 'category', data: data.map(d => d.month + '月') },
+            yAxis: [
+              { type: 'value', name: '头' },
+              { type: 'value', name: '金额(元)', axisLabel: { formatter: (v) => (v/10000).toFixed(1) + '万' } }
+            ],
+            series: [
+              { name: '投保数量', type: 'bar', data: data.map(d => d.insured), itemStyle: { color: '#1890ff' }, barMaxWidth: 20 },
+              { name: '理赔数量', type: 'bar', data: data.map(d => d.claimed), itemStyle: { color: '#fa8c16' }, barMaxWidth: 20 },
+              { name: '理赔金额', type: 'line', yAxisIndex: 1, data: data.map(d => d.amount), itemStyle: { color: '#f5222d' }, lineStyle: { color: '#f5222d' } }
+            ]
+          });
+        },
+
+        openImportQuarantine() {
+          this.importResult.quarantine = null;
+          this.modals.importQuarantine = true;
+        },
+
+        openImportInsurance() {
+          this.importResult.insurance = null;
+          this.insuranceTab = 'excel';
+          this.insuranceForm = { statMonth: '', areaName: '', insuredQty: '', claimedQty: '', claimedAmount: '' };
+          this.insuranceFormErrors = {};
+          this.modals.importInsurance = true;
+        },
+
+        simulateFileSelect(type) {
+          setTimeout(() => {
+            if (type === 'quarantine') {
+              this.importResult.quarantine = {
+                successCount: 128,
+                failCount: 2,
+                errors: [
+                  { rowNum: 15, message: '检疫类目无效，必须为产地检疫、屠宰检疫或调运检疫' },
+                  { rowNum: 42, message: '合格数量不能超过检疫数量' }
+                ]
+              };
+            } else {
+              this.importResult.insurance = { successCount: 12, failCount: 0, errors: [] };
+              this.showToast('保险数据导入成功，共导入 12 条数据', 'success');
+            }
+          }, 800);
+          this.showToast('文件选择中...', 'info');
+        },
+
+        submitInsuranceForm() {
+          this.insuranceFormErrors = {};
+          let valid = true;
+          if (!this.insuranceForm.statMonth) {
+            this.insuranceFormErrors.statMonth = '统计年月不能为空';
+            valid = false;
+          }
+          const insured = parseInt(this.insuranceForm.insuredQty);
+          if (this.insuranceForm.insuredQty === '' || isNaN(insured) || insured < 0 || insured > 9999999) {
+            this.insuranceFormErrors.insuredQty = '投保数量必须为 0 到 9999999 之间的整数';
+            valid = false;
+          }
+          const claimed = parseInt(this.insuranceForm.claimedQty);
+          if (!isNaN(insured) && !isNaN(claimed) && claimed > insured) {
+            this.insuranceFormErrors.claimedQty = '理赔数量不能超过投保数量';
+            valid = false;
+          }
+          if (this.insuranceForm.claimedAmount === '' || isNaN(parseFloat(this.insuranceForm.claimedAmount))) {
+            this.insuranceFormErrors.claimedAmount = '理赔金额不能为空';
+            valid = false;
+          }
+          if (!valid) return;
+          if (confirm(`该月份${this.insuranceForm.areaName || '全县汇总'}已存在历史数据，是否覆盖？`)) {
+            this.showToast('保险月报保存成功', 'success');
+            this.modals.importInsurance = false;
+          }
+        },
+
+        openDiseaseDrilldown(town) {
+          this.disease.selectedTown = town.name;
+          this.modals.diseaseDrilldown = true;
+        },
+
+        openDeadDrilldown(town) {
+          this.dead.selectedTown = town.name;
+          this.modals.deadDrilldown = true;
+        },
+
+        exportReport() {
+          const now = new Date();
+          const ts = now.getFullYear().toString() +
+            String(now.getMonth()+1).padStart(2,'0') +
+            String(now.getDate()).padStart(2,'0') + '_' +
+            String(now.getHours()).padStart(2,'0') +
+            String(now.getMinutes()).padStart(2,'0') +
+            String(now.getSeconds()).padStart(2,'0');
+          this.showToast(`导出成功：检验检疫无害化分析_${this.filter.year}_${ts}.xlsx`, 'success');
+        },
+
+        switchRole(u) {
+          this.currentUser = u;
+          this.showToast('已切换角色：' + u.roleName + '（' + u.name + '）', 'info');
+          if (this.isTownRole()) {
+            this.filter.area = 'dept_pxzhen';
+          } else {
+            this.filter.area = '';
+          }
+          this.refreshAll();
+        },
+
+        logout() {
+          if (confirm('确认退出登录？')) {
+            alert('已退出登录，返回登录页（原型演示）');
+          }
+        },
+
+        showToast(msg, type = 'success') {
+          this.toast = { visible: true, message: msg, type };
+          setTimeout(() => { this.toast.visible = false; }, 3500);
+        }
+      };
+    }
+  </script>
+</body>
+</html>

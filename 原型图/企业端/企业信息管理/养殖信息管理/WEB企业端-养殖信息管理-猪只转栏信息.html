@@ -1,0 +1,1472 @@
+<!--
+  功能名称：猪只转栏信息管理
+  对应PRD：doc_prd/WEB/企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-猪只转栏信息.prd.md
+  所属端口：WEB企业端
+  所属模块：养殖信息管理
+  制作日期：2026-03-09
+  最后更新：2026-03-09
+  角色说明：
+    ent_admin       企业管理员
+    ent_reporter    企业填报员
+    town_vet_station 乡镇畜牧兽医站
+    town_gov_staff  乡镇政府业务人员
+    county_admin    县级管理员
+    county_staff    县级业务人员
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>猪只转栏信息管理 - 2024年蓬溪县生猪数字化管理平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    /* SHARED STYLES */
+    [x-cloak] { display: none !important; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; font-size: 14px; color: #262626; background: #f0f2f5; }
+    .sidebar { width: 240px; min-width: 240px; }
+    .main-content { flex: 1; min-width: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    .content-area { flex: 1; overflow-y: auto; padding: 16px; }
+    .table-wrapper { overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { padding: 10px 12px; text-align: left; white-space: nowrap; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+    thead th { background: #fafafa; font-weight: 600; color: #595959; }
+    tbody tr:hover { background: #fafafa; }
+    tbody tr:nth-child(even) { background: #fafafa; }
+    tbody tr:nth-child(even):hover { background: #f0f0f0; }
+    .op-col { position: sticky; right: 0; background: white; box-shadow: -2px 0 6px rgba(0,0,0,0.06); }
+    thead .op-col { background: #fafafa; }
+    tbody tr:nth-child(even) .op-col { background: #fafafa; }
+    tbody tr:hover .op-col { background: #fafafa; }
+    .reject-row .op-col { background: #fff5f5 !important; }
+    .status-badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 500; white-space: nowrap; }
+    .status-0 { background: #f5f5f5; color: #999999; }
+    .status-1 { background: #e6f7ff; color: #1890ff; }
+    .status-2 { background: #fff7e6; color: #fa8c16; }
+    .status-3 { background: #f9f0ff; color: #722ed1; }
+    .status-4 { background: #f6ffed; color: #52c41a; }
+    .status-5, .status-6, .status-7 { background: #fff1f0; color: #f5222d; }
+    .btn-primary { background: #1677ff; color: white; border: none; padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 4px; transition: background .15s; }
+    .btn-primary:hover { background: #4096ff; }
+    .btn-default { background: white; color: #262626; border: 1px solid #d9d9d9; padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 4px; transition: all .15s; }
+    .btn-default:hover { border-color: #1677ff; color: #1677ff; }
+    .btn-danger { background: #ff4d4f; color: white; border: none; padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 4px; }
+    .btn-danger:hover { background: #ff7875; }
+    .btn-link { background: none; border: none; color: #1677ff; cursor: pointer; font-size: 12px; padding: 2px 4px; }
+    .btn-link:hover { color: #4096ff; }
+    .btn-link-danger { background: none; border: none; color: #ff4d4f; cursor: pointer; font-size: 12px; padding: 2px 4px; }
+    .btn-link-warning { background: none; border: none; color: #fa8c16; cursor: pointer; font-size: 12px; padding: 2px 4px; }
+    .form-label { display: block; margin-bottom: 4px; font-size: 13px; color: #595959; }
+    .required { color: #ff4d4f; margin-right: 2px; }
+    .form-input { width: 100%; padding: 6px 10px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 13px; color: #262626; outline: none; box-sizing: border-box; transition: border-color .15s; }
+    .form-input:focus { border-color: #1677ff; box-shadow: 0 0 0 2px rgba(22,119,255,0.1); }
+    .form-input[readonly], .form-input.readonly { background: #f5f5f5; color: #8c8c8c; cursor: not-allowed; }
+    .form-error { color: #ff4d4f; font-size: 12px; margin-top: 3px; display: flex; align-items: center; gap: 3px; }
+    .form-hint { color: #8c8c8c; font-size: 12px; margin-top: 3px; }
+    .stock-display { background: #f5f5f5; border: 1px solid #e8e8e8; border-radius: 4px; padding: 5px 10px; font-size: 12px; color: #595959; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+    .stock-display .stock-num { font-weight: 600; color: #1677ff; font-size: 14px; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+    .modal-box { background: white; border-radius: 6px; box-shadow: 0 6px 16px rgba(0,0,0,0.15); max-height: 90vh; display: flex; flex-direction: column; }
+    .modal-header { padding: 14px 20px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 15px; flex-shrink: 0; }
+    .modal-body { overflow-y: auto; padding: 20px; flex: 1; }
+    .modal-footer { padding: 12px 20px; border-top: 1px solid #f0f0f0; display: flex; gap: 8px; justify-content: flex-end; flex-shrink: 0; }
+    .pagination { display: flex; align-items: center; gap: 4px; }
+    .page-btn { min-width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #d9d9d9; border-radius: 4px; cursor: pointer; font-size: 12px; background: white; user-select: none; }
+    .page-btn:hover:not(:disabled) { border-color: #1677ff; color: #1677ff; }
+    .page-btn.active { background: #1677ff; color: white; border-color: #1677ff; }
+    .page-btn:disabled { opacity: .5; cursor: default; }
+    .toast { position: fixed; top: 68px; right: 24px; z-index: 9999; padding: 10px 16px; border-radius: 6px; font-size: 13px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-width: 240px; }
+    .toast-success { background: #f6ffed; border: 1px solid #b7eb8f; color: #52c41a; }
+    .toast-error { background: #fff1f0; border: 1px solid #ffa39e; color: #f5222d; }
+    .reject-row { background: #fff5f5 !important; }
+    .step-bar { display: flex; align-items: flex-start; margin: 16px 0; }
+    .step-item { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; }
+    .step-item:not(:last-child)::after { content: ''; position: absolute; top: 14px; left: 50%; width: 100%; height: 2px; background: #e8e8e8; z-index: 0; }
+    .step-item.done::after { background: #1677ff; }
+    .step-circle { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; z-index: 1; position: relative; background: #e8e8e8; color: #8c8c8c; }
+    .step-item.done .step-circle { background: #1677ff; color: white; }
+    .step-item.current .step-circle { background: #1677ff; color: white; border: 3px solid #91caff; }
+    .step-item.failed .step-circle { background: #ff4d4f; color: white; }
+    .step-label { margin-top: 6px; font-size: 11px; color: #8c8c8c; text-align: center; line-height: 1.4; }
+    .step-item.done .step-label { color: #1677ff; }
+    .step-item.failed .step-label { color: #ff4d4f; }
+    .detail-section { margin-bottom: 20px; }
+    .detail-section-title { font-weight: 600; color: #262626; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; }
+    .detail-item { display: flex; gap: 6px; }
+    .detail-label { color: #8c8c8c; white-space: nowrap; min-width: 100px; text-align: right; font-size: 13px; }
+    .detail-value { color: #262626; flex: 1; word-break: break-all; font-size: 13px; }
+    .nav-item { padding: 9px 16px; display: flex; align-items: center; gap: 8px; cursor: pointer; color: #595959; border-radius: 4px; transition: all .2s; font-size: 13px; }
+    .nav-item:hover { background: #e6f4ff; color: #1677ff; }
+    .nav-item.active { background: #e6f4ff; color: #1677ff; font-weight: 500; }
+    .nav-group-title { padding: 8px 16px 4px; font-size: 11px; color: #8c8c8c; letter-spacing: .5px; }
+    .filter-bar { background: white; border-radius: 4px; padding: 14px 16px; margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .filter-item { display: flex; flex-direction: column; gap: 4px; }
+    .filter-label { font-size: 12px; color: #8c8c8c; }
+    select.form-input { padding-right: 28px; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%238c8c8c'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; }
+    .reason-badge { display: inline-flex; align-items: center; padding: 1px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; background: #f0f5ff; color: #2f54eb; }
+  </style>
+</head>
+<body x-data="app()" x-cloak>
+
+<!-- Toast 提示 -->
+<div x-show="toast.show" x-transition class="toast" :class="toast.type === 'success' ? 'toast-success' : 'toast-error'">
+  <i :class="toast.type === 'success' ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
+  <span x-text="toast.message"></span>
+</div>
+
+<div class="flex" style="height:100vh;overflow:hidden;">
+
+  <!-- SECTION START: 侧边栏 -->
+  <aside class="sidebar bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
+    <div class="flex items-center gap-3 px-4 border-b border-gray-100" style="height:60px;">
+      <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">猪</div>
+      <div class="min-w-0">
+        <div class="font-semibold text-sm text-gray-800 truncate">蓬溪生猪平台</div>
+        <div class="text-xs text-gray-400">企业端</div>
+      </div>
+    </div>
+    <nav class="flex-1 overflow-y-auto p-2">
+      <div class="nav-group-title mt-1">企业信息管理</div>
+      <div class="nav-item"><i class="fas fa-building w-4 text-center"></i><span>企业基础信息</span></div>
+      <div class="nav-item active"><i class="fas fa-piggy-bank w-4 text-center"></i><span>养殖信息管理</span></div>
+      <div class="nav-item"><i class="fas fa-video w-4 text-center"></i><span>实时监测</span></div>
+      <div class="nav-group-title mt-2">项目信息管理</div>
+      <div class="nav-item"><i class="fas fa-file-alt w-4 text-center"></i><span>项目申报</span></div>
+      <div class="nav-item"><i class="fas fa-flag-checkered w-4 text-center"></i><span>竣工验收申请</span></div>
+      <div class="nav-group-title mt-2">政策信息</div>
+      <div class="nav-item"><i class="fas fa-bullhorn w-4 text-center"></i><span>政策通知</span></div>
+    </nav>
+  </aside>
+  <!-- SECTION END: 侧边栏 -->
+
+  <div class="main-content">
+    <!-- SECTION START: 顶部导航栏 -->
+    <header class="bg-white border-b border-gray-200 flex items-center justify-between px-4 flex-shrink-0" style="height:60px;">
+      <nav class="flex items-center gap-1 text-sm text-gray-500">
+        <span>企业信息管理</span>
+        <i class="fas fa-chevron-right text-xs mx-1"></i>
+        <span>养殖信息管理</span>
+        <i class="fas fa-chevron-right text-xs mx-1"></i>
+        <span class="text-gray-800 font-medium">猪只转栏信息</span>
+      </nav>
+      <div class="flex items-center gap-3">
+        <!-- 角色切换器 -->
+        <div class="flex items-center gap-2 bg-gray-50 rounded px-3 py-1.5 border border-gray-200">
+          <i class="fas fa-user-circle text-blue-500 text-sm"></i>
+          <select x-model="currentRole" @change="onRoleChange()" class="bg-transparent text-sm text-gray-700 outline-none cursor-pointer">
+            <option value="ent_admin">企业管理员</option>
+            <option value="ent_reporter">企业填报员</option>
+            <option value="town_vet_station">乡镇畜牧兽医站</option>
+            <option value="town_gov_staff">乡镇政府业务人员</option>
+            <option value="county_admin">县级管理员</option>
+            <option value="county_staff">县级业务人员</option>
+          </select>
+        </div>
+        <div class="text-sm text-gray-600 hidden sm:block">
+          <span x-text="getCurrentUser().name"></span>
+          <span class="text-xs text-gray-400 ml-1" x-text="'(' + getRoleName() + ')'"></span>
+        </div>
+        <button class="btn-default text-xs" @click="if(confirm('确认退出登录？')) showToast('已退出（原型演示）','success')">
+          <i class="fas fa-sign-out-alt"></i>退出
+        </button>
+      </div>
+    </header>
+    <!-- SECTION END: 顶部导航栏 -->
+
+    <div class="content-area">
+
+      <!-- SECTION START: 页面标题和工具栏 -->
+      <div class="flex items-center justify-between mb-3">
+        <h1 class="text-base font-semibold text-gray-800 flex items-center gap-2">
+          <i class="fas fa-shuffle text-blue-500"></i>猪只转栏信息管理
+        </h1>
+        <div class="flex gap-2 flex-wrap">
+          <template x-if="canAdd()">
+            <button class="btn-primary" @click="openAddModal()">
+              <i class="fas fa-plus"></i>新增
+            </button>
+          </template>
+          <button class="btn-default" @click="exportData()">
+            <i class="fas fa-download"></i>导出Excel
+          </button>
+          <template x-if="getSelectedDraftIds().length > 0 && isEntRole()">
+            <button class="btn-danger" @click="batchDelete()">
+              <i class="fas fa-trash"></i>批量删除（<span x-text="getSelectedDraftIds().length"></span>）
+            </button>
+          </template>
+        </div>
+      </div>
+      <!-- SECTION END: 页面标题和工具栏 -->
+
+      <!-- SECTION START: 筛选区 -->
+      <div id="feature-filter" class="filter-bar">
+        <template x-if="!isEntRole()">
+          <div class="filter-item">
+            <span class="filter-label">企业名称</span>
+            <input type="text" class="form-input" style="width:160px" placeholder="请输入企业名称" x-model="filter.enterpriseName" @input.debounce.300ms="filterData()">
+          </div>
+        </template>
+        <template x-if="!isEntRole()">
+          <div class="filter-item">
+            <span class="filter-label">行政区划</span>
+            <select class="form-input" style="width:140px" x-model="filter.areaName" @change="filterData()">
+              <option value="">全部</option>
+              <option value="蓬南镇">蓬南镇</option>
+              <option value="吉祥镇">吉祥镇</option>
+              <option value="明月镇">明月镇</option>
+              <option value="天福镇">天福镇</option>
+            </select>
+          </div>
+        </template>
+        <div class="filter-item">
+          <span class="filter-label">状态</span>
+          <select class="form-input" style="width:130px" x-model="filter.status" @change="filterData()">
+            <option value="">全部</option>
+            <option value="0">草稿</option>
+            <option value="1">待核实</option>
+            <option value="2">待审核</option>
+            <option value="3">待终审</option>
+            <option value="4">已入库</option>
+            <option value="5">核实退回</option>
+            <option value="6">审核退回</option>
+            <option value="7">终审退回</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <span class="filter-label">转栏日期（开始）</span>
+          <input type="date" class="form-input" style="width:145px" x-model="filter.dateStart" @change="filterData()">
+        </div>
+        <div class="filter-item">
+          <span class="filter-label">转栏日期（结束）</span>
+          <input type="date" class="form-input" style="width:145px" x-model="filter.dateEnd" @change="filterData()">
+        </div>
+        <div class="filter-item">
+          <span class="filter-label">源圈舍</span>
+          <select class="form-input" style="width:130px" x-model="filter.sourcePigstyId" @change="filterData()">
+            <option value="">全部</option>
+            <template x-for="p in MOCK_DATA.pigstyList" :key="p.id">
+              <option :value="p.id" x-text="p.name"></option>
+            </template>
+          </select>
+        </div>
+        <div class="filter-item justify-end">
+          <span class="filter-label">&nbsp;</span>
+          <button class="btn-default" @click="resetFilter()"><i class="fas fa-undo text-xs mr-1"></i>重置</button>
+        </div>
+      </div>
+      <!-- SECTION END: 筛选区 -->
+
+      <!-- SECTION START: 数据列表 -->
+      <div id="feature-list" class="bg-white rounded shadow-sm" style="display:flex;flex-direction:column;">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:36px;padding-left:14px;"><input type="checkbox" @change="toggleAll($event)" :checked="allSelected()"></th>
+                <th style="width:50px;">序号</th>
+                <template x-if="!isEntRole()">
+                  <th style="min-width:160px;">企业名称</th>
+                </template>
+                <template x-if="!isEntRole()">
+                  <th style="min-width:140px;">行政区划</th>
+                </template>
+                <th style="min-width:120px;">源圈舍</th>
+                <th style="min-width:120px;">目标圈舍</th>
+                <th style="min-width:110px;">转栏日期</th>
+                <th style="min-width:110px;">转栏数量（头）</th>
+                <th style="min-width:120px;">转栏原因</th>
+                <th style="min-width:110px;">平均体重（kg）</th>
+                <th style="min-width:100px;">状态</th>
+                <th style="min-width:100px;">填报人</th>
+                <th style="min-width:155px;">创建时间</th>
+                <th class="op-col" style="min-width:220px;">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-if="filteredData().length === 0">
+                <tr>
+                  <td :colspan="isEntRole() ? 11 : 13" class="text-center py-14 text-gray-400">
+                    <i class="fas fa-inbox text-4xl mb-2 block opacity-30"></i>暂无数据
+                  </td>
+                </tr>
+              </template>
+              <template x-for="(row, idx) in pagedData()" :key="row.id">
+                <tr :class="[5,6,7].includes(row.status) ? 'reject-row' : ''">
+                  <td style="padding-left:14px;">
+                    <input type="checkbox" :value="row.id" x-model="selectedIds"
+                      :disabled="!(row.status === 0 || currentRole === 'county_admin')">
+                  </td>
+                  <td x-text="(currentPage-1)*pageSize + idx + 1"></td>
+                  <template x-if="!isEntRole()">
+                    <td>
+                      <span x-text="row.enterpriseName"></span>
+                      <template x-if="row.countyEdited">
+                        <span class="ml-1 text-orange-400 text-xs cursor-pointer" title="县级管理员已修改此记录" @click="showCountyLog(row)">⚠</span>
+                      </template>
+                    </td>
+                  </template>
+                  <template x-if="!isEntRole()">
+                    <td x-text="row.areaName"></td>
+                  </template>
+                  <td x-text="row.sourcePigstyName"></td>
+                  <td x-text="row.targetPigstyName"></td>
+                  <td x-text="row.transferDate"></td>
+                  <td class="font-medium" x-text="row.transferQuantity"></td>
+                  <td><span class="reason-badge" x-text="getReasonLabel(row.transferReason)"></span></td>
+                  <td x-text="row.avgWeight ? row.avgWeight + ' kg' : '—'"></td>
+                  <td><span class="status-badge" :class="'status-' + row.status" x-text="getStatusLabel(row.status)"></span></td>
+                  <td x-text="row.createBy"></td>
+                  <td x-text="row.createTime"></td>
+                  <td class="op-col">
+                    <div class="flex gap-0.5 flex-wrap items-center">
+                      <!-- 查看（所有角色都有） -->
+                      <button class="btn-link" @click="viewDetail(row)"><i class="fas fa-eye text-xs mr-0.5"></i>查看</button>
+
+                      <!-- 企业角色 -->
+                      <template x-if="isEntRole()">
+                        <span>
+                          <!-- 草稿: 编辑+删除+提交 -->
+                          <template x-if="row.status === 0">
+                            <span>
+                              <button class="btn-link" @click="openEditModal(row)"><i class="fas fa-edit text-xs mr-0.5"></i>编辑</button>
+                              <button class="btn-link" @click="quickSubmit(row)"><i class="fas fa-paper-plane text-xs mr-0.5"></i>提交</button>
+                              <button class="btn-link-danger" @click="confirmDelete(row)"><i class="fas fa-trash text-xs mr-0.5"></i>删除</button>
+                            </span>
+                          </template>
+                          <!-- 待核实: 撤回（乡镇未操作时） -->
+                          <template x-if="row.status === 1 && !row.verifyBy">
+                            <button class="btn-link-warning" @click="confirmRevoke(row)"><i class="fas fa-rotate-left text-xs mr-0.5"></i>撤回</button>
+                          </template>
+                          <!-- 退回: 编辑+提交 -->
+                          <template x-if="[5,6,7].includes(row.status)">
+                            <span>
+                              <button class="btn-link" @click="openEditModal(row)"><i class="fas fa-edit text-xs mr-0.5"></i>编辑</button>
+                              <button class="btn-link" @click="quickSubmit(row)"><i class="fas fa-paper-plane text-xs mr-0.5"></i>提交</button>
+                            </span>
+                          </template>
+                        </span>
+                      </template>
+
+                      <!-- 乡镇畜牧兽医站: 待核实时核实操作 -->
+                      <template x-if="currentRole === 'town_vet_station' && row.status === 1">
+                        <span>
+                          <button class="btn-link" @click="openVerifyModal(row,'pass')">核实通过</button>
+                          <button class="btn-link-danger" @click="openVerifyModal(row,'reject')">核实退回</button>
+                        </span>
+                      </template>
+
+                      <!-- 乡镇政府: 待审核时审核操作 -->
+                      <template x-if="currentRole === 'town_gov_staff' && row.status === 2">
+                        <span>
+                          <button class="btn-link" @click="openAuditModal(row,'pass')">审核通过</button>
+                          <button class="btn-link-danger" @click="openAuditModal(row,'reject')">审核退回</button>
+                        </span>
+                      </template>
+
+                      <!-- 县级业务人员: 待终审时终审操作 -->
+                      <template x-if="currentRole === 'county_staff' && row.status === 3">
+                        <span>
+                          <button class="btn-link" @click="openFinalModal(row,'pass')">终审通过</button>
+                          <button class="btn-link-danger" @click="openFinalModal(row,'reject')">终审退回</button>
+                        </span>
+                      </template>
+
+                      <!-- 县级管理员: 编辑+删除 -->
+                      <template x-if="currentRole === 'county_admin'">
+                        <span>
+                          <button class="btn-link" @click="openCountyEdit(row)"><i class="fas fa-edit text-xs mr-0.5"></i>编辑</button>
+                          <button class="btn-link-danger" @click="openCountyDelete(row)"><i class="fas fa-trash text-xs mr-0.5"></i>删除</button>
+                        </span>
+                      </template>
+                    </div>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+        <!-- 分页 -->
+        <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+          <span class="text-xs text-gray-500">共 <span class="font-medium text-gray-700" x-text="filteredData().length"></span> 条记录</span>
+          <div class="flex items-center gap-2">
+            <div class="pagination">
+              <button class="page-btn" @click="prevPage()" :disabled="currentPage <= 1"><i class="fas fa-chevron-left text-xs"></i></button>
+              <template x-for="p in pageNumbers()" :key="p">
+                <button class="page-btn" :class="p === currentPage ? 'active' : ''" @click="typeof p === 'number' && (currentPage = p)" x-text="p"></button>
+              </template>
+              <button class="page-btn" @click="nextPage()" :disabled="currentPage >= totalPages()"><i class="fas fa-chevron-right text-xs"></i></button>
+            </div>
+            <select class="form-input" style="width:80px;padding:4px 8px;" x-model.number="pageSize" @change="currentPage=1">
+              <option value="10">10条</option>
+              <option value="20">20条</option>
+              <option value="50">50条</option>
+              <option value="100">100条</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <!-- SECTION END: 数据列表 -->
+
+    </div><!-- /content-area -->
+  </div><!-- /main-content -->
+</div><!-- /flex -->
+
+<!-- ============================================================ -->
+<!-- SECTION START: 新增/编辑弹窗 -->
+<!-- ============================================================ -->
+<div id="feature-add-modal" class="modal-overlay" x-show="showAddModal" @click.self="showAddModal=false">
+  <div class="modal-box" style="width:600px;">
+    <div class="modal-header">
+      <span x-text="modalTitle()"></span>
+      <button @click="showAddModal=false" class="text-gray-400 hover:text-gray-600 text-lg"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+
+      <!-- 县级管理员编辑说明框 -->
+      <template x-if="showCountyEditReason">
+        <div class="mb-4 p-3 bg-orange-50 rounded border border-orange-200">
+          <div class="form-label"><span class="required">*</span>编辑原因 <span class="text-gray-400 text-xs">（县级管理员操作企业数据需留痕，至少10字符）</span></div>
+          <textarea class="form-input" rows="2" x-model="countyEditReason" placeholder="请说明编辑原因…"></textarea>
+          <div class="form-error" x-show="countyEditError"><i class="fas fa-exclamation-circle text-xs"></i><span x-text="countyEditError"></span></div>
+        </div>
+      </template>
+
+      <div class="grid grid-cols-2 gap-x-4 gap-y-4">
+
+        <!-- 源圈舍 -->
+        <div class="col-span-1">
+          <div class="form-label"><span class="required">*</span>源圈舍</div>
+          <select class="form-input" x-model.number="form.sourcePigstyId" @change="onSourcePigstyChange()" :disabled="isFormReadonly()">
+            <option value="">请选择源圈舍</option>
+            <template x-for="p in MOCK_DATA.pigstyList" :key="p.id">
+              <option :value="p.id" x-text="p.name"></option>
+            </template>
+          </select>
+          <div class="form-error" x-show="errors.sourcePigstyId"><i class="fas fa-exclamation-circle text-xs"></i> <span x-text="errors.sourcePigstyId"></span></div>
+          <!-- 存栏量回显 -->
+          <template x-if="form.sourcePigstyId && getSourceStock() !== null">
+            <div class="stock-display">
+              <i class="fas fa-box text-xs text-gray-400"></i>
+              当前存栏：<span class="stock-num" x-text="getSourceStock()"></span> 头
+              <span class="text-gray-400 ml-1">（转栏数量不得超过此值）</span>
+            </div>
+          </template>
+        </div>
+
+        <!-- 目标圈舍 -->
+        <div class="col-span-1">
+          <div class="form-label"><span class="required">*</span>目标圈舍</div>
+          <select class="form-input" x-model.number="form.targetPigstyId" @change="onTargetPigstyChange()" :disabled="isFormReadonly()">
+            <option value="">请选择目标圈舍</option>
+            <template x-for="p in MOCK_DATA.pigstyList" :key="p.id">
+              <option :value="p.id" x-text="p.name"></option>
+            </template>
+          </select>
+          <div class="form-error" x-show="errors.targetPigstyId"><i class="fas fa-exclamation-circle text-xs"></i> <span x-text="errors.targetPigstyId"></span></div>
+        </div>
+
+        <!-- 转栏日期 -->
+        <div>
+          <div class="form-label"><span class="required">*</span>转栏日期</div>
+          <input type="date" class="form-input" x-model="form.transferDate" :max="today()" :readonly="isFormReadonly()">
+          <div class="form-error" x-show="errors.transferDate"><i class="fas fa-exclamation-circle text-xs"></i> <span x-text="errors.transferDate"></span></div>
+        </div>
+
+        <!-- 转栏数量 -->
+        <div>
+          <div class="form-label">
+            <span class="required">*</span>转栏数量（头）
+            <span x-show="form.sourcePigstyId && getSourceStock() !== null" class="text-gray-400 text-xs ml-1">（上限：<span x-text="getSourceStock()"></span>头）</span>
+          </div>
+          <input type="number" class="form-input" x-model.number="form.transferQuantity" placeholder="1-9999" min="1" max="9999" :readonly="isFormReadonly()">
+          <div class="form-error" x-show="errors.transferQuantity"><i class="fas fa-exclamation-circle text-xs"></i> <span x-text="errors.transferQuantity"></span></div>
+        </div>
+
+        <!-- 转栏原因 -->
+        <div>
+          <div class="form-label"><span class="required">*</span>转栏原因</div>
+          <select class="form-input" x-model="form.transferReason" :disabled="isFormReadonly()">
+            <option value="">请选择转栏原因</option>
+            <option value="1">生长阶段转换</option>
+            <option value="2">分群管理</option>
+            <option value="3">治疗隔离</option>
+            <option value="4">配种转群</option>
+            <option value="5">其他</option>
+          </select>
+          <div class="form-error" x-show="errors.transferReason"><i class="fas fa-exclamation-circle text-xs"></i> <span x-text="errors.transferReason"></span></div>
+        </div>
+
+        <!-- 平均体重 -->
+        <div>
+          <div class="form-label">平均体重（kg）</div>
+          <input type="number" class="form-input" x-model.number="form.avgWeight" placeholder="0.01-999.99" min="0.01" max="999.99" step="0.01" :readonly="isFormReadonly()">
+          <div class="form-error" x-show="errors.avgWeight"><i class="fas fa-exclamation-circle text-xs"></i> <span x-text="errors.avgWeight"></span></div>
+        </div>
+
+        <!-- 操作人员 -->
+        <div>
+          <div class="form-label">操作人员</div>
+          <input type="text" class="form-input" x-model="form.operatorName" placeholder="最多50字符" maxlength="50" :readonly="isFormReadonly()">
+        </div>
+
+        <!-- 企业名称（只读回显） -->
+        <div>
+          <div class="form-label">企业名称</div>
+          <input type="text" class="form-input" :value="getCurrentUser().enterpriseName || '蓬溪县鑫源养殖场'" readonly>
+        </div>
+
+      </div>
+
+      <!-- 照片附件 -->
+      <div class="mt-4">
+        <div class="form-label">照片附件 <span class="text-gray-400 text-xs">（最多9张，单张 ≤ 5MB，支持 jpg/jpeg/png）</span></div>
+        <div class="flex flex-wrap gap-2 mt-1">
+          <template x-for="(img, i) in form.photos" :key="i">
+            <div class="relative w-16 h-16 rounded border border-gray-200 overflow-hidden bg-gray-50">
+              <img :src="img" class="w-full h-full object-cover">
+              <button x-show="!isFormReadonly()" @click="form.photos.splice(i,1)"
+                class="absolute top-0 right-0 bg-red-500 text-white w-4 h-4 flex items-center justify-center text-xs rounded-bl leading-none">×</button>
+            </div>
+          </template>
+          <template x-if="form.photos.length < 9 && !isFormReadonly()">
+            <label class="w-16 h-16 border-2 border-dashed border-gray-300 rounded flex flex-col items-center justify-center cursor-pointer text-gray-400 hover:border-blue-400 hover:text-blue-400 transition-colors">
+              <i class="fas fa-plus text-sm"></i>
+              <span class="text-xs mt-0.5">上传</span>
+              <input type="file" accept="image/*" class="hidden" @change="addPhoto($event)">
+            </label>
+          </template>
+        </div>
+      </div>
+
+      <!-- 备注 -->
+      <div class="mt-4">
+        <div class="form-label">备注 <span class="text-gray-400 text-xs">（最多500字符）</span></div>
+        <textarea class="form-input" rows="2" x-model="form.remark" placeholder="请输入备注…" maxlength="500" :readonly="isFormReadonly()"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <template x-if="!isFormReadonly() && isEntRole()">
+        <button class="btn-default" @click="saveDraft()"><i class="fas fa-save mr-1"></i>保存草稿</button>
+      </template>
+      <template x-if="!isFormReadonly() && isEntRole()">
+        <button class="btn-primary" @click="doSubmitForm()"><i class="fas fa-paper-plane mr-1"></i>提交审核</button>
+      </template>
+      <template x-if="!isFormReadonly() && currentRole === 'county_admin' && !editingRecord">
+        <button class="btn-primary" @click="countyAddDirectly()"><i class="fas fa-database mr-1"></i>确认入库</button>
+      </template>
+      <template x-if="!isFormReadonly() && currentRole === 'county_admin' && editingRecord">
+        <button class="btn-primary" @click="countyConfirmEdit()"><i class="fas fa-check mr-1"></i>确认修改</button>
+      </template>
+      <button class="btn-default" @click="showAddModal=false">取消</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 新增/编辑弹窗 -->
+
+<!-- ============================================================ -->
+<!-- SECTION START: 提交确认弹窗 -->
+<!-- ============================================================ -->
+<div class="modal-overlay" x-show="showConfirmModal" @click.self="showConfirmModal=false">
+  <div class="modal-box" style="width:420px;">
+    <div class="modal-header">
+      <span>确认提交</span>
+      <button @click="showConfirmModal=false" class="text-gray-400"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <p class="text-sm text-gray-600 mb-3">请确认以下信息无误后提交：</p>
+      <div class="bg-gray-50 rounded-lg p-3 space-y-2 text-sm">
+        <div class="flex"><span class="text-gray-400 w-20">上报类型</span><span class="font-medium text-gray-800">转栏信息</span></div>
+        <div class="flex"><span class="text-gray-400 w-20">源圈舍</span><span class="font-medium" x-text="getPigstyName(form.sourcePigstyId)"></span></div>
+        <div class="flex"><span class="text-gray-400 w-20">目标圈舍</span><span class="font-medium" x-text="getPigstyName(form.targetPigstyId)"></span></div>
+        <div class="flex"><span class="text-gray-400 w-20">转栏日期</span><span class="font-medium" x-text="form.transferDate"></span></div>
+        <div class="flex"><span class="text-gray-400 w-20">转栏数量</span><span class="font-medium" x-text="(form.transferQuantity || '—') + ' 头'"></span></div>
+      </div>
+      <div class="mt-3 p-3 bg-blue-50 rounded text-xs text-blue-700 leading-relaxed">
+        <i class="fas fa-info-circle mr-1"></i>提交后将进入审批流程：<strong>乡镇畜牧兽医站核实 → 乡镇政府审核 → 县级终审入库</strong>，提交前请确认信息无误。
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" @click="confirmSubmit()"><i class="fas fa-check mr-1"></i>确认提交</button>
+      <button class="btn-default" @click="showConfirmModal=false">取消</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 提交确认弹窗 -->
+
+<!-- ============================================================ -->
+<!-- SECTION START: 查看详情弹窗 -->
+<!-- ============================================================ -->
+<div id="feature-detail" class="modal-overlay" x-show="showDetailModal" @click.self="showDetailModal=false">
+  <div class="modal-box" style="width:680px;">
+    <div class="modal-header">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-shuffle text-blue-400"></i>
+        <span>转栏信息详情</span>
+        <template x-if="detailRecord">
+          <span class="status-badge" :class="'status-' + detailRecord.status" x-text="getStatusLabel(detailRecord.status)"></span>
+        </template>
+        <template x-if="detailRecord && detailRecord.dataSource === 2">
+          <span class="status-badge" style="background:#f9f0ff;color:#722ed1;">县级直接录入</span>
+        </template>
+      </div>
+      <button @click="showDetailModal=false" class="text-gray-400 hover:text-gray-600 text-lg"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" style="max-height:75vh;">
+      <template x-if="detailRecord">
+        <div>
+          <!-- 退回原因 -->
+          <template x-if="[5,6,7].includes(detailRecord.status)">
+            <div class="mb-4 p-3 rounded border" style="background:#fff1f0;border-color:#ffa39e;">
+              <div class="font-semibold text-red-600 mb-1 text-sm"><i class="fas fa-exclamation-circle mr-1"></i>退回原因</div>
+              <div class="text-red-700 text-sm" x-text="detailRecord.rejectReason || '（无退回意见）'"></div>
+            </div>
+          </template>
+
+          <!-- 4步审批进度条 -->
+          <template x-if="detailRecord.dataSource !== 2">
+            <div class="mb-5">
+              <div class="text-xs text-gray-400 mb-2 font-medium">审核进度</div>
+              <div class="step-bar">
+                <!-- 步骤1：企业提交 -->
+                <div class="step-item" :class="detailRecord.status >= 1 ? 'done' : 'current'">
+                  <div class="step-circle">
+                    <i class="fas fa-check text-xs" x-show="detailRecord.status >= 1"></i>
+                    <span x-show="detailRecord.status < 1">1</span>
+                  </div>
+                  <div class="step-label">企业提交</div>
+                </div>
+                <!-- 步骤2：乡镇畜牧兽医站核实 -->
+                <div class="step-item"
+                  :class="detailRecord.status >= 2 ? 'done' : (detailRecord.status === 1 ? 'current' : (detailRecord.status === 5 ? 'failed' : ''))">
+                  <div class="step-circle">
+                    <i class="fas fa-check text-xs" x-show="detailRecord.status >= 2"></i>
+                    <i class="fas fa-times text-xs" x-show="detailRecord.status === 5"></i>
+                    <span x-show="![2,3,4,5].includes(detailRecord.status)">2</span>
+                  </div>
+                  <div class="step-label">
+                    乡镇畜牧兽医站核实
+                    <template x-if="detailRecord.verifyBy">
+                      <div class="text-gray-400" x-text="detailRecord.verifyBy"></div>
+                    </template>
+                  </div>
+                </div>
+                <!-- 步骤3：乡镇政府审核 -->
+                <div class="step-item"
+                  :class="detailRecord.status >= 3 ? 'done' : (detailRecord.status === 2 ? 'current' : (detailRecord.status === 6 ? 'failed' : ''))">
+                  <div class="step-circle">
+                    <i class="fas fa-check text-xs" x-show="detailRecord.status >= 3"></i>
+                    <i class="fas fa-times text-xs" x-show="detailRecord.status === 6"></i>
+                    <span x-show="![3,4,6].includes(detailRecord.status)">3</span>
+                  </div>
+                  <div class="step-label">
+                    乡镇政府审核
+                    <template x-if="detailRecord.auditBy">
+                      <div class="text-gray-400" x-text="detailRecord.auditBy"></div>
+                    </template>
+                  </div>
+                </div>
+                <!-- 步骤4：县级终审入库 -->
+                <div class="step-item"
+                  :class="detailRecord.status === 4 ? 'done' : (detailRecord.status === 3 ? 'current' : (detailRecord.status === 7 ? 'failed' : ''))">
+                  <div class="step-circle">
+                    <i class="fas fa-check text-xs" x-show="detailRecord.status === 4"></i>
+                    <i class="fas fa-times text-xs" x-show="detailRecord.status === 7"></i>
+                    <span x-show="![4,7].includes(detailRecord.status)">4</span>
+                  </div>
+                  <div class="step-label">
+                    县级终审入库
+                    <template x-if="detailRecord.finalAuditBy">
+                      <div class="text-gray-400" x-text="detailRecord.finalAuditBy"></div>
+                    </template>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <!-- 转栏信息 -->
+          <div class="detail-section">
+            <div class="detail-section-title"><i class="fas fa-shuffle text-blue-400 mr-1"></i>转栏信息</div>
+            <div class="detail-grid">
+              <div class="detail-item"><span class="detail-label">源圈舍：</span><span class="detail-value font-medium" x-text="detailRecord.sourcePigstyName"></span></div>
+              <div class="detail-item"><span class="detail-label">目标圈舍：</span><span class="detail-value font-medium" x-text="detailRecord.targetPigstyName"></span></div>
+              <div class="detail-item"><span class="detail-label">转栏日期：</span><span class="detail-value" x-text="detailRecord.transferDate"></span></div>
+              <div class="detail-item"><span class="detail-label">转栏数量：</span><span class="detail-value font-semibold text-blue-600" x-text="detailRecord.transferQuantity + ' 头'"></span></div>
+              <div class="detail-item"><span class="detail-label">转栏原因：</span><span class="detail-value"><span class="reason-badge" x-text="getReasonLabel(detailRecord.transferReason)"></span></span></div>
+              <div class="detail-item"><span class="detail-label">平均体重：</span><span class="detail-value" x-text="detailRecord.avgWeight ? detailRecord.avgWeight + ' kg' : '—'"></span></div>
+            </div>
+          </div>
+
+          <!-- 其他信息 -->
+          <div class="detail-section">
+            <div class="detail-section-title"><i class="fas fa-info-circle text-gray-400 mr-1"></i>其他信息</div>
+            <div class="detail-grid">
+              <div class="detail-item"><span class="detail-label">企业名称：</span><span class="detail-value" x-text="detailRecord.enterpriseName"></span></div>
+              <div class="detail-item"><span class="detail-label">行政区划：</span><span class="detail-value" x-text="detailRecord.areaName"></span></div>
+              <div class="detail-item"><span class="detail-label">操作人员：</span><span class="detail-value" x-text="detailRecord.operatorName || '—'"></span></div>
+              <div class="detail-item"><span class="detail-label">数据来源：</span><span class="detail-value" x-text="detailRecord.dataSource === 2 ? '县级直接录入' : '企业上报'"></span></div>
+              <div class="detail-item col-span-2"><span class="detail-label">备注：</span><span class="detail-value" x-text="detailRecord.remark || '—'"></span></div>
+              <div class="detail-item"><span class="detail-label">填报人：</span><span class="detail-value" x-text="detailRecord.createBy"></span></div>
+              <div class="detail-item"><span class="detail-label">创建时间：</span><span class="detail-value" x-text="detailRecord.createTime"></span></div>
+            </div>
+          </div>
+
+          <!-- 照片附件 -->
+          <template x-if="detailRecord.photos && detailRecord.photos.length > 0">
+            <div class="detail-section">
+              <div class="detail-section-title"><i class="fas fa-images text-gray-400 mr-1"></i>照片附件</div>
+              <div class="flex flex-wrap gap-2">
+                <template x-for="(img, i) in detailRecord.photos" :key="i">
+                  <img :src="img" class="w-20 h-20 object-cover rounded border border-gray-200 cursor-pointer hover:opacity-80"
+                    @click="window.open(img,'_blank')">
+                </template>
+              </div>
+            </div>
+          </template>
+
+          <!-- 县级修改日志 -->
+          <template x-if="detailRecord.countyEdited">
+            <div class="detail-section">
+              <div class="detail-section-title text-orange-500"><i class="fas fa-history mr-1"></i>县级操作记录</div>
+              <div class="bg-orange-50 rounded p-3 text-sm text-orange-700">
+                <div><span class="font-medium">编辑操作</span> · 操作人：<span x-text="detailRecord.countyEditBy"></span></div>
+                <div class="mt-1 text-xs text-orange-500">原因：<span x-text="detailRecord.countyEditRemark"></span></div>
+              </div>
+            </div>
+          </template>
+        </div>
+      </template>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-default" @click="showDetailModal=false">关闭</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 查看详情弹窗 -->
+
+<!-- ============================================================ -->
+<!-- SECTION START: 核实弹窗 -->
+<!-- ============================================================ -->
+<div class="modal-overlay" x-show="showVerifyModal" @click.self="showVerifyModal=false">
+  <div class="modal-box" style="width:440px;">
+    <div class="modal-header">
+      <span x-text="verifyAction === 'pass' ? '核实通过确认' : '核实退回'"></span>
+      <button @click="showVerifyModal=false" class="text-gray-400"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <template x-if="verifyRecord">
+        <div class="bg-gray-50 rounded p-3 text-sm space-y-1.5 mb-3">
+          <div><span class="text-gray-400">企业名称：</span><span x-text="verifyRecord.enterpriseName"></span></div>
+          <div><span class="text-gray-400">源圈舍→目标圈舍：</span><span x-text="verifyRecord.sourcePigstyName + ' → ' + verifyRecord.targetPigstyName"></span></div>
+          <div><span class="text-gray-400">转栏日期：</span><span x-text="verifyRecord.transferDate"></span></div>
+          <div><span class="text-gray-400">转栏数量：</span><span class="font-semibold text-blue-600" x-text="verifyRecord.transferQuantity + ' 头'"></span></div>
+        </div>
+      </template>
+      <div>
+        <div class="form-label">
+          <span x-show="verifyAction === 'reject'" class="required">*</span>核实意见
+          <span x-show="verifyAction === 'reject'" class="text-xs text-gray-400">（退回时必填，至少10字符）</span>
+        </div>
+        <textarea class="form-input" rows="3" x-model="opRemark" placeholder="请输入核实意见…"></textarea>
+        <div class="form-error" x-show="opRemarkError"><i class="fas fa-exclamation-circle text-xs"></i> <span x-text="opRemarkError"></span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <template x-if="verifyAction === 'pass'">
+        <button class="btn-primary" @click="doVerify()"><i class="fas fa-check mr-1"></i>确认核实通过</button>
+      </template>
+      <template x-if="verifyAction === 'reject'">
+        <button class="btn-danger" @click="doVerify()"><i class="fas fa-times mr-1"></i>确认退回</button>
+      </template>
+      <button class="btn-default" @click="showVerifyModal=false">取消</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 核实弹窗 -->
+
+<!-- SECTION START: 审核弹窗 -->
+<div class="modal-overlay" x-show="showAuditModal" @click.self="showAuditModal=false">
+  <div class="modal-box" style="width:440px;">
+    <div class="modal-header">
+      <span x-text="auditAction === 'pass' ? '审核通过确认' : '审核退回'"></span>
+      <button @click="showAuditModal=false" class="text-gray-400"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <template x-if="auditRecord">
+        <div class="bg-gray-50 rounded p-3 text-sm space-y-1.5 mb-3">
+          <div><span class="text-gray-400">企业名称：</span><span x-text="auditRecord.enterpriseName"></span></div>
+          <div><span class="text-gray-400">源→目标圈舍：</span><span x-text="auditRecord.sourcePigstyName + ' → ' + auditRecord.targetPigstyName"></span></div>
+          <div><span class="text-gray-400">转栏数量：</span><span class="font-semibold text-blue-600" x-text="auditRecord.transferQuantity + ' 头'"></span></div>
+        </div>
+      </template>
+      <div>
+        <div class="form-label">
+          <span x-show="auditAction === 'reject'" class="required">*</span>审核意见
+          <span x-show="auditAction === 'reject'" class="text-xs text-gray-400">（退回时必填，至少10字符）</span>
+        </div>
+        <textarea class="form-input" rows="3" x-model="opRemark2" placeholder="请输入审核意见…"></textarea>
+        <div class="form-error" x-show="opRemarkError2"><i class="fas fa-exclamation-circle text-xs"></i> <span x-text="opRemarkError2"></span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <template x-if="auditAction === 'pass'">
+        <button class="btn-primary" @click="doAudit()"><i class="fas fa-check mr-1"></i>确认审核通过</button>
+      </template>
+      <template x-if="auditAction === 'reject'">
+        <button class="btn-danger" @click="doAudit()"><i class="fas fa-times mr-1"></i>确认退回</button>
+      </template>
+      <button class="btn-default" @click="showAuditModal=false">取消</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 审核弹窗 -->
+
+<!-- SECTION START: 终审弹窗 -->
+<div class="modal-overlay" x-show="showFinalModal" @click.self="showFinalModal=false">
+  <div class="modal-box" style="width:440px;">
+    <div class="modal-header">
+      <span x-text="finalAction === 'pass' ? '终审通过确认（入库）' : '终审退回'"></span>
+      <button @click="showFinalModal=false" class="text-gray-400"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <template x-if="finalRecord">
+        <div class="bg-gray-50 rounded p-3 text-sm space-y-1.5 mb-3">
+          <div><span class="text-gray-400">企业名称：</span><span x-text="finalRecord.enterpriseName"></span></div>
+          <div><span class="text-gray-400">源→目标圈舍：</span><span x-text="finalRecord.sourcePigstyName + ' → ' + finalRecord.targetPigstyName"></span></div>
+          <div><span class="text-gray-400">转栏数量：</span><span class="font-semibold text-blue-600" x-text="finalRecord.transferQuantity + ' 头'"></span></div>
+        </div>
+      </template>
+      <div>
+        <div class="form-label">
+          <span x-show="finalAction === 'reject'" class="required">*</span>终审意见
+          <span x-show="finalAction === 'reject'" class="text-xs text-gray-400">（退回时必填，至少10字符）</span>
+        </div>
+        <textarea class="form-input" rows="3" x-model="opRemark3" placeholder="请输入终审意见…"></textarea>
+        <div class="form-error" x-show="opRemarkError3"><i class="fas fa-exclamation-circle text-xs"></i> <span x-text="opRemarkError3"></span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <template x-if="finalAction === 'pass'">
+        <button class="btn-primary" @click="doFinal()"><i class="fas fa-database mr-1"></i>确认终审入库</button>
+      </template>
+      <template x-if="finalAction === 'reject'">
+        <button class="btn-danger" @click="doFinal()"><i class="fas fa-times mr-1"></i>确认退回</button>
+      </template>
+      <button class="btn-default" @click="showFinalModal=false">取消</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 终审弹窗 -->
+
+<!-- SECTION START: 撤回确认弹窗 -->
+<div class="modal-overlay" x-show="showRevokeModal" @click.self="showRevokeModal=false">
+  <div class="modal-box" style="width:380px;">
+    <div class="modal-header"><span>确认撤回</span><button @click="showRevokeModal=false" class="text-gray-400"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <p class="text-sm text-gray-600">确认撤回该记录？撤回后状态变为<strong>草稿</strong>，可重新编辑后提交。</p>
+      <div class="mt-2 p-2 bg-yellow-50 rounded text-xs text-yellow-700"><i class="fas fa-exclamation-triangle mr-1"></i>撤回条件：乡镇畜牧兽医站尚未进行核实操作。</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" @click="confirmRevoke2()"><i class="fas fa-rotate-left mr-1"></i>确认撤回</button>
+      <button class="btn-default" @click="showRevokeModal=false">取消</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 撤回确认弹窗 -->
+
+<!-- SECTION START: 删除确认弹窗 -->
+<div class="modal-overlay" x-show="showDeleteModal" @click.self="showDeleteModal=false">
+  <div class="modal-box" style="width:380px;">
+    <div class="modal-header"><span>确认删除</span><button @click="showDeleteModal=false" class="text-gray-400"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <p class="text-sm text-gray-600">确认删除该<strong>草稿</strong>记录？删除后不可恢复。</p>
+      <template x-if="pendingDeleteRecord">
+        <div class="mt-2 bg-gray-50 rounded p-2 text-xs text-gray-500">
+          源圈舍：<span x-text="pendingDeleteRecord.sourcePigstyName"></span> →
+          目标圈舍：<span x-text="pendingDeleteRecord.targetPigstyName"></span>，
+          转栏日期：<span x-text="pendingDeleteRecord.transferDate"></span>
+        </div>
+      </template>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-danger" @click="confirmDelete2()"><i class="fas fa-trash mr-1"></i>确认删除</button>
+      <button class="btn-default" @click="showDeleteModal=false">取消</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 删除确认弹窗 -->
+
+<!-- SECTION START: 县级删除说明弹窗 -->
+<div class="modal-overlay" x-show="showCountyDeleteModal" @click.self="showCountyDeleteModal=false">
+  <div class="modal-box" style="width:400px;">
+    <div class="modal-header"><span>删除说明（留痕）</span><button @click="showCountyDeleteModal=false" class="text-gray-400"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="form-label"><span class="required">*</span>删除原因 <span class="text-xs text-gray-400">（必填，至少10字符）</span></div>
+      <textarea class="form-input" rows="3" x-model="countyDeleteReason" placeholder="请说明删除原因…"></textarea>
+      <div class="form-error" x-show="countyDeleteError"><i class="fas fa-exclamation-circle text-xs"></i> <span x-text="countyDeleteError"></span></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-danger" @click="confirmCountyDelete()"><i class="fas fa-trash mr-1"></i>确认删除</button>
+      <button class="btn-default" @click="showCountyDeleteModal=false">取消</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 县级删除说明弹窗 -->
+
+<script>
+const MOCK_DATA = {
+  users: [
+    { id:1, role:'ent_admin',          name:'张建国', enterpriseId:101, enterpriseName:'蓬溪县鑫源养殖场', areaName:'蓬南镇' },
+    { id:2, role:'ent_reporter',        name:'李小红', enterpriseId:101, enterpriseName:'蓬溪县鑫源养殖场', areaName:'蓬南镇' },
+    { id:3, role:'town_vet_station',    name:'陈德明', deptName:'蓬南镇畜牧兽医站' },
+    { id:4, role:'town_gov_staff',      name:'王丽娟', deptName:'蓬南镇人民政府' },
+    { id:5, role:'county_admin',        name:'刘建伟', deptName:'蓬溪县农业农村局' },
+    { id:6, role:'county_staff',        name:'赵晓明', deptName:'蓬溪县农业农村局' },
+  ],
+  pigstyList: [
+    { id:1, name:'育肥1舍',  stock:320 },
+    { id:2, name:'育肥2舍',  stock:280 },
+    { id:3, name:'母猪舍A',  stock:45  },
+    { id:4, name:'母猪舍B',  stock:38  },
+    { id:5, name:'保育舍1',  stock:150 },
+    { id:6, name:'产房1',    stock:22  },
+    { id:7, name:'隔离舍',   stock:8   },
+  ],
+  records: [
+    {
+      id:1, enterpriseId:101, enterpriseName:'蓬溪县鑫源养殖场', areaName:'蓬南镇',
+      sourcePigstyId:1, sourcePigstyName:'育肥1舍',
+      targetPigstyId:2, targetPigstyName:'育肥2舍',
+      transferDate:'2026-03-01', transferQuantity:50, transferReason:'1',
+      avgWeight:85.5, operatorName:'张三', photos:[], remark:'正常批次转群',
+      status:4, dataSource:1, createBy:'张建国', createTime:'2026-03-01 08:30',
+      verifyBy:'陈德明', verifyTime:'2026-03-02 10:00',
+      auditBy:'王丽娟', auditTime:'2026-03-03 14:00',
+      finalAuditBy:'赵晓明', finalAuditTime:'2026-03-04 09:00',
+    },
+    {
+      id:2, enterpriseId:101, enterpriseName:'蓬溪县鑫源养殖场', areaName:'蓬南镇',
+      sourcePigstyId:3, sourcePigstyName:'母猪舍A',
+      targetPigstyId:4, targetPigstyName:'母猪舍B',
+      transferDate:'2026-03-02', transferQuantity:10, transferReason:'4',
+      avgWeight:220.0, operatorName:'李四', photos:[], remark:'配种调群',
+      status:3, dataSource:1, createBy:'李小红', createTime:'2026-03-02 09:00',
+      verifyBy:'陈德明', verifyTime:'2026-03-03 10:30',
+      auditBy:'王丽娟', auditTime:'2026-03-04 15:00',
+    },
+    {
+      id:3, enterpriseId:101, enterpriseName:'蓬溪县鑫源养殖场', areaName:'蓬南镇',
+      sourcePigstyId:5, sourcePigstyName:'保育舍1',
+      targetPigstyId:1, targetPigstyName:'育肥1舍',
+      transferDate:'2026-03-03', transferQuantity:80, transferReason:'1',
+      avgWeight:25.0, operatorName:'王五', photos:[], remark:'保育转育肥',
+      status:2, dataSource:1, createBy:'张建国', createTime:'2026-03-03 10:00',
+      verifyBy:'陈德明', verifyTime:'2026-03-04 09:00',
+    },
+    {
+      id:4, enterpriseId:101, enterpriseName:'蓬溪县鑫源养殖场', areaName:'蓬南镇',
+      sourcePigstyId:6, sourcePigstyName:'产房1',
+      targetPigstyId:5, targetPigstyName:'保育舍1',
+      transferDate:'2026-03-04', transferQuantity:18, transferReason:'1',
+      avgWeight:null, operatorName:'赵六', photos:[], remark:'',
+      status:1, dataSource:1, createBy:'李小红', createTime:'2026-03-04 11:00',
+      verifyBy:null,
+    },
+    {
+      id:5, enterpriseId:101, enterpriseName:'蓬溪县鑫源养殖场', areaName:'蓬南镇',
+      sourcePigstyId:2, sourcePigstyName:'育肥2舍',
+      targetPigstyId:7, targetPigstyName:'隔离舍',
+      transferDate:'2026-03-04', transferQuantity:6, transferReason:'3',
+      avgWeight:62.0, operatorName:'张三', photos:[], remark:'发现疑似病猪，转隔离舍观察',
+      status:0, dataSource:1, createBy:'张建国', createTime:'2026-03-04 14:30',
+    },
+    {
+      id:6, enterpriseId:101, enterpriseName:'蓬溪县鑫源养殖场', areaName:'蓬南镇',
+      sourcePigstyId:1, sourcePigstyName:'育肥1舍',
+      targetPigstyId:2, targetPigstyName:'育肥2舍',
+      transferDate:'2026-03-03', transferQuantity:30, transferReason:'2',
+      avgWeight:78.0, operatorName:'李四', photos:[], remark:'',
+      status:5, dataSource:1, createBy:'李小红', createTime:'2026-03-03 09:00',
+      verifyBy:'陈德明',
+      rejectReason:'转栏数量与圈舍台账记录不符，请核实后重新填报，并附相关台账截图。',
+    },
+    {
+      id:7, enterpriseId:102, enterpriseName:'蓬溪县兴旺牧业', areaName:'吉祥镇',
+      sourcePigstyId:1, sourcePigstyName:'综合大栏1',
+      targetPigstyId:3, targetPigstyName:'隔离观察舍',
+      transferDate:'2026-03-02', transferQuantity:15, transferReason:'3',
+      avgWeight:55.0, operatorName:'刘老三', photos:[], remark:'疑似呼吸道症状',
+      status:1, dataSource:1, createBy:'陈伟', createTime:'2026-03-02 09:30',
+      verifyBy:null,
+    },
+    {
+      id:8, enterpriseId:103, enterpriseName:'明月镇丰收养殖场', areaName:'明月镇',
+      sourcePigstyId:2, sourcePigstyName:'育肥B舍',
+      targetPigstyId:1, targetPigstyName:'育肥A舍',
+      transferDate:'2026-03-01', transferQuantity:100, transferReason:'2',
+      avgWeight:72.0, operatorName:'老杨', photos:[], remark:'分群管理，优化密度',
+      status:4, dataSource:2, createBy:'刘建伟', createTime:'2026-03-01 16:00',
+      countyEdited:true, countyEditBy:'刘建伟', countyEditRemark:'修正转栏数量为100头（原填110头）',
+    },
+    {
+      id:9, enterpriseId:101, enterpriseName:'蓬溪县鑫源养殖场', areaName:'蓬南镇',
+      sourcePigstyId:4, sourcePigstyName:'母猪舍B',
+      targetPigstyId:6, targetPigstyName:'产房1',
+      transferDate:'2026-02-28', transferQuantity:5, transferReason:'4',
+      avgWeight:215.5, operatorName:'王五', photos:[], remark:'临产母猪转产房',
+      status:6, dataSource:1, createBy:'张建国', createTime:'2026-02-28 08:00',
+      verifyBy:'陈德明', auditBy:'王丽娟',
+      rejectReason:'请补充转栏操作的具体时间段记录，并核对母猪耳标号与圈舍台账，确认数据一致后重新提交。',
+    },
+    {
+      id:10, enterpriseId:104, enterpriseName:'天福镇振兴猪场', areaName:'天福镇',
+      sourcePigstyId:1, sourcePigstyName:'育肥大棚A',
+      targetPigstyId:2, targetPigstyName:'育肥大棚B',
+      transferDate:'2026-03-03', transferQuantity:200, transferReason:'1',
+      avgWeight:null, operatorName:'王建军', photos:[], remark:'',
+      status:7, dataSource:1, createBy:'周伟', createTime:'2026-03-03 10:00',
+      verifyBy:'陈德明', auditBy:'王丽娟', finalAuditBy:'赵晓明',
+      rejectReason:'转栏数量200头超出申报规模，需提供本次实际存栏台账及相关凭证，请核实后重新提交审核。',
+    },
+  ]
+};
+
+function app() {
+  return {
+    MOCK_DATA,
+    currentRole: 'ent_admin',
+    selectedIds: [],
+    currentPage: 1,
+    pageSize: 20,
+    filter: { enterpriseName:'', areaName:'', status:'', dateStart:'', dateEnd:'', sourcePigstyId:'' },
+
+    /* Modal states */
+    showAddModal: false,
+    showConfirmModal: false,
+    showDetailModal: false,
+    showVerifyModal: false,
+    showAuditModal: false,
+    showFinalModal: false,
+    showRevokeModal: false,
+    showDeleteModal: false,
+    showCountyDeleteModal: false,
+    showCountyEditReason: false,
+
+    /* Form */
+    form: {},
+    errors: {},
+    editingRecord: null,
+    countyEditReason: '',
+    countyEditError: '',
+
+    /* Detail */
+    detailRecord: null,
+
+    /* Audit ops */
+    verifyRecord: null,  verifyAction: 'pass',
+    auditRecord: null,   auditAction: 'pass',
+    finalRecord: null,   finalAction: 'pass',
+    revokeTarget: null,
+    pendingDeleteRecord: null,
+    countyDeleteTarget: null,
+    countyDeleteReason: '',
+    countyDeleteError: '',
+
+    /* Remarks */
+    opRemark: '',  opRemarkError: '',
+    opRemark2: '', opRemarkError2: '',
+    opRemark3: '', opRemarkError3: '',
+
+    /* Toast */
+    toast: { show: false, message: '', type: 'success' },
+
+    /* ─── helpers ─── */
+    getCurrentUser() { return MOCK_DATA.users.find(u => u.role === this.currentRole) || MOCK_DATA.users[0]; },
+    getRoleName() {
+      const m = { ent_admin:'企业管理员', ent_reporter:'企业填报员', town_vet_station:'乡镇畜牧兽医站',
+                  town_gov_staff:'乡镇政府业务人员', county_admin:'县级管理员', county_staff:'县级业务人员' };
+      return m[this.currentRole] || '';
+    },
+    isEntRole()  { return ['ent_admin','ent_reporter'].includes(this.currentRole); },
+    canAdd()     { return ['ent_admin','ent_reporter','county_admin'].includes(this.currentRole); },
+    isFormReadonly() {
+      if (!this.editingRecord) return false;
+      if (this.currentRole === 'county_admin') return false;
+      return ![0,5,6,7].includes(this.editingRecord.status);
+    },
+    modalTitle() {
+      if (!this.editingRecord) {
+        return this.currentRole === 'county_admin' ? '新增转栏信息（直接入库）' : '新增转栏信息';
+      }
+      return '编辑转栏信息';
+    },
+    getStatusLabel(s) {
+      return {0:'草稿',1:'待核实',2:'待审核',3:'待终审',4:'已入库',5:'核实退回',6:'审核退回',7:'终审退回'}[s] || s;
+    },
+    getReasonLabel(r) {
+      return {1:'生长阶段转换',2:'分群管理',3:'治疗隔离',4:'配种转群',5:'其他'}[r] || '—';
+    },
+    today() { return new Date().toISOString().split('T')[0]; },
+    getPigstyName(id) { const p = MOCK_DATA.pigstyList.find(x => x.id == id); return p ? p.name : '—'; },
+    getSourceStock() {
+      if (!this.form.sourcePigstyId) return null;
+      const p = MOCK_DATA.pigstyList.find(x => x.id == this.form.sourcePigstyId);
+      return p ? p.stock : null;
+    },
+    onRoleChange()         { this.selectedIds = []; this.currentPage = 1; },
+    onSourcePigstyChange() {
+      this.errors.sourcePigstyId = '';
+      /* 切换源圈舍后重新检查目标圈舍是否与之相同 */
+      if (this.form.targetPigstyId && this.form.targetPigstyId == this.form.sourcePigstyId) {
+        this.errors.targetPigstyId = '目标圈舍不能与源圈舍相同';
+      } else if (this.errors.targetPigstyId === '目标圈舍不能与源圈舍相同') {
+        this.errors.targetPigstyId = '';
+      }
+    },
+    onTargetPigstyChange() {
+      if (this.form.sourcePigstyId && this.form.targetPigstyId && this.form.targetPigstyId == this.form.sourcePigstyId) {
+        this.errors.targetPigstyId = '目标圈舍不能与源圈舍相同';
+      } else {
+        this.errors.targetPigstyId = '';
+      }
+    },
+
+    /* ─── filter / page ─── */
+    filteredData() {
+      return MOCK_DATA.records.filter(r => {
+        if (this.isEntRole() && r.enterpriseId !== this.getCurrentUser().enterpriseId) return false;
+        if (this.filter.enterpriseName && !r.enterpriseName.includes(this.filter.enterpriseName)) return false;
+        if (this.filter.areaName && r.areaName !== this.filter.areaName) return false;
+        if (this.filter.status !== '' && r.status != this.filter.status) return false;
+        if (this.filter.dateStart && r.transferDate < this.filter.dateStart) return false;
+        if (this.filter.dateEnd   && r.transferDate > this.filter.dateEnd)   return false;
+        if (this.filter.sourcePigstyId && r.sourcePigstyId != this.filter.sourcePigstyId) return false;
+        return true;
+      }).sort((a, b) => b.createTime.localeCompare(a.createTime));
+    },
+    pagedData() {
+      const s = (this.currentPage - 1) * this.pageSize;
+      return this.filteredData().slice(s, s + this.pageSize);
+    },
+    totalPages() { return Math.max(1, Math.ceil(this.filteredData().length / this.pageSize)); },
+    pageNumbers() {
+      const t = this.totalPages();
+      if (t <= 7) return Array.from({length:t}, (_,i) => i+1);
+      const pages = [1];
+      if (this.currentPage > 3) pages.push('…');
+      for (let i = Math.max(2, this.currentPage-1); i <= Math.min(t-1, this.currentPage+1); i++) pages.push(i);
+      if (this.currentPage < t-2) pages.push('…');
+      pages.push(t);
+      return pages;
+    },
+    prevPage() { if (this.currentPage > 1) this.currentPage--; },
+    nextPage() { if (this.currentPage < this.totalPages()) this.currentPage++; },
+    allSelected() {
+      const ids = this.pagedData().map(r => r.id);
+      return ids.length > 0 && ids.every(id => this.selectedIds.includes(id));
+    },
+    toggleAll(e) {
+      const ids = this.pagedData().map(r => r.id);
+      if (e.target.checked) ids.forEach(id => { if (!this.selectedIds.includes(id)) this.selectedIds.push(id); });
+      else this.selectedIds = this.selectedIds.filter(id => !ids.includes(id));
+    },
+    getSelectedDraftIds() {
+      return this.selectedIds.filter(id => {
+        const r = MOCK_DATA.records.find(x => x.id === id);
+        return r && r.status === 0;
+      });
+    },
+    filterData() { this.currentPage = 1; },
+    resetFilter() { this.filter = {enterpriseName:'',areaName:'',status:'',dateStart:'',dateEnd:'',sourcePigstyId:''}; this.currentPage = 1; },
+
+    /* ─── modal openers ─── */
+    openAddModal() {
+      this.editingRecord = null;
+      this.showCountyEditReason = false;
+      this.countyEditReason = '';
+      this.form = { sourcePigstyId:'', targetPigstyId:'', transferDate:this.today(),
+                    transferQuantity:'', transferReason:'', avgWeight:'',
+                    operatorName:'', photos:[], remark:'' };
+      this.errors = {};
+      this.showAddModal = true;
+    },
+    openEditModal(row) {
+      this.editingRecord = row;
+      this.showCountyEditReason = false;
+      this.countyEditReason = '';
+      this.form = { ...row, photos: row.photos ? [...row.photos] : [] };
+      this.errors = {};
+      this.showAddModal = true;
+    },
+    openCountyEdit(row) {
+      this.editingRecord = row;
+      /* 只有编辑企业上报数据时才需要填写原因 */
+      this.showCountyEditReason = row.dataSource !== 2;
+      this.countyEditReason = '';
+      this.countyEditError = '';
+      this.form = { ...row, photos: row.photos ? [...row.photos] : [] };
+      this.errors = {};
+      this.showAddModal = true;
+    },
+    viewDetail(row)         { this.detailRecord = row; this.showDetailModal = true; },
+    openVerifyModal(row, a) { this.verifyRecord = row; this.verifyAction = a; this.opRemark = ''; this.opRemarkError = ''; this.showVerifyModal = true; },
+    openAuditModal(row, a)  { this.auditRecord = row;  this.auditAction  = a; this.opRemark2 = ''; this.opRemarkError2 = ''; this.showAuditModal = true; },
+    openFinalModal(row, a)  { this.finalRecord = row;  this.finalAction  = a; this.opRemark3 = ''; this.opRemarkError3 = ''; this.showFinalModal = true; },
+    openCountyDelete(row)   { this.countyDeleteTarget = row; this.countyDeleteReason = ''; this.countyDeleteError = ''; this.showCountyDeleteModal = true; },
+    confirmDelete(row)      { this.pendingDeleteRecord = row; this.showDeleteModal = true; },
+    confirmRevoke(row)      { this.revokeTarget = row; this.showRevokeModal = true; },
+    quickSubmit(row) {
+      /* 草稿/退回状态快速提交（先展示确认弹窗） */
+      this.editingRecord = row;
+      this.form = { ...row, photos: row.photos ? [...row.photos] : [] };
+      this.showConfirmModal = true;
+    },
+
+    /* ─── form actions ─── */
+    validateForm(forSubmit) {
+      this.errors = {};
+      if (!forSubmit) return true;
+      if (!this.form.sourcePigstyId) this.errors.sourcePigstyId = '请选择源圈舍';
+      if (!this.form.targetPigstyId) {
+        this.errors.targetPigstyId = '请选择目标圈舍';
+      } else if (this.form.targetPigstyId == this.form.sourcePigstyId) {
+        this.errors.targetPigstyId = '目标圈舍不能与源圈舍相同';
+      }
+      if (!this.form.transferDate) {
+        this.errors.transferDate = '请选择转栏日期';
+      } else if (this.form.transferDate > this.today()) {
+        this.errors.transferDate = '转栏日期不能晚于今天';
+      }
+      if (!this.form.transferQuantity && this.form.transferQuantity !== 0) {
+        this.errors.transferQuantity = '转栏数量不能为空';
+      } else if (this.form.transferQuantity < 1 || this.form.transferQuantity > 9999) {
+        this.errors.transferQuantity = '转栏数量须在1～9999之间';
+      } else {
+        const stock = this.getSourceStock();
+        if (stock !== null && this.form.transferQuantity > stock) {
+          this.errors.transferQuantity = `转栏数量不能超过源圈舍存栏量${stock}头`;
+        }
+      }
+      if (!this.form.transferReason) this.errors.transferReason = '请选择转栏原因';
+      if (this.form.avgWeight !== '' && this.form.avgWeight !== null && this.form.avgWeight !== undefined) {
+        if (this.form.avgWeight < 0.01 || this.form.avgWeight > 999.99) {
+          this.errors.avgWeight = '平均体重须在0.01～999.99之间';
+        }
+      }
+      return Object.keys(this.errors).length === 0;
+    },
+    saveDraft() {
+      const rec = this._buildRecord(0);
+      this._upsert(rec);
+      this.showAddModal = false;
+      this.showToast('保存草稿成功', 'success');
+    },
+    doSubmitForm() {
+      if (!this.validateForm(true)) return;
+      this.showAddModal = false;
+      this.showConfirmModal = true;
+    },
+    confirmSubmit() {
+      const rec = this._buildRecord(1);
+      this._upsert(rec);
+      this.showConfirmModal = false;
+      this.editingRecord = null;
+      this.showToast('提交成功，等待乡镇畜牧兽医站核实', 'success');
+    },
+    countyAddDirectly() {
+      const rec = this._buildRecord(4);
+      rec.dataSource = 2;
+      MOCK_DATA.records.unshift(rec);
+      this.showAddModal = false;
+      this.showToast('已直接入库', 'success');
+    },
+    countyConfirmEdit() {
+      if (this.showCountyEditReason && this.countyEditReason.trim().length < 10) {
+        this.countyEditError = '编辑原因不少于10个字符';
+        return;
+      }
+      const idx = MOCK_DATA.records.findIndex(r => r.id === this.editingRecord.id);
+      if (idx !== -1) {
+        const rec = { ...this.form };
+        rec.countyEdited    = true;
+        rec.countyEditBy    = this.getCurrentUser().name;
+        rec.countyEditRemark = this.countyEditReason;
+        /* 补充目标/源圈舍名称 */
+        const sp = MOCK_DATA.pigstyList.find(p => p.id == rec.sourcePigstyId);
+        const tp = MOCK_DATA.pigstyList.find(p => p.id == rec.targetPigstyId);
+        if (sp) rec.sourcePigstyName = sp.name;
+        if (tp) rec.targetPigstyName = tp.name;
+        MOCK_DATA.records[idx] = rec;
+      }
+      this.showAddModal = false;
+      this.showToast('修改成功（已留痕）', 'success');
+    },
+    _buildRecord(status) {
+      const u  = this.getCurrentUser();
+      const sp = MOCK_DATA.pigstyList.find(p => p.id == this.form.sourcePigstyId);
+      const tp = MOCK_DATA.pigstyList.find(p => p.id == this.form.targetPigstyId);
+      const now = new Date().toLocaleString('zh-CN').replace(/\//g, '-');
+      return {
+        id: this.editingRecord ? this.editingRecord.id : Date.now(),
+        enterpriseId:    u.enterpriseId  || 101,
+        enterpriseName:  u.enterpriseName || '蓬溪县鑫源养殖场',
+        areaName:        u.areaName       || '蓬南镇',
+        sourcePigstyId:  this.form.sourcePigstyId,
+        sourcePigstyName: sp ? sp.name : '未知圈舍',
+        targetPigstyId:  this.form.targetPigstyId,
+        targetPigstyName: tp ? tp.name : '未知圈舍',
+        transferDate:    this.form.transferDate,
+        transferQuantity: Number(this.form.transferQuantity) || 0,
+        transferReason:  this.form.transferReason,
+        avgWeight:       this.form.avgWeight || null,
+        operatorName:    this.form.operatorName,
+        photos:          this.form.photos || [],
+        remark:          this.form.remark,
+        status,
+        dataSource:      1,
+        createBy:        u.name,
+        createTime:      this.editingRecord ? this.editingRecord.createTime : now,
+        updateTime:      now,
+      };
+    },
+    _upsert(rec) {
+      const idx = MOCK_DATA.records.findIndex(r => r.id === rec.id);
+      if (idx !== -1) MOCK_DATA.records[idx] = rec;
+      else MOCK_DATA.records.unshift(rec);
+    },
+
+    /* ─── approval ops ─── */
+    doVerify() {
+      if (this.verifyAction === 'reject' && this.opRemark.trim().length < 10) {
+        this.opRemarkError = '核实意见不少于10个字符'; return;
+      }
+      const idx = MOCK_DATA.records.findIndex(r => r.id === this.verifyRecord.id);
+      if (idx !== -1) {
+        if (this.verifyAction === 'pass') {
+          MOCK_DATA.records[idx].status   = 2;
+          MOCK_DATA.records[idx].verifyBy = this.getCurrentUser().name;
+        } else {
+          MOCK_DATA.records[idx].status       = 5;
+          MOCK_DATA.records[idx].verifyBy     = this.getCurrentUser().name;
+          MOCK_DATA.records[idx].rejectReason = this.opRemark;
+        }
+      }
+      this.showVerifyModal = false;
+      this.showToast(this.verifyAction === 'pass' ? '核实通过，状态变为待审核' : '已退回，企业可修改后重新提交',
+                     this.verifyAction === 'pass' ? 'success' : 'error');
+    },
+    doAudit() {
+      if (this.auditAction === 'reject' && this.opRemark2.trim().length < 10) {
+        this.opRemarkError2 = '审核意见不少于10个字符'; return;
+      }
+      const idx = MOCK_DATA.records.findIndex(r => r.id === this.auditRecord.id);
+      if (idx !== -1) {
+        if (this.auditAction === 'pass') {
+          MOCK_DATA.records[idx].status  = 3;
+          MOCK_DATA.records[idx].auditBy = this.getCurrentUser().name;
+        } else {
+          MOCK_DATA.records[idx].status       = 6;
+          MOCK_DATA.records[idx].auditBy      = this.getCurrentUser().name;
+          MOCK_DATA.records[idx].rejectReason = this.opRemark2;
+        }
+      }
+      this.showAuditModal = false;
+      this.showToast(this.auditAction === 'pass' ? '审核通过，状态变为待终审' : '已退回',
+                     this.auditAction === 'pass' ? 'success' : 'error');
+    },
+    doFinal() {
+      if (this.finalAction === 'reject' && this.opRemark3.trim().length < 10) {
+        this.opRemarkError3 = '终审意见不少于10个字符'; return;
+      }
+      const idx = MOCK_DATA.records.findIndex(r => r.id === this.finalRecord.id);
+      if (idx !== -1) {
+        if (this.finalAction === 'pass') {
+          MOCK_DATA.records[idx].status        = 4;
+          MOCK_DATA.records[idx].finalAuditBy  = this.getCurrentUser().name;
+        } else {
+          MOCK_DATA.records[idx].status        = 7;
+          MOCK_DATA.records[idx].finalAuditBy  = this.getCurrentUser().name;
+          MOCK_DATA.records[idx].rejectReason  = this.opRemark3;
+        }
+      }
+      this.showFinalModal = false;
+      this.showToast(this.finalAction === 'pass' ? '终审入库成功' : '已退回',
+                     this.finalAction === 'pass' ? 'success' : 'error');
+    },
+    confirmRevoke2() {
+      const idx = MOCK_DATA.records.findIndex(r => r.id === this.revokeTarget.id);
+      if (idx !== -1) { MOCK_DATA.records[idx].status = 0; MOCK_DATA.records[idx].verifyBy = null; }
+      this.showRevokeModal = false;
+      this.showToast('撤回成功，记录已变为草稿', 'success');
+    },
+    confirmDelete2() {
+      const idx = MOCK_DATA.records.findIndex(r => r.id === this.pendingDeleteRecord.id);
+      if (idx !== -1) MOCK_DATA.records.splice(idx, 1);
+      this.selectedIds = this.selectedIds.filter(id => id !== this.pendingDeleteRecord.id);
+      this.showDeleteModal = false;
+      this.showToast('删除成功', 'success');
+    },
+    confirmCountyDelete() {
+      if (this.countyDeleteReason.trim().length < 10) {
+        this.countyDeleteError = '删除原因不少于10个字符'; return;
+      }
+      /* 逻辑删除，标记留痕 */
+      const idx = MOCK_DATA.records.findIndex(r => r.id === this.countyDeleteTarget.id);
+      if (idx !== -1) {
+        MOCK_DATA.records[idx].countyDeleted      = true;
+        MOCK_DATA.records[idx].countyDeleteBy     = this.getCurrentUser().name;
+        MOCK_DATA.records[idx].countyDeleteReason = this.countyDeleteReason;
+        /* 直接从列表移除（演示：真实场景做逻辑删除） */
+        MOCK_DATA.records.splice(idx, 1);
+      }
+      this.showCountyDeleteModal = false;
+      this.showToast('已删除（留痕记录已生成）', 'success');
+    },
+    batchDelete() {
+      const ids = this.getSelectedDraftIds();
+      if (!ids.length) return;
+      if (confirm(`确认删除选中的 ${ids.length} 条草稿记录？删除后不可恢复。`)) {
+        ids.forEach(id => {
+          const idx = MOCK_DATA.records.findIndex(r => r.id === id);
+          if (idx !== -1) MOCK_DATA.records.splice(idx, 1);
+        });
+        this.selectedIds = [];
+        this.showToast(`已删除 ${ids.length} 条草稿`, 'success');
+      }
+    },
+
+    /* ─── misc ─── */
+    exportData() {
+      const now = new Date();
+      const ts = now.getFullYear().toString()
+        + String(now.getMonth()+1).padStart(2,'0')
+        + String(now.getDate()).padStart(2,'0') + '_'
+        + String(now.getHours()).padStart(2,'0')
+        + String(now.getMinutes()).padStart(2,'0')
+        + String(now.getSeconds()).padStart(2,'0');
+      this.showToast(`导出成功：转栏信息_${ts}.xlsx（共 ${this.filteredData().length} 条）`, 'success');
+    },
+    addPhoto(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 5*1024*1024) { this.showToast('图片不能超过 5MB', 'error'); return; }
+      const reader = new FileReader();
+      reader.onload = ev => { this.form.photos.push(ev.target.result); };
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    },
+    showCountyLog(row) {
+      alert(`县级操作日志\n操作人：${row.countyEditBy}\n修改原因：${row.countyEditRemark}`);
+    },
+    showToast(msg, type = 'success') {
+      this.toast = { show:true, message:msg, type };
+      setTimeout(() => { this.toast.show = false; }, 3500);
+    },
+  };
+}
+</script>
+</body>
+</html>

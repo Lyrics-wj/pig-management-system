@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2024年蓬溪县生猪数字化管理平台 - 养殖企业管理原型导航</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif; background-color: #f0f2f5; color: #262626; }
+    .card { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .page-link { display: flex; align-items: center; gap-3; padding: 14px 16px; border-radius: 6px; transition: all 0.2s; text-decoration: none; color: #262626; border: 1px solid #e8e8e8; margin-bottom: 10px; background-color: #fff; }
+    .page-link:hover { border-color: #1677ff; background-color: #e6f4ff; }
+    .page-link .icon { width: 36px; height: 36px; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .page-link .info { flex: 1; }
+    .page-link .info .name { font-weight: 600; font-size: 14px; }
+    .page-link .info .prd { font-size: 12px; color: #8c8c8c; margin-top: 2px; }
+    .page-link .info .desc { font-size: 12px; color: #595959; margin-top: 2px; }
+    .status-done { color: #52c41a; }
+    .status-wip { color: #faad14; }
+    .status-todo { color: #8c8c8c; }
+    .role-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 500; }
+    .role-badge.county-admin { background: #e6f4ff; color: #1677ff; }
+    .role-badge.county-staff { background: #f0f5ff; color: #2f54eb; }
+    .role-badge.town-gov { background: #f6ffed; color: #52c41a; }
+    .role-badge.town-vet { background: #fff7e6; color: #fa8c16; }
+  </style>
+</head>
+<body class="min-h-screen p-6">
+
+  <!-- 头部 -->
+  <div class="max-w-5xl mx-auto">
+    <div class="card p-6 mb-6">
+      <div class="flex items-center gap-4">
+        <div class="w-14 h-14 bg-blue-500 rounded-xl flex items-center justify-center">
+          <i class="fas fa-pig text-white text-2xl"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-gray-800">2024年蓬溪县生猪数字化管理平台</h1>
+          <p class="text-sm text-gray-500 mt-1">养殖企业管理模块 · HTML 原型导航</p>
+        </div>
+        <div class="ml-auto text-right">
+          <p class="text-xs text-gray-400">版本：v2.0</p>
+          <p class="text-xs text-gray-400 mt-1">制作日期：2026-03-09</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 角色说明 -->
+    <div class="card p-5 mb-6">
+      <h2 class="text-base font-semibold text-gray-700 mb-3"><i class="fas fa-users mr-2 text-blue-400"></i>角色权限说明</h2>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="bg-blue-50 rounded-lg p-3">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="role-badge county-admin"><i class="fas fa-crown"></i>县级管理员</span>
+            <code class="text-xs text-gray-500">county_admin</code>
+          </div>
+          <p class="text-xs text-gray-600">数据范围：全县（data_scope=1）</p>
+          <p class="text-xs text-gray-600 mt-1">权限：查看、新增、编辑、状态管理、导出、档案直接管理（新增/编辑/删除）</p>
+        </div>
+        <div class="bg-indigo-50 rounded-lg p-3">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="role-badge county-staff"><i class="fas fa-user-tie"></i>县级业务人员</span>
+            <code class="text-xs text-gray-500">county_staff</code>
+          </div>
+          <p class="text-xs text-gray-600">数据范围：全县（data_scope=1）</p>
+          <p class="text-xs text-gray-600 mt-1">权限：查看、导出、档案终审（通过/退回）</p>
+        </div>
+        <div class="bg-green-50 rounded-lg p-3">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="role-badge town-gov"><i class="fas fa-building"></i>乡镇政府业务人员</span>
+            <code class="text-xs text-gray-500">town_gov_staff</code>
+          </div>
+          <p class="text-xs text-gray-600">数据范围：本乡镇（data_scope=4）</p>
+          <p class="text-xs text-gray-600 mt-1">权限：查看、导出、档案审核（通过/退回）</p>
+        </div>
+        <div class="bg-orange-50 rounded-lg p-3">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="role-badge town-vet"><i class="fas fa-stethoscope"></i>乡镇畜牧兽医站</span>
+            <code class="text-xs text-gray-500">town_vet_station</code>
+          </div>
+          <p class="text-xs text-gray-600">数据范围：本乡镇（data_scope=4）</p>
+          <p class="text-xs text-gray-600 mt-1">权限：查看、导出、档案核实（通过/退回）</p>
+        </div>
+      </div>
+      <div class="mt-3 text-xs text-gray-400 bg-gray-50 rounded p-2">
+        <i class="fas fa-lightbulb mr-1 text-yellow-400"></i>进入原型后，可通过右上角「角色切换」下拉框切换不同角色，查看功能差异。
+      </div>
+    </div>
+
+    <!-- WEB监管端 - 养殖企业管理 -->
+    <div class="card p-5 mb-6">
+      <div class="flex items-center gap-2 mb-4">
+        <i class="fas fa-monitor text-blue-500"></i>
+        <h2 class="text-base font-semibold text-gray-700">WEB监管端 · 智慧监管 · 养殖企业管理</h2>
+        <span class="ml-auto text-xs text-gray-400">对应PRD：doc_prd/WEB/监管端/智慧监管/养殖企业管理/</span>
+      </div>
+
+      <!-- 养殖企业信息管理 -->
+      <a href="监管端/智慧监管/养殖企业管理/WEB监管端-养殖企业信息管理.html" class="page-link" target="_blank">
+        <div class="icon bg-blue-100">
+          <i class="fas fa-building text-blue-500"></i>
+        </div>
+        <div class="info">
+          <div class="flex items-center gap-2">
+            <span class="name">养殖企业信息管理</span>
+            <span class="status-done text-xs"><i class="fas fa-check-circle"></i> 已完成</span>
+          </div>
+          <p class="prd">WEB监管端-养殖企业信息管理.prd.md（v2.0）</p>
+          <p class="desc">包含4个功能：① 企业分页列表查看与筛选（多角色数据权限）② 企业详情查看（6个Tab展示20大类信息）③ 企业启用/停用状态管理 ④ 新增养殖企业账号（6步骤表单，自动创建管理员账号）</p>
+        </div>
+        <i class="fas fa-external-link-alt text-gray-300 text-sm ml-2"></i>
+      </a>
+
+      <!-- 养殖档案监管 -->
+      <a href="监管端/智慧监管/养殖企业管理/WEB监管端-养殖档案监管.html" class="page-link" target="_blank">
+        <div class="icon bg-green-100">
+          <i class="fas fa-folder-open text-green-500"></i>
+        </div>
+        <div class="info">
+          <div class="flex items-center gap-2">
+            <span class="name">养殖档案监管</span>
+            <span class="status-done text-xs"><i class="fas fa-check-circle"></i> 已完成</span>
+          </div>
+          <p class="prd">WEB监管端-养殖档案监管.prd.md（v1.0）</p>
+          <p class="desc">包含5个功能：① 18个档案类别Tab页签查看（5组分类）② 档案详情查看（含4级审批进度步骤条）③ 审批操作（核实/审核/终审通过/退回）④ 档案导出 ⑤ 县级管理员直接管理（新增/编辑/删除，直接入库跳过审批）</p>
+        </div>
+        <i class="fas fa-external-link-alt text-gray-300 text-sm ml-2"></i>
+      </a>
+    </div>
+
+    <!-- 统计 -->
+    <div class="card p-4">
+      <div class="grid grid-cols-3 gap-4 text-center">
+        <div>
+          <p class="text-2xl font-bold text-blue-500">2</p>
+          <p class="text-sm text-gray-500 mt-1">HTML 文件总数</p>
+        </div>
+        <div>
+          <p class="text-2xl font-bold text-green-500">2</p>
+          <p class="text-sm text-gray-500 mt-1">已完成</p>
+        </div>
+        <div>
+          <p class="text-2xl font-bold text-gray-400">0</p>
+          <p class="text-sm text-gray-500 mt-1">待制作</p>
+        </div>
+      </div>
+      <div class="mt-3 text-xs text-gray-400 text-center">最后更新：2026-03-09</div>
+    </div>
+  </div>
+
+</body>
+</html>

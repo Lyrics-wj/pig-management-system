@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2024年蓬溪县生猪数字化管理平台 - 市场贸易分析原型导航</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body { background: #f0f2f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; margin: 0; padding: 0; }
+    .header { background: linear-gradient(135deg, #001529 0%, #003366 100%); color: white; padding: 32px 40px; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 32px 40px; }
+    .card { background: white; border-radius: 10px; border: 1px solid #e8e8e8; margin-bottom: 20px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .card-header { background: #fafafa; border-bottom: 1px solid #e8e8e8; padding: 14px 20px; display: flex; align-items: center; gap: 10px; }
+    .card-title { font-size: 15px; font-weight: 600; color: #262626; }
+    .module-title { font-size: 13px; font-weight: 600; color: #8c8c8c; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .prototype-item { display: flex; align-items: center; padding: 14px 20px; border-bottom: 1px solid #f5f5f5; transition: background 0.15s; text-decoration: none; color: inherit; }
+    .prototype-item:last-child { border-bottom: none; }
+    .prototype-item:hover { background: #e6f4ff; }
+    .item-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-right: 14px; flex-shrink: 0; }
+    .item-info { flex: 1; }
+    .item-name { font-size: 14px; font-weight: 500; color: #262626; margin-bottom: 3px; }
+    .item-prd { font-size: 11px; color: #8c8c8c; font-family: monospace; }
+    .item-desc { font-size: 12px; color: #595959; margin-top: 3px; }
+    .item-meta { text-align: right; flex-shrink: 0; margin-left: 16px; }
+    .item-date { font-size: 11px; color: #8c8c8c; margin-bottom: 4px; }
+    .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+    .status-done { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; }
+    .status-wip { background: #fff7e6; color: #d46b08; border: 1px solid #ffd591; }
+    .status-todo { background: #fafafa; color: #8c8c8c; border: 1px solid #d9d9d9; }
+    .stats-bar { display: flex; gap: 24px; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.15); }
+    .stat-item { text-align: center; }
+    .stat-val { font-size: 28px; font-weight: 700; color: white; }
+    .stat-lbl { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+    .role-card { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 8px 14px; margin: 4px; font-size: 13px; color: rgba(255,255,255,0.9); }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 6px; }
+    .tag-county { background: #e6f4ff; color: #0958d9; }
+    .tag-town { background: #f6ffed; color: #389e0d; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div style="max-width:1100px;margin:0 auto;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
+        <div style="width:40px;height:40px;background:#1677ff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;">🐷</div>
+        <div>
+          <div style="font-size:20px;font-weight:700;">2024年蓬溪县生猪数字化管理平台</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:2px;">可交互 HTML 原型导航 · 市场贸易分析模块</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;">
+        <div class="role-card"><i class="fas fa-user-shield"></i> 县级管理员 <span class="tag tag-county">可操作：查看+导出+手动采集+日志</span></div>
+        <div class="role-card"><i class="fas fa-user-tie"></i> 县级业务人员 <span class="tag tag-county">可操作：查看+导出</span></div>
+        <div class="role-card"><i class="fas fa-user"></i> 乡镇政府业务人员 <span class="tag tag-town">可操作：仅查看</span></div>
+        <div class="role-card"><i class="fas fa-user-md"></i> 乡镇畜牧兽医站 <span class="tag tag-town">可操作：仅查看</span></div>
+      </div>
+      <div class="stats-bar">
+        <div class="stat-item"><div class="stat-val">1</div><div class="stat-lbl">原型文件总数</div></div>
+        <div class="stat-item"><div class="stat-val" style="color:#52c41a;">1</div><div class="stat-lbl">已完成</div></div>
+        <div class="stat-item"><div class="stat-val" style="color:#faad14;">0</div><div class="stat-lbl">制作中</div></div>
+        <div class="stat-item"><div class="stat-val" style="color:#8c8c8c;">0</div><div class="stat-lbl">待制作</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- 功能说明 -->
+    <div class="card" style="margin-bottom:20px;">
+      <div style="padding:16px 20px;background:#e6f4ff;border-bottom:1px solid #bae0ff;">
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <i class="fas fa-info-circle" style="color:#1677ff;font-size:18px;margin-top:2px;flex-shrink:0;"></i>
+          <div>
+            <div style="font-size:14px;font-weight:600;color:#0958d9;margin-bottom:4px;">模块说明</div>
+            <div style="font-size:13px;color:#1d4ed8;line-height:1.8;">
+              市场贸易分析通过 <b>DeepSeek 大模型联网搜索</b>，每日两次定时采集生猪、玉米、豆粕、白条猪肉四个品种的全国/四川市场行情数据。
+              页面提供 <b>8 个分析卡片</b>：今日行情速览、4 个品种趋势图（含可折叠数据表格）、猪粮比价分析、全国价格地图、价格对比分析。
+              支持角色切换体验不同权限下的功能差异。
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 监管端 WEB -->
+    <div class="card">
+      <div class="card-header">
+        <i class="fas fa-desktop" style="color:#1677ff;"></i>
+        <span class="card-title">WEB 监管端</span>
+        <span style="font-size:12px;color:#8c8c8c;margin-left:8px;">决策分析 / 市场贸易分析</span>
+      </div>
+
+      <!-- 功能模块 -->
+      <div style="padding:12px 20px 4px;">
+        <div class="module-title"><i class="fas fa-store" style="color:#1677ff;"></i> 市场贸易分析</div>
+      </div>
+
+      <a class="prototype-item" href="监管端/决策分析/市场贸易分析/WEB监管端-市场贸易分析.html" target="_blank">
+        <div class="item-icon" style="background:#e6f4ff;">
+          <i class="fas fa-chart-line" style="color:#1677ff;"></i>
+        </div>
+        <div class="item-info">
+          <div class="item-name">市场贸易分析</div>
+          <div class="item-prd">WEB监管端-市场贸易分析.prd.md</div>
+          <div class="item-desc">
+            今日行情速览（4品种）· 生猪/玉米/豆粕/白条猪肉交易趋势图 · 猪粮比价分析 · 全国省份价格地图 · 价格对比分析 · 手动触发采集（县级管理员）· 采集日志 · 导出报告
+          </div>
+          <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;">
+            <span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;background:#f6ffed;color:#389e0d;border:1px solid #b7eb8f;padding:2px 8px;border-radius:10px;"><i class="fas fa-chart-bar"></i> ECharts图表</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;background:#e6f4ff;color:#0958d9;border:1px solid #91caff;padding:2px 8px;border-radius:10px;"><i class="fas fa-map"></i> 中国省份地图</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;background:#fff7e6;color:#d46b08;border:1px solid #ffd591;padding:2px 8px;border-radius:10px;"><i class="fas fa-robot"></i> DeepSeek采集</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;background:#f9f0ff;color:#531dab;border:1px solid #d3adf7;padding:2px 8px;border-radius:10px;"><i class="fas fa-users"></i> 多角色权限</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;background:#fafafa;color:#595959;border:1px solid #d9d9d9;padding:2px 8px;border-radius:10px;"><i class="fas fa-table"></i> 可折叠数据表</span>
+          </div>
+        </div>
+        <div class="item-meta">
+          <div class="item-date">2026-03-10</div>
+          <div class="status-badge status-done">✅ 已完成</div>
+        </div>
+      </a>
+
+      <!-- 功能清单 -->
+      <div style="background:#fafafa;border-top:1px solid #f0f0f0;padding:14px 20px;">
+        <div style="font-size:12px;color:#8c8c8c;font-weight:600;margin-bottom:10px;">页面功能清单</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;font-size:12px;color:#595959;">
+          <div><i class="fas fa-check-circle" style="color:#52c41a;margin-right:6px;"></i>卡片①：今日行情速览（4品种价格+迷你折线图）</div>
+          <div><i class="fas fa-check-circle" style="color:#52c41a;margin-right:6px;"></i>卡片②：生猪（外三元）交易趋势+辅助线</div>
+          <div><i class="fas fa-check-circle" style="color:#52c41a;margin-right:6px;"></i>卡片③：玉米（14%水分）交易趋势</div>
+          <div><i class="fas fa-check-circle" style="color:#52c41a;margin-right:6px;"></i>卡片④：豆粕（43%蛋白）交易趋势</div>
+          <div><i class="fas fa-check-circle" style="color:#52c41a;margin-right:6px;"></i>卡片⑤：白条猪肉交易趋势</div>
+          <div><i class="fas fa-check-circle" style="color:#52c41a;margin-right:6px;"></i>卡片⑥：猪粮比价分析+预警区间</div>
+          <div><i class="fas fa-check-circle" style="color:#52c41a;margin-right:6px;"></i>卡片⑦：全国猪肉价格地图（ECharts地图）</div>
+          <div><i class="fas fa-check-circle" style="color:#52c41a;margin-right:6px;"></i>卡片⑧：价格对比分析（四品种涨跌幅）</div>
+          <div><i class="fas fa-check-circle" style="color:#52c41a;margin-right:6px;"></i>全局筛选（时间范围+快捷按钮+价格区域）</div>
+          <div><i class="fas fa-check-circle" style="color:#52c41a;margin-right:6px;"></i>手动触发数据采集（仅county_admin）</div>
+          <div><i class="fas fa-check-circle" style="color:#52c41a;margin-right:6px;"></i>采集日志抽屉面板（仅county_admin）</div>
+          <div><i class="fas fa-check-circle" style="color:#52c41a;margin-right:6px;"></i>导出市场分析报告（county_admin/staff）</div>
+          <div><i class="fas fa-check-circle" style="color:#52c41a;margin-right:6px;"></i>多角色切换（4角色权限差异展示）</div>
+          <div><i class="fas fa-check-circle" style="color:#52c41a;margin-right:6px;"></i>可折叠数据表格（默认收起，含分页）</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 制作统计 -->
+    <div style="background:white;border-radius:10px;border:1px solid #e8e8e8;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+      <div style="font-size:13px;font-weight:600;color:#262626;margin-bottom:12px;">制作统计</div>
+      <div style="display:flex;gap:24px;font-size:13px;color:#595959;">
+        <div>总计：<b style="color:#262626;">1</b> 个文件</div>
+        <div>已完成：<b style="color:#52c41a;">1</b> 个</div>
+        <div>制作中：<b style="color:#faad14;">0</b> 个</div>
+        <div>待制作：<b style="color:#8c8c8c;">0</b> 个</div>
+      </div>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid #f0f0f0;font-size:12px;color:#8c8c8c;">
+        <i class="fas fa-clock" style="margin-right:4px;"></i> 最后更新：2026-03-10 &nbsp;|&nbsp;
+        <i class="fas fa-file-code" style="margin-right:4px;"></i> 对应PRD：WEB监管端-市场贸易分析.prd.md (v1.1) &nbsp;|&nbsp;
+        <i class="fas fa-robot" style="margin-right:4px;"></i> 技术特点：ECharts图表 + 中国省份地图 + DeepSeek采集模拟
+      </div>
+    </div>
+  </div>
+</body>
+</html>

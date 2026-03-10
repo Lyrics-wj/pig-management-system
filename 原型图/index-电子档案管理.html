@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2024年蓬溪县生猪数字化管理平台 - 电子档案管理原型导航</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif; background-color: #f0f2f5; color: #262626; }
+    .card { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .page-link { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 6px; transition: all 0.2s; text-decoration: none; color: #262626; border: 1px solid #e8e8e8; margin-bottom: 10px; background-color: #fff; }
+    .page-link:hover { border-color: #1677ff; background-color: #e6f4ff; }
+    .page-link .icon { width: 36px; height: 36px; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .page-link .info { flex: 1; }
+    .page-link .info .name { font-weight: 600; font-size: 14px; }
+    .page-link .info .prd { font-size: 12px; color: #8c8c8c; margin-top: 2px; }
+    .page-link .info .desc { font-size: 12px; color: #595959; margin-top: 2px; }
+    .status-done { color: #52c41a; }
+    .role-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 500; }
+    .role-badge.county-admin { background: #e6f4ff; color: #1677ff; }
+    .role-badge.county-staff { background: #f0f5ff; color: #2f54eb; }
+    .role-badge.town-gov { background: #f6ffed; color: #52c41a; }
+    .role-badge.town-vet { background: #fff7e6; color: #fa8c16; }
+  </style>
+</head>
+<body class="min-h-screen p-6">
+
+  <div class="max-w-5xl mx-auto">
+
+    <!-- 头部 -->
+    <div class="card p-6 mb-6">
+      <div class="flex items-center gap-4">
+        <div class="w-14 h-14 bg-indigo-500 rounded-xl flex items-center justify-center">
+          <i class="fas fa-folder-open text-white text-2xl"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-gray-800">2024年蓬溪县生猪数字化管理平台</h1>
+          <p class="text-sm text-gray-500 mt-1">WEB监管端 · 智慧监管 · 电子档案管理 · HTML 原型导航</p>
+        </div>
+        <div class="ml-auto text-right">
+          <p class="text-xs text-gray-400">版本：v1.0</p>
+          <p class="text-xs text-gray-400 mt-1">制作日期：2026-03-09</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 角色说明 -->
+    <div class="card p-5 mb-6">
+      <h2 class="text-base font-semibold text-gray-700 mb-3"><i class="fas fa-users mr-2 text-blue-400"></i>角色权限说明</h2>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="bg-blue-50 rounded-lg p-3">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="role-badge county-admin"><i class="fas fa-crown"></i>县级管理员</span>
+            <code class="text-xs text-gray-500">county_admin</code>
+          </div>
+          <p class="text-xs text-gray-600">数据范围：全县（data_scope=1）</p>
+          <p class="text-xs text-gray-600 mt-1">权限：查看全县台账、全局检索、统计分析（含导出统计报告）</p>
+        </div>
+        <div class="bg-indigo-50 rounded-lg p-3">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="role-badge county-staff"><i class="fas fa-user-tie"></i>县级业务人员</span>
+            <code class="text-xs text-gray-500">county_staff</code>
+          </div>
+          <p class="text-xs text-gray-600">数据范围：全县（data_scope=1）</p>
+          <p class="text-xs text-gray-600 mt-1">权限：查看全县台账、全局检索、统计分析（含导出统计报告）</p>
+        </div>
+        <div class="bg-green-50 rounded-lg p-3">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="role-badge town-gov"><i class="fas fa-building"></i>乡镇政府业务人员</span>
+            <code class="text-xs text-gray-500">town_gov_staff</code>
+          </div>
+          <p class="text-xs text-gray-600">数据范围：本乡镇（data_scope=4）</p>
+          <p class="text-xs text-gray-600 mt-1">权限：查看本乡镇台账、检索、统计（不含导出统计报告；筛选条件中不展示所属乡镇下拉）</p>
+        </div>
+        <div class="bg-orange-50 rounded-lg p-3">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="role-badge town-vet"><i class="fas fa-stethoscope"></i>乡镇畜牧兽医站</span>
+            <code class="text-xs text-gray-500">town_vet_station</code>
+          </div>
+          <p class="text-xs text-gray-600">数据范围：本乡镇（data_scope=4）</p>
+          <p class="text-xs text-gray-600 mt-1">权限：查看本乡镇台账、检索、统计（不含导出统计报告）</p>
+        </div>
+      </div>
+      <div class="mt-3 text-xs text-gray-400 bg-gray-50 rounded p-2">
+        <i class="fas fa-lightbulb mr-1 text-yellow-400"></i>进入原型后，可通过右上角「角色切换」下拉框切换不同角色，查看功能差异（乡镇角色不展示所属乡镇筛选项，统计导出按钮隐藏）。
+      </div>
+    </div>
+
+    <!-- 功能模块 -->
+    <div class="card p-5 mb-6">
+      <div class="flex items-center gap-2 mb-4">
+        <i class="fas fa-monitor text-blue-500"></i>
+        <h2 class="text-base font-semibold text-gray-700">WEB监管端 · 智慧监管 · 电子档案管理</h2>
+        <span class="ml-auto text-xs text-gray-400">对应PRD：doc_prd/WEB/监管端/智慧监管/电子档案管理/</span>
+      </div>
+
+      <!-- 档案台账总览 -->
+      <a href="监管端/智慧监管/电子档案管理/WEB监管端-档案台账总览.html" class="page-link" target="_blank">
+        <div class="icon bg-blue-100">
+          <i class="fas fa-table text-blue-500"></i>
+        </div>
+        <div class="info">
+          <div class="flex items-center gap-2">
+            <span class="name">档案台账总览</span>
+            <span class="status-done text-xs"><i class="fas fa-check-circle"></i> 已完成</span>
+          </div>
+          <p class="prd">WEB监管端-档案台账总览.prd.md（v1.0）</p>
+          <p class="desc">以企业为维度展示各类已入库档案汇总台账。含：① 台账总览列表（18列档案数量，数字0显示红色，点击可跳转） ② 筛选（企业名称/乡镇/类型/时间范围） ③ 企业档案详情页（18个Tab+企业信息摘要，所有数据仅查看） ④ 台账导出 ⑤ 企业单类别档案导出 ⑥ 多角色数据权限（乡镇角色不展示乡镇筛选项）</p>
+        </div>
+        <i class="fas fa-external-link-alt text-gray-300 text-sm ml-2"></i>
+      </a>
+
+      <!-- 档案分类检索 -->
+      <a href="监管端/智慧监管/电子档案管理/WEB监管端-档案分类检索.html" class="page-link" target="_blank">
+        <div class="icon bg-green-100">
+          <i class="fas fa-search text-green-500"></i>
+        </div>
+        <div class="info">
+          <div class="flex items-center gap-2">
+            <span class="name">档案分类检索</span>
+            <span class="status-done text-xs"><i class="fas fa-check-circle"></i> 已完成</span>
+          </div>
+          <p class="prd">WEB监管端-档案分类检索.prd.md（v1.0）</p>
+          <p class="desc">跨18类档案的全局统一检索入口。含：① 主搜索框（关键字检索，按回车或点击搜索触发） ② 高级检索（档案类别多选/企业名称/乡镇/时间范围/填报人，默认收起） ③ 检索结果统计（总条数/涉及类别数/企业数） ④ 结果列表（彩色Tag标识类别，摘要列tooltip） ⑤ 查看详情弹窗（只读） ⑥ 导出检索结果 ⑦ 首次进入展示引导提示，未填条件时提示用户</p>
+        </div>
+        <i class="fas fa-external-link-alt text-gray-300 text-sm ml-2"></i>
+      </a>
+
+      <!-- 档案统计分析 -->
+      <a href="监管端/智慧监管/电子档案管理/WEB监管端-档案统计分析.html" class="page-link" target="_blank">
+        <div class="icon bg-purple-100">
+          <i class="fas fa-chart-bar text-purple-500"></i>
+        </div>
+        <div class="info">
+          <div class="flex items-center gap-2">
+            <span class="name">档案统计分析</span>
+            <span class="status-done text-xs"><i class="fas fa-check-circle"></i> 已完成</span>
+          </div>
+          <p class="prd">WEB监管端-档案统计分析.prd.md（v1.0）</p>
+          <p class="desc">7维度档案数据统计分析看板（Chart.js图表）。含：① 存出栏统计（折线图，按月/季/年粒度切换） ② 免疫防疫统计（柱状图+覆盖率指标卡） ③ 无害化处理统计（饼图+折线图双图） ④ 投入品使用统计（柱状图） ⑤ 疾病诊疗统计（饼图+折线图双图） ⑥ 销售统计（柱状图+饼图双图） ⑦ 档案填报情况热力表格（企业×类别矩阵，5级配色） ⑧ 每卡片支持导出数据/图表（县级角色可见）</p>
+        </div>
+        <i class="fas fa-external-link-alt text-gray-300 text-sm ml-2"></i>
+      </a>
+    </div>
+
+    <!-- 统计 -->
+    <div class="card p-4">
+      <div class="grid grid-cols-3 gap-4 text-center">
+        <div>
+          <p class="text-2xl font-bold text-blue-500">3</p>
+          <p class="text-sm text-gray-500 mt-1">HTML 文件总数</p>
+        </div>
+        <div>
+          <p class="text-2xl font-bold text-green-500">3</p>
+          <p class="text-sm text-gray-500 mt-1">已完成</p>
+        </div>
+        <div>
+          <p class="text-2xl font-bold text-gray-400">0</p>
+          <p class="text-sm text-gray-500 mt-1">待制作</p>
+        </div>
+      </div>
+      <div class="mt-3 text-xs text-gray-400 text-center">最后更新：2026-03-09</div>
+    </div>
+  </div>
+
+</body>
+</html>

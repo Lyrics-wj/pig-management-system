@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>功能五：个人中心 - 蓬溪县生猪数字化管理平台</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
+  .phone-frame { width: 390px; height: 844px; background: #f5f5f5; border-radius: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); overflow: hidden; position: relative; display: flex; flex-direction: column; }
+  .demo-bar { background: #fff9c4; padding: 5px 16px; font-size: 11px; color: #7a6200; text-align: center; flex-shrink: 0; }
+  .scroll-area { flex: 1; overflow-y: auto; }
+  .scroll-area::-webkit-scrollbar { display: none; }
+  .page-nav { display: flex; align-items: center; padding: 12px 16px; background: white; border-bottom: 1px solid #f0f0f0; flex-shrink: 0; }
+  .nav-back { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 50%; }
+  .nav-back:hover { background: #f5f5f5; }
+  .nav-title { flex: 1; text-align: center; font-size: 16px; font-weight: 600; color: #1a1a1a; }
+  .nav-right { width: 36px; }
+
+  /* 用户信息头部 */
+  .mine-header { background: linear-gradient(160deg, #1a6b3c 0%, #2d9e5f 60%, #4caf7d 100%); padding: 24px 20px 30px; }
+  .user-card { display: flex; align-items: center; gap: 14px; }
+  .avatar-large { width: 64px; height: 64px; border-radius: 50%; background: rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 26px; color: white; font-weight: 700; border: 3px solid rgba(255,255,255,0.5); cursor: pointer; flex-shrink: 0; }
+  .user-details { flex: 1; }
+  .user-name-lg { color: white; font-size: 18px; font-weight: 600; }
+  .user-phone { color: rgba(255,255,255,0.8); font-size: 13px; margin-top: 3px; }
+  .user-company-lg { color: rgba(255,255,255,0.9); font-size: 13px; margin-top: 2px; }
+  .edit-btn { width: 32px; height: 32px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+  /* 菜单列表 */
+  .menu-section { background: white; margin: 12px 12px 0; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .menu-item { display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid #f5f5f5; cursor: pointer; transition: background 0.15s; }
+  .menu-item:last-child { border-bottom: none; }
+  .menu-item:hover { background: #f9f9f9; }
+  .menu-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 12px; flex-shrink: 0; }
+  .menu-label { flex: 1; font-size: 14px; color: #1a1a1a; }
+  .menu-value { font-size: 12px; color: #999; margin-right: 6px; }
+  .menu-arrow { color: #ccc; }
+
+  /* 快速统计 */
+  .quick-stats { background: white; margin: 12px 12px 0; border-radius: 14px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .quick-stats-row { display: flex; justify-content: space-around; }
+  .quick-stat { text-align: center; cursor: pointer; }
+  .quick-stat-val { font-size: 20px; font-weight: 700; color: #2d9e5f; }
+  .quick-stat-label { font-size: 11px; color: #999; margin-top: 3px; }
+
+  /* 记录列表卡片 */
+  .record-section { background: white; margin: 12px 12px 0; border-radius: 14px; padding: 14px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .section-title { font-size: 14px; font-weight: 600; color: #1a1a1a; }
+  .section-more { font-size: 12px; color: #2d9e5f; cursor: pointer; }
+  .record-row { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #f5f5f5; cursor: pointer; }
+  .record-row:last-child { border-bottom: none; }
+  .record-row-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0; }
+  .record-row-info { flex: 1; }
+  .record-row-title { font-size: 13px; color: #1a1a1a; font-weight: 500; }
+  .record-row-meta { font-size: 11px; color: #999; margin-top: 2px; }
+  .record-row-status { font-size: 11px; padding: 2px 8px; border-radius: 4px; }
+  .status-green { background: #e8f5e9; color: #2e7d32; }
+  .status-blue { background: #e3f2fd; color: #1565c0; }
+  .status-red { background: #ffebee; color: #c62828; }
+  .status-gray { background: #f5f5f5; color: #757575; }
+
+  /* 圈舍列表 */
+  .pigsty-row { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #f5f5f5; cursor: pointer; }
+  .pigsty-row:last-child { border-bottom: none; }
+  .pigsty-info { flex: 1; }
+  .pigsty-name { font-size: 14px; color: #1a1a1a; font-weight: 500; }
+  .pigsty-detail { font-size: 12px; color: #999; margin-top: 2px; }
+  .pigsty-actions { display: flex; gap: 8px; }
+  .btn-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .btn-edit { background: #e8f5e9; }
+  .btn-delete { background: #ffebee; }
+
+  /* 设置开关 */
+  .switch-item { display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid #f5f5f5; }
+  .switch-item:last-child { border-bottom: none; }
+  .switch-label { flex: 1; font-size: 14px; color: #1a1a1a; }
+  .switch-desc { font-size: 12px; color: #999; margin-top: 2px; }
+  .toggle { width: 44px; height: 26px; border-radius: 13px; background: #ccc; position: relative; cursor: pointer; transition: background 0.2s; flex-shrink: 0; }
+  .toggle.on { background: #2d9e5f; }
+  .toggle-thumb { width: 22px; height: 22px; border-radius: 50%; background: white; position: absolute; top: 2px; left: 2px; transition: left 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+  .toggle.on .toggle-thumb { left: 20px; }
+
+  /* 退出登录 */
+  .logout-btn { margin: 16px 12px; height: 48px; background: white; border: 1.5px solid #f44336; border-radius: 14px; color: #f44336; font-size: 15px; font-weight: 600; cursor: pointer; width: calc(100% - 24px); display: flex; align-items: center; justify-content: center; }
+  .logout-btn:hover { background: #fff5f5; }
+
+  /* 弹窗 */
+  .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal-overlay.show { display: flex; }
+  .modal-box { background: white; border-radius: 20px; width: 100%; padding: 24px; }
+  .modal-title { font-size: 16px; font-weight: 600; color: #1a1a1a; text-align: center; margin-bottom: 8px; }
+  .modal-desc { font-size: 14px; color: #666; text-align: center; margin-bottom: 20px; }
+  .modal-btns { display: flex; gap: 10px; }
+  .btn-cancel { flex: 1; height: 44px; background: #f5f5f5; border: none; border-radius: 12px; font-size: 14px; color: #666; cursor: pointer; }
+  .btn-confirm { flex: 1; height: 44px; background: linear-gradient(135deg, #f44336, #c62828); border: none; border-radius: 12px; font-size: 14px; color: white; font-weight: 600; cursor: pointer; }
+  .btn-confirm-green { background: linear-gradient(135deg, #2d9e5f, #1a6b3c); }
+
+  /* 表单 */
+  .form-group { margin-bottom: 14px; }
+  .form-label { font-size: 13px; color: #555; margin-bottom: 6px; display: block; }
+  .required { color: #f44336; }
+  .form-input { width: 100%; height: 44px; border: 1.5px solid #e0e0e0; border-radius: 10px; padding: 0 12px; font-size: 14px; color: #1a1a1a; outline: none; background: #fafafa; }
+  .form-input:focus { border-color: #2d9e5f; }
+  .form-input.error { border-color: #f44336; }
+  .form-input[readonly] { background: #f5f5f5; color: #999; }
+  .form-select { width: 100%; height: 44px; border: 1.5px solid #e0e0e0; border-radius: 10px; padding: 0 12px; font-size: 14px; color: #1a1a1a; outline: none; background: #fafafa; appearance: none; }
+  .error-msg { font-size: 12px; color: #f44336; margin-top: 4px; display: none; }
+  .error-msg.show { display: block; }
+
+  .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.75); color: white; padding: 10px 20px; border-radius: 20px; font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; white-space: nowrap; }
+  .toast.show { opacity: 1; }
+  .tab-bar { display: flex; background: white; border-bottom: 1px solid #f0f0f0; flex-shrink: 0; }
+  .tab-item { flex: 1; padding: 10px 0; text-align: center; font-size: 13px; color: #666; cursor: pointer; border-bottom: 2px solid transparent; }
+  .tab-item.active { color: #2d9e5f; border-bottom-color: #2d9e5f; font-weight: 600; }
+  .modal-sheet { background: white; border-radius: 20px 20px 0 0; width: 100%; max-height: 85%; overflow-y: auto; padding: 20px; }
+  .sheet-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: none; align-items: flex-end; }
+  .sheet-overlay.show { display: flex; }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="demo-bar">📱 原型演示 - 功能五：个人中心（我的）| <a href="index.html" style="color:#7a6200">返回导航</a></div>
+
+  <!-- 主视图 -->
+  <div id="view-main" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+    <div class="scroll-area" style="padding-bottom:60px">
+      <!-- 用户信息头部 -->
+      <div class="mine-header">
+        <div class="user-card">
+          <div class="avatar-large" onclick="showView('edit-profile')">张</div>
+          <div class="user-details">
+            <div class="user-name-lg">张大农</div>
+            <div class="user-phone">138****8888</div>
+            <div class="user-company-lg">蓬溪县兴旺养殖场</div>
+          </div>
+          <div class="edit-btn" onclick="showView('edit-profile')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- 学习统计 -->
+      <div class="quick-stats">
+        <div style="font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:12px">学习统计</div>
+        <div class="quick-stats-row">
+          <div class="quick-stat" onclick="window.location.href='04-知识课堂.html'">
+            <div class="quick-stat-val">28</div>
+            <div class="quick-stat-label">学习天数</div>
+          </div>
+          <div class="quick-stat" onclick="window.location.href='04-知识课堂.html'">
+            <div class="quick-stat-val">15</div>
+            <div class="quick-stat-label">完成课程</div>
+          </div>
+          <div class="quick-stat" onclick="window.location.href='04-知识课堂.html'">
+            <div class="quick-stat-val">1,240</div>
+            <div class="quick-stat-label">学习时长(分)</div>
+          </div>
+          <div class="quick-stat" onclick="showView('my-collect')">
+            <div class="quick-stat-val">8</div>
+            <div class="quick-stat-label">我的收藏</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 功能菜单 -->
+      <div class="menu-section">
+        <div class="menu-item" onclick="showView('enterprise-info')">
+          <div class="menu-icon" style="background:#e8f5e9"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2d9e5f" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+          <div class="menu-label">企业信息管理</div>
+          <div class="menu-value">蓬溪县兴旺养殖场</div>
+          <div class="menu-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+        <div class="menu-item" onclick="showView('pigsty-list')">
+          <div class="menu-icon" style="background:#e3f2fd"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1976d2" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg></div>
+          <div class="menu-label">圈舍管理</div>
+          <div class="menu-value">3个圈舍</div>
+          <div class="menu-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+      </div>
+
+      <!-- 上报记录 -->
+      <div class="record-section">
+        <div class="section-header">
+          <div class="section-title">上报记录</div>
+          <div class="section-more" onclick="window.location.href='03-养殖信息上报.html'">查看更多</div>
+        </div>
+        <div class="record-row">
+          <div class="record-row-icon" style="background:#e8f5e9"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2d9e5f" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
+          <div class="record-row-info"><div class="record-row-title">出栏信息上报</div><div class="record-row-meta">育肥舍A · 50头 · 2026-02-27</div></div>
+          <div class="record-row-status status-blue">已提交</div>
+        </div>
+        <div class="record-row">
+          <div class="record-row-icon" style="background:#e8f5e9"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2d9e5f" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
+          <div class="record-row-info"><div class="record-row-title">畜禽免疫记录上报</div><div class="record-row-meta">母猪舍 · 45头 · 2026-02-26</div></div>
+          <div class="record-row-status status-green">已入库</div>
+        </div>
+        <div class="record-row">
+          <div class="record-row-icon" style="background:#ffebee"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c62828" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
+          <div class="record-row-info"><div class="record-row-title">出栏信息上报</div><div class="record-row-meta">育肥舍A · 80头 · 2026-02-15</div></div>
+          <div class="record-row-status status-red">村级退回</div>
+        </div>
+        <div class="record-row">
+          <div class="record-row-icon" style="background:#f5f5f5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
+          <div class="record-row-info"><div class="record-row-title">消毒信息上报</div><div class="record-row-meta">育肥舍B · 2026-02-10</div></div>
+          <div class="record-row-status status-gray">草稿</div>
+        </div>
+        <div class="record-row">
+          <div class="record-row-icon" style="background:#e8f5e9"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2d9e5f" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
+          <div class="record-row-info"><div class="record-row-title">基础养殖信息</div><div class="record-row-meta">全场 · 1286头 · 2026-02-08</div></div>
+          <div class="record-row-status status-green">已入库</div>
+        </div>
+      </div>
+
+      <!-- 学习记录 -->
+      <div class="record-section">
+        <div class="section-header">
+          <div class="section-title">学习记录</div>
+          <div class="section-more" onclick="window.location.href='04-知识课堂.html'">查看更多</div>
+        </div>
+        <div class="record-row">
+          <div class="record-row-icon" style="background:#e8eaf6"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3949ab" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+          <div class="record-row-info"><div class="record-row-title">非洲猪瘟综合防控技术</div><div class="record-row-meta">进度：35% · 最后学习：今天</div></div>
+          <div class="record-row-status status-blue">学习中</div>
+        </div>
+        <div class="record-row">
+          <div class="record-row-icon" style="background:#e8eaf6"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3949ab" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+          <div class="record-row-info"><div class="record-row-title">猪舍环境控制与通风管理</div><div class="record-row-meta">进度：80% ✓ · 最后学习：昨天</div></div>
+          <div class="record-row-status status-green">已完成</div>
+        </div>
+        <div class="record-row">
+          <div class="record-row-icon" style="background:#fbe9e7"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#bf360c" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+          <div class="record-row-info"><div class="record-row-title">2026年生猪养殖补贴政策解读</div><div class="record-row-meta">资讯阅读 · 2026-02-25</div></div>
+          <div class="record-row-status status-green">已读</div>
+        </div>
+      </div>
+
+      <!-- 我的提问 -->
+      <div class="record-section">
+        <div class="section-header">
+          <div class="section-title">我的提问</div>
+          <div class="section-more" onclick="showView('my-questions')">查看更多</div>
+        </div>
+        <div class="record-row" onclick="showView('question-detail')">
+          <div class="record-row-icon" style="background:#e8f5e9"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2d9e5f" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+          <div class="record-row-info"><div class="record-row-title">消毒频率一般建议多久一次？</div><div class="record-row-meta">2回复 · 有新回复 · 2026-02-27</div></div>
+          <div class="record-row-status" style="background:#fff3e0;color:#e65100;font-size:11px;padding:2px 8px;border-radius:4px">新回复</div>
+        </div>
+        <div class="record-row" onclick="showView('question-detail')">
+          <div class="record-row-icon" style="background:#e8f5e9"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2d9e5f" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+          <div class="record-row-info"><div class="record-row-title">申报材料需要哪些文件？</div><div class="record-row-meta">0回复 · 2026-02-25</div></div>
+        </div>
+      </div>
+
+      <!-- 功能设置 -->
+      <div class="menu-section" style="margin-top:12px">
+        <div class="menu-item" onclick="showView('settings')">
+          <div class="menu-icon" style="background:#f3e5f5"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7b1fa2" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div>
+          <div class="menu-label">功能设置</div>
+          <div class="menu-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+      </div>
+
+      <!-- 退出登录 -->
+      <button class="logout-btn" onclick="showLogoutConfirm()">退出登录</button>
+      <div style="height:20px"></div>
+    </div>
+
+    <!-- 底部导航 -->
+    <div style="position:absolute;bottom:0;left:0;right:0;height:60px;background:white;border-top:1px solid #f0f0f0;display:flex;align-items:center;box-shadow:0 -2px 10px rgba(0,0,0,0.06)">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:6px 0" onclick="window.location.href='02-首页.html'">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span style="font-size:10px;color:#999">首页</span>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:6px 0" onclick="window.location.href='03-养殖信息上报.html'">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        <span style="font-size:10px;color:#999">养殖管理</span>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:6px 0" onclick="window.location.href='04-知识课堂.html'">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+        <span style="font-size:10px;color:#999">知识课堂</span>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:6px 0" onclick="window.location.href='05-消息通知.html'">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span style="font-size:10px;color:#999">消息</span>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:6px 0">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2d9e5f" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span style="font-size:10px;color:#2d9e5f">我的</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 编辑个人资料 -->
+  <div id="view-edit-profile" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div class="page-nav" style="flex-shrink:0">
+      <div class="nav-back" onclick="showView('main')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></div>
+      <div class="nav-title">编辑个人资料</div>
+      <div class="nav-right"></div>
+    </div>
+    <div class="scroll-area" style="padding:16px">
+      <div style="background:white;border-radius:14px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06)">
+        <!-- 头像 -->
+        <div style="display:flex;flex-direction:column;align-items:center;padding:16px 0 20px">
+          <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#2d9e5f,#1a6b3c);display:flex;align-items:center;justify-content:center;font-size:28px;color:white;font-weight:700;cursor:pointer;position:relative" onclick="showToast('头像上传功能开发中')">
+            张
+            <div style="position:absolute;bottom:0;right:0;width:22px;height:22px;background:#2d9e5f;border-radius:50%;border:2px solid white;display:flex;align-items:center;justify-content:center">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            </div>
+          </div>
+          <div style="font-size:12px;color:#999;margin-top:8px">点击更换头像</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">昵称 <span class="required">*</span></label>
+          <input class="form-input" id="edit-nickname" type="text" value="张大农" maxlength="20">
+          <div class="error-msg" id="err-nickname">昵称不能为空</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">手机号</label>
+          <input class="form-input" readonly value="138****8888">
+          <div style="font-size:11px;color:#bbb;margin-top:3px">手机号不可修改，如需变更请联系管理员</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">性别</label>
+          <select class="form-select" id="edit-gender">
+            <option value="1" selected>男</option>
+            <option value="2">女</option>
+            <option value="0">保密</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">所在地区</label>
+          <input class="form-input" type="text" value="四川省遂宁市蓬溪县">
+        </div>
+        <button style="width:100%;height:46px;background:linear-gradient(135deg,#2d9e5f,#1a6b3c);color:white;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px" onclick="saveProfile()">保存修改</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 我的提问 -->
+  <div id="view-my-questions" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div class="page-nav" style="flex-shrink:0">
+      <div class="nav-back" onclick="showView('main')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></div>
+      <div class="nav-title">我的提问</div>
+      <div class="nav-right">
+        <div style="font-size:13px;color:#2d9e5f;cursor:pointer" onclick="showView('ask-question')">提问</div>
+      </div>
+    </div>
+    <div class="scroll-area" style="padding:12px">
+      <div style="background:white;border-radius:14px;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:10px;cursor:pointer" onclick="showView('question-detail')">
+        <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px">
+          <div style="flex:1;font-size:14px;font-weight:500;color:#1a1a1a">消毒频率一般建议多久一次？</div>
+          <span style="background:#fff3e0;color:#e65100;font-size:11px;padding:2px 8px;border-radius:4px;flex-shrink:0">新回复</span>
+        </div>
+        <div style="font-size:13px;color:#666;line-height:1.5;margin-bottom:8px">我们猪场一直是每周消毒一次，但最近听说有的场子每天都消毒，想了解一下正确的频率...</div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="font-size:12px;color:#999">2026-02-27 · 2条回复</div>
+          <div style="font-size:12px;color:#2d9e5f">查看回复 →</div>
+        </div>
+      </div>
+      <div style="background:white;border-radius:14px;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);cursor:pointer" onclick="showView('question-detail')">
+        <div style="font-size:14px;font-weight:500;color:#1a1a1a;margin-bottom:8px">申报材料需要哪些文件？</div>
+        <div style="font-size:13px;color:#666;line-height:1.5;margin-bottom:8px">想申请今年的养殖补贴，不知道需要准备哪些材料，请问有经验的老师指导一下...</div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="font-size:12px;color:#999">2026-02-25 · 0条回复</div>
+          <div style="font-size:12px;color:#bbb">暂无回复</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 提问详情 -->
+  <div id="view-question-detail" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div class="page-nav" style="flex-shrink:0">
+      <div class="nav-back" onclick="showView('my-questions')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></div>
+      <div class="nav-title">问题详情</div>
+      <div class="nav-right"></div>
+    </div>
+    <div class="scroll-area" style="padding:12px">
+      <div style="background:white;border-radius:14px;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:10px">
+        <div style="font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:8px">消毒频率一般建议多久一次？</div>
+        <div style="font-size:13px;color:#666;line-height:1.6;margin-bottom:10px">我们猪场一直是每周消毒一次，但最近听听说有的场子每天都消毒，想了解一下正确的频率是多少，不同区域是否有区别？</div>
+        <div style="font-size:12px;color:#999">张大农 · 2026-02-27 09:15</div>
+      </div>
+      <!-- 回复列表 -->
+      <div style="font-size:13px;color:#666;padding:4px 4px 8px;font-weight:500">2条回复</div>
+      <div style="background:white;border-radius:14px;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#1976d2,#0d47a1);display:flex;align-items:center;justify-content:center;font-size:13px;color:white;font-weight:600">李</div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#1a1a1a">李建国 <span style="font-size:11px;background:#e3f2fd;color:#1565c0;padding:1px 6px;border-radius:4px;font-weight:400">专家</span></div>
+            <div style="font-size:11px;color:#999">2026-02-27 10:30</div>
+          </div>
+        </div>
+        <div style="font-size:13px;color:#333;line-height:1.6">建议根据猪场实际情况：<br>• 生产区：每周2-3次<br>• 进出通道：每次进出后立即消毒<br>• 隔离区：每天1次<br>• 疫情期间：每天2次以上</div>
+      </div>
+      <div style="background:white;border-radius:14px;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#2d9e5f,#1a6b3c);display:flex;align-items:center;justify-content:center;font-size:13px;color:white;font-weight:600">王</div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#1a1a1a">王技术员</div>
+            <div style="font-size:11px;color:#999">2026-02-27 14:20</div>
+          </div>
+        </div>
+        <div style="font-size:13px;color:#333;line-height:1.6">补充一点，消毒药要轮换使用，避免产生耐药性。常用的有：碘制剂、季铵盐类、过氧乙酸等，建议每月轮换一次。</div>
+      </div>
+      <!-- 回复输入框 -->
+      <div style="background:white;border-radius:14px;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.06)">
+        <textarea style="width:100%;height:80px;border:1.5px solid #e0e0e0;border-radius:10px;padding:10px;font-size:13px;color:#1a1a1a;outline:none;resize:none;font-family:inherit" placeholder="写下你的回复..."></textarea>
+        <button style="width:100%;height:40px;background:linear-gradient(135deg,#2d9e5f,#1a6b3c);color:white;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;margin-top:8px" onclick="showToast('回复已提交')">发布回复</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 发起提问 -->
+  <div id="view-ask-question" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div class="page-nav" style="flex-shrink:0">
+      <div class="nav-back" onclick="showView('my-questions')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></div>
+      <div class="nav-title">发起提问</div>
+      <div class="nav-right"></div>
+    </div>
+    <div class="scroll-area" style="padding:16px">
+      <div style="background:white;border-radius:14px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06)">
+        <div class="form-group">
+          <label class="form-label">问题标题 <span class="required">*</span></label>
+          <input class="form-input" id="q-title" type="text" placeholder="请简要描述你的问题（5-50字）" maxlength="50">
+          <div class="error-msg" id="err-q-title">标题不能为空，且需5字以上</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">问题描述 <span class="required">*</span></label>
+          <textarea style="width:100%;height:120px;border:1.5px solid #e0e0e0;border-radius:10px;padding:10px;font-size:14px;color:#1a1a1a;outline:none;resize:none;font-family:inherit;background:#fafafa" id="q-content" placeholder="详细描述你的问题，以便专家更好地解答（10-500字）" maxlength="500"></textarea>
+          <div class="error-msg" id="err-q-content">问题描述不能少于10字</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">问题分类</label>
+          <select class="form-select">
+            <option value="">请选择分类</option>
+            <option value="1">疾病防控</option>
+            <option value="2">饲养管理</option>
+            <option value="3">政策法规</option>
+            <option value="4">设备设施</option>
+            <option value="5">其他</option>
+          </select>
+        </div>
+        <button style="width:100%;height:46px;background:linear-gradient(135deg,#2d9e5f,#1a6b3c);color:white;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px" onclick="submitQuestion()">提交问题</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 企业信息管理 -->
+  <div id="view-enterprise-info" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div class="page-nav" style="flex-shrink:0">
+      <div class="nav-back" onclick="showView('main')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></div>
+      <div class="nav-title">企业信息管理</div>
+      <div class="nav-right"></div>
+    </div>
+    <div class="scroll-area" style="padding:16px">
+      <div style="background:white;border-radius:14px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06)">
+        <div class="form-group">
+          <label class="form-label">企业名称 <span class="required">*</span></label>
+          <input class="form-input" type="text" value="蓬溪县兴旺养殖场">
+        </div>
+        <div class="form-group">
+          <label class="form-label">统一社会信用代码 <span class="required">*</span></label>
+          <input class="form-input" type="text" value="91510921MA62ABCD12" maxlength="18">
+        </div>
+        <div class="form-group">
+          <label class="form-label">企业类型 <span class="required">*</span></label>
+          <select class="form-select">
+            <option value="1" selected>规模养殖场</option>
+            <option value="2">家庭农场</option>
+            <option value="3">散养户</option>
+            <option value="4">合作社</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">法人代表 <span class="required">*</span></label>
+          <input class="form-input" type="text" value="张大农">
+        </div>
+        <div class="form-group">
+          <label class="form-label">联系电话 <span class="required">*</span></label>
+          <input class="form-input" type="tel" value="13812345678" maxlength="11">
+        </div>
+        <div class="form-group">
+          <label class="form-label">详细地址 <span class="required">*</span></label>
+          <input class="form-input" type="text" id="enterprise-address" value="蓬溪县蓬南镇兴旺村1组">
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="display:flex;align-items:center;justify-content:space-between">
+            <span>企业定位</span>
+            <button type="button" id="locate-btn" onclick="getEnterpriseLocation()" style="height:28px;padding:0 12px;background:linear-gradient(135deg,#2d9e5f,#1a6b3c);color:white;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:4px">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="9" stroke-dasharray="4 2"/></svg>
+              重新定位
+            </button>
+          </label>
+          <div id="location-display" style="background:#f8fffe;border:1.5px solid #e0f2e9;border-radius:10px;padding:10px 12px;font-size:13px;color:#333">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2d9e5f" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span id="location-address-text" style="color:#2d9e5f;font-weight:500">蓬溪县蓬南镇兴旺村1组附近</span>
+            </div>
+            <div style="display:flex;gap:16px;font-size:12px;color:#888">
+              <span>经度：<span id="location-lng">105.8432</span></span>
+              <span>纬度：<span id="location-lat">30.7521</span></span>
+            </div>
+          </div>
+          <div id="location-loading" style="display:none;background:#f5f5f5;border-radius:10px;padding:12px;text-align:center;font-size:13px;color:#999">
+            <span id="location-loading-text">正在获取位置...</span>
+          </div>
+          <input type="hidden" id="enterprise-lng" value="105.8432">
+          <input type="hidden" id="enterprise-lat" value="30.7521">
+        </div>
+        <div class="form-group">
+          <label class="form-label">养殖规模（头）<span class="required">*</span></label>
+          <input class="form-input" type="number" value="2000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">企业ID</label>
+          <input class="form-input" readonly value="1001">
+        </div>
+        <div class="form-group">
+          <label class="form-label">创建时间</label>
+          <input class="form-input" readonly value="2026-01-15 10:30:00">
+        </div>
+        <button style="width:100%;height:46px;background:linear-gradient(135deg,#2d9e5f,#1a6b3c);color:white;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px" onclick="saveEnterpriseInfo()">保存修改</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 圈舍管理 -->
+  <div id="view-pigsty-list" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div class="page-nav" style="flex-shrink:0">
+      <div class="nav-back" onclick="showView('main')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></div>
+      <div class="nav-title">圈舍管理</div>
+      <div class="nav-right">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2d9e5f" stroke-width="2.5" style="cursor:pointer" onclick="showView('pigsty-edit')"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </div>
+    </div>
+    <div class="scroll-area" style="padding:12px">
+      <div style="background:white;border-radius:14px;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.06)">
+        <div class="pigsty-row">
+          <div class="pigsty-info">
+            <div class="pigsty-name">育肥舍A</div>
+            <div class="pigsty-detail">育肥舍 · 设计容量：400头 · 当前存栏：320头 · 使用中</div>
+          </div>
+          <div class="pigsty-actions">
+            <div class="btn-icon btn-edit" onclick="showView('pigsty-edit')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2d9e5f" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
+            <div class="btn-icon btn-delete" onclick="showToast('该圈舍存在存栏记录（320头），无法删除')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f44336" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></div>
+          </div>
+        </div>
+        <div class="pigsty-row">
+          <div class="pigsty-info">
+            <div class="pigsty-name">育肥舍B</div>
+            <div class="pigsty-detail">育肥舍 · 设计容量：300头 · 当前存栏：180头 · 使用中</div>
+          </div>
+          <div class="pigsty-actions">
+            <div class="btn-icon btn-edit" onclick="showView('pigsty-edit')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2d9e5f" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
+            <div class="btn-icon btn-delete" onclick="showToast('该圈舍存在存栏记录（180头），无法删除')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f44336" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></div>
+          </div>
+        </div>
+        <div class="pigsty-row">
+          <div class="pigsty-info">
+            <div class="pigsty-name">母圈舍</div>
+            <div class="pigsty-detail">母圈舍 · 设计容量：60头 · 当前存栏：45头 · 使用中</div>
+          </div>
+          <div class="pigsty-actions">
+            <div class="btn-icon btn-edit" onclick="showView('pigsty-edit')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2d9e5f" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
+            <div class="btn-icon btn-delete" onclick="showToast('该圈舍存在存栏记录（45头），无法删除')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f44336" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></div>
+          </div>
+        </div>
+        <div class="pigsty-row">
+          <div class="pigsty-info">
+            <div class="pigsty-name">隔离舍01</div>
+            <div class="pigsty-detail">隔离舍 · 设计容量：20头 · 当前存栏：0头 · 空栏</div>
+          </div>
+          <div class="pigsty-actions">
+            <div class="btn-icon btn-edit" onclick="showView('pigsty-edit')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2d9e5f" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
+            <div class="btn-icon btn-delete" onclick="showDeleteConfirm()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f44336" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 圈舍新增/编辑 -->
+  <div id="view-pigsty-edit" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div class="page-nav" style="flex-shrink:0">
+      <div class="nav-back" onclick="showView('pigsty-list')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></div>
+      <div class="nav-title">编辑圈舍</div>
+      <div class="nav-right"></div>
+    </div>
+    <div class="scroll-area" style="padding:16px">
+      <div style="background:white;border-radius:14px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06)">
+        <div class="form-group">
+          <label class="form-label">圈舍名称 <span class="required">*</span></label>
+          <input class="form-input" type="text" value="育肥舍A">
+          <div class="error-msg" id="err-pigsty-name">圈舍名称不能为空</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">圈舍编号（选填）</label>
+          <input class="form-input" type="text" value="YFS-A-001" placeholder="不填时系统自动生成">
+        </div>
+        <div class="form-group">
+          <label class="form-label">圈舍类型 <span class="required">*</span></label>
+          <select class="form-select">
+            <option value="1">公圈舍</option>
+            <option value="2">母圈舍</option>
+            <option value="3">保育舍</option>
+            <option value="4" selected>育肥舍</option>
+            <option value="5">产房</option>
+            <option value="6">隔离舍</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">设计容量（头）<span class="required">*</span></label>
+          <input class="form-input" type="number" value="400" min="1" max="9999">
+          <div class="error-msg" id="err-pigsty-capacity">设计容量须在1～9999之间</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">当前存栏（头）</label>
+          <input class="form-input" readonly value="320">
+          <div style="font-size:11px;color:#bbb;margin-top:3px">由业务操作自动维护，只读</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">建筑面积（平方米）</label>
+          <input class="form-input" type="number" value="800" min="0.01" max="99999.99">
+        </div>
+        <div class="form-group">
+          <label class="form-label">状态 <span class="required">*</span></label>
+          <select class="form-select">
+            <option value="0" selected>使用中</option>
+            <option value="1">空栏</option>
+            <option value="2">维修中</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">备注</label>
+          <input class="form-input" type="text" placeholder="选填">
+        </div>
+        <button style="width:100%;height:46px;background:linear-gradient(135deg,#2d9e5f,#1a6b3c);color:white;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px" onclick="savePigsty()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 功能设置 -->
+  <div id="view-settings" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div class="page-nav" style="flex-shrink:0">
+      <div class="nav-back" onclick="showView('main')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></div>
+      <div class="nav-title">功能设置</div>
+      <div class="nav-right"></div>
+    </div>
+    <div class="scroll-area" style="padding:12px">
+      <div style="font-size:12px;color:#999;padding:8px 4px 6px">消息通知</div>
+      <div style="background:white;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06)">
+        <div class="switch-item">
+          <div>
+            <div class="switch-label">系统通知</div>
+            <div class="switch-desc">系统公告、政策通知、预警等</div>
+          </div>
+          <div class="toggle on" onclick="toggleSwitch(this)"><div class="toggle-thumb"></div></div>
+        </div>
+        <div class="switch-item">
+          <div>
+            <div class="switch-label">活动提醒</div>
+            <div class="switch-desc">培训活动报名结果、活动开始前提醒</div>
+          </div>
+          <div class="toggle on" onclick="toggleSwitch(this)"><div class="toggle-thumb"></div></div>
+        </div>
+        <div class="switch-item">
+          <div>
+            <div class="switch-label">互动消息</div>
+            <div class="switch-desc">评论回复、@提醒、点赞等</div>
+          </div>
+          <div class="toggle" onclick="toggleSwitch(this)"><div class="toggle-thumb"></div></div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:#999;padding:16px 4px 6px">隐私设置</div>
+      <div style="background:white;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06)">
+        <div class="switch-item">
+          <div>
+            <div class="switch-label">手机号展示</div>
+            <div class="switch-desc">在社区/评论等场景脱敏展示</div>
+          </div>
+          <div class="toggle" onclick="toggleSwitch(this)"><div class="toggle-thumb"></div></div>
+        </div>
+        <div class="switch-item">
+          <div>
+            <div class="switch-label">昵称头像展示</div>
+            <div class="switch-desc">在评论、活动名单等场景展示</div>
+          </div>
+          <div class="toggle on" onclick="toggleSwitch(this)"><div class="toggle-thumb"></div></div>
+        </div>
+        <div class="menu-item" style="border-top:1px solid #f5f5f5" onclick="showToast('跳转隐私政策页')">
+          <div class="menu-label" style="color:#2d9e5f">《隐私政策》</div>
+          <div class="menu-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 我的收藏 -->
+  <div id="view-my-collect" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div class="page-nav" style="flex-shrink:0">
+      <div class="nav-back" onclick="showView('main')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></div>
+      <div class="nav-title">我的收藏</div>
+      <div class="nav-right"></div>
+    </div>
+    <div class="tab-bar">
+      <div class="tab-item active" onclick="switchCollectTab(this, 'collect-video')">视频收藏</div>
+      <div class="tab-item" onclick="switchCollectTab(this, 'collect-policy')">资讯收藏</div>
+    </div>
+    <div id="collect-video" class="scroll-area" style="flex:1;padding:12px">
+      <div style="background:white;border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:10px;cursor:pointer" onclick="showToast('跳转视频播放页')">
+        <div style="font-size:14px;font-weight:500;color:#1a1a1a;margin-bottom:6px">非洲猪瘟综合防控技术与生物安全体系建设</div>
+        <div style="font-size:12px;color:#999">李建国 讲师 · 28:35 · 疾病防控</div>
+        <div style="font-size:11px;color:#2d9e5f;margin-top:4px">进度：35%</div>
+      </div>
+      <div style="background:white;border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);cursor:pointer" onclick="showToast('跳转视频播放页')">
+        <div style="font-size:14px;font-weight:500;color:#1a1a1a;margin-bottom:6px">猪舍环境控制与通风管理技术</div>
+        <div style="font-size:12px;color:#999">张明 讲师 · 32:15 · 环境管理</div>
+        <div style="font-size:11px;color:#2d9e5f;margin-top:4px">进度：80% ✓ 已完成</div>
+      </div>
+    </div>
+    <div id="collect-policy" style="display:none;flex:1;overflow-y:auto;padding:12px">
+      <div style="background:white;border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:10px;cursor:pointer" onclick="showToast('跳转政策详情页')">
+        <div style="font-size:14px;font-weight:500;color:#1a1a1a;margin-bottom:6px">2026年生猪养殖补贴政策解读与申报指南</div>
+        <div style="font-size:12px;color:#999">农业农村部 · 2026-02-20</div>
+      </div>
+      <div style="background:white;border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);cursor:pointer" onclick="showToast('跳转政策详情页')">
+        <div style="font-size:14px;font-weight:500;color:#1a1a1a;margin-bottom:6px">非洲猪瘟防控技术规范（2026年版）</div>
+        <div style="font-size:12px;color:#999">农业农村部 · 2026-02-10</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 退出登录确认弹窗 -->
+  <div class="modal-overlay" id="logout-modal">
+    <div class="modal-box">
+      <div class="modal-title">确定退出登录？</div>
+      <div class="modal-desc">退出后需重新登录才能使用</div>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeModal()">取消</button>
+        <button class="btn-confirm" onclick="doLogout()">确认退出</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 删除圈舍确认弹窗 -->
+  <div class="modal-overlay" id="delete-modal">
+    <div class="modal-box">
+      <div class="modal-title">确认删除圈舍？</div>
+      <div class="modal-desc">删除后不可恢复，请确认该圈舍已无存栏</div>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeModal()">取消</button>
+        <button class="btn-confirm" onclick="showToast('圈舍已删除');closeModal()">确认删除</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function showView(name) {
+  document.querySelectorAll('[id^="view-"]').forEach(v => v.style.display = 'none');
+  const el = document.getElementById('view-' + name);
+  if (el) el.style.display = 'flex';
+}
+
+// 获取企业定位（经纬度）
+function getEnterpriseLocation() {
+  const display = document.getElementById('location-display');
+  const loading = document.getElementById('location-loading');
+  const loadingText = document.getElementById('location-loading-text');
+  const btn = document.getElementById('locate-btn');
+
+  display.style.display = 'none';
+  loading.style.display = 'block';
+  loadingText.textContent = '正在获取位置...';
+  btn.disabled = true;
+  btn.style.opacity = '0.6';
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      function(pos) {
+        const lng = pos.coords.longitude.toFixed(6);
+        const lat = pos.coords.latitude.toFixed(6);
+        document.getElementById('enterprise-lng').value = lng;
+        document.getElementById('enterprise-lat').value = lat;
+        document.getElementById('location-lng').textContent = lng;
+        document.getElementById('location-lat').textContent = lat;
+        document.getElementById('location-address-text').textContent = '已获取当前位置坐标';
+        loading.style.display = 'none';
+        display.style.display = 'block';
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        showToast('定位成功');
+      },
+      function(err) {
+        // 原型演示：定位失败时使用模拟坐标
+        const mockLng = (105.8432 + (Math.random() - 0.5) * 0.01).toFixed(6);
+        const mockLat = (30.7521 + (Math.random() - 0.5) * 0.01).toFixed(6);
+        document.getElementById('enterprise-lng').value = mockLng;
+        document.getElementById('enterprise-lat').value = mockLat;
+        document.getElementById('location-lng').textContent = mockLng;
+        document.getElementById('location-lat').textContent = mockLat;
+        document.getElementById('location-address-text').textContent = '蓬溪县蓬南镇兴旺村1组附近';
+        loading.style.display = 'none';
+        display.style.display = 'block';
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        showToast('定位成功（模拟坐标）');
+      },
+      { timeout: 8000, enableHighAccuracy: true }
+    );
+  } else {
+    // 浏览器不支持定位，使用模拟坐标演示
+    setTimeout(function() {
+      const mockLng = (105.8432 + (Math.random() - 0.5) * 0.01).toFixed(6);
+      const mockLat = (30.7521 + (Math.random() - 0.5) * 0.01).toFixed(6);
+      document.getElementById('enterprise-lng').value = mockLng;
+      document.getElementById('enterprise-lat').value = mockLat;
+      document.getElementById('location-lng').textContent = mockLng;
+      document.getElementById('location-lat').textContent = mockLat;
+      document.getElementById('location-address-text').textContent = '蓬溪县蓬南镇兴旺村1组附近';
+      loading.style.display = 'none';
+      display.style.display = 'block';
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      showToast('定位成功（模拟坐标）');
+    }, 1500);
+  }
+}
+
+// 保存企业信息并返回上一级
+function saveEnterpriseInfo() {
+  showToast('企业信息保存成功');
+  setTimeout(function() {
+    showView('main');
+  }, 1200);
+}
+
+function toggleSwitch(el) {
+  el.classList.toggle('on');
+  showToast(el.classList.contains('on') ? '已开启' : '已关闭');
+}
+
+function showLogoutConfirm() {
+  document.getElementById('logout-modal').classList.add('show');
+}
+
+function showDeleteConfirm() {
+  document.getElementById('delete-modal').classList.add('show');
+}
+
+function closeModal() {
+  document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
+}
+
+function doLogout() {
+  closeModal();
+  showToast('已退出登录，正在跳转...');
+  setTimeout(() => { window.location.href = '01-登录与认证.html'; }, 1000);
+}
+
+function savePigsty() {
+  showToast('圈舍信息保存成功');
+  setTimeout(() => showView('pigsty-list'), 800);
+}
+
+function switchCollectTab(el, tabId) {
+  el.closest('.tab-bar').querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('#collect-video,#collect-policy').forEach(t => t.style.display = 'none');
+  document.getElementById(tabId).style.display = 'flex';
+}
+
+function saveProfile() {
+  const nickname = document.getElementById('edit-nickname').value.trim();
+  const errNickname = document.getElementById('err-nickname');
+  if (!nickname) {
+    errNickname.classList.add('show');
+    return;
+  }
+  errNickname.classList.remove('show');
+  showToast('个人资料保存成功');
+  setTimeout(() => showView('main'), 800);
+}
+
+function submitQuestion() {
+  const title = document.getElementById('q-title').value.trim();
+  const content = document.getElementById('q-content').value.trim();
+  const errTitle = document.getElementById('err-q-title');
+  const errContent = document.getElementById('err-q-content');
+  let valid = true;
+  if (title.length < 5) { errTitle.classList.add('show'); valid = false; } else { errTitle.classList.remove('show'); }
+  if (content.length < 10) { errContent.classList.add('show'); valid = false; } else { errContent.classList.remove('show'); }
+  if (!valid) return;
+  showToast('问题提交成功，等待专家解答');
+  setTimeout(() => showView('my-questions'), 1000);
+}
+</script>
+</body>
+</html>

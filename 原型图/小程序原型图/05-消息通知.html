@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>功能六：消息通知 - 蓬溪县生猪数字化管理平台</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
+  .phone-frame { width: 390px; height: 844px; background: #f5f5f5; border-radius: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); overflow: hidden; position: relative; display: flex; flex-direction: column; }
+  .demo-bar { background: #fff9c4; padding: 5px 16px; font-size: 11px; color: #7a6200; text-align: center; flex-shrink: 0; }
+  .scroll-area { flex: 1; overflow-y: auto; }
+  .scroll-area::-webkit-scrollbar { display: none; }
+
+  .page-nav { display: flex; align-items: center; padding: 12px 16px; background: white; border-bottom: 1px solid #f0f0f0; flex-shrink: 0; }
+  .nav-back { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 50%; }
+  .nav-back:hover { background: #f5f5f5; }
+  .nav-title { flex: 1; text-align: center; font-size: 16px; font-weight: 600; color: #1a1a1a; }
+  .nav-right { font-size: 13px; color: #2d9e5f; cursor: pointer; white-space: nowrap; }
+  .nav-right:hover { opacity: 0.8; }
+
+  /* Tab */
+  .tab-bar { display: flex; background: white; border-bottom: 1px solid #f0f0f0; flex-shrink: 0; }
+  .tab-item { flex: 1; padding: 11px 0; text-align: center; font-size: 14px; color: #666; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
+  .tab-item.active { color: #2d9e5f; border-bottom-color: #2d9e5f; font-weight: 600; }
+
+  /* 消息卡片 */
+  .msg-card { display: flex; gap: 12px; padding: 14px 16px; background: white; border-bottom: 1px solid #f5f5f5; cursor: pointer; transition: background 0.15s; }
+  .msg-card:hover { background: #f9f9f9; }
+  .msg-card.unread { background: #f0f8ff; }
+  .msg-card.unread:hover { background: #e8f4fd; }
+  .msg-avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative; }
+  .msg-avatar-system { background: linear-gradient(135deg, #1a6b3c, #2d9e5f); }
+  .msg-avatar-user { background: linear-gradient(135deg, #1565c0, #42a5f5); }
+  .msg-avatar-activity { background: linear-gradient(135deg, #e65100, #ff9800); }
+  .msg-avatar-interact { background: linear-gradient(135deg, #6a1b9a, #ab47bc); }
+  .unread-dot { position: absolute; top: 0; right: 0; width: 10px; height: 10px; background: #f44336; border-radius: 50%; border: 2px solid white; }
+  .msg-body { flex: 1; min-width: 0; }
+  .msg-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .msg-sender { font-size: 14px; font-weight: 600; color: #1a1a1a; }
+  .msg-card.unread .msg-sender { font-weight: 700; }
+  .msg-time { font-size: 11px; color: #bbb; flex-shrink: 0; }
+  .msg-title { font-size: 13px; color: #333; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .msg-card.unread .msg-title { font-weight: 600; color: #1a1a1a; }
+  .msg-preview { font-size: 12px; color: #999; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.5; }
+
+  /* 消息详情 */
+  .msg-detail-header { background: white; padding: 16px; border-bottom: 1px solid #f0f0f0; }
+  .msg-detail-title { font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px; line-height: 1.5; }
+  .msg-detail-meta { font-size: 12px; color: #999; }
+  .msg-detail-content { padding: 16px; font-size: 14px; color: #333; line-height: 1.8; background: white; }
+
+  /* 空状态 */
+  .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; color: #999; }
+  .empty-icon { width: 64px; height: 64px; background: #f0f0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+  .empty-text { font-size: 14px; }
+  .empty-sub { font-size: 12px; margin-top: 4px; }
+
+  /* 已读全部提示 */
+  .all-read-tip { background: #e8f5e9; padding: 8px 16px; font-size: 12px; color: #2d9e5f; text-align: center; display: none; }
+  .all-read-tip.show { display: block; }
+
+  .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.75); color: white; padding: 10px 20px; border-radius: 20px; font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; white-space: nowrap; }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="demo-bar">📱 原型演示 - 功能六：消息通知 | <a href="index.html" style="color:#7a6200">返回导航</a></div>
+
+  <!-- 主消息列表视图 -->
+  <div id="view-main" style="display:flex;flex-direction:column;flex:1;overflow:hidden;padding-bottom:60px">
+    <div class="page-nav">
+      <div class="nav-back" onclick="window.location.href='02-首页.html'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <div class="nav-title">消息中心</div>
+      <div class="nav-right" onclick="markAllRead()">全部已读</div>
+    </div>
+    <div class="tab-bar">
+      <div class="tab-item active" onclick="switchTab(this, 'tab-all')">全部</div>
+      <div class="tab-item" onclick="switchTab(this, 'tab-interact')">互动消息</div>
+      <div class="tab-item" onclick="switchTab(this, 'tab-system')">系统通知</div>
+    </div>
+    <div class="all-read-tip" id="all-read-tip">✓ 已全部标记为已读</div>
+
+    <!-- 全部消息 -->
+    <div id="tab-all" class="scroll-area" style="flex:1">
+      <div class="msg-card unread" id="msg-1" onclick="openMsg(1)">
+        <div class="msg-avatar msg-avatar-system">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+          <div class="unread-dot" id="dot-1"></div>
+        </div>
+        <div class="msg-body">
+          <div class="msg-header">
+            <div class="msg-sender">审核通知</div>
+            <div class="msg-time" id="time-1">10:35</div>
+          </div>
+          <div class="msg-title" id="title-1">您的出栏信息记录已通过乡镇畜牧兽医站审核</div>
+          <div class="msg-preview">您的出栏信息记录已通过乡镇畜牧兽医站审核，等待农业局审核入库，请耐心等待...</div>
+        </div>
+      </div>
+      <div class="msg-card unread" id="msg-2" onclick="openMsg(2)">
+        <div class="msg-avatar msg-avatar-interact">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          <div class="unread-dot" id="dot-2"></div>
+        </div>
+        <div class="msg-body">
+          <div class="msg-header">
+            <div class="msg-sender">有人回复了你</div>
+            <div class="msg-time" id="time-2">09:20</div>
+          </div>
+          <div class="msg-title" id="title-2">李建国（讲师）回复了你</div>
+          <div class="msg-preview">谢谢支持！如有实际操作问题欢迎继续提问，我会尽快回复...</div>
+        </div>
+      </div>
+      <div class="msg-card unread" id="msg-3" onclick="openMsg(3)">
+        <div class="msg-avatar msg-avatar-activity">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <div class="unread-dot" id="dot-3"></div>
+        </div>
+        <div class="msg-body">
+          <div class="msg-header">
+            <div class="msg-sender">报名审核通过</div>
+            <div class="msg-time" id="time-3">昨天 16:30</div>
+          </div>
+          <div class="msg-title" id="title-3">您报名的培训活动已审核通过</div>
+          <div class="msg-preview">您报名的「2026年春季生猪疾病防控技术培训班」已审核通过，请准时参加...</div>
+        </div>
+      </div>
+      <div class="msg-card" id="msg-4" onclick="openMsg(4)">
+        <div class="msg-avatar msg-avatar-system">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        </div>
+        <div class="msg-body">
+          <div class="msg-header">
+            <div class="msg-sender">入库通知</div>
+            <div class="msg-time" id="time-4">昨天 14:00</div>
+          </div>
+          <div class="msg-title" id="title-4">您的免疫信息记录已成功入库</div>
+          <div class="msg-preview">您的免疫信息记录已成功入库，数据已正式录入系统...</div>
+        </div>
+      </div>
+      <div class="msg-card" id="msg-5" onclick="openMsg(5)">
+        <div class="msg-avatar msg-avatar-activity">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <div class="msg-body">
+          <div class="msg-header">
+            <div class="msg-sender">活动提醒</div>
+            <div class="msg-time" id="time-5">02-26</div>
+          </div>
+          <div class="msg-title" id="title-5">活动将于明天09:00开始</div>
+          <div class="msg-preview">「2026年春季生猪疾病防控技术培训班」将于明天09:00开始，请准时参加...</div>
+        </div>
+      </div>
+      <div class="msg-card" id="msg-6" onclick="openMsg(6)">
+        <div class="msg-avatar msg-avatar-system">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div class="msg-body">
+          <div class="msg-header">
+            <div class="msg-sender">审核通知</div>
+            <div class="msg-time" id="time-6">02-25</div>
+          </div>
+          <div class="msg-title" id="title-6">您的出栏信息记录被乡镇退回</div>
+          <div class="msg-preview">您的出栏信息记录被乡镇退回，原因：检疫证照片不清晰，请重新上传...</div>
+        </div>
+      </div>
+      <div class="msg-card" id="msg-7" onclick="openMsg(7)">
+        <div class="msg-avatar msg-avatar-interact">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        </div>
+        <div class="msg-body">
+          <div class="msg-header">
+            <div class="msg-sender">有人@了你</div>
+            <div class="msg-time" id="time-7">02-24</div>
+          </div>
+          <div class="msg-title" id="title-7">王建国在评论中@了你</div>
+          <div class="msg-preview">王建国在评论中@了你：@张大农 请问您的猪舍通风系统是什么品牌的？...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 互动消息 -->
+    <div id="tab-interact" style="display:none;flex:1;overflow-y:auto">
+      <div class="msg-card unread" onclick="openMsg(2)">
+        <div class="msg-avatar msg-avatar-interact">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          <div class="unread-dot"></div>
+        </div>
+        <div class="msg-body">
+          <div class="msg-header">
+            <div class="msg-sender">有人回复了你</div>
+            <div class="msg-time">09:20</div>
+          </div>
+          <div class="msg-title">李建国（讲师）回复了你</div>
+          <div class="msg-preview">谢谢支持！如有实际操作问题欢迎继续提问...</div>
+        </div>
+      </div>
+      <div class="msg-card" onclick="openMsg(7)">
+        <div class="msg-avatar msg-avatar-interact">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        </div>
+        <div class="msg-body">
+          <div class="msg-header">
+            <div class="msg-sender">有人@了你</div>
+            <div class="msg-time">02-24</div>
+          </div>
+          <div class="msg-title">王建国在评论中@了你</div>
+          <div class="msg-preview">王建国在评论中@了你：@张大农 请问您的猪舍通风系统是什么品牌的？</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 系统通知 -->
+    <div id="tab-system" style="display:none;flex:1;overflow-y:auto">
+      <div class="msg-card unread" onclick="openMsg(1)">
+        <div class="msg-avatar msg-avatar-system">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+          <div class="unread-dot"></div>
+        </div>
+        <div class="msg-body">
+          <div class="msg-header">
+            <div class="msg-sender">审核通知</div>
+            <div class="msg-time">10:35</div>
+          </div>
+          <div class="msg-title">您的出栏信息记录已通过乡镇畜牧兽医站审核</div>
+          <div class="msg-preview">您的出栏信息记录已通过乡镇畜牧兽医站审核，等待农业局审核入库...</div>
+        </div>
+      </div>
+      <div class="msg-card unread" onclick="openMsg(3)">
+        <div class="msg-avatar msg-avatar-activity">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <div class="unread-dot"></div>
+        </div>
+        <div class="msg-body">
+          <div class="msg-header">
+            <div class="msg-sender">报名审核通过</div>
+            <div class="msg-time">昨天 16:30</div>
+          </div>
+          <div class="msg-title">您报名的培训活动已审核通过</div>
+          <div class="msg-preview">您报名的「2026年春季生猪疾病防控技术培训班」已审核通过...</div>
+        </div>
+      </div>
+      <div class="msg-card" onclick="openMsg(4)">
+        <div class="msg-avatar msg-avatar-system">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        </div>
+        <div class="msg-body">
+          <div class="msg-header">
+            <div class="msg-sender">入库通知</div>
+            <div class="msg-time">昨天 14:00</div>
+          </div>
+          <div class="msg-title">您的免疫信息记录已成功入库</div>
+          <div class="msg-preview">您的免疫信息记录已成功入库，数据已正式录入系统...</div>
+        </div>
+      </div>
+      <div class="msg-card" onclick="openMsg(6)">
+        <div class="msg-avatar msg-avatar-system">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div class="msg-body">
+          <div class="msg-header">
+            <div class="msg-sender">审核通知</div>
+            <div class="msg-time">02-25</div>
+          </div>
+          <div class="msg-title">您的出栏信息记录被乡镇退回</div>
+          <div class="msg-preview">您的出栏信息记录被乡镇退回，原因：检疫证照片不清晰...</div>
+        </div>
+      </div>
+    </div>
+    <!-- 底部导航 -->
+    <div style="position:absolute;bottom:0;left:0;right:0;height:60px;background:white;border-top:1px solid #f0f0f0;display:flex;align-items:center;box-shadow:0 -2px 10px rgba(0,0,0,0.06)">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:6px 0" onclick="window.location.href='02-首页.html'">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span style="font-size:10px;color:#999">首页</span>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:6px 0" onclick="window.location.href='03-养殖信息上报.html'">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        <span style="font-size:10px;color:#999">养殖管理</span>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:6px 0" onclick="window.location.href='04-知识课堂.html'">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+        <span style="font-size:10px;color:#999">知识课堂</span>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:6px 0;position:relative">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2d9e5f" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span style="font-size:10px;color:#2d9e5f">消息</span>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:6px 0" onclick="window.location.href='06-个人中心.html'">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span style="font-size:10px;color:#999">我的</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 消息详情视图 -->
+  <div id="view-detail" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div class="page-nav" style="flex-shrink:0">
+      <div class="nav-back" onclick="showView('main')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <div class="nav-title">消息详情</div>
+      <div class="nav-right"></div>
+    </div>
+    <div class="scroll-area">
+      <div class="msg-detail-header">
+        <div class="msg-detail-title" id="detail-title">消息标题</div>
+        <div class="msg-detail-meta" id="detail-meta">发送时间</div>
+      </div>
+      <div class="msg-detail-content" id="detail-content">消息内容</div>
+      <div style="padding:16px" id="detail-action-area"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const messages = {
+  1: {
+    sender: '审核通知',
+    title: '您的出栏信息记录已通过乡镇畜牧兽医站审核',
+    time: '2026-02-27 10:35',
+    content: '您的出栏信息记录已通过乡镇畜牧兽医站审核，等待农业局审核入库。\n\n上报类型：出栏信息\n猪舍：育肥舍A\n出栏数量：50头\n乡镇畜牧兽医站审核员：李审核\n审核时间：2026-02-27 10:35\n\n请耐心等待农业局管理员确认入库，入库后您将收到通知。',
+    related: '跳转到出栏信息上报记录详情',
+    relatedPage: '03-养殖信息上报.html'
+  },
+  2: {
+    sender: '有人回复了你',
+    title: '李建国（讲师）回复了你',
+    time: '2026-02-27 09:20',
+    content: '李建国（讲师）回复了你的评论：\n\n你的评论：「讲得非常详细，特别是生物安全体系那一块，对我们实际操作很有帮助！」\n\n讲师回复：谢谢支持！如有实际操作问题欢迎继续提问，我会尽快回复。也欢迎大家在评论区分享自己的实践经验。',
+    related: '跳转到评论所在课程详情',
+    relatedPage: '04-知识课堂.html'
+  },
+  3: {
+    sender: '报名审核通过',
+    title: '您报名的培训活动已审核通过',
+    time: '2026-02-26 16:30',
+    content: '您报名的培训活动已审核通过，请准时参加！\n\n活动名称：2026年春季生猪疾病防控技术培训班\n活动时间：2026-03-15 09:00 - 17:00\n活动地点：蓬溪县农业技术推广中心\n联系人：王老师\n联系电话：0825-XXXXXXX\n\n请提前准备好相关资料，如需取消报名请在活动开始前24小时操作。',
+    related: '跳转到培训活动详情',
+    relatedPage: '04-知识课堂.html'
+  },
+  4: {
+    sender: '入库通知',
+    title: '您的免疫信息记录已成功入库',
+    time: '2026-02-26 14:00',
+    content: '您的免疫信息记录已成功入库，数据已正式录入系统。\n\n上报类型：免疫信息\n猪舍：母猪舍\n免疫数量：45头\n疫苗：口蹄疫疫苗\n农业局审核入库操作人：张管理员\n入库时间：2026-02-26 14:00\n\n感谢您及时上报养殖信息，请继续保持！',
+    related: '跳转到免疫信息上报记录详情',
+    relatedPage: '03-养殖信息上报.html'
+  },
+  5: {
+    sender: '活动提醒',
+    title: '活动将于明天09:00开始',
+    time: '2026-02-26 09:00',
+    content: '「2026年春季生猪疾病防控技术培训班」将于明天09:00开始，请准时参加！\n\n活动时间：2026-03-15 09:00\n活动地点：蓬溪县农业技术推广中心\n\n温馨提示：\n• 请提前15分钟到达签到\n• 携带有效证件\n• 如有疑问请联系主办方',
+    related: '跳转到培训活动详情',
+    relatedPage: '04-知识课堂.html'
+  },
+  6: {
+    sender: '审核通知',
+    title: '您的出栏信息记录被乡镇退回',
+    time: '2026-02-25 11:20',
+    content: '您的出栏信息记录被乡镇退回，请根据退回原因修改后重新提交。\n\n上报类型：出栏信息\n猪舍：育肥舍A\n出栏数量：80头\n\n退回原因：检疫证照片不清晰，请重新上传清晰的检疫证照片，确保证件信息可以清楚辨认。\n\n乡镇畜牧兽医站审核员：李审核\n退回时间：2026-02-25 11:20',
+    related: '跳转到出栏信息上报记录详情',
+    relatedPage: '03-养殖信息上报.html'
+  },
+  7: {
+    sender: '有人@了你',
+    title: '王建国在评论中@了你',
+    time: '2026-02-24 15:45',
+    content: '王建国在评论中@了你：\n\n「@张大农 请问您的猪舍通风系统是什么品牌的？我们猪舍夏天通风效果不好，想参考一下您的方案。」\n\n该评论来自课程：《猪舍环境控制与通风管理技术》',
+    related: '跳转到评论所在课程详情',
+    relatedPage: '04-知识课堂.html'
+  }
+};
+
+let unreadCount = 3;
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function showView(name) {
+  document.querySelectorAll('[id^="view-"]').forEach(v => v.style.display = 'none');
+  const el = document.getElementById('view-' + name);
+  if (el) el.style.display = 'flex';
+}
+
+function switchTab(el, tabId) {
+  el.closest('.tab-bar').querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('#tab-all,#tab-interact,#tab-system').forEach(t => t.style.display = 'none');
+  document.getElementById(tabId).style.display = 'flex';
+}
+
+function openMsg(id) {
+  const msg = messages[id];
+  if (!msg) return;
+
+  // 标记已读
+  const card = document.getElementById('msg-' + id);
+  if (card && card.classList.contains('unread')) {
+    card.classList.remove('unread');
+    const dot = document.getElementById('dot-' + id);
+    if (dot) dot.remove();
+    const titleEl = document.getElementById('title-' + id);
+    if (titleEl) titleEl.style.fontWeight = 'normal';
+    unreadCount = Math.max(0, unreadCount - 1);
+  }
+
+  // 显示详情
+  document.getElementById('detail-title').textContent = msg.title;
+  document.getElementById('detail-meta').textContent = msg.sender + ' · ' + msg.time;
+  document.getElementById('detail-content').innerHTML = msg.content.replace(/\n/g, '<br>');
+
+  const actionArea = document.getElementById('detail-action-area');
+  if (msg.related) {
+    actionArea.innerHTML = `<button onclick="window.location.href='${msg.relatedPage}'" style="width:100%;height:44px;background:linear-gradient(135deg,#2d9e5f,#1a6b3c);color:white;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer">${msg.related} →</button>`;
+  } else {
+    actionArea.innerHTML = '';
+  }
+
+  showView('detail');
+}
+
+function markAllRead() {
+  document.querySelectorAll('.msg-card.unread').forEach(card => {
+    card.classList.remove('unread');
+  });
+  document.querySelectorAll('.unread-dot').forEach(dot => dot.remove());
+  unreadCount = 0;
+
+  const tip = document.getElementById('all-read-tip');
+  tip.classList.add('show');
+  setTimeout(() => tip.classList.remove('show'), 2000);
+  showToast('已全部标记为已读');
+}
+</script>
+</body>
+</html>

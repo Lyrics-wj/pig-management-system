@@ -1,0 +1,1275 @@
+<!--
+  功能名称：生猪知识讲堂后台管理-课程管理
+  对应PRD：doc_prd/WEB/生猪知识讲堂/后台管理/WEB-生猪知识讲堂后台管理-课程管理.prd.md
+  所属端口：生猪知识讲堂后台管理系统（监管端）
+  所属模块：课程分类管理、课程管理、课程评价审核
+  制作日期：2026-03-06
+  最后更新：2026-03-06
+  角色说明：县级管理员(county_admin)、县级业务人员(county_staff)、乡镇畜牧兽医站(town_vet_station)
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>课程管理 - 生猪知识讲堂后台</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* SHARED STYLES */
+  [x-cloak] { display: none !important; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: #f0f4f8;
+    color: #1e293b;
+  }
+
+  /* ===== SIDEBAR ===== */
+  .sidebar {
+    width: 220px;
+    background: linear-gradient(180deg, #0f4c2a 0%, #1a6e3a 60%, #166534 100%);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+  .sidebar-brand {
+    padding: 20px 16px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .sidebar-brand-icon {
+    width: 36px; height: 36px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,0.25);
+  }
+  .sidebar-group-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    padding: 12px 16px 4px;
+  }
+  .sidebar-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 16px;
+    font-size: 13.5px;
+    color: rgba(255,255,255,0.7);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border-radius: 0;
+    margin: 1px 8px;
+    border-radius: 8px;
+  }
+  .sidebar-item:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+  }
+  .sidebar-item.active {
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    font-weight: 600;
+    box-shadow: inset 3px 0 0 #86efac;
+  }
+  .sidebar-item .si-icon {
+    width: 16px; text-align: center; opacity: 0.85;
+  }
+  .sidebar-user {
+    padding: 12px 16px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .sidebar-user-avatar {
+    width: 30px; height: 30px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; color: #fff;
+  }
+
+  /* ===== TOP HEADER ===== */
+  .topbar {
+    height: 56px;
+    background: #fff;
+    border-bottom: 1px solid #e8edf2;
+    display: flex; align-items: center; padding: 0 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+
+  /* ===== STAT CARDS ===== */
+  .stat-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px 20px;
+    border: 1px solid #e8edf2;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .stat-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+
+  /* ===== BUTTONS ===== */
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13.5px; font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+    box-shadow: 0 1px 3px rgba(22,163,74,0.3);
+  }
+  .btn-primary:hover { background: linear-gradient(135deg, #15803d, #166534); box-shadow: 0 4px 12px rgba(22,163,74,0.35); transform: translateY(-1px); }
+  .btn-secondary {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #fff;
+    color: #475569;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13.5px; font-weight: 500;
+    cursor: pointer;
+    border: 1px solid #cbd5e1;
+    transition: all 0.15s;
+  }
+  .btn-secondary:hover { background: #f8fafc; border-color: #94a3b8; }
+
+  /* ===== ACTION BUTTONS (in table) ===== */
+  .act-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px; font-weight: 500;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .act-edit   { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+  .act-edit:hover   { background: #dbeafe; }
+  .act-stop   { background: #fffbeb; color: #d97706; border-color: #fde68a; }
+  .act-stop:hover   { background: #fef3c7; }
+  .act-start  { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
+  .act-start:hover  { background: #dcfce7; }
+  .act-delete { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+  .act-delete:hover { background: #fee2e2; }
+  .act-publish{ background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
+  .act-publish:hover{ background: #dcfce7; }
+  .act-down   { background: #fffbeb; color: #d97706; border-color: #fde68a; }
+  .act-down:hover   { background: #fef3c7; }
+  .act-review { background: #faf5ff; color: #7c3aed; border-color: #ddd6fe; }
+  .act-review:hover { background: #ede9fe; }
+  .act-pass   { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
+  .act-pass:hover   { background: #dcfce7; }
+  .act-reject { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+  .act-reject:hover { background: #fee2e2; }
+
+  /* ===== BADGES ===== */
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 8px; border-radius: 20px;
+    font-size: 11.5px; font-weight: 500;
+  }
+  .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; display: inline-block; }
+  .badge-success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+  .badge-success::before { background: #22c55e; }
+  .badge-warning { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+  .badge-warning::before { background: #f59e0b; }
+  .badge-danger  { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+  .badge-danger::before  { background: #ef4444; }
+  .badge-gray    { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; }
+  .badge-gray::before    { background: #94a3b8; }
+  .badge-blue    { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+  .badge-blue::before    { background: #3b82f6; }
+  .badge-purple  { background: #faf5ff; color: #7c3aed; border: 1px solid #ddd6fe; }
+  .badge-purple::before  { background: #8b5cf6; }
+
+  /* ===== FORMS ===== */
+  .form-label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 5px; }
+  .form-input {
+    width: 100%;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13.5px;
+    color: #1e293b;
+    background: #fff;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    outline: none;
+  }
+  .form-input:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.12); }
+  .form-input.error { border-color: #ef4444; }
+  .form-select {
+    width: 100%;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13.5px;
+    background: #fff;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .form-select:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.12); }
+  .form-error { font-size: 11.5px; color: #ef4444; margin-top: 4px; }
+
+  /* ===== TABLE ===== */
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table thead tr { background: #f8fafc; border-bottom: 2px solid #e8edf2; }
+  .table-th {
+    padding: 11px 14px;
+    text-align: left;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .table-td {
+    padding: 12px 14px;
+    font-size: 13.5px;
+    color: #374151;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+  }
+  .data-table tbody tr { transition: background 0.12s; }
+  .data-table tbody tr:hover { background: #f8fafc; }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+
+  /* ===== FILTER BAR ===== */
+  .filter-bar {
+    background: #fff;
+    border-radius: 12px;
+    padding: 14px 18px;
+    border: 1px solid #e8edf2;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+    margin-bottom: 16px;
+  }
+  .filter-select {
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 13px;
+    outline: none;
+    background: #fff;
+    color: #374151;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .filter-select:focus { border-color: #16a34a; }
+  .filter-input {
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 13px;
+    outline: none;
+    color: #374151;
+    transition: border-color 0.15s;
+  }
+  .filter-input:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.1); }
+
+  /* ===== CARD ===== */
+  .content-card {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e8edf2;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    overflow: hidden;
+  }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(15,23,42,0.45);
+    backdrop-filter: blur(3px);
+    z-index: 50;
+    display: flex; align-items: center; justify-content: center; padding: 16px;
+  }
+  .modal-box {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    width: 100%; max-width: 480px;
+    animation: modal-in 0.2s ease;
+  }
+  .modal-box-lg {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    width: 100%; max-width: 680px;
+    max-height: 90vh; overflow-y: auto;
+    animation: modal-in 0.2s ease;
+  }
+  @keyframes modal-in {
+    from { opacity: 0; transform: translateY(-12px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 22px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .modal-header h3 { font-size: 16px; font-weight: 700; color: #0f172a; }
+  .modal-close {
+    width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 8px; cursor: pointer;
+    color: #94a3b8; transition: all 0.15s;
+  }
+  .modal-close:hover { background: #f1f5f9; color: #475569; }
+  .modal-body { padding: 20px 22px; }
+  .modal-footer {
+    display: flex; justify-content: flex-end; gap: 10px;
+    padding: 14px 22px;
+    border-top: 1px solid #f1f5f9;
+    background: #f8fafc;
+    border-radius: 0 0 16px 16px;
+  }
+
+  /* ===== PAGINATION ===== */
+  .page-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    background: #fff;
+    transition: all 0.15s;
+  }
+  .page-btn:hover:not(:disabled) { background: #f0fdf4; border-color: #86efac; color: #16a34a; }
+  .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ===== MISC ===== */
+  .star-filled { color: #f59e0b; }
+  .star-empty  { color: #e2e8f0; }
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .section-title { font-size: 18px; font-weight: 700; color: #0f172a; }
+  .section-sub   { font-size: 13px; color: #64748b; margin-top: 2px; }
+
+  /* Tab filter pills */
+  .tab-pill {
+    padding: 5px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 500;
+    cursor: pointer; border: 1.5px solid #e2e8f0; color: #64748b;
+    background: #fff; transition: all 0.15s;
+  }
+  .tab-pill:hover { border-color: #86efac; color: #16a34a; }
+  .tab-pill.active-all    { background: #1e293b; color: #fff; border-color: #1e293b; }
+  .tab-pill.active-warn   { background: #f59e0b; color: #fff; border-color: #f59e0b; }
+  .tab-pill.active-ok     { background: #16a34a; color: #fff; border-color: #16a34a; }
+  .tab-pill.active-danger { background: #ef4444; color: #fff; border-color: #ef4444; }
+</style>
+</head>
+<body class="bg-gray-50 min-h-screen" x-data="app()" x-cloak>
+
+<script>
+const MOCK_DATA = {
+  currentUser: { user_id: 1, username: 'admin', nick_name: '李管理员', role: 'county_admin', roleName: '县级管理员' },
+
+  // 课程分类
+  courseCategories: [
+    { category_id: 1, category_name: '养殖技术', sort_order: 1, status: '0', create_time: '2026-01-10 09:00:00', create_by: 'admin' },
+    { category_id: 2, category_name: '疫病防控', sort_order: 2, status: '0', create_time: '2026-01-10 09:05:00', create_by: 'admin' },
+    { category_id: 3, category_name: '饲料营养', sort_order: 3, status: '0', create_time: '2026-01-10 09:10:00', create_by: 'admin' },
+    { category_id: 4, category_name: '政策法规', sort_order: 4, status: '0', create_time: '2026-01-10 09:15:00', create_by: 'admin' },
+    { category_id: 5, category_name: '环保安全', sort_order: 5, status: '1', create_time: '2026-01-10 09:20:00', create_by: 'admin' },
+  ],
+
+  // 课程列表
+  courses: [
+    { course_id: 1, course_name: '生猪标准化养殖技术全程管理', cover_image: '', category_id: 1, category_name: '养殖技术', teacher_name: '张教授', teacher_intro: '四川农业大学畜牧学院教授，从事生猪养殖研究20年', teacher_avatar: '', course_intro: '本课程系统讲解生猪标准化养殖从进猪到出栏的全流程管理技术...', chapter_count: 8, learn_count: 1245, score: 4.8, review_count: 89, sort_order: 1, publish_status: '1', publish_time: '2026-01-15 10:00:00', total_duration: 21600, create_time: '2026-01-12 14:00:00', create_by: 'admin', chapters: [
+      { chapter_id: 1, chapter_title: '第一章：生猪品种选择与引种', chapter_sort: 1, video_url: 'mock://video1.mp4', video_duration: 2700 },
+      { chapter_id: 2, chapter_title: '第二章：养殖场规划与建设', chapter_sort: 2, video_url: 'mock://video2.mp4', video_duration: 2520 },
+      { chapter_id: 3, chapter_title: '第三章：饲料配制与饲喂管理', chapter_sort: 3, video_url: 'mock://video3.mp4', video_duration: 2880 },
+    ] },
+    { course_id: 2, course_name: '非洲猪瘟综合防控技术', cover_image: '', category_id: 2, category_name: '疫病防控', teacher_name: '王兽医', teacher_intro: '蓬溪县动物疫病预防控制中心主任兽医师', teacher_avatar: '', course_intro: '详细讲解非洲猪瘟的病毒特征、传播途径、临床症状及综合防控措施...', chapter_count: 6, learn_count: 2089, score: 4.9, review_count: 156, sort_order: 2, publish_status: '1', publish_time: '2026-01-20 10:00:00', total_duration: 14400, create_time: '2026-01-18 09:00:00', create_by: 'admin', chapters: [] },
+    { course_id: 3, course_name: '生猪饲料配方与营养管理', cover_image: '', category_id: 3, category_name: '饲料营养', teacher_name: '陈博士', teacher_intro: '动物营养学博士，国家级畜禽营养专家', teacher_avatar: '', course_intro: '科学讲解生猪各阶段营养需求和饲料配方设计原则...', chapter_count: 5, learn_count: 876, score: 4.6, review_count: 62, sort_order: 3, publish_status: '0', publish_time: null, total_duration: 10800, create_time: '2026-02-01 10:00:00', create_by: 'staff01', chapters: [] },
+    { course_id: 4, course_name: '生猪环保养殖与粪污处理', cover_image: '', category_id: 1, category_name: '养殖技术', teacher_name: '刘工程师', teacher_intro: '环保工程师，专注畜禽污染治理', teacher_avatar: '', course_intro: '讲解生猪养殖的环境管理和粪污无害化处理技术...', chapter_count: 4, learn_count: 543, score: 4.5, review_count: 38, sort_order: 4, publish_status: '2', publish_time: '2026-02-10 10:00:00', total_duration: 7200, create_time: '2026-02-08 14:00:00', create_by: 'admin', chapters: [] },
+    { course_id: 5, course_name: '养猪政策法规解读', cover_image: '', category_id: 4, category_name: '政策法规', teacher_name: '赵主任', teacher_intro: '蓬溪县农业农村局畜牧股股长', teacher_avatar: '', course_intro: '解读国家和省市关于生猪养殖的最新政策法规...', chapter_count: 3, learn_count: 320, score: 4.3, review_count: 25, sort_order: 5, publish_status: '1', publish_time: '2026-02-20 10:00:00', total_duration: 5400, create_time: '2026-02-18 09:00:00', create_by: 'staff01', chapters: [] },
+  ],
+
+  // 课程评价
+  reviews: [
+    { review_id: 1, course_id: 1, course_name: '生猪标准化养殖技术全程管理', user_nickname: '张大山', user_avatar: '', score: 5, review_content: '课程内容非常实用，讲师讲解清晰，对我的养殖场管理很有帮助！', audit_status: '2', create_time: '2026-02-15 14:30:00' },
+    { review_id: 2, course_id: 1, course_name: '生猪标准化养殖技术全程管理', user_nickname: '李二牛', user_avatar: '', score: 4, review_content: '整体不错，希望后续能增加更多实操案例视频。', audit_status: '1', create_time: '2026-02-16 09:15:00' },
+    { review_id: 3, course_id: 2, course_name: '非洲猪瘟综合防控技术', user_nickname: '王小明', user_avatar: '', score: 5, review_content: '非洲猪瘟这个课太重要了，每个养猪人都应该看！', audit_status: '2', create_time: '2026-02-17 16:00:00' },
+    { review_id: 4, course_id: 2, course_name: '非洲猪瘟综合防控技术', user_nickname: '赵五', user_avatar: '', score: 1, review_content: '这门课太差了，根本没用，白白浪费时间！', audit_status: '1', create_time: '2026-02-18 10:30:00' },
+    { review_id: 5, course_id: 3, course_name: '生猪饲料配方与营养管理', user_nickname: '孙六', user_avatar: '', score: 4, review_content: '配方讲解比较详细，但感觉部分内容偏理论，希望多些实践案例。', audit_status: '1', create_time: '2026-02-20 11:00:00' },
+  ],
+};
+
+function app() {
+  return {
+    // 导航状态
+    activeMenu: 'category',
+
+    // ===== 课程分类管理 =====
+    categories: JSON.parse(JSON.stringify(MOCK_DATA.courseCategories)),
+    categoryModal: false,
+    categoryModalMode: 'add', // 'add' | 'edit'
+    editingCategory: null,
+    categoryForm: { category_name: '', sort_order: 0 },
+    categoryFormErrors: {},
+    confirmModal: false,
+    confirmTitle: '',
+    confirmMsg: '',
+    confirmAction: null,
+
+    openCategoryModal(mode, item = null) {
+      this.categoryModalMode = mode;
+      this.categoryFormErrors = {};
+      if (mode === 'edit' && item) {
+        this.editingCategory = item;
+        this.categoryForm = { category_name: item.category_name, sort_order: item.sort_order };
+      } else {
+        this.editingCategory = null;
+        this.categoryForm = { category_name: '', sort_order: 0 };
+      }
+      this.categoryModal = true;
+    },
+
+    validateCategoryForm() {
+      this.categoryFormErrors = {};
+      if (!this.categoryForm.category_name.trim()) this.categoryFormErrors.category_name = '请输入分类名称';
+      else if (this.categoryForm.category_name.length > 50) this.categoryFormErrors.category_name = '分类名称不能超过50个字符';
+      const so = parseInt(this.categoryForm.sort_order);
+      if (isNaN(so) || so < 0 || so > 999) this.categoryFormErrors.sort_order = '排序序号必须为0~999的整数';
+      return Object.keys(this.categoryFormErrors).length === 0;
+    },
+
+    submitCategoryForm() {
+      if (!this.validateCategoryForm()) return;
+      if (this.categoryModalMode === 'add') {
+        const newCat = {
+          category_id: Date.now(),
+          category_name: this.categoryForm.category_name,
+          sort_order: parseInt(this.categoryForm.sort_order),
+          status: '0',
+          create_time: new Date().toLocaleString('zh-CN'),
+          create_by: MOCK_DATA.currentUser.username,
+        };
+        this.categories.push(newCat);
+        this.categories.sort((a, b) => a.sort_order - b.sort_order);
+        this.showToast('新增成功');
+      } else {
+        const idx = this.categories.findIndex(c => c.category_id === this.editingCategory.category_id);
+        if (idx > -1) {
+          this.categories[idx].category_name = this.categoryForm.category_name;
+          this.categories[idx].sort_order = parseInt(this.categoryForm.sort_order);
+          this.categories.sort((a, b) => a.sort_order - b.sort_order);
+        }
+        this.showToast('修改成功');
+      }
+      this.categoryModal = false;
+    },
+
+    showConfirm(title, msg, action) {
+      this.confirmTitle = title;
+      this.confirmMsg = msg;
+      this.confirmAction = action;
+      this.confirmModal = true;
+    },
+
+    doConfirm() {
+      if (this.confirmAction) this.confirmAction();
+      this.confirmModal = false;
+    },
+
+    deleteCategory(item) {
+      const hasCourse = MOCK_DATA.courses.some(c => c.category_id === item.category_id);
+      if (hasCourse) { this.showToast('该分类下存在课程，无法删除', 'error'); return; }
+      this.showConfirm('删除分类', `确定删除「${item.category_name}」？有课程关联的分类无法删除。`, () => {
+        this.categories = this.categories.filter(c => c.category_id !== item.category_id);
+        this.showToast('删除成功');
+      });
+    },
+
+    toggleCategoryStatus(item) {
+      const isNormal = item.status === '0';
+      const msg = isNormal ? `确定停用「${item.category_name}」？停用后网站端将不再展示此分类。` : `确定启用「${item.category_name}」？`;
+      this.showConfirm(isNormal ? '停用分类' : '启用分类', msg, () => {
+        item.status = isNormal ? '1' : '0';
+        this.showToast(isNormal ? '已停用' : '已启用');
+      });
+    },
+
+    // ===== 课程管理 =====
+    courses: JSON.parse(JSON.stringify(MOCK_DATA.courses)),
+    courseFilter: { category_id: '', publish_status: '', course_name: '' },
+    courseCurrentPage: 1,
+    coursePageSize: 10,
+    courseFormModal: false,
+    courseFormMode: 'add',
+    editingCourse: null,
+    courseForm: { course_name: '', course_intro: '', category_id: '', teacher_name: '', teacher_intro: '', sort_order: 0, chapters: [] },
+    courseFormErrors: {},
+    reviewModal: false,
+    reviewCourse: null,
+    reviewFilter: '',
+    reviewList: [],
+
+    get filteredCourses() {
+      return this.courses.filter(c => {
+        if (this.courseFilter.category_id && c.category_id != this.courseFilter.category_id) return false;
+        if (this.courseFilter.publish_status !== '' && c.publish_status !== this.courseFilter.publish_status) return false;
+        if (this.courseFilter.course_name && !c.course_name.includes(this.courseFilter.course_name)) return false;
+        return true;
+      });
+    },
+
+    get pagedCourses() {
+      const start = (this.courseCurrentPage - 1) * this.coursePageSize;
+      return this.filteredCourses.slice(start, start + this.coursePageSize);
+    },
+
+    get courseTotalPages() { return Math.ceil(this.filteredCourses.length / this.coursePageSize) || 1; },
+
+    searchCourses() { this.courseCurrentPage = 1; },
+    resetCourseFilter() { this.courseFilter = { category_id: '', publish_status: '', course_name: '' }; this.courseCurrentPage = 1; },
+
+    publishStatusLabel(s) { return { '0': '草稿', '1': '已发布', '2': '已下架' }[s] || s; },
+    publishStatusClass(s) { return { '0': 'badge-gray', '1': 'badge-success', '2': 'badge-warning' }[s] || 'badge-gray'; },
+    formatDuration(s) { const h = Math.floor(s/3600); const m = Math.floor((s%3600)/60); return h>0 ? `${h}小时${m}分` : `${m}分钟`; },
+
+    openCourseForm(mode, item = null) {
+      this.courseFormMode = mode;
+      this.courseFormErrors = {};
+      if (mode === 'edit' && item) {
+        this.editingCourse = item;
+        this.courseForm = {
+          course_name: item.course_name, course_intro: item.course_intro,
+          category_id: item.category_id, teacher_name: item.teacher_name,
+          teacher_intro: item.teacher_intro || '', sort_order: item.sort_order,
+          chapters: JSON.parse(JSON.stringify(item.chapters || [])),
+        };
+      } else {
+        this.editingCourse = null;
+        this.courseForm = { course_name: '', course_intro: '', category_id: '', teacher_name: '', teacher_intro: '', sort_order: 0, chapters: [{ chapter_title: '', chapter_sort: 1, video_url: '', video_duration: 0 }] };
+      }
+      this.courseFormModal = true;
+    },
+
+    addChapter() {
+      const nextSort = this.courseForm.chapters.length + 1;
+      this.courseForm.chapters.push({ chapter_title: '', chapter_sort: nextSort, video_url: '', video_duration: 0 });
+    },
+
+    removeChapter(idx) { this.courseForm.chapters.splice(idx, 1); },
+
+    validateCourseForm() {
+      this.courseFormErrors = {};
+      if (!this.courseForm.course_name.trim()) this.courseFormErrors.course_name = '请输入课程名称';
+      if (!this.courseForm.course_intro.trim()) this.courseFormErrors.course_intro = '请输入课程简介';
+      if (!this.courseForm.category_id) this.courseFormErrors.category_id = '请选择课程分类';
+      if (!this.courseForm.teacher_name.trim()) this.courseFormErrors.teacher_name = '请输入讲师名称';
+      if (this.courseForm.chapters.length === 0) this.courseFormErrors.chapters = '至少添加1个章节';
+      this.courseForm.chapters.forEach((ch, i) => {
+        if (!ch.chapter_title.trim()) this.courseFormErrors[`ch_title_${i}`] = '请输入章节标题';
+        if (!ch.video_url) this.courseFormErrors[`ch_video_${i}`] = '请上传章节视频（模拟）';
+      });
+      return Object.keys(this.courseFormErrors).length === 0;
+    },
+
+    submitCourseForm() {
+      if (!this.validateCourseForm()) return;
+      const totalDur = this.courseForm.chapters.reduce((s, c) => s + parseInt(c.video_duration || 0), 0);
+      const cat = this.categories.find(c => c.category_id == this.courseForm.category_id);
+      if (this.courseFormMode === 'add') {
+        this.courses.push({
+          course_id: Date.now(), ...this.courseForm, category_id: parseInt(this.courseForm.category_id),
+          category_name: cat ? cat.category_name : '', chapter_count: this.courseForm.chapters.length,
+          learn_count: 0, score: 0, review_count: 0, publish_status: '0', publish_time: null,
+          total_duration: totalDur, create_time: new Date().toLocaleString('zh-CN'), create_by: MOCK_DATA.currentUser.username,
+        });
+        this.showToast('新增成功');
+      } else {
+        const idx = this.courses.findIndex(c => c.course_id === this.editingCourse.course_id);
+        if (idx > -1) {
+          Object.assign(this.courses[idx], { ...this.courseForm, category_id: parseInt(this.courseForm.category_id), category_name: cat ? cat.category_name : '', chapter_count: this.courseForm.chapters.length, total_duration: totalDur });
+        }
+        this.showToast('修改成功');
+      }
+      this.courseFormModal = false;
+    },
+
+    changeCourseStatus(item, newStatus) {
+      const labels = { '1': '发布', '2': '下架' };
+      const msgs = { '1': `确定发布该课程？发布后将在网站端展示。`, '2': `确定下架该课程？下架后网站端将不再展示。` };
+      this.showConfirm(`${labels[newStatus]}课程`, msgs[newStatus], () => {
+        item.publish_status = newStatus;
+        if (newStatus === '1') item.publish_time = new Date().toLocaleString('zh-CN');
+        this.showToast('操作成功');
+      });
+    },
+
+    deleteCourse(item) {
+      this.showConfirm('删除课程', `确定删除「${item.course_name}」？删除后不可恢复（逻辑删除）。`, () => {
+        this.courses = this.courses.filter(c => c.course_id !== item.course_id);
+        this.showToast('删除成功');
+      });
+    },
+
+    openReviewModal(course) {
+      this.reviewCourse = course;
+      this.reviewFilter = '';
+      this.reviewList = JSON.parse(JSON.stringify(MOCK_DATA.reviews.filter(r => r.course_id === course.course_id)));
+      this.reviewModal = true;
+    },
+
+    get filteredReviews() {
+      if (!this.reviewFilter) return this.reviewList;
+      return this.reviewList.filter(r => r.audit_status === this.reviewFilter);
+    },
+
+    auditStatusLabel(s) { return { '1': '待审核', '2': '已通过', '3': '已拒绝' }[s] || s; },
+    auditStatusClass(s) { return { '1': 'badge-warning', '2': 'badge-success', '3': 'badge-danger' }[s] || 'badge-gray'; },
+
+    reviewAudit(review, status) {
+      const labels = { '2': '通过', '3': '拒绝' };
+      this.showConfirm(`审核评价`, `确定${labels[status]}该评价？`, () => {
+        review.audit_status = status;
+        this.showToast('操作成功');
+      });
+    },
+
+    // Toast
+    toast: { show: false, msg: '', type: 'success' },
+    showToast(msg, type = 'success') {
+      this.toast = { show: true, msg, type };
+      setTimeout(() => this.toast.show = false, 2500);
+    },
+  };
+}
+</script>
+
+<!-- 布局 -->
+<div class="flex h-screen overflow-hidden">
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <!-- 品牌区 -->
+    <div class="sidebar-brand">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="sidebar-brand-icon">
+          <i class="fas fa-chalkboard-teacher text-white" style="font-size:15px"></i>
+        </div>
+        <div>
+          <div style="font-size:13.5px;font-weight:700;color:#fff;line-height:1.2">知识讲堂</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px">后台管理系统</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 导航 -->
+    <nav style="flex:1;padding:12px 0;overflow-y:auto">
+      <div class="sidebar-group-label">课程管理</div>
+      <div class="sidebar-item" :class="activeMenu==='category' ? 'active' : ''" @click="activeMenu='category'">
+        <i class="fas fa-layer-group si-icon"></i> 课程分类
+      </div>
+      <div class="sidebar-item" :class="activeMenu==='course' ? 'active' : ''" @click="activeMenu='course'">
+        <i class="fas fa-play-circle si-icon"></i> 课程管理
+      </div>
+      <div class="sidebar-item" :class="activeMenu==='review' ? 'active' : ''" @click="activeMenu='review'">
+        <i class="fas fa-star si-icon"></i> 评价审核
+      </div>
+      <div class="sidebar-group-label" style="margin-top:16px">系统</div>
+      <div class="sidebar-item" @click="window.open('../../index-生猪知识讲堂.html','_blank')" style="cursor:pointer">
+        <i class="fas fa-th-large si-icon"></i> 返回导航
+      </div>
+    </nav>
+
+    <!-- 用户信息 -->
+    <div class="sidebar-user">
+      <div class="flex items-center gap-2">
+        <div class="sidebar-user-avatar">
+          <i class="fas fa-user" style="font-size:11px"></i>
+        </div>
+        <div>
+          <div style="font-size:12.5px;font-weight:600;color:#fff" x-text="MOCK_DATA.currentUser.nick_name"></div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.5)" x-text="MOCK_DATA.currentUser.roleName"></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 主内容 -->
+  <main class="flex-1 overflow-auto" style="background:#f0f4f8">
+
+    <!-- SECTION START: 课程分类管理 -->
+    <div id="feature-category" x-show="activeMenu==='category'" style="padding:24px">
+
+      <!-- 顶部 -->
+      <div class="section-header">
+        <div>
+          <div class="section-title">课程分类管理</div>
+          <div class="section-sub">管理课程分类体系，维护知识讲堂分类结构</div>
+        </div>
+        <button class="btn-primary" @click="openCategoryModal('add')">
+          <i class="fas fa-plus" style="font-size:11px"></i> 新增分类
+        </button>
+      </div>
+
+      <!-- 统计卡片 -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px">
+        <div class="stat-card">
+          <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px">
+            <i class="fas fa-layer-group" style="color:#16a34a;margin-right:5px"></i>总分类数
+          </div>
+          <div style="font-size:28px;font-weight:700;color:#0f172a" x-text="categories.length"></div>
+        </div>
+        <div class="stat-card">
+          <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px">
+            <i class="fas fa-check-circle" style="color:#22c55e;margin-right:5px"></i>正常启用
+          </div>
+          <div style="font-size:28px;font-weight:700;color:#16a34a" x-text="categories.filter(c=>c.status==='0').length"></div>
+        </div>
+        <div class="stat-card">
+          <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px">
+            <i class="fas fa-pause-circle" style="color:#94a3b8;margin-right:5px"></i>已停用
+          </div>
+          <div style="font-size:28px;font-weight:700;color:#94a3b8" x-text="categories.filter(c=>c.status==='1').length"></div>
+        </div>
+      </div>
+
+      <!-- 表格 -->
+      <div class="content-card">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="table-th" style="width:70px">ID</th>
+              <th class="table-th">分类名称</th>
+              <th class="table-th" style="width:100px">排序</th>
+              <th class="table-th" style="width:100px">状态</th>
+              <th class="table-th" style="width:160px">创建时间</th>
+              <th class="table-th" style="width:180px">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="item in categories" :key="item.category_id">
+              <tr>
+                <td class="table-td" style="color:#94a3b8;font-size:12px" x-text="'#' + item.category_id"></td>
+                <td class="table-td">
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <div style="width:32px;height:32px;background:linear-gradient(135deg,#dcfce7,#bbf7d0);border-radius:8px;display:flex;align-items:center;justify-content:center">
+                      <i class="fas fa-tag" style="color:#16a34a;font-size:12px"></i>
+                    </div>
+                    <span style="font-weight:600;color:#0f172a" x-text="item.category_name"></span>
+                  </div>
+                </td>
+                <td class="table-td">
+                  <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:#f1f5f9;border-radius:6px;font-size:13px;font-weight:600;color:#475569" x-text="item.sort_order"></span>
+                </td>
+                <td class="table-td">
+                  <span class="badge" :class="item.status==='0' ? 'badge-success' : 'badge-gray'" x-text="item.status==='0' ? '正常' : '停用'"></span>
+                </td>
+                <td class="table-td" style="color:#94a3b8;font-size:12px" x-text="item.create_time.substring(0,10)"></td>
+                <td class="table-td">
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <button class="act-btn act-edit" @click="openCategoryModal('edit', item)">
+                      <i class="fas fa-pen" style="font-size:10px"></i> 编辑
+                    </button>
+                    <button class="act-btn" :class="item.status==='0' ? 'act-stop' : 'act-start'" @click="toggleCategoryStatus(item)" x-text="item.status==='0' ? '停用' : '启用'"></button>
+                    <button class="act-btn act-delete" @click="deleteCategory(item)">
+                      <i class="fas fa-trash" style="font-size:10px"></i> 删除
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </template>
+            <tr x-show="categories.length===0">
+              <td colspan="6" class="table-td" style="text-align:center;color:#94a3b8;padding:48px 0">
+                <i class="fas fa-inbox" style="font-size:32px;display:block;margin-bottom:8px;opacity:0.4"></i>
+                暂无分类数据
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <!-- SECTION END: 课程分类管理 -->
+
+    <!-- SECTION START: 课程管理 -->
+    <div id="feature-course" x-show="activeMenu==='course'" style="padding:24px">
+
+      <div class="section-header">
+        <div>
+          <div class="section-title">课程管理</div>
+          <div class="section-sub">管理课程全生命周期，支持发布 / 下架 / 评价查看</div>
+        </div>
+        <button class="btn-primary" @click="openCourseForm('add')">
+          <i class="fas fa-plus" style="font-size:11px"></i> 新增课程
+        </button>
+      </div>
+
+      <!-- 统计卡片 -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
+        <div class="stat-card">
+          <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px">
+            <i class="fas fa-book-open" style="color:#3b82f6;margin-right:5px"></i>总课程数
+          </div>
+          <div style="font-size:28px;font-weight:700;color:#0f172a" x-text="courses.length"></div>
+        </div>
+        <div class="stat-card">
+          <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px">
+            <i class="fas fa-satellite-dish" style="color:#16a34a;margin-right:5px"></i>已发布
+          </div>
+          <div style="font-size:28px;font-weight:700;color:#16a34a" x-text="courses.filter(c=>c.publish_status==='1').length"></div>
+        </div>
+        <div class="stat-card">
+          <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px">
+            <i class="fas fa-file-alt" style="color:#f59e0b;margin-right:5px"></i>草稿
+          </div>
+          <div style="font-size:28px;font-weight:700;color:#f59e0b" x-text="courses.filter(c=>c.publish_status==='0').length"></div>
+        </div>
+        <div class="stat-card">
+          <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px">
+            <i class="fas fa-users" style="color:#8b5cf6;margin-right:5px"></i>总学习人数
+          </div>
+          <div style="font-size:28px;font-weight:700;color:#8b5cf6" x-text="courses.reduce((s,c)=>s+c.learn_count,0).toLocaleString()"></div>
+        </div>
+      </div>
+
+      <!-- 筛选区 -->
+      <div class="filter-bar">
+        <div style="display:flex;align-items:center;gap:6px">
+          <label style="font-size:13px;color:#64748b;white-space:nowrap;font-weight:500">分类</label>
+          <select class="filter-select" style="width:130px" x-model="courseFilter.category_id">
+            <option value="">全部分类</option>
+            <template x-for="cat in categories" :key="cat.category_id">
+              <option :value="cat.category_id" x-text="cat.category_name"></option>
+            </template>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <label style="font-size:13px;color:#64748b;white-space:nowrap;font-weight:500">状态</label>
+          <select class="filter-select" style="width:110px" x-model="courseFilter.publish_status">
+            <option value="">全部</option>
+            <option value="0">草稿</option>
+            <option value="1">已发布</option>
+            <option value="2">已下架</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex:1">
+          <label style="font-size:13px;color:#64748b;white-space:nowrap;font-weight:500">搜索</label>
+          <input type="text" class="filter-input" style="flex:1;max-width:240px" x-model="courseFilter.course_name" placeholder="课程名称关键词...">
+        </div>
+        <button class="btn-primary" style="padding:7px 16px" @click="searchCourses">
+          <i class="fas fa-search" style="font-size:11px"></i> 查询
+        </button>
+        <button class="btn-secondary" style="padding:7px 14px" @click="resetCourseFilter">重置</button>
+      </div>
+
+      <!-- 表格 -->
+      <div class="content-card">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="table-th">课程信息</th>
+              <th class="table-th">分类</th>
+              <th class="table-th">讲师</th>
+              <th class="table-th">章节</th>
+              <th class="table-th">学习人数</th>
+              <th class="table-th">评分</th>
+              <th class="table-th">状态</th>
+              <th class="table-th">创建日期</th>
+              <th class="table-th">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="item in pagedCourses" :key="item.course_id">
+              <tr>
+                <td class="table-td">
+                  <div style="display:flex;align-items:center;gap:12px">
+                    <div style="width:52px;height:38px;background:linear-gradient(135deg,#dcfce7,#a7f3d0);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                      <i class="fas fa-play-circle" style="color:#16a34a;font-size:16px"></i>
+                    </div>
+                    <div>
+                      <div style="font-weight:600;color:#0f172a;font-size:13.5px;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" x-text="item.course_name"></div>
+                      <div style="font-size:11.5px;color:#94a3b8;margin-top:2px" x-text="formatDuration(item.total_duration)"></div>
+                    </div>
+                  </div>
+                </td>
+                <td class="table-td"><span class="badge badge-blue" x-text="item.category_name"></span></td>
+                <td class="table-td" style="color:#475569;font-size:13px" x-text="item.teacher_name"></td>
+                <td class="table-td">
+                  <span style="display:inline-flex;align-items:center;gap:4px;font-size:13px;color:#475569">
+                    <i class="fas fa-list" style="font-size:10px;color:#94a3b8"></i>
+                    <span x-text="item.chapter_count"></span>
+                  </span>
+                </td>
+                <td class="table-td">
+                  <span style="font-weight:600;color:#7c3aed" x-text="item.learn_count.toLocaleString()"></span>
+                  <span style="font-size:11px;color:#94a3b8"> 人</span>
+                </td>
+                <td class="table-td">
+                  <div style="display:flex;align-items:center;gap:4px" x-show="item.score > 0">
+                    <i class="fas fa-star star-filled" style="font-size:11px"></i>
+                    <span style="font-weight:600;color:#d97706;font-size:13px" x-text="item.score"></span>
+                  </div>
+                  <span style="color:#e2e8f0" x-show="item.score === 0">—</span>
+                </td>
+                <td class="table-td">
+                  <span class="badge" :class="publishStatusClass(item.publish_status)" x-text="publishStatusLabel(item.publish_status)"></span>
+                </td>
+                <td class="table-td" style="color:#94a3b8;font-size:12px" x-text="item.create_time.substring(0,10)"></td>
+                <td class="table-td">
+                  <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+                    <button class="act-btn act-edit" @click="openCourseForm('edit', item)">
+                      <i class="fas fa-pen" style="font-size:10px"></i> 编辑
+                    </button>
+                    <button class="act-btn act-publish" x-show="item.publish_status!=='1'" @click="changeCourseStatus(item,'1')">
+                      <i class="fas fa-satellite-dish" style="font-size:10px"></i> 发布
+                    </button>
+                    <button class="act-btn act-down" x-show="item.publish_status==='1'" @click="changeCourseStatus(item,'2')">
+                      <i class="fas fa-arrow-down" style="font-size:10px"></i> 下架
+                    </button>
+                    <button class="act-btn act-review" @click="openReviewModal(item); activeMenu='review'">
+                      <i class="fas fa-star" style="font-size:10px"></i> 评价
+                    </button>
+                    <button class="act-btn act-delete" @click="deleteCourse(item)">
+                      <i class="fas fa-trash" style="font-size:10px"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </template>
+            <tr x-show="pagedCourses.length===0">
+              <td colspan="9" class="table-td" style="text-align:center;color:#94a3b8;padding:48px 0">
+                <i class="fas fa-inbox" style="font-size:32px;display:block;margin-bottom:8px;opacity:0.4"></i>
+                暂无课程数据
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <!-- 分页 -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid #f1f5f9">
+          <div style="font-size:13px;color:#64748b">
+            共 <span style="font-weight:700;color:#0f172a" x-text="filteredCourses.length"></span> 条记录
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button class="page-btn" :disabled="courseCurrentPage===1" @click="courseCurrentPage--">
+              <i class="fas fa-chevron-left" style="font-size:11px"></i>
+            </button>
+            <span style="font-size:13px;color:#475569;padding:0 4px">
+              第 <span style="font-weight:700;color:#0f172a" x-text="courseCurrentPage"></span> 页 / 共 <span x-text="courseTotalPages"></span> 页
+            </span>
+            <button class="page-btn" :disabled="courseCurrentPage>=courseTotalPages" @click="courseCurrentPage++">
+              <i class="fas fa-chevron-right" style="font-size:11px"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- SECTION END: 课程管理 -->
+
+    <!-- SECTION START: 评价审核 -->
+    <div id="feature-review" x-show="activeMenu==='review'" style="padding:24px">
+      <div class="section-header">
+        <div>
+          <div class="section-title">评价审核</div>
+          <div class="section-sub">审核用户提交的课程评价，通过后展示在网站端</div>
+        </div>
+      </div>
+
+      <!-- 当前查看课程提示 -->
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px" x-show="reviewCourse">
+        <div style="width:32px;height:32px;background:#dcfce7;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i class="fas fa-play-circle" style="color:#16a34a;font-size:13px"></i>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:12px;color:#64748b">当前筛选课程</div>
+          <div style="font-size:13.5px;font-weight:600;color:#0f172a" x-text="reviewCourse && reviewCourse.course_name"></div>
+        </div>
+        <button style="font-size:12.5px;color:#16a34a;cursor:pointer;background:none;border:none;font-weight:500" @click="reviewCourse=null; reviewList=MOCK_DATA.reviews.map(r=>({...r}))">
+          <i class="fas fa-list" style="margin-right:4px"></i> 查看全部
+        </button>
+      </div>
+
+      <!-- 筛选 Tabs -->
+      <div class="filter-bar" style="margin-bottom:16px">
+        <span style="font-size:13px;color:#64748b;font-weight:500">审核状态：</span>
+        <div style="display:flex;gap:8px">
+          <button class="tab-pill" :class="reviewFilter==='' ? 'active-all' : ''" @click="reviewFilter=''">全部</button>
+          <button class="tab-pill" :class="reviewFilter==='1' ? 'active-warn' : ''" @click="reviewFilter='1'">
+            <i class="fas fa-clock" style="font-size:10px;margin-right:3px"></i>待审核
+            <span style="margin-left:4px;background:rgba(255,255,255,0.3);border-radius:10px;padding:1px 6px;font-size:11px" x-show="reviewFilter==='1'" x-text="filteredReviews.length"></span>
+          </button>
+          <button class="tab-pill" :class="reviewFilter==='2' ? 'active-ok' : ''" @click="reviewFilter='2'">已通过</button>
+          <button class="tab-pill" :class="reviewFilter==='3' ? 'active-danger' : ''" @click="reviewFilter='3'">已拒绝</button>
+        </div>
+      </div>
+
+      <div class="content-card">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="table-th">用户</th>
+              <th class="table-th">所属课程</th>
+              <th class="table-th" style="width:100px">评分</th>
+              <th class="table-th">评价内容</th>
+              <th class="table-th" style="width:90px">状态</th>
+              <th class="table-th" style="width:100px">提交时间</th>
+              <th class="table-th" style="width:120px">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="r in filteredReviews" :key="r.review_id">
+              <tr>
+                <td class="table-td">
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div style="width:34px;height:34px;background:linear-gradient(135deg,#dbeafe,#bfdbfe);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#2563eb;flex-shrink:0" x-text="r.user_nickname[0]"></div>
+                    <span style="font-weight:600;font-size:13.5px;color:#0f172a" x-text="r.user_nickname"></span>
+                  </div>
+                </td>
+                <td class="table-td" style="max-width:160px">
+                  <span style="font-size:13px;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block" x-text="r.course_name"></span>
+                </td>
+                <td class="table-td">
+                  <div style="display:flex;align-items:center;gap:2px">
+                    <template x-for="i in 5" :key="i">
+                      <i class="fas fa-star" style="font-size:12px" :class="i<=r.score ? 'star-filled' : 'star-empty'"></i>
+                    </template>
+                    <span style="margin-left:4px;font-size:12px;font-weight:600;color:#d97706" x-text="r.score + '分'"></span>
+                  </div>
+                </td>
+                <td class="table-td" style="max-width:240px">
+                  <span style="font-size:13px;color:#374151;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden" x-text="r.review_content"></span>
+                </td>
+                <td class="table-td">
+                  <span class="badge" :class="auditStatusClass(r.audit_status)" x-text="auditStatusLabel(r.audit_status)"></span>
+                </td>
+                <td class="table-td" style="color:#94a3b8;font-size:12px" x-text="r.create_time.substring(0,10)"></td>
+                <td class="table-td">
+                  <div style="display:flex;gap:6px" x-show="r.audit_status==='1'">
+                    <button class="act-btn act-pass" @click="reviewAudit(r,'2')">
+                      <i class="fas fa-check" style="font-size:10px"></i> 通过
+                    </button>
+                    <button class="act-btn act-reject" @click="reviewAudit(r,'3')">
+                      <i class="fas fa-times" style="font-size:10px"></i> 拒绝
+                    </button>
+                  </div>
+                  <span style="font-size:12px;color:#94a3b8" x-show="r.audit_status!=='1'">已处理</span>
+                </td>
+              </tr>
+            </template>
+            <tr x-show="filteredReviews.length===0">
+              <td colspan="7" class="table-td" style="text-align:center;color:#94a3b8;padding:48px 0">
+                <i class="fas fa-comment-slash" style="font-size:32px;display:block;margin-bottom:8px;opacity:0.4"></i>
+                暂无评价数据
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <!-- SECTION END: 评价审核 -->
+
+  </main>
+</div>
+
+<!-- 弹窗：课程分类新增/编辑 -->
+<div class="modal-overlay" x-show="categoryModal" @click.self="categoryModal=false">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:34px;height:34px;background:linear-gradient(135deg,#dcfce7,#bbf7d0);border-radius:10px;display:flex;align-items:center;justify-content:center">
+          <i class="fas fa-layer-group" style="color:#16a34a;font-size:14px"></i>
+        </div>
+        <h3 x-text="categoryModalMode==='add' ? '新增课程分类' : '编辑课程分类'"></h3>
+      </div>
+      <button class="modal-close" @click="categoryModal=false"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:16px">
+      <template x-if="categoryModalMode==='edit' && editingCategory">
+        <div style="background:#f8fafc;border-radius:10px;padding:12px;border:1px solid #e8edf2;font-size:12px;color:#64748b;display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <div>ID：<span style="font-weight:600;color:#374151" x-text="editingCategory.category_id"></span></div>
+          <div>创建人：<span style="font-weight:600;color:#374151" x-text="editingCategory.create_by"></span></div>
+          <div style="grid-column:span 2">创建时间：<span style="font-weight:600;color:#374151" x-text="editingCategory.create_time"></span></div>
+        </div>
+      </template>
+      <div>
+        <label class="form-label">分类名称 <span style="color:#ef4444">*</span></label>
+        <input type="text" class="form-input" :class="categoryFormErrors.category_name ? 'error' : ''" x-model="categoryForm.category_name" placeholder="请输入分类名称" maxlength="50" @blur="if(!categoryForm.category_name.trim()) categoryFormErrors.category_name='请输入分类名称'; else delete categoryFormErrors.category_name">
+        <p class="form-error" x-show="categoryFormErrors.category_name" x-text="categoryFormErrors.category_name"></p>
+      </div>
+      <div>
+        <label class="form-label">排序序号 <span style="color:#ef4444">*</span></label>
+        <input type="number" class="form-input" :class="categoryFormErrors.sort_order ? 'error' : ''" x-model="categoryForm.sort_order" placeholder="请输入排序序号（0~999）" min="0" max="999">
+        <p class="form-error" x-show="categoryFormErrors.sort_order" x-text="categoryFormErrors.sort_order"></p>
+        <p style="font-size:11.5px;color:#94a3b8;margin-top:4px"><i class="fas fa-info-circle" style="margin-right:3px"></i>数值越小越靠前，范围 0~999</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" @click="categoryModal=false">取消</button>
+      <button class="btn-primary" @click="submitCategoryForm">
+        <i class="fas fa-check" style="font-size:11px"></i> 确定保存
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 弹窗：课程新增/编辑 -->
+<div class="modal-overlay" x-show="courseFormModal" @click.self="courseFormModal=false">
+  <div class="modal-box-lg">
+    <div class="modal-header" style="position:sticky;top:0;background:#fff;z-index:10">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:34px;height:34px;background:linear-gradient(135deg,#dcfce7,#bbf7d0);border-radius:10px;display:flex;align-items:center;justify-content:center">
+          <i class="fas fa-book" style="color:#16a34a;font-size:14px"></i>
+        </div>
+        <h3 x-text="courseFormMode==='add' ? '新增课程' : '编辑课程'"></h3>
+      </div>
+      <button class="modal-close" @click="courseFormModal=false"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:16px">
+      <!-- 只读信息 -->
+      <template x-if="courseFormMode==='edit' && editingCourse">
+        <div class="bg-gray-50 rounded-lg p-3 text-xs text-gray-500 grid grid-cols-2 gap-2">
+          <div>课程ID：<span x-text="editingCourse.course_id"></span></div>
+          <div>发布状态：<span x-text="publishStatusLabel(editingCourse.publish_status)"></span></div>
+          <div>学习人数：<span x-text="editingCourse.learn_count"></span></div>
+          <div>评分：<span x-text="editingCourse.score"></span></div>
+          <div>创建时间：<span x-text="editingCourse.create_time"></span></div>
+          <div>发布时间：<span x-text="editingCourse.publish_time || '-'"></span></div>
+        </div>
+      </template>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div class="col-span-2">
+          <label class="form-label">课程名称 <span class="text-red-500">*</span></label>
+          <input type="text" class="form-input" :class="courseFormErrors.course_name ? 'border-red-400' : ''" x-model="courseForm.course_name" placeholder="请输入课程名称" maxlength="200">
+          <p class="form-error" x-show="courseFormErrors.course_name" x-text="courseFormErrors.course_name"></p>
+        </div>
+        <div>
+          <label class="form-label">课程分类 <span class="text-red-500">*</span></label>
+          <select class="form-select" :class="courseFormErrors.category_id ? 'border-red-400' : ''" x-model="courseForm.category_id">
+            <option value="">请选择课程分类</option>
+            <template x-for="cat in categories.filter(c=>c.status==='0')" :key="cat.category_id">
+              <option :value="cat.category_id" x-text="cat.category_name"></option>
+            </template>
+          </select>
+          <p class="form-error" x-show="courseFormErrors.category_id" x-text="courseFormErrors.category_id"></p>
+        </div>
+        <div>
+          <label class="form-label">排序序号 <span class="text-red-500">*</span></label>
+          <input type="number" class="form-input" x-model="courseForm.sort_order" min="0" max="999" placeholder="0">
+        </div>
+        <div>
+          <label class="form-label">讲师名称 <span class="text-red-500">*</span></label>
+          <input type="text" class="form-input" :class="courseFormErrors.teacher_name ? 'border-red-400' : ''" x-model="courseForm.teacher_name" placeholder="请输入讲师名称" maxlength="50">
+          <p class="form-error" x-show="courseFormErrors.teacher_name" x-text="courseFormErrors.teacher_name"></p>
+        </div>
+        <div>
+          <label class="form-label">封面图片 <span class="text-red-500">*</span></label>
+          <div class="border-2 border-dashed border-gray-200 rounded-lg p-3 text-center cursor-pointer hover:border-green-400 transition-colors bg-gray-50" @click="courseForm.cover_image='mock://cover.jpg'; showToast('图片上传成功（模拟）')">
+            <i class="fas fa-cloud-upload-alt text-gray-300 text-xl mb-1"></i>
+            <p class="text-xs text-gray-400">点击上传封面图片</p>
+            <p class="text-xs text-green-500 mt-1" x-show="courseForm.cover_image">✓ 已上传（模拟）</p>
+          </div>
+        </div>
+        <div class="col-span-2">
+          <label class="form-label">讲师简介</label>
+          <textarea class="form-input" x-model="courseForm.teacher_intro" rows="2" placeholder="请输入讲师简介（选填）" maxlength="500"></textarea>
+        </div>
+        <div class="col-span-2">
+          <label class="form-label">课程简介 <span class="text-red-500">*</span></label>
+          <textarea class="form-input" :class="courseFormErrors.course_intro ? 'border-red-400' : ''" x-model="courseForm.course_intro" rows="3" placeholder="请输入课程简介"></textarea>
+          <p class="form-error" x-show="courseFormErrors.course_intro" x-text="courseFormErrors.course_intro"></p>
+        </div>
+      </div>
+
+      <!-- 章节管理 -->
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <label class="form-label mb-0">章节管理 <span class="text-red-500">*</span> <span class="text-gray-400 text-xs font-normal">（至少1个章节）</span></label>
+          <button class="btn-sm bg-green-100 text-green-700 hover:bg-green-200 px-3 py-1.5" @click="addChapter">
+            <i class="fas fa-plus mr-1"></i> 添加章节
+          </button>
+        </div>
+        <p class="form-error mb-2" x-show="courseFormErrors.chapters" x-text="courseFormErrors.chapters"></p>
+        <div class="space-y-3">
+          <template x-for="(ch, idx) in courseForm.chapters" :key="idx">
+            <div class="border border-gray-200 rounded-lg p-3 bg-gray-50">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-medium text-gray-700">第 <span x-text="idx+1"></span> 章</span>
+                <button class="text-red-400 hover:text-red-600 text-xs" @click="removeChapter(idx)">
+                  <i class="fas fa-trash"></i> 删除
+                </button>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div class="col-span-2">
+                  <input type="text" class="form-input" :class="courseFormErrors['ch_title_'+idx] ? 'border-red-400' : ''" x-model="ch.chapter_title" placeholder="章节标题（必填）" maxlength="200">
+                  <p class="form-error" x-show="courseFormErrors['ch_title_'+idx]" x-text="courseFormErrors['ch_title_'+idx]"></p>
+                </div>
+                <div>
+                  <div class="border border-dashed border-gray-300 rounded-lg p-2 text-center cursor-pointer hover:border-green-400 bg-white text-xs text-gray-400" :class="courseFormErrors['ch_video_'+idx] ? 'border-red-400' : ''" @click="ch.video_url='mock://chapter'+idx+'.mp4'; showToast('视频上传成功（模拟）')">
+                    <i class="fas fa-video mr-1"></i>
+                    <span x-show="!ch.video_url">上传视频（必填）</span>
+                    <span x-show="ch.video_url" class="text-green-500">✓ 已上传（模拟）</span>
+                  </div>
+                  <p class="form-error" x-show="courseFormErrors['ch_video_'+idx]" x-text="courseFormErrors['ch_video_'+idx]"></p>
+                </div>
+                <div>
+                  <input type="number" class="form-input" x-model="ch.video_duration" placeholder="视频时长（秒）" min="0" max="86400">
+                </div>
+              </div>
+            </div>
+          </template>
+          <div class="text-center text-sm text-gray-400 py-4 border-2 border-dashed border-gray-200 rounded-lg" x-show="courseForm.chapters.length===0">
+            暂无章节，点击「添加章节」开始添加
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" style="position:sticky;bottom:0">
+      <button class="btn-secondary" @click="courseFormModal=false">取消</button>
+      <button class="btn-primary" @click="submitCourseForm">
+        <i class="fas fa-save" style="font-size:11px"></i> 保存课程
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 二次确认弹窗 -->
+<div class="modal-overlay" x-show="confirmModal" @click.self="confirmModal=false">
+  <div style="background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.15);width:100%;max-width:400px;padding:28px;animation:modal-in 0.2s ease">
+    <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:20px">
+      <div style="width:44px;height:44px;background:#fef3c7;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <i class="fas fa-exclamation-triangle" style="color:#d97706;font-size:18px"></i>
+      </div>
+      <div>
+        <h3 style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:6px" x-text="confirmTitle"></h3>
+        <p style="font-size:13.5px;color:#64748b;line-height:1.5" x-text="confirmMsg"></p>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px">
+      <button class="btn-secondary" @click="confirmModal=false">取消</button>
+      <button class="btn-primary" @click="doConfirm">
+        <i class="fas fa-check" style="font-size:11px"></i> 确认操作
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast 提示 -->
+<div style="position:fixed;bottom:24px;right:24px;z-index:100;transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1)"
+  :style="toast.show ? 'opacity:1;transform:translateY(0)' : 'opacity:0;transform:translateY(16px);pointer-events:none'">
+  <div style="display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.12);font-size:13.5px;font-weight:600;color:#fff;min-width:200px"
+    :style="toast.type==='error' ? 'background:linear-gradient(135deg,#ef4444,#dc2626)' : 'background:linear-gradient(135deg,#16a34a,#15803d)'">
+    <div style="width:28px;height:28px;background:rgba(255,255,255,0.2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <i :class="toast.type==='error' ? 'fas fa-times' : 'fas fa-check'" style="font-size:12px"></i>
+    </div>
+    <span x-text="toast.msg"></span>
+  </div>
+</div>
+
+</body>
+</html>

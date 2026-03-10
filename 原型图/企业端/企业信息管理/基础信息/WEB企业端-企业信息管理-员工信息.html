@@ -1,0 +1,863 @@
+<!--
+  功能名称：员工信息管理
+  对应PRD：doc_prd/WEB/企业端/企业信息管理/基础信息/WEB企业端-企业信息管理-员工信息.prd.md
+  所属端口：WEB企业端
+  所属模块：企业信息管理 → 员工信息
+  制作日期：2026-03-09
+  最后更新：2026-03-09
+  角色说明：企业管理员（ent_admin）、企业填报员（ent_reporter）
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>员工信息管理 | 蓬溪县生猪数字化管理平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    /* SHARED STYLES */
+    :root {
+      --primary: #1677ff;
+      --bg: #f0f2f5;
+      --card-bg: #ffffff;
+      --border: #e8e8e8;
+      --text-main: #262626;
+      --text-sub: #595959;
+      --text-hint: #8c8c8c;
+      --success: #52c41a;
+      --warning: #faad14;
+      --error: #ff4d4f;
+      --disabled: #bfbfbf;
+    }
+    body { background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: var(--text-main); font-size: 14px; }
+    .sidebar { width: 240px; min-width: 240px; background: #001529; }
+    .sidebar.collapsed { width: 60px; min-width: 60px; }
+    .topbar { height: 60px; background: #fff; border-bottom: 1px solid var(--border); }
+    .content-area { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+    .main-content { flex: 1; overflow-y: auto; padding: 16px; }
+    .nav-item { color: rgba(255,255,255,0.65); cursor: pointer; transition: all 0.2s; }
+    .nav-item:hover { color: #fff; background: rgba(255,255,255,0.08); }
+    .nav-item.active { color: #fff; background: var(--primary); }
+    .nav-sub-item { color: rgba(255,255,255,0.55); cursor: pointer; padding: 8px 16px 8px 52px; font-size: 13px; }
+    .nav-sub-item:hover { color: #fff; background: rgba(255,255,255,0.08); }
+    .nav-sub-item.active { color: #fff; background: var(--primary); }
+    .card { background: #fff; border-radius: 6px; border: 1px solid var(--border); }
+    .btn-primary { background: var(--primary); color: #fff; border: none; border-radius: 4px; padding: 6px 16px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; transition: opacity 0.2s; }
+    .btn-primary:hover { opacity: 0.85; }
+    .btn-primary:disabled { background: var(--disabled); cursor: not-allowed; opacity: 1; }
+    .btn-default { background: #fff; color: var(--text-main); border: 1px solid var(--border); border-radius: 4px; padding: 6px 16px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
+    .btn-default:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-link { background: none; border: none; color: var(--primary); cursor: pointer; font-size: 13px; padding: 0 4px; }
+    .btn-link:hover { opacity: 0.8; }
+    .btn-link-warning { background: none; border: none; color: var(--warning); cursor: pointer; font-size: 13px; padding: 0 4px; }
+    .btn-link-success { background: none; border: none; color: var(--success); cursor: pointer; font-size: 13px; padding: 0 4px; }
+    .btn-link-danger { background: none; border: none; color: var(--error); cursor: pointer; font-size: 13px; padding: 0 4px; }
+    .btn-link-danger:disabled { color: var(--disabled); cursor: not-allowed; }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th { background: #fafafa; padding: 10px 12px; text-align: left; font-weight: 500; border-bottom: 1px solid var(--border); white-space: nowrap; color: var(--text-sub); font-size: 13px; }
+    .data-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); color: var(--text-main); font-size: 13px; }
+    .data-table tr:nth-child(even) td { background: #fafafa; }
+    .data-table tr:hover td { background: #e6f4ff; }
+    .data-table .op-col { position: sticky; right: 0; background: #fff; z-index: 1; }
+    .data-table tr:nth-child(even) .op-col { background: #fafafa; }
+    .data-table tr:hover .op-col { background: #e6f4ff; }
+    .tag { display: inline-flex; align-items: center; padding: 1px 8px; border-radius: 4px; font-size: 12px; }
+    .tag-success { background: #f6ffed; color: var(--success); border: 1px solid #b7eb8f; }
+    .tag-default { background: #f5f5f5; color: var(--text-hint); border: 1px solid #d9d9d9; }
+    .tag-error { background: #fff2f0; color: var(--error); border: 1px solid #ffccc7; }
+    .form-label { font-size: 13px; color: var(--text-sub); }
+    .required-star { color: var(--error); margin-right: 2px; }
+    .form-input { width: 100%; border: 1px solid var(--border); border-radius: 4px; padding: 5px 10px; font-size: 13px; color: var(--text-main); outline: none; box-sizing: border-box; height: 32px; }
+    .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(22,119,255,0.1); }
+    .form-input:disabled { background: #f5f5f5; color: var(--text-hint); cursor: not-allowed; }
+    .form-select { width: 100%; border: 1px solid var(--border); border-radius: 4px; padding: 5px 10px; font-size: 13px; color: var(--text-main); outline: none; box-sizing: border-box; height: 32px; background: #fff; }
+    .form-select:focus { border-color: var(--primary); }
+    .form-select:disabled { background: #f5f5f5; color: var(--text-hint); cursor: not-allowed; }
+    .form-textarea { width: 100%; border: 1px solid var(--border); border-radius: 4px; padding: 6px 10px; font-size: 13px; color: var(--text-main); outline: none; box-sizing: border-box; resize: vertical; min-height: 72px; }
+    .form-textarea:focus { border-color: var(--primary); }
+    .error-msg { color: var(--error); font-size: 12px; margin-top: 2px; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+    .modal-box { background: #fff; border-radius: 8px; box-shadow: 0 6px 32px rgba(0,0,0,0.18); min-width: 580px; max-width: 90vw; max-height: 90vh; overflow-y: auto; }
+    .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .modal-body { padding: 20px 24px; }
+    .modal-footer { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+    .pagination { display: flex; align-items: center; gap: 4px; }
+    .page-btn { min-width: 32px; height: 32px; border: 1px solid var(--border); background: #fff; border-radius: 4px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; padding: 0 8px; }
+    .page-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .page-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .page-btn:disabled { color: var(--disabled); cursor: not-allowed; }
+    .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-hint); margin-bottom: 12px; }
+    .breadcrumb a { color: var(--text-hint); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--primary); }
+    .breadcrumb .current { color: var(--text-main); }
+    .toast-container { position: fixed; top: 72px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+    .toast { padding: 10px 16px; border-radius: 6px; font-size: 13px; display: flex; align-items: center; gap: 8px; min-width: 200px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slideIn 0.3s ease; }
+    .toast-success { background: #f6ffed; border: 1px solid #b7eb8f; color: #389e0d; }
+    .toast-error { background: #fff2f0; border: 1px solid #ffccc7; color: #cf1322; }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+    .confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1100; display: flex; align-items: center; justify-content: center; }
+    .confirm-box { background: #fff; border-radius: 8px; padding: 24px; width: 400px; box-shadow: 0 6px 32px rgba(0,0,0,0.18); }
+    .img-preview-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; display: flex; align-items: center; justify-content: center; cursor: zoom-out; }
+    .img-preview-overlay img { max-width: 90vw; max-height: 90vh; object-fit: contain; border-radius: 4px; }
+    .avatar-upload { width: 80px; height: 80px; border: 1px dashed var(--border); border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; color: var(--text-hint); font-size: 12px; gap: 4px; overflow: hidden; }
+    .avatar-upload:hover { border-color: var(--primary); color: var(--primary); }
+    .avatar-upload img { width: 100%; height: 100%; object-fit: cover; }
+  </style>
+</head>
+<body x-data="app()" x-init="init()">
+
+<!-- Toast Container -->
+<div class="toast-container">
+  <template x-for="toast in toasts" :key="toast.id">
+    <div :class="['toast', toast.type === 'success' ? 'toast-success' : 'toast-error']">
+      <i :class="toast.type === 'success' ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark'"></i>
+      <span x-text="toast.message"></span>
+    </div>
+  </template>
+</div>
+
+<!-- Image Preview -->
+<div class="img-preview-overlay" x-show="previewImg" @click="previewImg=null" x-cloak>
+  <img :src="previewImg" alt="预览">
+</div>
+
+<!-- Confirm Dialog -->
+<div class="confirm-overlay" x-show="confirmDialog.show" x-cloak>
+  <div class="confirm-box">
+    <div class="flex items-start gap-3 mb-5">
+      <i class="fa-solid fa-triangle-exclamation text-orange-400 text-xl mt-0.5"></i>
+      <div>
+        <div class="font-medium text-[15px] mb-1" x-text="confirmDialog.title"></div>
+        <div class="text-gray-500 text-sm" x-text="confirmDialog.message"></div>
+      </div>
+    </div>
+    <div class="flex justify-end gap-2">
+      <button class="btn-default" @click="confirmDialog.show=false; confirmDialog.onCancel && confirmDialog.onCancel()">取消</button>
+      <button class="btn-primary" @click="confirmDialog.show=false; confirmDialog.onConfirm && confirmDialog.onConfirm()">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- Layout -->
+<div class="flex h-screen overflow-hidden">
+
+  <!-- SECTION START: 侧边菜单 -->
+  <aside :class="['sidebar flex-shrink-0 flex flex-col transition-all', sidebarCollapsed ? 'collapsed' : '']">
+    <div class="flex items-center gap-3 px-4 py-4 border-b border-white/10">
+      <div class="w-8 h-8 bg-blue-500 rounded flex items-center justify-center flex-shrink-0">
+        <i class="fa-solid fa-piggy-bank text-white text-sm"></i>
+      </div>
+      <span class="text-white font-semibold text-sm leading-tight whitespace-nowrap overflow-hidden" x-show="!sidebarCollapsed">蓬溪生猪管理平台</span>
+    </div>
+    <nav class="flex-1 overflow-y-auto py-2">
+      <div class="nav-item flex items-center gap-3 px-4 py-3" @click="toggleMenu('enterprise')">
+        <i class="fa-solid fa-building fa-fw"></i>
+        <span x-show="!sidebarCollapsed" class="flex-1">企业信息管理</span>
+        <i class="fa-solid fa-chevron-down text-xs transition-transform" x-show="!sidebarCollapsed" :class="openMenus.includes('enterprise') ? 'rotate-180' : ''"></i>
+      </div>
+      <div x-show="openMenus.includes('enterprise')" x-cloak>
+        <div class="nav-sub-item" x-show="!sidebarCollapsed">企业基础信息</div>
+        <div class="nav-sub-item" x-show="!sidebarCollapsed">圈舍管理</div>
+        <div class="nav-sub-item active" x-show="!sidebarCollapsed">员工信息</div>
+      </div>
+      <div class="nav-item flex items-center gap-3 px-4 py-3">
+        <i class="fa-solid fa-pen-to-square fa-fw"></i>
+        <span x-show="!sidebarCollapsed">养殖信息管理</span>
+      </div>
+      <div class="nav-item flex items-center gap-3 px-4 py-3">
+        <i class="fa-solid fa-chart-line fa-fw"></i>
+        <span x-show="!sidebarCollapsed">统计分析</span>
+      </div>
+      <div class="nav-item flex items-center gap-3 px-4 py-3">
+        <i class="fa-solid fa-folder-open fa-fw"></i>
+        <span x-show="!sidebarCollapsed">项目信息管理</span>
+      </div>
+      <div class="nav-item flex items-center gap-3 px-4 py-3">
+        <i class="fa-solid fa-newspaper fa-fw"></i>
+        <span x-show="!sidebarCollapsed">政策资讯</span>
+      </div>
+    </nav>
+    <div class="px-4 py-3 border-t border-white/10 cursor-pointer flex items-center gap-3 nav-item" @click="sidebarCollapsed=!sidebarCollapsed">
+      <i :class="sidebarCollapsed ? 'fa-solid fa-angles-right' : 'fa-solid fa-angles-left'" class="fa-fw"></i>
+      <span x-show="!sidebarCollapsed" class="text-sm">收起菜单</span>
+    </div>
+  </aside>
+  <!-- SECTION END: 侧边菜单 -->
+
+  <div class="flex-1 flex flex-col overflow-hidden">
+
+    <!-- SECTION START: 顶部导航 -->
+    <header class="topbar flex items-center justify-between px-5 flex-shrink-0">
+      <div class="flex items-center gap-3">
+        <span class="text-base font-semibold text-gray-700">2024年蓬溪县生猪数字化管理平台</span>
+        <span class="text-gray-300">|</span>
+        <span class="text-sm text-gray-500">WEB企业端</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-gray-400">当前角色：</span>
+          <select class="border border-gray-200 rounded px-2 py-1 text-xs text-gray-700" x-model="currentRole" @change="switchRole()">
+            <option value="ent_admin">企业管理员</option>
+            <option value="ent_reporter">企业填报员</option>
+          </select>
+        </div>
+        <div class="w-px h-5 bg-gray-200"></div>
+        <div class="flex items-center gap-2 cursor-pointer">
+          <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+            <i class="fa-solid fa-user text-blue-600 text-sm"></i>
+          </div>
+          <span class="text-sm text-gray-700" x-text="MOCK_DATA.currentUser.name"></span>
+        </div>
+        <button class="text-gray-400 hover:text-red-500 text-sm" @click="showToast('已退出登录', 'success')">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </header>
+    <!-- SECTION END: 顶部导航 -->
+
+    <div class="content-area">
+      <div class="main-content">
+
+        <div class="breadcrumb">
+          <a href="#">首页</a>
+          <i class="fa-solid fa-chevron-right text-xs"></i>
+          <a href="#">企业信息管理</a>
+          <i class="fa-solid fa-chevron-right text-xs"></i>
+          <span class="current">员工信息</span>
+        </div>
+
+        <!-- SECTION START: 员工列表 -->
+        <section id="feature-employee-list" class="card">
+          <!-- Filter bar -->
+          <div class="px-5 py-4 border-b border-gray-100">
+            <div class="flex items-center gap-3 flex-wrap">
+              <input type="text" class="form-input" style="width:200px" placeholder="请输入员工姓名" x-model="filter.name">
+              <select class="form-select" style="width:160px" x-model="filter.position">
+                <option value="">职位（全部）</option>
+                <template x-for="opt in MOCK_DATA.dict.position" :key="opt.value">
+                  <option :value="opt.value" x-text="opt.label"></option>
+                </template>
+              </select>
+              <select class="form-select" style="width:160px" x-model="filter.status">
+                <option value="">状态（全部）</option>
+                <option value="0">在职</option>
+                <option value="1">离职</option>
+              </select>
+              <button class="btn-primary" @click="searchEmployee()"><i class="fa-solid fa-magnifying-glass"></i> 查询</button>
+              <button class="btn-default" @click="resetFilter()"><i class="fa-solid fa-rotate-left"></i> 重置</button>
+              <div class="flex-1"></div>
+              <button class="btn-primary" x-show="hasPermission('farm:employee:add')" @click="openModal('add')">
+                <i class="fa-solid fa-plus"></i> 新增
+              </button>
+            </div>
+          </div>
+
+          <!-- Table -->
+          <div style="overflow-x: auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>工号</th>
+                  <th>员工姓名</th>
+                  <th>性别</th>
+                  <th>职位</th>
+                  <th>联系电话</th>
+                  <th>入职日期</th>
+                  <th>状态</th>
+                  <th class="op-col">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="row in pagedData" :key="row.employee_id">
+                  <tr>
+                    <td x-text="row.employee_code || '—'"></td>
+                    <td>
+                      <div class="flex items-center gap-2">
+                        <img :src="row.avatar" class="w-7 h-7 rounded-full object-cover border border-gray-200" alt="头像"
+                          @error="$el.src='https://via.placeholder.com/28x28/e6f4ff/1677ff?text='+row.employee_name.charAt(0)">
+                        <span x-text="row.employee_name"></span>
+                      </div>
+                    </td>
+                    <td x-text="row.gender === '0' ? '男' : row.gender === '1' ? '女' : '—'"></td>
+                    <td x-text="getPositionName(row.position)"></td>
+                    <td x-text="row.phone"></td>
+                    <td x-text="row.entry_date"></td>
+                    <td>
+                      <span :class="row.status === '0' ? 'tag tag-success' : 'tag tag-default'"
+                        x-text="row.status === '0' ? '在职' : '离职'"></span>
+                    </td>
+                    <td class="op-col" style="white-space:nowrap">
+                      <button class="btn-link" x-show="hasPermission('farm:employee:edit')" @click="openModal('edit', row)">编辑</button>
+                      <button
+                        :class="row.status === '0' ? 'btn-link-warning' : 'btn-link-success'"
+                        x-show="hasPermission('farm:employee:changeStatus')"
+                        @click="confirmChangeStatus(row)"
+                        x-text="row.status === '0' ? '停用' : '启用'">
+                      </button>
+                      <button
+                        :class="row.status === '0' ? 'btn-link-danger opacity-40' : 'btn-link-danger'"
+                        :disabled="row.status === '0'"
+                        :title="row.status === '0' ? '在职员工不可删除' : ''"
+                        x-show="hasPermission('farm:employee:remove')"
+                        @click="row.status === '0' ? showToast('在职员工不可删除，请先将员工状态设为离职', 'error') : confirmDelete(row)">
+                        删除
+                      </button>
+                    </td>
+                  </tr>
+                </template>
+                <tr x-show="filteredData.length === 0">
+                  <td colspan="8" class="text-center text-gray-400 py-8">
+                    <i class="fa-solid fa-inbox text-3xl mb-2 block"></i>暂无数据
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="flex items-center justify-between px-5 py-3 border-t border-gray-100 flex-shrink-0">
+            <span class="text-sm text-gray-400">共 <strong x-text="filteredData.length"></strong> 条</span>
+            <div class="flex items-center gap-3">
+              <span class="text-sm text-gray-400">每页
+                <select class="border border-gray-200 rounded px-1 py-0.5 text-xs mx-1" x-model="page.size" @change="page.current=1">
+                  <option value="10">10</option>
+                  <option value="20">20</option>
+                  <option value="50">50</option>
+                </select>条
+              </span>
+              <div class="pagination">
+                <button class="page-btn" :disabled="page.current <= 1" @click="page.current--">
+                  <i class="fa-solid fa-chevron-left text-xs"></i>
+                </button>
+                <template x-for="p in pageNumbers" :key="p">
+                  <button :class="['page-btn', page.current === p ? 'active' : '']" @click="page.current = p" x-text="p"></button>
+                </template>
+                <button class="page-btn" :disabled="page.current >= totalPages" @click="page.current++">
+                  <i class="fa-solid fa-chevron-right text-xs"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+        <!-- SECTION END: 员工列表 -->
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION START: 新增/编辑弹窗 -->
+<div id="feature-employee-modal" class="modal-overlay" x-show="modal.show" x-cloak>
+  <div class="modal-box" style="min-width:600px">
+    <div class="modal-header">
+      <span class="font-semibold text-base" x-text="modal.mode === 'add' ? '新增员工' : '编辑员工'"></span>
+      <button class="text-gray-400 hover:text-gray-600" @click="closeModal()"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="grid grid-cols-2 gap-x-6 gap-y-4">
+        <!-- 员工姓名 -->
+        <div>
+          <label class="form-label block mb-1"><span class="required-star">*</span>员工姓名</label>
+          <input type="text" class="form-input" x-model="modal.data.employee_name" maxlength="50"
+            @blur="validateField('employee_name')" placeholder="请输入员工姓名">
+          <div class="error-msg" x-text="modal.errors.employee_name" x-show="modal.errors.employee_name"></div>
+        </div>
+        <!-- 工号 -->
+        <div>
+          <label class="form-label block mb-1">工号 <span class="text-xs text-gray-400">（选填，不填时自动生成）</span></label>
+          <input type="text" class="form-input" x-model="modal.data.employee_code" maxlength="30"
+            @blur="validateField('employee_code')" placeholder="不填时自动生成 EMP + 8位数字">
+          <div class="error-msg" x-text="modal.errors.employee_code" x-show="modal.errors.employee_code"></div>
+        </div>
+        <!-- 性别 -->
+        <div>
+          <label class="form-label block mb-1">性别</label>
+          <select class="form-select" x-model="modal.data.gender">
+            <option value="">请选择性别</option>
+            <option value="0">男</option>
+            <option value="1">女</option>
+          </select>
+        </div>
+        <!-- 出生日期 -->
+        <div>
+          <label class="form-label block mb-1">出生日期</label>
+          <input type="date" class="form-input" x-model="modal.data.birth_date"
+            :max="today" @blur="validateField('birth_date')">
+          <div class="error-msg" x-text="modal.errors.birth_date" x-show="modal.errors.birth_date"></div>
+        </div>
+        <!-- 身份证号 -->
+        <div>
+          <label class="form-label block mb-1">身份证号</label>
+          <input type="text" class="form-input" x-model="modal.data.id_card" maxlength="18"
+            :placeholder="modal.mode === 'edit' ? '留空表示不修改，修改请输入完整号码' : '请输入18位身份证号'"
+            @blur="validateField('id_card')">
+          <div class="error-msg" x-text="modal.errors.id_card" x-show="modal.errors.id_card"></div>
+        </div>
+        <!-- 联系电话 -->
+        <div>
+          <label class="form-label block mb-1"><span class="required-star">*</span>联系电话</label>
+          <input type="text" class="form-input" x-model="modal.data.phone" maxlength="11"
+            @blur="validateField('phone')" placeholder="请输入11位手机号">
+          <div class="error-msg" x-text="modal.errors.phone" x-show="modal.errors.phone"></div>
+        </div>
+        <!-- 职位 -->
+        <div>
+          <label class="form-label block mb-1"><span class="required-star">*</span>职位</label>
+          <select class="form-select" x-model="modal.data.position" @change="validateField('position')">
+            <option value="">请选择职位</option>
+            <template x-for="opt in MOCK_DATA.dict.position" :key="opt.value">
+              <option :value="opt.value" x-text="opt.label"></option>
+            </template>
+          </select>
+          <div class="error-msg" x-text="modal.errors.position" x-show="modal.errors.position"></div>
+        </div>
+        <!-- 入职日期 -->
+        <div>
+          <label class="form-label block mb-1"><span class="required-star">*</span>入职日期</label>
+          <input type="date" class="form-input" x-model="modal.data.entry_date"
+            :max="today" @blur="validateField('entry_date')">
+          <div class="error-msg" x-text="modal.errors.entry_date" x-show="modal.errors.entry_date"></div>
+        </div>
+        <!-- 离职日期 (edit only, when status=1) -->
+        <div x-show="modal.mode === 'edit'">
+          <label class="form-label block mb-1">
+            离职日期
+            <span class="text-xs text-gray-400">（离职状态时可填）</span>
+          </label>
+          <input type="date" class="form-input" x-model="modal.data.leave_date"
+            :disabled="modal.data.status !== '1'" :max="today"
+            @blur="validateField('leave_date')">
+          <div class="error-msg" x-text="modal.errors.leave_date" x-show="modal.errors.leave_date"></div>
+        </div>
+        <!-- 状态 -->
+        <div>
+          <label class="form-label block mb-1"><span class="required-star">*</span>状态</label>
+          <select class="form-select" x-model="modal.data.status" @change="validateField('status'); handleStatusChange()">
+            <option value="">请选择状态</option>
+            <option value="0">在职</option>
+            <option value="1">离职</option>
+          </select>
+          <div class="error-msg" x-text="modal.errors.status" x-show="modal.errors.status"></div>
+        </div>
+        <!-- 员工头像 -->
+        <div>
+          <label class="form-label block mb-1">员工头像 <span class="text-xs text-gray-400">（选填）</span></label>
+          <div class="avatar-upload" @click="simulateAvatarUpload()">
+            <template x-if="modal.data.avatar">
+              <img :src="modal.data.avatar" alt="头像">
+            </template>
+            <template x-if="!modal.data.avatar">
+              <div class="flex flex-col items-center gap-1">
+                <i class="fa-solid fa-camera text-xl"></i>
+                <span>上传头像</span>
+                <span class="text-xs text-gray-300">jpg/png ≤2MB</span>
+              </div>
+            </template>
+          </div>
+          <div class="text-xs text-gray-400 mt-1" x-show="modal.data.avatar">
+            <button class="text-red-400 text-xs" @click.stop="modal.data.avatar=''">移除头像</button>
+          </div>
+        </div>
+        <!-- 备注 -->
+        <div class="col-span-2">
+          <label class="form-label block mb-1">备注</label>
+          <textarea class="form-textarea" x-model="modal.data.remark" maxlength="500" rows="3" placeholder="请输入备注"
+            @blur="validateField('remark')"></textarea>
+          <div class="flex justify-between">
+            <div class="error-msg" x-text="modal.errors.remark" x-show="modal.errors.remark"></div>
+            <div class="text-xs text-gray-400 text-right" x-text="(modal.data.remark || '').length + '/500'"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-default" @click="closeModal()">取消</button>
+      <button class="btn-primary" :disabled="modal.submitting" @click="submitModal()">
+        <i class="fa-solid fa-circle-notch fa-spin" x-show="modal.submitting"></i>
+        <span x-text="modal.submitting ? '提交中...' : '确定'"></span>
+      </button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 新增/编辑弹窗 -->
+
+<script>
+const MOCK_DATA = {
+  currentUser: {
+    id: 1,
+    name: '王建国',
+    role: 'ent_admin',
+    roleName: '企业管理员',
+    enterpriseId: 1001,
+    permissions: [
+      'farm:enterprise:query', 'farm:enterprise:edit',
+      'farm:pigsty:list', 'farm:pigsty:add', 'farm:pigsty:edit', 'farm:pigsty:remove',
+      'farm:employee:list', 'farm:employee:add', 'farm:employee:edit', 'farm:employee:remove', 'farm:employee:changeStatus'
+    ]
+  },
+
+  employeeList: [
+    {
+      employee_id: 1, enterprise_id: 1001, employee_name: '王建国', employee_code: 'EMP00000001',
+      gender: '0', birth_date: '1975-08-12', id_card: '510921197508120015',
+      phone: '13812345678', position: '01', entry_date: '2018-03-01', leave_date: null,
+      avatar: 'https://via.placeholder.com/28x28/dbeafe/1d4ed8?text=王',
+      status: '0', del_flag: '0', create_by: 'admin', create_time: '2018-03-01 09:00:00',
+      update_by: '王建国', update_time: '2025-01-15 10:00:00', remark: '企业创始人，全面负责养殖场运营'
+    },
+    {
+      employee_id: 2, enterprise_id: 1001, employee_name: '李小芳', employee_code: 'EMP00000002',
+      gender: '1', birth_date: '1988-04-20', id_card: '510921198804200028',
+      phone: '13698765432', position: '02', entry_date: '2020-06-15', leave_date: null,
+      avatar: 'https://via.placeholder.com/28x28/fce7f3/9d174d?text=李',
+      status: '0', del_flag: '0', create_by: '王建国', create_time: '2020-06-15 08:30:00',
+      update_by: '王建国', update_time: '2025-03-10 14:20:00', remark: '持有执业兽医资格证书'
+    },
+    {
+      employee_id: 3, enterprise_id: 1001, employee_name: '张明', employee_code: 'EMP00000003',
+      gender: '0', birth_date: '1990-11-05', id_card: '510921199011050037',
+      phone: '15912348765', position: '03', entry_date: '2021-01-20', leave_date: null,
+      avatar: 'https://via.placeholder.com/28x28/dcfce7/15803d?text=张',
+      status: '0', del_flag: '0', create_by: '王建国', create_time: '2021-01-20 10:00:00',
+      update_by: '张明', update_time: '2024-11-05 09:30:00', remark: '负责C区育肥舍日常饲养'
+    },
+    {
+      employee_id: 4, enterprise_id: 1001, employee_name: '赵强', employee_code: 'EMP00000004',
+      gender: '0', birth_date: '1985-06-28', id_card: '510921198506280046',
+      phone: '18712345670', position: '04', entry_date: '2019-09-01', leave_date: null,
+      avatar: 'https://via.placeholder.com/28x28/fef3c7/92400e?text=赵',
+      status: '0', del_flag: '0', create_by: '王建国', create_time: '2019-09-01 09:00:00',
+      update_by: '赵强', update_time: '2025-02-20 11:00:00', remark: '县级防疫员培训合格'
+    },
+    {
+      employee_id: 5, enterprise_id: 1001, employee_name: '李芳', employee_code: 'EMP00000005',
+      gender: '1', birth_date: '1992-03-15', id_card: '510921199203150055',
+      phone: '13512347890', position: '05', entry_date: '2022-04-10', leave_date: null,
+      avatar: 'https://via.placeholder.com/28x28/ede9fe/4c1d95?text=芳',
+      status: '0', del_flag: '0', create_by: '王建国', create_time: '2022-04-10 08:00:00',
+      update_by: '李芳', update_time: '2025-01-08 15:30:00', remark: '负责种猪繁育管理'
+    },
+    {
+      employee_id: 6, enterprise_id: 1001, employee_name: '陈丽华', employee_code: 'EMP00000006',
+      gender: '1', birth_date: '1987-09-22', id_card: '510921198709220064',
+      phone: '15087654321', position: '06', entry_date: '2020-01-08', leave_date: null,
+      avatar: 'https://via.placeholder.com/28x28/fce7f3/9d174d?text=陈',
+      status: '0', del_flag: '0', create_by: '王建国', create_time: '2020-01-08 09:00:00',
+      update_by: '陈丽华', update_time: '2025-03-01 10:00:00', remark: '持有会计从业资格证'
+    },
+    {
+      employee_id: 7, enterprise_id: 1001, employee_name: '刘大勇', employee_code: 'EMP00000007',
+      gender: '0', birth_date: '1993-07-18', id_card: '510921199307180073',
+      phone: '13987654321', position: '03', entry_date: '2023-03-15', leave_date: null,
+      avatar: 'https://via.placeholder.com/28x28/dcfce7/15803d?text=刘',
+      status: '0', del_flag: '0', create_by: '王建国', create_time: '2023-03-15 08:30:00',
+      update_by: '王建国', update_time: '2024-08-20 14:00:00', remark: '负责B区母圈舍日常管理'
+    },
+    {
+      employee_id: 8, enterprise_id: 1001, employee_name: '周晓燕', employee_code: 'EMP00000008',
+      gender: '1', birth_date: '1995-12-30', id_card: '510921199512300082',
+      phone: '13612340987', position: '07', entry_date: '2023-08-01', leave_date: '2025-01-31',
+      avatar: 'https://via.placeholder.com/28x28/fce7f3/9d174d?text=周',
+      status: '1', del_flag: '0', create_by: '王建国', create_time: '2023-08-01 09:00:00',
+      update_by: '王建国', update_time: '2025-02-01 10:00:00', remark: '主动申请离职，已完成工作交接'
+    },
+    {
+      employee_id: 9, enterprise_id: 1001, employee_name: '吴大强', employee_code: 'EMP00000009',
+      gender: '0', birth_date: '1980-05-14', id_card: '510921198005140091',
+      phone: '17698765400', position: '03', entry_date: '2017-11-01', leave_date: '2024-06-30',
+      avatar: 'https://via.placeholder.com/28x28/dcfce7/15803d?text=吴',
+      status: '1', del_flag: '0', create_by: 'admin', create_time: '2017-11-01 08:00:00',
+      update_by: '王建国', update_time: '2024-07-01 09:00:00', remark: '老员工，因身体原因离职'
+    },
+    {
+      employee_id: 10, enterprise_id: 1001, employee_name: '曾小兰', employee_code: 'EMP00000010',
+      gender: '1', birth_date: '1998-02-08', id_card: '510921199802080000',
+      phone: '13756780123', position: '04', entry_date: '2024-04-01', leave_date: null,
+      avatar: 'https://via.placeholder.com/28x28/ede9fe/4c1d95?text=曾',
+      status: '0', del_flag: '0', create_by: '王建国', create_time: '2024-04-01 09:00:00',
+      update_by: '曾小兰', update_time: '2025-03-01 09:00:00', remark: '新入职防疫员'
+    }
+  ],
+
+  dict: {
+    position: [
+      { value: '01', label: '场长' },
+      { value: '02', label: '兽医' },
+      { value: '03', label: '饲养员' },
+      { value: '04', label: '防疫员' },
+      { value: '05', label: '繁育员' },
+      { value: '06', label: '出纳/会计' },
+      { value: '07', label: '其他' }
+    ]
+  }
+};
+
+function app() {
+  return {
+    MOCK_DATA: MOCK_DATA,
+    currentRole: 'ent_admin',
+    sidebarCollapsed: false,
+    openMenus: ['enterprise'],
+    previewImg: null,
+    toasts: [],
+    today: new Date().toISOString().split('T')[0],
+
+    filter: { name: '', position: '', status: '' },
+    filteredData: [...MOCK_DATA.employeeList],
+    page: { current: 1, size: 20 },
+
+    modal: {
+      show: false,
+      mode: 'add',
+      data: {},
+      errors: {},
+      submitting: false
+    },
+
+    confirmDialog: { show: false, title: '', message: '', onConfirm: null, onCancel: null },
+
+    init() {},
+
+    toggleMenu(key) {
+      if (this.openMenus.includes(key)) this.openMenus = this.openMenus.filter(m => m !== key);
+      else this.openMenus.push(key);
+    },
+
+    hasPermission(perm) {
+      return MOCK_DATA.currentUser.permissions.includes(perm);
+    },
+
+    switchRole() {
+      const role = this.currentRole;
+      if (role === 'ent_admin') {
+        MOCK_DATA.currentUser.name = '王建国';
+        MOCK_DATA.currentUser.role = 'ent_admin';
+        MOCK_DATA.currentUser.permissions = [
+          'farm:enterprise:query', 'farm:enterprise:edit',
+          'farm:pigsty:list', 'farm:pigsty:add', 'farm:pigsty:edit', 'farm:pigsty:remove',
+          'farm:employee:list', 'farm:employee:add', 'farm:employee:edit', 'farm:employee:remove', 'farm:employee:changeStatus'
+        ];
+      } else {
+        MOCK_DATA.currentUser.name = '李小芳';
+        MOCK_DATA.currentUser.role = 'ent_reporter';
+        MOCK_DATA.currentUser.permissions = ['farm:enterprise:query', 'farm:pigsty:list', 'farm:employee:list'];
+      }
+      this.showToast(`已切换为「${role === 'ent_admin' ? '企业管理员' : '企业填报员'}」`, 'success');
+    },
+
+    getPositionName(val) {
+      const opt = MOCK_DATA.dict.position.find(o => o.value === val);
+      return opt ? opt.label : '—';
+    },
+
+    maskIdCard(id) {
+      if (!id || id.length < 14) return id;
+      return id.substring(0, 3) + '*'.repeat(8) + id.substring(11);
+    },
+
+    searchEmployee() {
+      const { name, position, status } = this.filter;
+      this.filteredData = MOCK_DATA.employeeList.filter(row => {
+        const nameMatch = !name || row.employee_name.includes(name);
+        const posMatch = !position || row.position === position;
+        const statusMatch = !status || row.status === status;
+        return nameMatch && posMatch && statusMatch;
+      });
+      this.page.current = 1;
+    },
+
+    resetFilter() {
+      this.filter = { name: '', position: '', status: '' };
+      this.filteredData = [...MOCK_DATA.employeeList];
+      this.page.current = 1;
+    },
+
+    get totalPages() {
+      return Math.max(1, Math.ceil(this.filteredData.length / Number(this.page.size)));
+    },
+    get pageNumbers() {
+      const total = this.totalPages;
+      const cur = this.page.current;
+      const pages = [];
+      for (let i = Math.max(1, cur - 2); i <= Math.min(total, cur + 2); i++) pages.push(i);
+      return pages;
+    },
+    get pagedData() {
+      const size = Number(this.page.size);
+      const start = (this.page.current - 1) * size;
+      return this.filteredData.slice(start, start + size);
+    },
+
+    openModal(mode, row) {
+      this.modal.mode = mode;
+      this.modal.errors = {};
+      this.modal.submitting = false;
+      if (mode === 'add') {
+        this.modal.data = {
+          employee_name: '', employee_code: '', gender: '', birth_date: '',
+          id_card: '', phone: '', position: '', entry_date: '', leave_date: '',
+          avatar: '', status: '0', remark: ''
+        };
+      } else {
+        this.modal.data = {
+          ...row,
+          id_card: this.maskIdCard(row.id_card)
+        };
+      }
+      this.modal.show = true;
+    },
+
+    closeModal() {
+      this.modal.show = false;
+    },
+
+    handleStatusChange() {
+      if (this.modal.data.status !== '1') {
+        this.modal.data.leave_date = '';
+      }
+    },
+
+    validateField(field) {
+      const d = this.modal.data;
+      delete this.modal.errors[field];
+      if (field === 'employee_name') {
+        if (!d.employee_name) this.modal.errors.employee_name = '员工姓名不能为空';
+        else if (d.employee_name.length > 50) this.modal.errors.employee_name = '员工姓名最大50字符';
+      }
+      if (field === 'employee_code') {
+        if (d.employee_code && d.employee_code.length > 30) this.modal.errors.employee_code = '工号最大30字符';
+      }
+      if (field === 'birth_date') {
+        if (d.birth_date && d.birth_date > this.today) this.modal.errors.birth_date = '出生日期不能晚于今日';
+      }
+      if (field === 'id_card') {
+        if (d.id_card && !d.id_card.includes('*') && !/^\d{17}[\dXx]$/.test(d.id_card))
+          this.modal.errors.id_card = '身份证号格式不正确，须为18位（末位可为X）';
+      }
+      if (field === 'phone') {
+        if (!d.phone) this.modal.errors.phone = '联系电话不能为空';
+        else if (!/^1[3-9]\d{9}$/.test(d.phone)) this.modal.errors.phone = '手机号格式不正确，须为11位手机号';
+      }
+      if (field === 'position') {
+        if (!d.position) this.modal.errors.position = '请选择职位';
+      }
+      if (field === 'entry_date') {
+        if (!d.entry_date) this.modal.errors.entry_date = '入职日期不能为空';
+        else if (d.entry_date > this.today) this.modal.errors.entry_date = '入职日期不能晚于今日';
+      }
+      if (field === 'leave_date') {
+        if (d.leave_date) {
+          if (d.leave_date < d.entry_date) this.modal.errors.leave_date = '离职日期不能早于入职日期';
+          else if (d.leave_date > this.today) this.modal.errors.leave_date = '离职日期不能晚于今日';
+        }
+      }
+      if (field === 'status') {
+        if (d.status === '' || d.status === null || d.status === undefined) this.modal.errors.status = '请选择员工状态';
+      }
+      if (field === 'remark') {
+        if (d.remark && d.remark.length > 500) this.modal.errors.remark = '备注最大500字符';
+      }
+    },
+
+    submitModal() {
+      const fields = ['employee_name', 'employee_code', 'birth_date', 'id_card', 'phone', 'position', 'entry_date', 'leave_date', 'status', 'remark'];
+      fields.forEach(f => this.validateField(f));
+      if (Object.values(this.modal.errors).some(e => e)) return;
+      this.modal.submitting = true;
+      setTimeout(() => {
+        const d = this.modal.data;
+        if (this.modal.mode === 'add') {
+          const newId = Math.max(...MOCK_DATA.employeeList.map(e => e.employee_id)) + 1;
+          const code = d.employee_code || `EMP${String(newId).padStart(8, '0')}`;
+          const newRow = {
+            ...d,
+            employee_id: newId,
+            enterprise_id: 1001,
+            employee_code: code,
+            id_card: d.id_card,
+            del_flag: '0',
+            create_by: MOCK_DATA.currentUser.name,
+            create_time: new Date().toLocaleString('zh-CN'),
+            update_by: MOCK_DATA.currentUser.name,
+            update_time: new Date().toLocaleString('zh-CN')
+          };
+          MOCK_DATA.employeeList.unshift(newRow);
+          this.showToast('新增成功', 'success');
+        } else {
+          const idx = MOCK_DATA.employeeList.findIndex(e => e.employee_id === d.employee_id);
+          if (idx >= 0) {
+            MOCK_DATA.employeeList[idx] = {
+              ...MOCK_DATA.employeeList[idx],
+              ...d,
+              id_card: d.id_card.includes('*') ? MOCK_DATA.employeeList[idx].id_card : d.id_card,
+              update_by: MOCK_DATA.currentUser.name,
+              update_time: new Date().toLocaleString('zh-CN')
+            };
+          }
+          this.showToast('修改成功', 'success');
+        }
+        this.filteredData = [...MOCK_DATA.employeeList];
+        this.modal.submitting = false;
+        this.modal.show = false;
+      }, 900);
+    },
+
+    confirmChangeStatus(row) {
+      const isActive = row.status === '0';
+      const newStatusLabel = isActive ? '离职' : '在职';
+      const actionLabel = isActive ? '停用' : '启用';
+      this.confirmDialog = {
+        show: true,
+        title: `确定${actionLabel}该员工吗？`,
+        message: isActive
+          ? `确定将员工「${row.employee_name}」设为离职吗？离职后该员工将不再出现在在职列表中。`
+          : `确定将员工「${row.employee_name}」恢复为在职吗？`,
+        onConfirm: () => {
+          const idx = MOCK_DATA.employeeList.findIndex(e => e.employee_id === row.employee_id);
+          if (idx >= 0) {
+            MOCK_DATA.employeeList[idx].status = isActive ? '1' : '0';
+            MOCK_DATA.employeeList[idx].update_by = MOCK_DATA.currentUser.name;
+            MOCK_DATA.employeeList[idx].update_time = new Date().toLocaleString('zh-CN');
+          }
+          this.filteredData = [...MOCK_DATA.employeeList];
+          this.showToast('操作成功', 'success');
+        },
+        onCancel: null
+      };
+    },
+
+    confirmDelete(row) {
+      this.confirmDialog = {
+        show: true,
+        title: '确认删除',
+        message: `确定删除员工「${row.employee_name}」吗？此操作不可恢复。`,
+        onConfirm: () => {
+          const idx = MOCK_DATA.employeeList.findIndex(e => e.employee_id === row.employee_id);
+          if (idx >= 0) MOCK_DATA.employeeList.splice(idx, 1);
+          this.filteredData = [...MOCK_DATA.employeeList];
+          this.showToast('删除成功', 'success');
+        },
+        onCancel: null
+      };
+    },
+
+    simulateAvatarUpload() {
+      const colors = ['dbeafe/1d4ed8', 'fce7f3/9d174d', 'dcfce7/15803d', 'fef3c7/92400e', 'ede9fe/4c1d95'];
+      const col = colors[Math.floor(Math.random() * colors.length)];
+      const name = this.modal.data.employee_name || '员';
+      this.modal.data.avatar = `https://via.placeholder.com/80x80/${col}?text=${encodeURIComponent(name.charAt(0))}`;
+      this.showToast('头像上传成功', 'success');
+    },
+
+    showToast(message, type = 'success') {
+      const id = Date.now();
+      this.toasts.push({ id, message, type });
+      setTimeout(() => { this.toasts = this.toasts.filter(t => t.id !== id); }, 2000);
+    }
+  };
+}
+</script>
+</body>
+</html>

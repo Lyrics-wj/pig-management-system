@@ -1,0 +1,2356 @@
+<!--
+  功能名称：生猪知识讲堂官方网站（前台）
+  对应PRD：doc_prd/WEB/生猪知识讲堂/网站/WEB-生猪知识讲堂网站.prd.md
+  所属端口：生猪知识讲堂官网（前台公众端）
+  所属模块：用户注册登录、首页导航、课程查看、政策资讯、行业动态、培训活动、在线交流（论坛+问答）
+  制作日期：2026-03-06
+  最后更新：2026-03-06
+  角色说明：企业管理员(ent_admin)、企业填报员(ent_reporter)、公众用户(kc_portal)、未登录访客
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>生猪知识讲堂 - 蓬溪县生猪数字化管理平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* SHARED STYLES */
+    :root {
+      --primary: #22c55e;
+      --primary-dark: #16a34a;
+      --primary-light: #bbf7d0;
+      --secondary: #1677ff;
+      --bg: #f0f2f5;
+      --card: #ffffff;
+      --border: #e8e8e8;
+      --text: #262626;
+      --text-secondary: #595959;
+      --text-muted: #8c8c8c;
+      --success: #52c41a;
+      --warning: #faad14;
+      --error: #ff4d4f;
+      --disabled: #bfbfbf;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); }
+    .nav-link { transition: color 0.2s; }
+    .nav-link.active { color: var(--primary); border-bottom: 2px solid var(--primary); }
+    .nav-link:hover { color: var(--primary); }
+    .btn-primary { background: var(--primary); color: #fff; border: none; border-radius: 6px; padding: 8px 20px; cursor: pointer; font-size: 14px; transition: background 0.2s; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-outline { background: #fff; color: var(--primary); border: 1px solid var(--primary); border-radius: 6px; padding: 7px 18px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+    .btn-outline:hover { background: var(--primary-light); }
+    .btn-danger { background: #ff4d4f; color: #fff; border: none; border-radius: 6px; padding: 8px 20px; cursor: pointer; font-size: 14px; }
+    .btn-gray { background: #d9d9d9; color: #666; border: none; border-radius: 6px; padding: 8px 20px; cursor: not-allowed; font-size: 14px; }
+    .tag { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .tag-green { background: #dcfce7; color: #16a34a; }
+    .tag-blue { background: #dbeafe; color: #1d4ed8; }
+    .tag-orange { background: #fef3c7; color: #d97706; }
+    .tag-red { background: #fee2e2; color: #dc2626; }
+    .tag-gray { background: #f3f4f6; color: #6b7280; }
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+    .modal-box { background: #fff; border-radius: 12px; padding: 32px; max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; }
+    .modal-box-lg { max-width: 720px; }
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 14px; color: var(--text-secondary); margin-bottom: 6px; }
+    .form-label .required { color: var(--error); margin-right: 3px; }
+    .form-input { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; outline: none; transition: border-color 0.2s; box-sizing: border-box; }
+    .form-input:focus { border-color: var(--primary); }
+    .form-input.error { border-color: var(--error); }
+    .form-error { color: var(--error); font-size: 12px; margin-top: 4px; display: none; }
+    .form-error.show { display: block; }
+    .card { background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    .card-hover { transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
+    .card-hover:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+    .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px; }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    .star-filled { color: #faad14; }
+    .star-empty { color: #d9d9d9; }
+    .top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 64px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.08); display: flex; align-items: center; }
+    .content-wrapper { padding-top: 64px; min-height: 100vh; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .tab-item { padding: 10px 20px; cursor: pointer; font-size: 14px; color: var(--text-secondary); border-bottom: 2px solid transparent; transition: all 0.2s; white-space: nowrap; }
+    .tab-item.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+    .tab-item:hover { color: var(--primary); }
+    .tab-item.disabled { color: var(--disabled); cursor: not-allowed; }
+    .pagination { display: flex; align-items: center; gap: 6px; justify-content: center; padding: 16px 0; }
+    .page-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; cursor: pointer; font-size: 14px; border: 1px solid var(--border); background: #fff; transition: all 0.2s; }
+    .page-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .page-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .video-placeholder { background: #1a1a2e; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; color: #fff; }
+    .success-toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: #52c41a; color: #fff; padding: 10px 24px; border-radius: 8px; z-index: 9999; font-size: 14px; pointer-events: none; transition: opacity 0.3s; }
+    .banner-slide { display: none; }
+    .banner-slide.active { display: block; }
+    textarea.form-input { resize: vertical; min-height: 80px; }
+    select.form-input { -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238c8c8c' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+    .search-wrapper { position: relative; }
+    .search-wrapper input { padding-left: 38px; }
+    .search-wrapper .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+    .chapter-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; cursor: pointer; transition: background 0.15s; }
+    .chapter-item:hover { background: #f0fdf4; }
+    .chapter-item.active { background: #dcfce7; }
+    .reply-item { border-left: 3px solid var(--primary-light); padding: 12px 16px; margin-bottom: 12px; border-radius: 0 8px 8px 0; background: #f9fafb; }
+    .answer-item { border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+    .answer-item.accepted { border-color: var(--primary); background: #f0fdf4; }
+    .board-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 8px; cursor: pointer; transition: background 0.15s; }
+    .board-item:hover { background: #f0fdf4; }
+    .board-item.active { background: #dcfce7; font-weight: 600; color: var(--primary-dark); }
+    .rating-stars { display: flex; gap: 4px; font-size: 24px; cursor: pointer; }
+    .profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), #059669); display: flex; align-items: center; justify-content: center; font-size: 32px; color: #fff; font-weight: 700; }
+  </style>
+</head>
+<body x-data="kcPortal()" @click.self="closeModal">
+
+<!-- ============ TOP NAV ============ -->
+<nav class="top-nav px-6">
+  <div class="max-w-7xl mx-auto flex items-center justify-between w-full">
+    <!-- Logo -->
+    <div class="flex items-center gap-3 cursor-pointer" @click="goPage('home')">
+      <div class="w-9 h-9 bg-green-600 rounded-lg flex items-center justify-center">
+        <i class="fas fa-leaf text-white text-lg"></i>
+      </div>
+      <span class="font-bold text-lg text-green-700">生猪知识讲堂</span>
+    </div>
+    <!-- Nav Links -->
+    <div class="flex items-center gap-1 ml-8">
+      <template x-for="item in navItems" :key="item.key">
+        <div class="nav-link px-4 py-1 cursor-pointer text-sm font-medium"
+             :class="currentPage === item.key ? 'active' : 'text-gray-600'"
+             @click="goPage(item.key)"
+             x-text="item.label"></div>
+      </template>
+    </div>
+    <!-- User Area -->
+    <div class="flex items-center gap-3 ml-auto">
+      <template x-if="!currentUser">
+        <div class="flex gap-2">
+          <button class="btn-outline text-sm" @click="showPage='login'">登录</button>
+          <button class="btn-primary text-sm" @click="showPage='register'">注册</button>
+        </div>
+      </template>
+      <template x-if="currentUser">
+        <div class="relative" x-data="{open:false}">
+          <div class="flex items-center gap-2 cursor-pointer" @click="open=!open">
+            <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white text-sm font-bold" x-text="currentUser.nick_name.charAt(0)"></div>
+            <span class="text-sm font-medium" x-text="currentUser.nick_name"></span>
+            <i class="fas fa-chevron-down text-xs text-gray-400"></i>
+          </div>
+          <div x-show="open" @click.away="open=false" class="absolute right-0 top-10 bg-white rounded-lg shadow-lg border w-40 z-50">
+            <div class="py-1">
+              <div class="px-4 py-2 text-sm cursor-pointer hover:bg-gray-50" @click="goPage('profile'); open=false"><i class="fas fa-user mr-2 text-gray-400"></i>个人中心</div>
+              <div class="px-4 py-2 text-sm cursor-pointer hover:bg-gray-50" @click="goPage('my-enrollment'); open=false"><i class="fas fa-calendar-check mr-2 text-gray-400"></i>我的报名</div>
+              <div class="border-t my-1"></div>
+              <div class="px-4 py-2 text-sm cursor-pointer hover:bg-gray-50 text-red-500" @click="logout(); open=false"><i class="fas fa-sign-out-alt mr-2"></i>退出登录</div>
+            </div>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+</nav>
+
+<div class="content-wrapper">
+
+  <!-- ============================= PAGE: HOME ============================= -->
+  <!-- SECTION START: 首页 -->
+  <section id="feature-home" class="page" :class="currentPage==='home' ? 'active' : ''">
+    <!-- Banner -->
+    <div class="relative bg-gray-900 overflow-hidden" style="height:400px">
+      <template x-for="(banner, idx) in MOCK_DATA.banners" :key="banner.banner_id">
+        <div class="banner-slide absolute inset-0" :class="bannerIdx===idx ? 'active' : ''">
+          <div class="w-full h-full flex items-center justify-center" :style="`background: linear-gradient(135deg, ${banner.bg_from}, ${banner.bg_to})`">
+            <div class="text-center text-white">
+              <div class="text-4xl font-bold mb-3" x-text="banner.banner_title"></div>
+              <div class="text-lg opacity-80" x-text="banner.subtitle"></div>
+            </div>
+          </div>
+        </div>
+      </template>
+      <!-- Arrows -->
+      <button class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/30 rounded-full text-white flex items-center justify-center hover:bg-black/50 transition" @click="bannerIdx=(bannerIdx-1+MOCK_DATA.banners.length)%MOCK_DATA.banners.length"><i class="fas fa-chevron-left"></i></button>
+      <button class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/30 rounded-full text-white flex items-center justify-center hover:bg-black/50 transition" @click="bannerIdx=(bannerIdx+1)%MOCK_DATA.banners.length"><i class="fas fa-chevron-right"></i></button>
+      <!-- Dots -->
+      <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+        <template x-for="(b, i) in MOCK_DATA.banners" :key="i">
+          <div class="w-2.5 h-2.5 rounded-full cursor-pointer transition-all" :class="bannerIdx===i ? 'bg-white scale-125' : 'bg-white/50'" @click="bannerIdx=i"></div>
+        </template>
+      </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-6 py-10">
+      <!-- 精选课程 -->
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-play-circle text-green-500 mr-2"></i>精选课程</h2>
+        <button class="text-green-600 text-sm hover:text-green-700 font-medium" @click="goPage('courses')">查看更多 <i class="fas fa-arrow-right ml-1"></i></button>
+      </div>
+      <div class="grid grid-cols-4 gap-5 mb-10">
+        <template x-for="c in MOCK_DATA.courses.slice(0,4)" :key="c.course_id">
+          <div class="card card-hover p-0 overflow-hidden" @click="openCourseDetail(c)">
+            <div class="bg-gradient-to-br from-green-400 to-emerald-600 h-36 flex items-center justify-center">
+              <i class="fas fa-video text-white text-4xl opacity-70"></i>
+            </div>
+            <div class="p-4">
+              <div class="font-semibold text-sm mb-1 truncate" x-text="c.course_name"></div>
+              <div class="text-xs text-gray-400 mb-2" x-text="c.teacher_name"></div>
+              <div class="flex items-center justify-between">
+                <span class="tag tag-green text-xs" x-text="c.category_name"></span>
+                <div class="flex items-center gap-1 text-xs text-gray-400">
+                  <i class="fas fa-star star-filled text-xs"></i>
+                  <span x-text="c.score"></span>
+                  <span class="ml-1" x-text="c.learn_count+'人学习'"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- 政策资讯 -->
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-newspaper text-blue-500 mr-2"></i>政策资讯</h2>
+        <button class="text-green-600 text-sm hover:text-green-700 font-medium" @click="goPage('policy')">查看更多 <i class="fas fa-arrow-right ml-1"></i></button>
+      </div>
+      <div class="grid grid-cols-3 gap-5 mb-10">
+        <div class="card card-hover col-span-1 p-0 overflow-hidden" @click="openPolicyDetail(MOCK_DATA.policies[0])">
+          <div class="bg-gradient-to-br from-blue-400 to-indigo-600 h-40 flex items-center justify-center">
+            <i class="fas fa-file-alt text-white text-4xl opacity-70"></i>
+          </div>
+          <div class="p-4">
+            <div class="font-semibold mb-1 line-clamp-2" x-text="MOCK_DATA.policies[0].policy_title"></div>
+            <div class="text-xs text-gray-400" x-text="MOCK_DATA.policies[0].publish_time"></div>
+          </div>
+        </div>
+        <div class="col-span-2 flex flex-col gap-3">
+          <template x-for="p in MOCK_DATA.policies.slice(1,6)" :key="p.policy_id">
+            <div class="card card-hover py-3 px-4 flex items-center gap-3" @click="openPolicyDetail(p)">
+              <span class="tag tag-blue text-xs shrink-0" x-text="getPolicyCategoryLabel(p.policy_category)"></span>
+              <div class="flex-1 min-w-0">
+                <span x-show="p.is_top=='1'" class="text-red-500 text-xs font-bold mr-1">[置顶]</span>
+                <span x-show="p.is_important=='1'" class="text-red-600 font-medium text-sm" x-text="p.policy_title"></span>
+                <span x-show="p.is_important!='1'" class="text-sm" x-text="p.policy_title"></span>
+              </div>
+              <span class="text-xs text-gray-400 shrink-0" x-text="p.publish_time.substring(0,10)"></span>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- 行业动态 -->
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-chart-line text-orange-500 mr-2"></i>行业动态</h2>
+        <button class="text-green-600 text-sm hover:text-green-700 font-medium" @click="goPage('news')">查看更多 <i class="fas fa-arrow-right ml-1"></i></button>
+      </div>
+      <div class="grid grid-cols-3 gap-5 mb-10">
+        <template x-for="a in MOCK_DATA.articles.slice(0,6)" :key="a.article_id">
+          <div class="card card-hover p-0 overflow-hidden" @click="openArticleDetail(a)">
+            <div class="bg-gradient-to-br from-orange-300 to-amber-500 h-28 flex items-center justify-center">
+              <i class="fas fa-rss text-white text-3xl opacity-70"></i>
+            </div>
+            <div class="p-4">
+              <div class="font-semibold text-sm mb-1 line-clamp-2" x-text="a.title"></div>
+              <div class="text-xs text-gray-400 line-clamp-2 mb-2" x-text="a.summary"></div>
+              <div class="flex items-center justify-between">
+                <span class="tag tag-orange text-xs" x-text="getArticleCategoryLabel(a.article_category)"></span>
+                <span class="text-xs text-gray-400" x-text="a.publish_time.substring(0,10)"></span>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- 近期培训 -->
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-chalkboard-teacher text-purple-500 mr-2"></i>近期培训</h2>
+        <button class="text-green-600 text-sm hover:text-green-700 font-medium" @click="goPage('training')">查看更多 <i class="fas fa-arrow-right ml-1"></i></button>
+      </div>
+      <div class="grid grid-cols-3 gap-5 mb-10">
+        <template x-for="t in MOCK_DATA.trainings.filter(t=>t.training_status=='0'||t.training_status=='1').slice(0,3)" :key="t.training_id">
+          <div class="card card-hover" @click="openTrainingDetail(t)">
+            <div class="flex items-start gap-3">
+              <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-violet-600 rounded-lg flex items-center justify-center shrink-0">
+                <i class="fas fa-graduation-cap text-white text-2xl"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="font-semibold text-sm mb-1 line-clamp-2" x-text="t.training_name"></div>
+                <div class="text-xs text-gray-400 mb-1"><i class="fas fa-clock mr-1"></i><span x-text="t.start_time.substring(0,10)"></span></div>
+                <div class="text-xs text-gray-400 mb-2"><i class="fas fa-map-marker-alt mr-1"></i><span x-text="t.location"></span></div>
+                <span class="tag text-xs" :class="t.training_status=='0' ? 'tag-green' : 'tag-blue'" x-text="t.training_status=='0' ? '报名中' : '进行中'"></span>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- 热门讨论 -->
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-comments text-teal-500 mr-2"></i>热门讨论</h2>
+        <button class="text-green-600 text-sm hover:text-green-700 font-medium" @click="goPage('forum')">进入论坛 <i class="fas fa-arrow-right ml-1"></i></button>
+      </div>
+      <div class="card mb-10">
+        <template x-for="(p, idx) in MOCK_DATA.forumPosts.slice(0,5)" :key="p.post_id">
+          <div class="flex items-center gap-3 py-3 cursor-pointer hover:bg-gray-50 rounded-lg px-3 transition" :class="idx>0 ? 'border-t' : ''" @click="openPostDetail(p)">
+            <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                 :class="idx<3 ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'"
+                 x-text="idx+1"></div>
+            <div class="flex-1 min-w-0">
+              <span class="text-sm font-medium" x-text="p.title"></span>
+            </div>
+            <div class="flex items-center gap-3 text-xs text-gray-400 shrink-0">
+              <span><i class="fas fa-comment mr-1"></i><span x-text="p.reply_count"></span></span>
+              <span x-text="p.last_reply_time.substring(0,10)"></span>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-300 py-8">
+      <div class="max-w-7xl mx-auto px-6 text-center">
+        <p class="text-sm">© 2024 蓬溪县生猪数字化管理平台 版权所有</p>
+        <p class="text-xs mt-2 text-gray-500">蜀ICP备XXXXXXXX号 | 技术支持：蓬溪县农业农村局</p>
+      </div>
+    </footer>
+  </section>
+  <!-- SECTION END: 首页 -->
+
+  <!-- ============================= PAGE: COURSES ============================= -->
+  <!-- SECTION START: 课程查看 -->
+  <section id="feature-courses" class="page" :class="currentPage==='courses' ? 'active' : ''">
+    <div class="max-w-7xl mx-auto px-6 py-8">
+      <h1 class="text-2xl font-bold mb-6">课程查看</h1>
+      <!-- Search -->
+      <div class="search-wrapper mb-4">
+        <i class="fas fa-search search-icon text-sm"></i>
+        <input type="text" class="form-input" style="max-width:360px" placeholder="搜索课程名称"
+               x-model="courseSearch"
+               @input.debounce.300ms="filterCourses">
+      </div>
+      <!-- Category Tabs -->
+      <div class="flex border-b mb-6 overflow-x-auto">
+        <div class="tab-item" :class="[courseTab==='all' ? 'active':'', courseSearch ? 'disabled':'']" @click="!courseSearch && setCourseTab('all')">全部</div>
+        <template x-for="cat in MOCK_DATA.courseCategories" :key="cat.category_id">
+          <div class="tab-item" :class="[courseTab===cat.category_id ? 'active':'', courseSearch ? 'disabled':'']"
+               @click="!courseSearch && setCourseTab(cat.category_id)"
+               x-text="cat.category_name"></div>
+        </template>
+      </div>
+      <!-- Course Grid -->
+      <div class="grid grid-cols-3 gap-5 mb-6" x-show="filteredCourses.length > 0">
+        <template x-for="c in paginatedCourses" :key="c.course_id">
+          <div class="card card-hover p-0 overflow-hidden" @click="openCourseDetail(c)">
+            <div class="bg-gradient-to-br from-green-400 to-emerald-600 h-44 flex items-center justify-center">
+              <i class="fas fa-video text-white text-5xl opacity-70"></i>
+            </div>
+            <div class="p-5">
+              <div class="font-semibold mb-1 line-clamp-1" x-text="c.course_name"></div>
+              <div class="text-sm text-gray-400 mb-3"><i class="fas fa-user-tie mr-1"></i><span x-text="c.teacher_name"></span></div>
+              <div class="flex items-center justify-between">
+                <span class="tag tag-green text-xs" x-text="c.category_name"></span>
+                <div class="flex items-center gap-2 text-xs text-gray-400">
+                  <span><i class="fas fa-star star-filled mr-0.5"></i><span x-text="c.score"></span></span>
+                  <span><i class="fas fa-users mr-0.5"></i><span x-text="c.learn_count"></span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+      <div x-show="filteredCourses.length===0" class="text-center py-16 text-gray-400">
+        <i class="fas fa-search text-4xl mb-3 block"></i>暂无相关课程
+      </div>
+      <!-- Pagination -->
+      <div class="pagination" x-show="filteredCourses.length>0">
+        <div class="text-sm text-gray-400 mr-4">共 <span x-text="filteredCourses.length"></span> 门课程</div>
+        <div class="page-btn" @click="coursePage=Math.max(1,coursePage-1)"><i class="fas fa-chevron-left text-xs"></i></div>
+        <template x-for="n in Math.ceil(filteredCourses.length/12)" :key="n">
+          <div class="page-btn" :class="coursePage===n ? 'active' : ''" @click="coursePage=n" x-text="n"></div>
+        </template>
+        <div class="page-btn" @click="coursePage=Math.min(Math.ceil(filteredCourses.length/12),coursePage+1)"><i class="fas fa-chevron-right text-xs"></i></div>
+      </div>
+    </div>
+  </section>
+  <!-- SECTION END: 课程查看 -->
+
+  <!-- ============================= PAGE: COURSE DETAIL ============================= -->
+  <!-- SECTION START: 课程详情 -->
+  <section id="feature-course-detail" class="page" :class="currentPage==='course-detail' ? 'active' : ''">
+    <div class="max-w-7xl mx-auto px-6 py-8" x-show="selectedCourse">
+      <!-- Breadcrumb -->
+      <div class="text-sm text-gray-400 mb-5 flex items-center gap-1">
+        <span class="cursor-pointer hover:text-green-600" @click="goPage('home')">首页</span>
+        <i class="fas fa-chevron-right text-xs"></i>
+        <span class="cursor-pointer hover:text-green-600" @click="goPage('courses')">课程查看</span>
+        <i class="fas fa-chevron-right text-xs"></i>
+        <span class="text-gray-700" x-text="selectedCourse?.course_name"></span>
+      </div>
+      <div class="grid grid-cols-3 gap-6 mb-8">
+        <!-- Video Player -->
+        <div class="col-span-2">
+          <div class="video-placeholder w-full" style="height:380px">
+            <i class="fas fa-play-circle text-6xl opacity-50"></i>
+            <div class="text-lg font-semibold" x-text="playingChapter?.chapter_title"></div>
+            <div class="text-sm opacity-60" x-text="'时长：' + formatDuration(playingChapter?.video_duration)"></div>
+          </div>
+        </div>
+        <!-- Chapter List -->
+        <div class="card p-0 overflow-hidden">
+          <div class="bg-green-600 text-white px-4 py-3 font-semibold flex items-center gap-2">
+            <i class="fas fa-list"></i> 章节目录 (<span x-text="selectedCourse?.chapters?.length"></span>节)
+          </div>
+          <div class="overflow-y-auto" style="max-height:340px">
+            <template x-for="ch in selectedCourse?.chapters" :key="ch.chapter_id">
+              <div class="chapter-item" :class="playingChapter?.chapter_id===ch.chapter_id ? 'active' : ''" @click="playingChapter=ch">
+                <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                     :class="ch.is_completed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'">
+                  <template x-if="ch.is_completed"><i class="fas fa-check text-xs"></i></template>
+                  <template x-if="!ch.is_completed"><span x-text="ch.chapter_sort"></span></template>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm font-medium truncate" x-text="ch.chapter_title"></div>
+                  <div class="text-xs text-gray-400" x-text="formatDuration(ch.video_duration)"></div>
+                </div>
+                <template x-if="playingChapter?.chapter_id===ch.chapter_id">
+                  <i class="fas fa-volume-up text-green-500 text-xs shrink-0"></i>
+                </template>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+      <!-- Detail Tabs -->
+      <div class="card">
+        <div class="flex border-b mb-5">
+          <div class="tab-item" :class="courseDetailTab==='intro' ? 'active' : ''" @click="courseDetailTab='intro'">课程介绍</div>
+          <div class="tab-item" :class="courseDetailTab==='reviews' ? 'active' : ''" @click="courseDetailTab='reviews'">课程评价 (<span x-text="selectedCourse?.review_count"></span>)</div>
+        </div>
+        <!-- Course Intro -->
+        <div x-show="courseDetailTab==='intro'">
+          <h3 class="font-bold text-gray-700 mb-3">课程简介</h3>
+          <p class="text-sm text-gray-600 leading-relaxed mb-6" x-text="selectedCourse?.course_intro"></p>
+          <div class="border-t pt-5">
+            <h3 class="font-bold text-gray-700 mb-4">讲师信息</h3>
+            <div class="flex items-start gap-4">
+              <div class="w-16 h-16 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white text-xl font-bold shrink-0" x-text="selectedCourse?.teacher_name?.charAt(0)"></div>
+              <div>
+                <div class="font-semibold mb-1" x-text="selectedCourse?.teacher_name"></div>
+                <div class="text-sm text-gray-500" x-text="selectedCourse?.teacher_intro"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Reviews -->
+        <div x-show="courseDetailTab==='reviews'">
+          <div class="flex items-center gap-6 mb-6 p-4 bg-green-50 rounded-lg">
+            <div class="text-center">
+              <div class="text-4xl font-bold text-green-600" x-text="selectedCourse?.score"></div>
+              <div class="flex items-center gap-0.5 mt-1 justify-center">
+                <template x-for="i in [1,2,3,4,5]" :key="i">
+                  <i class="fas fa-star text-sm" :class="i<=Math.round(selectedCourse?.score) ? 'star-filled' : 'star-empty'"></i>
+                </template>
+              </div>
+              <div class="text-xs text-gray-400 mt-1">综合评分</div>
+            </div>
+            <div class="flex-1">
+              <div class="text-sm text-gray-500" x-text="(selectedCourse?.review_count || 0) + '条评价'"></div>
+            </div>
+          </div>
+          <template x-for="rv in MOCK_DATA.reviews" :key="rv.review_id">
+            <div class="border-b pb-4 mb-4">
+              <div class="flex items-center gap-3 mb-2">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white text-xs font-bold" x-text="rv.user_nickname.charAt(0)"></div>
+                <div>
+                  <div class="font-medium text-sm" x-text="rv.user_nickname"></div>
+                  <div class="flex items-center gap-0.5">
+                    <template x-for="i in [1,2,3,4,5]" :key="i">
+                      <i class="fas fa-star text-xs" :class="i<=rv.score ? 'star-filled' : 'star-empty'"></i>
+                    </template>
+                  </div>
+                </div>
+                <span class="text-xs text-gray-400 ml-auto" x-text="rv.create_time.substring(0,10)"></span>
+              </div>
+              <p class="text-sm text-gray-600 ml-11" x-text="rv.review_content"></p>
+            </div>
+          </template>
+          <div class="flex justify-center mt-4" x-show="currentUser">
+            <button class="btn-primary" @click="showPage='write-review'">写评价</button>
+          </div>
+          <div class="text-center text-sm text-gray-400 mt-4" x-show="!currentUser">
+            <span class="text-green-600 cursor-pointer" @click="showPage='login'">登录</span>后可以写评价
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- SECTION END: 课程详情 -->
+
+  <!-- ============================= PAGE: POLICY ============================= -->
+  <!-- SECTION START: 政策资讯 -->
+  <section id="feature-policy" class="page" :class="currentPage==='policy' ? 'active' : ''">
+    <div class="max-w-7xl mx-auto px-6 py-8">
+      <h1 class="text-2xl font-bold mb-6">政策资讯</h1>
+      <div class="search-wrapper mb-4">
+        <i class="fas fa-search search-icon text-sm"></i>
+        <input type="text" class="form-input" style="max-width:360px" placeholder="搜索资讯标题或来源" x-model="policySearch" @input.debounce.300ms="filterPolicies">
+      </div>
+      <div class="flex border-b mb-6 overflow-x-auto">
+        <div class="tab-item" :class="[policyTab==='all' ? 'active':'', policySearch ? 'disabled':'']" @click="!policySearch && setPolicyTab('all')">全部</div>
+        <template x-for="cat in MOCK_DATA.policyCategories" :key="cat.value">
+          <div class="tab-item" :class="[policyTab===cat.value ? 'active':'', policySearch ? 'disabled':'']" @click="!policySearch && setPolicyTab(cat.value)" x-text="cat.label"></div>
+        </template>
+      </div>
+      <div class="space-y-3 mb-6">
+        <template x-for="p in paginatedPolicies" :key="p.policy_id">
+          <div class="card card-hover flex items-start gap-4 py-4 px-5" @click="openPolicyDetail(p)">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-1 flex-wrap">
+                <span x-show="p.is_top=='1'" class="tag tag-red text-xs">置顶</span>
+                <span class="tag tag-blue text-xs" x-text="getPolicyCategoryLabel(p.policy_category)"></span>
+              </div>
+              <div class="font-semibold mb-1" :class="p.is_important=='1' ? 'text-red-600' : ''" x-text="p.policy_title"></div>
+              <div class="text-sm text-gray-400 line-clamp-2" x-text="p.policy_summary"></div>
+              <div class="flex items-center gap-4 mt-2 text-xs text-gray-400">
+                <span><i class="fas fa-building mr-1"></i><span x-text="p.policy_source"></span></span>
+                <span><i class="far fa-clock mr-1"></i><span x-text="p.publish_time.substring(0,10)"></span></span>
+                <span><i class="fas fa-eye mr-1"></i><span x-text="p.read_count"></span></span>
+              </div>
+            </div>
+            <div x-show="p.cover_image" class="w-20 h-16 bg-gray-100 rounded-lg shrink-0 flex items-center justify-center">
+              <i class="fas fa-image text-gray-300 text-2xl"></i>
+            </div>
+          </div>
+        </template>
+      </div>
+      <div class="pagination">
+        <div class="text-sm text-gray-400 mr-4">共 <span x-text="filteredPolicies.length"></span> 条</div>
+        <div class="page-btn" @click="policyPage=Math.max(1,policyPage-1)"><i class="fas fa-chevron-left text-xs"></i></div>
+        <template x-for="n in Math.ceil(filteredPolicies.length/20)" :key="n">
+          <div class="page-btn" :class="policyPage===n ? 'active':''" @click="policyPage=n" x-text="n"></div>
+        </template>
+        <div class="page-btn" @click="policyPage=Math.min(Math.ceil(filteredPolicies.length/20),policyPage+1)"><i class="fas fa-chevron-right text-xs"></i></div>
+      </div>
+    </div>
+  </section>
+  <!-- SECTION END: 政策资讯 -->
+
+  <!-- ============================= PAGE: POLICY DETAIL ============================= -->
+  <!-- SECTION START: 政策资讯详情 -->
+  <section id="feature-policy-detail" class="page" :class="currentPage==='policy-detail' ? 'active' : ''" x-show="selectedPolicy">
+    <div class="max-w-4xl mx-auto px-6 py-8">
+      <div class="text-sm text-gray-400 mb-5 flex items-center gap-1">
+        <span class="cursor-pointer hover:text-green-600" @click="goPage('home')">首页</span>
+        <i class="fas fa-chevron-right text-xs"></i>
+        <span class="cursor-pointer hover:text-green-600" @click="goPage('policy')">政策资讯</span>
+        <i class="fas fa-chevron-right text-xs"></i>
+        <span class="text-gray-700" x-text="selectedPolicy?.policy_title?.substring(0,20)+'...'"></span>
+      </div>
+      <div class="card">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="tag tag-blue text-xs" x-text="getPolicyCategoryLabel(selectedPolicy?.policy_category)"></span>
+        </div>
+        <h1 class="text-2xl font-bold mb-4" :class="selectedPolicy?.is_important=='1' ? 'text-red-600' : ''" x-text="selectedPolicy?.policy_title"></h1>
+        <div class="flex items-center gap-5 text-sm text-gray-400 pb-4 border-b mb-6">
+          <span><i class="fas fa-building mr-1"></i><span x-text="selectedPolicy?.policy_source"></span></span>
+          <span><i class="far fa-clock mr-1"></i><span x-text="selectedPolicy?.publish_time"></span></span>
+          <span><i class="fas fa-eye mr-1"></i><span x-text="selectedPolicy?.read_count"></span>次阅读</span>
+        </div>
+        <div class="prose max-w-none text-gray-700 leading-loose text-sm" x-text="selectedPolicy?.content"></div>
+        <div class="mt-6 border-t pt-4" x-show="selectedPolicy?.attachment_urls">
+          <h3 class="font-semibold text-gray-700 mb-3"><i class="fas fa-paperclip mr-2"></i>相关附件</h3>
+          <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <i class="fas fa-file-pdf text-red-400 text-xl"></i>
+            <span class="text-sm text-green-600 cursor-pointer hover:underline" x-text="selectedPolicy?.policy_title + '.pdf'"></span>
+            <button class="ml-auto btn-outline text-xs py-1 px-3" @click="toast('附件下载成功')"><i class="fas fa-download mr-1"></i>下载</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- SECTION END: 政策资讯详情 -->
+
+  <!-- ============================= PAGE: NEWS ============================= -->
+  <!-- SECTION START: 行业动态 -->
+  <section id="feature-news" class="page" :class="currentPage==='news' ? 'active' : ''">
+    <div class="max-w-7xl mx-auto px-6 py-8">
+      <h1 class="text-2xl font-bold mb-6">行业动态</h1>
+      <div class="search-wrapper mb-4">
+        <i class="fas fa-search search-icon text-sm"></i>
+        <input type="text" class="form-input" style="max-width:360px" placeholder="搜索行业动态" x-model="newsSearch" @input.debounce.300ms="filterNews">
+      </div>
+      <div class="flex border-b mb-6 overflow-x-auto">
+        <div class="tab-item" :class="[newsTab==='all' ? 'active':'', newsSearch ? 'disabled':'']" @click="!newsSearch && setNewsTab('all')">全部</div>
+        <template x-for="cat in MOCK_DATA.articleCategories" :key="cat.value">
+          <div class="tab-item" :class="[newsTab===cat.value ? 'active':'', newsSearch ? 'disabled':'']" @click="!newsSearch && setNewsTab(cat.value)" x-text="cat.label"></div>
+        </template>
+      </div>
+      <div class="space-y-3 mb-6">
+        <template x-for="a in paginatedNews" :key="a.article_id">
+          <div class="card card-hover flex items-start gap-4 py-4 px-5" @click="openArticleDetail(a)">
+            <div class="w-24 h-18 bg-gradient-to-br from-orange-300 to-amber-400 rounded-lg flex items-center justify-center shrink-0" style="height:72px">
+              <i class="fas fa-rss text-white text-2xl"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-1">
+                <span x-show="a.is_top=='1'" class="tag tag-red text-xs">置顶</span>
+                <span class="tag tag-orange text-xs" x-text="getArticleCategoryLabel(a.article_category)"></span>
+              </div>
+              <div class="font-semibold mb-1" x-text="a.title"></div>
+              <div class="text-sm text-gray-400 line-clamp-2" x-text="a.summary"></div>
+              <div class="flex items-center gap-4 mt-2 text-xs text-gray-400">
+                <span x-show="a.source"><i class="fas fa-building mr-1"></i><span x-text="a.source"></span></span>
+                <span><i class="far fa-clock mr-1"></i><span x-text="a.publish_time.substring(0,10)"></span></span>
+                <span><i class="fas fa-eye mr-1"></i><span x-text="a.read_count"></span></span>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+      <div class="pagination">
+        <div class="text-sm text-gray-400 mr-4">共 <span x-text="filteredNews.length"></span> 条</div>
+        <div class="page-btn" @click="newsPage=Math.max(1,newsPage-1)"><i class="fas fa-chevron-left text-xs"></i></div>
+        <template x-for="n in Math.ceil(filteredNews.length/20)" :key="n">
+          <div class="page-btn" :class="newsPage===n ? 'active':''" @click="newsPage=n" x-text="n"></div>
+        </template>
+        <div class="page-btn" @click="newsPage=Math.min(Math.ceil(filteredNews.length/20),newsPage+1)"><i class="fas fa-chevron-right text-xs"></i></div>
+      </div>
+    </div>
+  </section>
+  <!-- SECTION END: 行业动态 -->
+
+  <!-- ============================= PAGE: ARTICLE DETAIL ============================= -->
+  <!-- SECTION START: 行业动态详情 -->
+  <section id="feature-article-detail" class="page" :class="currentPage==='article-detail' ? 'active' : ''" x-show="selectedArticle">
+    <div class="max-w-4xl mx-auto px-6 py-8">
+      <div class="text-sm text-gray-400 mb-5 flex items-center gap-1">
+        <span class="cursor-pointer hover:text-green-600" @click="goPage('home')">首页</span>
+        <i class="fas fa-chevron-right text-xs"></i>
+        <span class="cursor-pointer hover:text-green-600" @click="goPage('news')">行业动态</span>
+        <i class="fas fa-chevron-right text-xs"></i>
+        <span class="text-gray-700" x-text="selectedArticle?.title?.substring(0,20)+'...'"></span>
+      </div>
+      <div class="card">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="tag tag-orange text-xs" x-text="getArticleCategoryLabel(selectedArticle?.article_category)"></span>
+        </div>
+        <h1 class="text-2xl font-bold mb-4" x-text="selectedArticle?.title"></h1>
+        <div class="flex items-center gap-5 text-sm text-gray-400 pb-4 border-b mb-6">
+          <span x-show="selectedArticle?.source"><i class="fas fa-building mr-1"></i><span x-text="selectedArticle?.source"></span></span>
+          <span x-show="selectedArticle?.author"><i class="fas fa-user-pen mr-1"></i><span x-text="selectedArticle?.author"></span></span>
+          <span><i class="far fa-clock mr-1"></i><span x-text="selectedArticle?.publish_time"></span></span>
+          <span><i class="fas fa-eye mr-1"></i><span x-text="selectedArticle?.read_count"></span>次阅读</span>
+        </div>
+        <div class="prose text-gray-700 leading-loose text-sm" x-text="selectedArticle?.content"></div>
+      </div>
+    </div>
+  </section>
+  <!-- SECTION END: 行业动态详情 -->
+
+  <!-- ============================= PAGE: TRAINING ============================= -->
+  <!-- SECTION START: 培训活动 -->
+  <section id="feature-training" class="page" :class="currentPage==='training' ? 'active' : ''">
+    <div class="max-w-7xl mx-auto px-6 py-8">
+      <h1 class="text-2xl font-bold mb-6">培训活动</h1>
+      <div class="search-wrapper mb-4">
+        <i class="fas fa-search search-icon text-sm"></i>
+        <input type="text" class="form-input" style="max-width:360px" placeholder="搜索培训活动" x-model="trainingSearch" @input.debounce.300ms="filterTrainings">
+      </div>
+      <div class="flex border-b mb-6 overflow-x-auto">
+        <div class="tab-item" :class="trainingTab==='all' ? 'active':''" @click="setTrainingTab('all')">全部</div>
+        <div class="tab-item" :class="trainingTab==='0' ? 'active':''" @click="setTrainingTab('0')">报名中</div>
+        <div class="tab-item" :class="trainingTab==='1' ? 'active':''" @click="setTrainingTab('1')">进行中</div>
+        <div class="tab-item" :class="trainingTab==='2' ? 'active':''" @click="setTrainingTab('2')">已结束</div>
+      </div>
+      <div class="grid grid-cols-2 gap-5 mb-6">
+        <template x-for="t in paginatedTrainings" :key="t.training_id">
+          <div class="card card-hover flex items-start gap-4" @click="openTrainingDetail(t)">
+            <div class="w-40 h-28 bg-gradient-to-br from-purple-400 to-violet-600 rounded-lg flex items-center justify-center shrink-0">
+              <i class="fas fa-graduation-cap text-white text-4xl"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="tag text-xs" :class="{'tag-green': t.training_status=='0', 'tag-blue': t.training_status=='1', 'tag-gray': t.training_status=='2'}"
+                      x-text="{'0':'报名中','1':'进行中','2':'已结束'}[t.training_status]"></span>
+                <span class="tag tag-gray text-xs" x-text="getTrainingTypeLabel(t.training_type)"></span>
+              </div>
+              <div class="font-semibold mb-2 line-clamp-2" x-text="t.training_name"></div>
+              <div class="text-xs text-gray-400 mb-1"><i class="fas fa-clock mr-1"></i><span x-text="t.start_time.substring(0,10) + ' ~ ' + t.end_time.substring(0,10)"></span></div>
+              <div class="text-xs text-gray-400 mb-1"><i class="fas fa-map-marker-alt mr-1"></i><span x-text="t.location"></span></div>
+              <div class="text-xs text-gray-400 mb-1"><i class="fas fa-user mr-1"></i><span x-text="t.speaker"></span></div>
+              <div class="text-xs text-gray-400"><i class="fas fa-users mr-1"></i>已报名 <span x-text="t.current_enrollment"></span>/<span x-text="t.max_enrollment"></span> 人</div>
+            </div>
+          </div>
+        </template>
+      </div>
+      <div class="pagination">
+        <div class="text-sm text-gray-400 mr-4">共 <span x-text="filteredTrainings.length"></span> 场</div>
+        <div class="page-btn" @click="trainingPage=Math.max(1,trainingPage-1)"><i class="fas fa-chevron-left text-xs"></i></div>
+        <template x-for="n in Math.max(1, Math.ceil(filteredTrainings.length/10))" :key="n">
+          <div class="page-btn" :class="trainingPage===n ? 'active':''" @click="trainingPage=n" x-text="n"></div>
+        </template>
+        <div class="page-btn" @click="trainingPage=Math.min(Math.max(1,Math.ceil(filteredTrainings.length/10)),trainingPage+1)"><i class="fas fa-chevron-right text-xs"></i></div>
+      </div>
+    </div>
+  </section>
+  <!-- SECTION END: 培训活动 -->
+
+  <!-- ============================= PAGE: TRAINING DETAIL ============================= -->
+  <!-- SECTION START: 培训活动详情 -->
+  <section id="feature-training-detail" class="page" :class="currentPage==='training-detail' ? 'active' : ''" x-show="selectedTraining">
+    <div class="max-w-4xl mx-auto px-6 py-8">
+      <div class="text-sm text-gray-400 mb-5 flex items-center gap-1">
+        <span class="cursor-pointer hover:text-green-600" @click="goPage('home')">首页</span>
+        <i class="fas fa-chevron-right text-xs"></i>
+        <span class="cursor-pointer hover:text-green-600" @click="goPage('training')">培训活动</span>
+        <i class="fas fa-chevron-right text-xs"></i>
+        <span class="text-gray-700" x-text="selectedTraining?.training_name?.substring(0,15)+'...'"></span>
+      </div>
+      <!-- Banner -->
+      <div class="bg-gradient-to-br from-purple-500 to-violet-700 rounded-xl h-40 flex items-center justify-center mb-6">
+        <i class="fas fa-graduation-cap text-white text-6xl opacity-70"></i>
+      </div>
+      <!-- Info Card -->
+      <div class="card mb-6">
+        <div class="flex items-start justify-between mb-3">
+          <h1 class="text-xl font-bold" x-text="selectedTraining?.training_name"></h1>
+          <span class="tag text-sm" :class="{'tag-green': selectedTraining?.training_status=='0', 'tag-blue': selectedTraining?.training_status=='1', 'tag-gray': selectedTraining?.training_status=='2'}"
+                x-text="{'0':'报名中','1':'进行中','2':'已结束'}[selectedTraining?.training_status]"></span>
+        </div>
+        <div class="grid grid-cols-2 gap-4 text-sm">
+          <div class="flex items-center gap-2 text-gray-600"><i class="fas fa-tag text-purple-400 w-4"></i><span x-text="getTrainingTypeLabel(selectedTraining?.training_type)"></span></div>
+          <div class="flex items-center gap-2 text-gray-600"><i class="fas fa-wifi text-purple-400 w-4"></i><span x-text="getTrainingModeLabel(selectedTraining?.training_mode)"></span></div>
+          <div class="flex items-center gap-2 text-gray-600"><i class="fas fa-user text-purple-400 w-4"></i><span x-text="selectedTraining?.speaker"></span></div>
+          <div class="flex items-center gap-2 text-gray-600"><i class="fas fa-map-marker-alt text-purple-400 w-4"></i><span x-text="selectedTraining?.location"></span></div>
+          <div class="flex items-center gap-2 text-gray-600"><i class="fas fa-calendar text-purple-400 w-4"></i><span x-text="selectedTraining?.start_time?.substring(0,10) + ' ~ ' + selectedTraining?.end_time?.substring(0,10)"></span></div>
+          <div class="flex items-center gap-2 text-gray-600"><i class="fas fa-users text-purple-400 w-4"></i>已报名 <span x-text="selectedTraining?.current_enrollment" class="font-semibold text-purple-600 mx-1"></span>/<span x-text="selectedTraining?.max_enrollment"></span> 人</div>
+          <div class="flex items-center gap-2 text-gray-600 col-span-2"><i class="fas fa-clock text-purple-400 w-4"></i>报名截止：<span x-text="selectedTraining?.enrollment_deadline"></span></div>
+        </div>
+      </div>
+      <!-- Intro -->
+      <div class="card mb-6">
+        <h3 class="font-bold text-gray-700 mb-3">活动简介</h3>
+        <p class="text-sm text-gray-600 leading-loose" x-text="selectedTraining?.training_intro"></p>
+      </div>
+      <!-- Enroll Button -->
+      <div class="flex justify-center mb-8">
+        <template x-if="selectedTraining?.training_status==='0' && selectedTraining?.current_enrollment < selectedTraining?.max_enrollment">
+          <button class="btn-primary px-12 py-3 text-base font-semibold" @click="handleEnroll">我要报名</button>
+        </template>
+        <template x-if="selectedTraining?.training_status!=='0'">
+          <div>
+            <button class="btn-gray px-12 py-3 text-base font-semibold">暂不接受报名</button>
+            <p class="text-center text-sm text-gray-400 mt-2">该活动<span x-text="{'1':'正在进行中','2':'已结束'}[selectedTraining?.training_status]"></span>，不接受报名</p>
+          </div>
+        </template>
+        <template x-if="selectedTraining?.training_status==='0' && selectedTraining?.current_enrollment >= selectedTraining?.max_enrollment">
+          <div>
+            <button class="btn-gray px-12 py-3 text-base font-semibold">报名名额已满</button>
+            <p class="text-center text-sm text-gray-400 mt-2">本次培训名额已满，请关注下期</p>
+          </div>
+        </template>
+      </div>
+    </div>
+  </section>
+  <!-- SECTION END: 培训活动详情 -->
+
+  <!-- ============================= PAGE: MY ENROLLMENT ============================= -->
+  <!-- SECTION START: 我的报名记录 -->
+  <section id="feature-my-enrollment" class="page" :class="currentPage==='my-enrollment' ? 'active' : ''">
+    <div class="max-w-4xl mx-auto px-6 py-8">
+      <h1 class="text-2xl font-bold mb-6">我的报名记录</h1>
+      <div class="card">
+        <template x-if="!currentUser">
+          <div class="text-center py-16 text-gray-400">
+            <i class="fas fa-lock text-4xl mb-3 block"></i>
+            请<span class="text-green-600 cursor-pointer mx-1" @click="showPage='login'">登录</span>后查看报名记录
+          </div>
+        </template>
+        <template x-if="currentUser">
+          <div>
+            <template x-for="e in MOCK_DATA.myEnrollments" :key="e.enrollment_id">
+              <div class="flex items-center gap-4 py-4 border-b last:border-0">
+                <div class="w-10 h-10 bg-gradient-to-br from-purple-400 to-violet-600 rounded-lg flex items-center justify-center shrink-0">
+                  <i class="fas fa-graduation-cap text-white"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="font-semibold text-sm mb-1" x-text="e.training_name"></div>
+                  <div class="text-xs text-gray-400"><i class="far fa-clock mr-1"></i>报名时间：<span x-text="e.create_time.substring(0,10)"></span></div>
+                  <div class="text-xs text-gray-400 mt-1" x-show="e.approval_remark">审批意见：<span x-text="e.approval_remark" class="text-gray-600"></span></div>
+                </div>
+                <span class="tag text-xs" :class="{'tag-orange':e.approval_status=='0','tag-green':e.approval_status=='1','tag-red':e.approval_status=='2'}"
+                      x-text="{'0':'待审批','1':'已通过','2':'已拒绝'}[e.approval_status]"></span>
+              </div>
+            </template>
+          </div>
+        </template>
+      </div>
+    </div>
+  </section>
+  <!-- SECTION END: 我的报名记录 -->
+
+  <!-- ============================= PAGE: FORUM ============================= -->
+  <!-- SECTION START: 在线交流-论坛 -->
+  <section id="feature-forum" class="page" :class="currentPage==='forum' ? 'active' : ''">
+    <div class="max-w-7xl mx-auto px-6 py-8">
+      <h1 class="text-2xl font-bold mb-6">在线交流</h1>
+      <!-- Main Tabs: Forum / QA -->
+      <div class="flex border-b mb-6">
+        <div class="tab-item text-base" :class="forumMainTab==='forum' ? 'active':''" @click="forumMainTab='forum'">
+          <i class="fas fa-comments mr-2"></i>论坛
+        </div>
+        <div class="tab-item text-base" :class="forumMainTab==='qa' ? 'active':''" @click="forumMainTab='qa'">
+          <i class="fas fa-question-circle mr-2"></i>问答
+        </div>
+      </div>
+
+      <!-- FORUM TAB -->
+      <div x-show="forumMainTab==='forum'">
+        <div class="flex gap-6">
+          <!-- Board List -->
+          <div class="w-48 shrink-0">
+            <div class="card p-2">
+              <div class="board-item" :class="selectedBoard===null ? 'active':''" @click="selectedBoard=null">
+                <i class="fas fa-th-large text-green-500"></i>
+                <span class="text-sm">全部板块</span>
+              </div>
+              <template x-for="b in MOCK_DATA.forumBoards" :key="b.board_id">
+                <div class="board-item" :class="selectedBoard===b.board_id ? 'active':''" @click="selectedBoard=b.board_id">
+                  <i class="fas fa-folder text-green-400 text-sm"></i>
+                  <div class="flex-1 min-w-0">
+                    <div class="text-sm truncate" x-text="b.board_name"></div>
+                    <div class="text-xs text-gray-400" x-text="b.post_count + '帖'"></div>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+          <!-- Post List -->
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="search-wrapper flex-1">
+                <i class="fas fa-search search-icon text-sm"></i>
+                <input type="text" class="form-input" placeholder="搜索帖子" x-model="postSearch">
+              </div>
+              <button class="btn-primary" x-show="currentUser" @click="showPage='new-post'"><i class="fas fa-edit mr-1"></i>发帖</button>
+              <button class="btn-outline" x-show="!currentUser" @click="showPage='login'"><i class="fas fa-sign-in-alt mr-1"></i>登录后发帖</button>
+            </div>
+            <div class="space-y-2">
+              <template x-for="p in filteredPosts" :key="p.post_id">
+                <div class="card card-hover py-4 px-5" @click="openPostDetail(p)">
+                  <div class="flex items-start gap-3">
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-1 flex-wrap">
+                        <span x-show="p.is_top=='1'" class="tag tag-red text-xs">置顶</span>
+                        <span x-show="p.is_featured=='1'" class="tag tag-orange text-xs">精</span>
+                        <span class="font-semibold text-sm" x-text="p.title"></span>
+                      </div>
+                      <div class="text-xs text-gray-400 line-clamp-2 mb-2" x-text="p.content.substring(0,100)+'...'"></div>
+                      <div class="flex items-center gap-3 text-xs text-gray-400">
+                        <span><i class="fas fa-user-circle mr-1"></i><span x-text="p.user_nickname"></span></span>
+                        <span><i class="far fa-clock mr-1"></i><span x-text="p.create_time.substring(0,10)"></span></span>
+                        <span><i class="fas fa-eye mr-1"></i><span x-text="p.view_count"></span></span>
+                        <span><i class="fas fa-comment mr-1"></i><span x-text="p.reply_count"></span>回复</span>
+                        <span x-show="p.last_reply_time">最后回复：<span x-text="p.last_reply_time?.substring(0,10)"></span></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </div>
+            <div class="pagination mt-4">
+              <div class="text-sm text-gray-400 mr-4">共 <span x-text="filteredPosts.length"></span> 帖</div>
+              <div class="page-btn"><i class="fas fa-chevron-left text-xs"></i></div>
+              <div class="page-btn active">1</div>
+              <div class="page-btn"><i class="fas fa-chevron-right text-xs"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- QA TAB -->
+      <div x-show="forumMainTab==='qa'">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="search-wrapper flex-1" style="max-width:360px">
+            <i class="fas fa-search search-icon text-sm"></i>
+            <input type="text" class="form-input" placeholder="搜索问题" x-model="qaSearch">
+          </div>
+          <button class="btn-primary" x-show="currentUser" @click="showPage='new-question'"><i class="fas fa-question mr-1"></i>我要提问</button>
+          <button class="btn-outline" x-show="!currentUser" @click="showPage='login'">登录后提问</button>
+        </div>
+        <!-- Category Tabs -->
+        <div class="flex border-b mb-4 overflow-x-auto">
+          <div class="tab-item" :class="qaTab==='all' ? 'active':''" @click="qaTab='all'">全部</div>
+          <template x-for="cat in MOCK_DATA.qaCategories" :key="cat.value">
+            <div class="tab-item" :class="qaTab===cat.value ? 'active':''" @click="qaTab=cat.value" x-text="cat.label"></div>
+          </template>
+        </div>
+        <!-- Status Tabs -->
+        <div class="flex gap-3 mb-4">
+          <template x-for="s in [{v:'all',l:'全部'},{v:'0',l:'待回答'},{v:'1',l:'已回答'},{v:'2',l:'已采纳'}]" :key="s.v">
+            <span class="cursor-pointer text-xs px-3 py-1 rounded-full border transition"
+                  :class="qaStatusTab===s.v ? 'bg-green-500 text-white border-green-500' : 'border-gray-300 text-gray-500 hover:border-green-400'"
+                  @click="qaStatusTab=s.v"
+                  x-text="s.l"></span>
+          </template>
+        </div>
+        <div class="space-y-2">
+          <template x-for="q in filteredQuestions" :key="q.question_id">
+            <div class="card card-hover py-4 px-5" @click="openQuestionDetail(q)">
+              <div class="flex items-start gap-3">
+                <span class="tag text-xs shrink-0" :class="{'tag-gray':q.question_status=='0','tag-blue':q.question_status=='1','tag-green':q.question_status=='2'}"
+                      x-text="{'0':'待回答','1':'已回答','2':'已采纳'}[q.question_status]"></span>
+                <div class="flex-1 min-w-0">
+                  <div class="font-semibold text-sm mb-1" x-text="q.title"></div>
+                  <div class="flex items-center gap-3 text-xs text-gray-400 flex-wrap">
+                    <span class="tag tag-gray text-xs" x-text="getQaCategoryLabel(q.question_category)"></span>
+                    <span><i class="fas fa-user mr-1"></i><span x-text="q.user_nickname"></span></span>
+                    <span><i class="far fa-clock mr-1"></i><span x-text="q.create_time.substring(0,10)"></span></span>
+                    <span><i class="fas fa-eye mr-1"></i><span x-text="q.view_count"></span></span>
+                    <span><i class="fas fa-reply mr-1"></i><span x-text="q.answer_count"></span>回答</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+        <div class="pagination mt-4">
+          <div class="text-sm text-gray-400 mr-4">共 <span x-text="filteredQuestions.length"></span> 个问题</div>
+          <div class="page-btn"><i class="fas fa-chevron-left text-xs"></i></div>
+          <div class="page-btn active">1</div>
+          <div class="page-btn"><i class="fas fa-chevron-right text-xs"></i></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- SECTION END: 在线交流-论坛 -->
+
+  <!-- ============================= PAGE: POST DETAIL ============================= -->
+  <!-- SECTION START: 帖子详情 -->
+  <section id="feature-post-detail" class="page" :class="currentPage==='post-detail' ? 'active' : ''" x-show="selectedPost">
+    <div class="max-w-4xl mx-auto px-6 py-8">
+      <div class="text-sm text-gray-400 mb-5 flex items-center gap-1">
+        <span class="cursor-pointer hover:text-green-600" @click="goPage('home')">首页</span>
+        <i class="fas fa-chevron-right text-xs"></i>
+        <span class="cursor-pointer hover:text-green-600" @click="goPage('forum')">在线交流</span>
+        <i class="fas fa-chevron-right text-xs"></i>
+        <span class="text-gray-700" x-text="selectedPost?.title?.substring(0,20)+'...'"></span>
+      </div>
+      <div class="card mb-4">
+        <div class="flex items-center gap-2 mb-3 flex-wrap">
+          <span x-show="selectedPost?.is_top=='1'" class="tag tag-red text-xs">置顶</span>
+          <span x-show="selectedPost?.is_featured=='1'" class="tag tag-orange text-xs">精</span>
+        </div>
+        <h1 class="text-xl font-bold mb-4" x-text="selectedPost?.title"></h1>
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white text-sm font-bold"
+               x-text="selectedPost?.user_nickname?.charAt(0)"></div>
+          <div>
+            <div class="font-medium text-sm" x-text="selectedPost?.user_nickname"></div>
+            <div class="text-xs text-gray-400" x-text="selectedPost?.create_time"></div>
+          </div>
+          <div class="ml-auto flex items-center gap-3 text-xs text-gray-400">
+            <span><i class="fas fa-eye mr-1"></i><span x-text="selectedPost?.view_count"></span></span>
+            <span><i class="fas fa-comment mr-1"></i><span x-text="selectedPost?.reply_count"></span></span>
+          </div>
+        </div>
+        <div class="text-sm text-gray-700 leading-loose border-t pt-4" x-text="selectedPost?.content"></div>
+        <!-- Delete own post -->
+        <div class="mt-4 flex justify-end" x-show="currentUser && selectedPost?.user_nickname===currentUser?.nick_name">
+          <button class="btn-danger text-sm py-1.5 px-4" @click="deletePost">删除帖子</button>
+        </div>
+      </div>
+      <!-- Replies -->
+      <div class="card mb-4">
+        <h3 class="font-bold text-gray-700 mb-4"><i class="fas fa-comments mr-2 text-green-500"></i>全部回复 (<span x-text="MOCK_DATA.postReplies.length"></span>)</h3>
+        <template x-for="r in MOCK_DATA.postReplies" :key="r.reply_id">
+          <div class="reply-item mb-3">
+            <div class="flex items-center gap-2 mb-2">
+              <div class="w-7 h-7 rounded-full bg-gradient-to-br from-green-400 to-teal-500 flex items-center justify-center text-white text-xs font-bold"
+                   x-text="r.user_nickname.charAt(0)"></div>
+              <span class="font-medium text-sm" x-text="r.user_nickname"></span>
+              <span x-show="r.reply_to_nickname" class="text-xs text-gray-400">回复 @<span x-text="r.reply_to_nickname" class="text-green-600"></span></span>
+              <span class="text-xs text-gray-400 ml-auto" x-text="r.create_time.substring(0,16)"></span>
+            </div>
+            <p class="text-sm text-gray-600 ml-9" x-text="r.content"></p>
+          </div>
+        </template>
+      </div>
+      <!-- Reply Input -->
+      <div class="card" x-show="currentUser">
+        <h3 class="font-semibold text-gray-700 mb-3">发表回复</h3>
+        <div class="form-group">
+          <textarea class="form-input" id="reply-content" placeholder="输入回复内容（至少2个字符）" style="min-height:100px"></textarea>
+          <div class="form-error" id="reply-error">回复内容不能为空</div>
+        </div>
+        <div class="flex justify-end gap-2 mt-2">
+          <button class="btn-primary" @click="submitReply">发表回复</button>
+        </div>
+      </div>
+      <div class="card text-center text-gray-400 text-sm" x-show="!currentUser">
+        <span class="text-green-600 cursor-pointer" @click="showPage='login'">登录</span>后可以回复
+      </div>
+    </div>
+  </section>
+  <!-- SECTION END: 帖子详情 -->
+
+  <!-- ============================= PAGE: QUESTION DETAIL ============================= -->
+  <!-- SECTION START: 问题详情 -->
+  <section id="feature-question-detail" class="page" :class="currentPage==='question-detail' ? 'active' : ''" x-show="selectedQuestion">
+    <div class="max-w-4xl mx-auto px-6 py-8">
+      <div class="text-sm text-gray-400 mb-5 flex items-center gap-1">
+        <span class="cursor-pointer hover:text-green-600" @click="goPage('home')">首页</span>
+        <i class="fas fa-chevron-right text-xs"></i>
+        <span class="cursor-pointer hover:text-green-600" @click="goPage('forum'); forumMainTab='qa'">在线交流</span>
+        <i class="fas fa-chevron-right text-xs"></i>
+        <span class="text-gray-700" x-text="selectedQuestion?.title?.substring(0,20)+'...'"></span>
+      </div>
+      <div class="card mb-4">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="tag text-sm" :class="{'tag-gray':selectedQuestion?.question_status=='0','tag-blue':selectedQuestion?.question_status=='1','tag-green':selectedQuestion?.question_status=='2'}"
+                x-text="{'0':'待回答','1':'已回答','2':'已采纳'}[selectedQuestion?.question_status]"></span>
+          <span class="tag tag-gray text-xs" x-text="getQaCategoryLabel(selectedQuestion?.question_category)"></span>
+        </div>
+        <h1 class="text-xl font-bold mb-4" x-text="selectedQuestion?.title"></h1>
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white text-sm font-bold"
+               x-text="selectedQuestion?.user_nickname?.charAt(0)"></div>
+          <div>
+            <div class="font-medium text-sm" x-text="selectedQuestion?.user_nickname"></div>
+            <div class="text-xs text-gray-400" x-text="selectedQuestion?.create_time"></div>
+          </div>
+          <div class="ml-auto text-xs text-gray-400"><i class="fas fa-eye mr-1"></i><span x-text="selectedQuestion?.view_count"></span></div>
+        </div>
+        <div class="text-sm text-gray-700 leading-loose border-t pt-4" x-text="selectedQuestion?.description"></div>
+      </div>
+      <!-- Answers -->
+      <div class="mb-4">
+        <h3 class="font-bold text-gray-700 mb-4"><i class="fas fa-reply mr-2 text-green-500"></i>全部回答 (<span x-text="MOCK_DATA.qaAnswers.length"></span>)</h3>
+        <template x-for="a in MOCK_DATA.qaAnswers" :key="a.answer_id">
+          <div class="answer-item" :class="a.is_accepted==='1' ? 'accepted' : ''">
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white text-sm font-bold shrink-0"
+                   x-text="a.user_nickname.charAt(0)"></div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="font-medium text-sm" x-text="a.user_nickname"></span>
+                  <span x-show="a.is_expert==='1'" class="tag tag-blue text-xs"><i class="fas fa-star mr-1"></i>专家</span>
+                  <span x-show="a.is_accepted==='1'" class="tag tag-green text-xs"><i class="fas fa-check mr-1"></i>最佳答案</span>
+                  <span class="text-xs text-gray-400 ml-auto" x-text="a.create_time.substring(0,16)"></span>
+                </div>
+                <p class="text-sm text-gray-700 leading-loose" x-text="a.content"></p>
+                <!-- Accept button for question owner -->
+                <div class="mt-3" x-show="currentUser && selectedQuestion?.user_nickname===currentUser?.nick_name && a.is_accepted!=='1' && selectedQuestion?.question_status!=='2'">
+                  <button class="btn-outline text-xs py-1 px-3" @click="acceptAnswer(a)"><i class="fas fa-check mr-1"></i>采纳为最佳答案</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+      <!-- Answer Input -->
+      <div class="card" x-show="currentUser">
+        <h3 class="font-semibold text-gray-700 mb-3">提交回答</h3>
+        <div class="form-group">
+          <textarea class="form-input" id="answer-content" placeholder="输入回答内容（至少10个字符）" style="min-height:120px"></textarea>
+          <div class="form-error" id="answer-error">回答内容不能为空</div>
+        </div>
+        <div class="flex justify-end mt-2">
+          <button class="btn-primary" @click="submitAnswer">提交回答</button>
+        </div>
+      </div>
+      <div class="card text-center text-gray-400 text-sm" x-show="!currentUser">
+        <span class="text-green-600 cursor-pointer" @click="showPage='login'">登录</span>后可以回答
+      </div>
+    </div>
+  </section>
+  <!-- SECTION END: 问题详情 -->
+
+  <!-- ============================= PAGE: PROFILE ============================= -->
+  <!-- SECTION START: 个人中心 -->
+  <section id="feature-profile" class="page" :class="currentPage==='profile' ? 'active' : ''">
+    <div class="max-w-4xl mx-auto px-6 py-8">
+      <h1 class="text-2xl font-bold mb-6">个人中心</h1>
+      <template x-if="!currentUser">
+        <div class="card text-center py-16 text-gray-400">
+          <i class="fas fa-user-lock text-4xl mb-3 block"></i>
+          请<span class="text-green-600 cursor-pointer mx-1" @click="showPage='login'">登录</span>后查看个人信息
+        </div>
+      </template>
+      <template x-if="currentUser">
+        <div class="grid grid-cols-3 gap-6">
+          <!-- Left: Avatar & Info -->
+          <div class="card text-center">
+            <div class="profile-avatar mx-auto mb-3" x-text="currentUser?.nick_name?.charAt(0)"></div>
+            <div class="font-bold text-lg mb-1" x-text="currentUser?.nick_name"></div>
+            <div class="text-sm text-gray-400 mb-1" x-text="currentUser?.phone ? currentUser?.phone?.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2') : '——'"></div>
+            <div class="text-xs text-gray-400 mb-1" x-text="currentUser?.sex==='0' ? '男' : currentUser?.sex==='1' ? '女' : '未知性别'"></div>
+            <div class="text-xs text-gray-400 mb-2" x-text="currentUser?.region || '未填写地区'"></div>
+            <div class="text-xs text-gray-500 bg-gray-50 rounded-lg p-2 text-left" x-text="currentUser?.profile || '暂无个人简介'"></div>
+            <div class="mt-3 text-xs text-blue-500">
+              <span class="tag tag-blue text-xs" x-text="currentUser?.user_source==='platform' ? '平台用户' : '知识讲堂用户'"></span>
+            </div>
+          </div>
+          <!-- Right: Actions -->
+          <div class="col-span-2 space-y-4">
+            <div class="card">
+              <h3 class="font-semibold text-gray-700 mb-4">账号信息</h3>
+              <div class="grid grid-cols-2 gap-3 text-sm">
+                <div><span class="text-gray-400">用户名：</span><span x-text="currentUser?.user_name"></span></div>
+                <div><span class="text-gray-400">用户ID：</span><span x-text="currentUser?.user_id"></span></div>
+                <div><span class="text-gray-400">最后登录：</span><span x-text="currentUser?.login_date || '——'"></span></div>
+                <div><span class="text-gray-400">注册时间：</span><span x-text="currentUser?.create_time"></span></div>
+              </div>
+            </div>
+            <div class="card flex gap-3">
+              <button class="btn-primary flex-1" @click="showPage='edit-profile'"><i class="fas fa-edit mr-2"></i>编辑个人信息</button>
+              <button class="btn-outline flex-1" x-show="currentUser?.user_source==='kc_portal'" @click="showPage='change-password'"><i class="fas fa-key mr-2"></i>修改密码</button>
+              <button class="btn-gray flex-1" x-show="currentUser?.user_source==='platform'" @click="toast('平台用户请在系统管理中修改密码')"><i class="fas fa-key mr-2"></i>修改密码</button>
+            </div>
+          </div>
+        </div>
+      </template>
+    </div>
+  </section>
+  <!-- SECTION END: 个人中心 -->
+
+</div>
+
+<!-- ============================= MODALS ============================= -->
+
+<!-- LOGIN Modal -->
+<!-- SECTION START: 登录弹窗 -->
+<div id="feature-login" class="modal-overlay" x-show="showPage==='login'" @click.self="showPage=null">
+  <div class="modal-box" @click.stop>
+    <button class="absolute top-4 right-4 text-gray-400 hover:text-gray-600" @click="showPage=null"><i class="fas fa-times text-lg"></i></button>
+    <div class="text-center mb-6">
+      <div class="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+        <i class="fas fa-leaf text-white text-xl"></i>
+      </div>
+      <h2 class="text-xl font-bold">欢迎登录</h2>
+      <p class="text-sm text-gray-400 mt-1">生猪知识讲堂</p>
+    </div>
+    <div class="form-group">
+      <label class="form-label"><span class="required">*</span>用户名/手机号</label>
+      <input type="text" class="form-input" id="login-username" placeholder="请输入用户名或手机号">
+      <div class="form-error" id="login-username-error">请输入用户名或手机号</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label"><span class="required">*</span>密码</label>
+      <div class="relative">
+        <input type="password" class="form-input" id="login-password" placeholder="请输入密码" style="padding-right:40px">
+        <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" onclick="togglePwd('login-password',this)">
+          <i class="fas fa-eye"></i>
+        </button>
+      </div>
+      <div class="form-error" id="login-password-error">请输入密码</div>
+    </div>
+    <div class="form-error show text-center mb-2" id="login-general-error" style="display:none"></div>
+    <button class="btn-primary w-full py-2.5 text-base mt-2" @click="doLogin">登 录</button>
+    <div class="flex justify-between mt-4 text-sm">
+      <span class="text-green-600 cursor-pointer hover:underline" @click="showPage='register'">还没有账号？注册</span>
+      <span class="text-green-600 cursor-pointer hover:underline" @click="showPage='forgot-password'">忘记密码？</span>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 登录弹窗 -->
+
+<!-- REGISTER Modal -->
+<!-- SECTION START: 注册弹窗 -->
+<div id="feature-register" class="modal-overlay" x-show="showPage==='register'" @click.self="showPage=null">
+  <div class="modal-box" @click.stop>
+    <button class="absolute top-4 right-4 text-gray-400 hover:text-gray-600" @click="showPage=null"><i class="fas fa-times text-lg"></i></button>
+    <h2 class="text-xl font-bold mb-6 text-center">注册账号</h2>
+    <div class="form-group">
+      <label class="form-label"><span class="required">*</span>手机号</label>
+      <input type="text" class="form-input" id="reg-phone" placeholder="请输入手机号" maxlength="11"
+             @blur="validatePhone('reg-phone','reg-phone-error')">
+      <div class="form-error" id="reg-phone-error">请输入手机号</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label"><span class="required">*</span>验证码</label>
+      <div class="flex gap-2">
+        <input type="text" class="form-input flex-1" id="reg-code" placeholder="请输入验证码" maxlength="6">
+        <button class="btn-outline shrink-0 text-sm" id="sms-btn" @click="sendSmsCode('sms-btn')">获取验证码</button>
+      </div>
+      <div class="form-error" id="reg-code-error">请输入验证码</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label"><span class="required">*</span>昵称</label>
+      <input type="text" class="form-input" id="reg-nickname" placeholder="请输入昵称" maxlength="30"
+             @blur="validateNickname('reg-nickname','reg-nickname-error')">
+      <div class="form-error" id="reg-nickname-error">请输入昵称</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label"><span class="required">*</span>密码</label>
+      <input type="password" class="form-input" id="reg-password" placeholder="请设置密码，6-20位"
+             @blur="validatePassword('reg-password','reg-password-error')">
+      <div class="form-error" id="reg-password-error">请设置密码</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label"><span class="required">*</span>确认密码</label>
+      <input type="password" class="form-input" id="reg-confirm" placeholder="请再次输入密码"
+             @blur="validateConfirmPwd('reg-password','reg-confirm','reg-confirm-error')">
+      <div class="form-error" id="reg-confirm-error">请再次输入密码</div>
+    </div>
+    <button class="btn-primary w-full py-2.5 text-base mt-2" @click="doRegister">注 册</button>
+    <div class="text-center mt-4 text-sm">
+      <span class="text-green-600 cursor-pointer hover:underline" @click="showPage='login'">已有账号？去登录</span>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 注册弹窗 -->
+
+<!-- FORGOT PASSWORD Modal -->
+<!-- SECTION START: 忘记密码弹窗 -->
+<div id="feature-forgot-password" class="modal-overlay" x-show="showPage==='forgot-password'" @click.self="showPage=null">
+  <div class="modal-box" @click.stop>
+    <button class="absolute top-4 right-4 text-gray-400 hover:text-gray-600" @click="showPage=null"><i class="fas fa-times text-lg"></i></button>
+    <h2 class="text-xl font-bold mb-2 text-center">忘记密码</h2>
+    <p class="text-sm text-gray-400 text-center mb-6">仅支持知识讲堂独立用户重置密码</p>
+    <div class="form-group">
+      <label class="form-label"><span class="required">*</span>手机号</label>
+      <input type="text" class="form-input" id="fp-phone" placeholder="请输入注册时的手机号" maxlength="11">
+      <div class="form-error" id="fp-phone-error">请输入手机号</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label"><span class="required">*</span>验证码</label>
+      <div class="flex gap-2">
+        <input type="text" class="form-input flex-1" id="fp-code" placeholder="请输入验证码" maxlength="6">
+        <button class="btn-outline shrink-0 text-sm" id="fp-sms-btn" @click="sendSmsCode('fp-sms-btn')">获取验证码</button>
+      </div>
+      <div class="form-error" id="fp-code-error">请输入验证码</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label"><span class="required">*</span>新密码</label>
+      <input type="password" class="form-input" id="fp-newpwd" placeholder="请设置新密码，6-20位">
+      <div class="form-error" id="fp-newpwd-error">请设置新密码</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label"><span class="required">*</span>确认新密码</label>
+      <input type="password" class="form-input" id="fp-confirmpwd" placeholder="请再次输入新密码">
+      <div class="form-error" id="fp-confirmpwd-error">请再次输入新密码</div>
+    </div>
+    <button class="btn-primary w-full py-2.5 text-base mt-2" @click="doResetPassword">重置密码</button>
+    <div class="text-center mt-4 text-sm">
+      <span class="text-green-600 cursor-pointer hover:underline" @click="showPage='login'">返回登录</span>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 忘记密码弹窗 -->
+
+<!-- EDIT PROFILE Modal -->
+<!-- SECTION START: 编辑个人信息弹窗 -->
+<div id="feature-edit-profile" class="modal-overlay" x-show="showPage==='edit-profile'" @click.self="showPage=null">
+  <div class="modal-box" @click.stop>
+    <button class="absolute top-4 right-4 text-gray-400 hover:text-gray-600" @click="showPage=null"><i class="fas fa-times text-lg"></i></button>
+    <h2 class="text-xl font-bold mb-6">编辑个人信息</h2>
+    <div class="form-group">
+      <label class="form-label"><span class="required">*</span>昵称</label>
+      <input type="text" class="form-input" id="ep-nickname" placeholder="请输入昵称" :value="currentUser?.nick_name" maxlength="30">
+      <div class="form-error" id="ep-nickname-error">昵称不能为空</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">性别</label>
+      <select class="form-input" id="ep-sex">
+        <option value="0" :selected="currentUser?.sex==='0'">男</option>
+        <option value="1" :selected="currentUser?.sex==='1'">女</option>
+        <option value="2" :selected="currentUser?.sex==='2'">未知</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">所在地区</label>
+      <input type="text" class="form-input" id="ep-region" :value="currentUser?.region" placeholder="请输入所在地区">
+    </div>
+    <div class="form-group">
+      <label class="form-label">个人简介</label>
+      <textarea class="form-input" id="ep-profile" :value="currentUser?.profile" placeholder="介绍一下自己" maxlength="200"></textarea>
+    </div>
+    <template x-if="currentUser?.user_source==='kc_portal'">
+      <div class="form-group">
+        <label class="form-label">手机号</label>
+        <div class="flex gap-2">
+          <input type="text" class="form-input flex-1" id="ep-phone" :value="currentUser?.phone" placeholder="请输入新手机号" maxlength="11">
+          <button class="btn-outline shrink-0 text-sm" id="ep-sms-btn" @click="sendSmsCode('ep-sms-btn')">获取验证码</button>
+        </div>
+        <input type="text" class="form-input mt-2" id="ep-phone-code" placeholder="输入验证码（修改手机号时需要）" maxlength="6">
+      </div>
+    </template>
+    <template x-if="currentUser?.user_source==='platform'">
+      <div class="p-3 bg-blue-50 rounded-lg text-sm text-blue-600 mb-4">
+        <i class="fas fa-info-circle mr-1"></i>平台用户请在系统管理中修改手机号
+      </div>
+    </template>
+    <div class="flex gap-3 mt-2">
+      <button class="btn-outline flex-1" @click="showPage=null">取消</button>
+      <button class="btn-primary flex-1" @click="saveProfile">保存</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 编辑个人信息弹窗 -->
+
+<!-- CHANGE PASSWORD Modal -->
+<!-- SECTION START: 修改密码弹窗 -->
+<div id="feature-change-password" class="modal-overlay" x-show="showPage==='change-password'" @click.self="showPage=null">
+  <div class="modal-box" @click.stop>
+    <button class="absolute top-4 right-4 text-gray-400 hover:text-gray-600" @click="showPage=null"><i class="fas fa-times text-lg"></i></button>
+    <h2 class="text-xl font-bold mb-6">修改密码</h2>
+    <div class="form-group">
+      <label class="form-label"><span class="required">*</span>旧密码</label>
+      <input type="password" class="form-input" id="cp-old" placeholder="请输入旧密码">
+      <div class="form-error" id="cp-old-error">请输入旧密码</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label"><span class="required">*</span>新密码</label>
+      <input type="password" class="form-input" id="cp-new" placeholder="请输入新密码，6-20位">
+      <div class="form-error" id="cp-new-error">请输入新密码</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label"><span class="required">*</span>确认新密码</label>
+      <input type="password" class="form-input" id="cp-confirm" placeholder="请再次输入新密码">
+      <div class="form-error" id="cp-confirm-error">请再次输入新密码</div>
+    </div>
+    <div class="flex gap-3 mt-2">
+      <button class="btn-outline flex-1" @click="showPage=null">取消</button>
+      <button class="btn-primary flex-1" @click="doChangePassword">确认修改</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 修改密码弹窗 -->
+
+<!-- ENROLL Modal -->
+<!-- SECTION START: 培训报名弹窗 -->
+<div id="feature-enroll-modal" class="modal-overlay" x-show="showPage==='enroll'" @click.self="showPage=null">
+  <div class="modal-box" @click.stop>
+    <button class="absolute top-4 right-4 text-gray-400 hover:text-gray-600" @click="showPage=null"><i class="fas fa-times text-lg"></i></button>
+    <h2 class="text-xl font-bold mb-2">报名申请</h2>
+    <p class="text-sm text-gray-400 mb-6" x-text="selectedTraining?.training_name"></p>
+    <div class="form-group">
+      <label class="form-label"><span class="required">*</span>报名人姓名</label>
+      <input type="text" class="form-input" id="en-name" placeholder="请输入您的姓名" maxlength="50">
+      <div class="form-error" id="en-name-error">请输入您的姓名</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label"><span class="required">*</span>联系电话</label>
+      <input type="text" class="form-input" id="en-phone" placeholder="请输入联系电话" maxlength="11"
+             @blur="validatePhone('en-phone','en-phone-error')">
+      <div class="form-error" id="en-phone-error">请输入联系电话</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">所属单位</label>
+      <input type="text" class="form-input" id="en-org" placeholder="请输入所属单位（选填）" maxlength="100">
+    </div>
+    <div class="form-group">
+      <label class="form-label">备注</label>
+      <textarea class="form-input" id="en-remark" placeholder="其他说明（选填）" maxlength="200"></textarea>
+    </div>
+    <div class="flex gap-3 mt-2">
+      <button class="btn-outline flex-1" @click="showPage=null">取消</button>
+      <button class="btn-primary flex-1" @click="submitEnrollment">提交报名</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 培训报名弹窗 -->
+
+<!-- NEW POST Modal -->
+<!-- SECTION START: 发帖弹窗 -->
+<div id="feature-new-post" class="modal-overlay" x-show="showPage==='new-post'" @click.self="showPage=null">
+  <div class="modal-box modal-box-lg" @click.stop>
+    <button class="absolute top-4 right-4 text-gray-400 hover:text-gray-600" @click="showPage=null"><i class="fas fa-times text-lg"></i></button>
+    <h2 class="text-xl font-bold mb-6">发布帖子</h2>
+    <div class="form-group">
+      <label class="form-label"><span class="required">*</span>板块</label>
+      <select class="form-input" id="np-board">
+        <template x-for="b in MOCK_DATA.forumBoards" :key="b.board_id">
+          <option :value="b.board_id" x-text="b.board_name"></option>
+        </template>
+      </select>
+      <div class="form-error" id="np-board-error">请选择板块</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label"><span class="required">*</span>帖子标题</label>
+      <input type="text" class="form-input" id="np-title" placeholder="请输入帖子标题（5-200个字符）" maxlength="200"
+             @blur="validateLength('np-title','np-title-error',5,200)">
+      <div class="form-error" id="np-title-error">请输入帖子标题</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label"><span class="required">*</span>帖子内容</label>
+      <textarea class="form-input" id="np-content" placeholder="请输入帖子内容（至少10个字符）" style="min-height:160px"
+                @blur="validateLength('np-content','np-content-error',10,99999)"></textarea>
+      <div class="form-error" id="np-content-error">请输入帖子内容</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">图片上传（最多9张）</label>
+      <div class="flex gap-2 flex-wrap">
+        <label class="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-green-400 transition">
+          <i class="fas fa-plus text-gray-400 text-xl"></i>
+          <input type="file" accept="image/*" multiple class="hidden" @change="handleImageUpload">
+        </label>
+      </div>
+    </div>
+    <div class="flex gap-3 mt-2">
+      <button class="btn-outline flex-1" @click="showPage=null">取消</button>
+      <button class="btn-primary flex-1" @click="submitPost">发布帖子</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 发帖弹窗 -->
+
+<!-- NEW QUESTION Modal -->
+<!-- SECTION START: 提问弹窗 -->
+<div id="feature-new-question" class="modal-overlay" x-show="showPage==='new-question'" @click.self="showPage=null">
+  <div class="modal-box modal-box-lg" @click.stop>
+    <button class="absolute top-4 right-4 text-gray-400 hover:text-gray-600" @click="showPage=null"><i class="fas fa-times text-lg"></i></button>
+    <h2 class="text-xl font-bold mb-6">我要提问</h2>
+    <div class="form-group">
+      <label class="form-label"><span class="required">*</span>问题分类</label>
+      <select class="form-input" id="nq-category">
+        <option value="">请选择问题分类</option>
+        <template x-for="cat in MOCK_DATA.qaCategories" :key="cat.value">
+          <option :value="cat.value" x-text="cat.label"></option>
+        </template>
+      </select>
+      <div class="form-error" id="nq-category-error">请选择问题分类</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label"><span class="required">*</span>问题标题</label>
+      <input type="text" class="form-input" id="nq-title" placeholder="请输入问题标题（5-200个字符）" maxlength="200"
+             @blur="validateLength('nq-title','nq-title-error',5,200)">
+      <div class="form-error" id="nq-title-error">请输入问题标题</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label"><span class="required">*</span>问题描述</label>
+      <textarea class="form-input" id="nq-desc" placeholder="请详细描述您的问题（至少10个字符）" style="min-height:160px"
+                @blur="validateLength('nq-desc','nq-desc-error',10,99999)"></textarea>
+      <div class="form-error" id="nq-desc-error">请输入问题描述</div>
+    </div>
+    <div class="flex gap-3 mt-2">
+      <button class="btn-outline flex-1" @click="showPage=null">取消</button>
+      <button class="btn-primary flex-1" @click="submitQuestion">提交问题</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 提问弹窗 -->
+
+<!-- WRITE REVIEW Modal -->
+<!-- SECTION START: 写评价弹窗 -->
+<div id="feature-write-review" class="modal-overlay" x-show="showPage==='write-review'" @click.self="showPage=null">
+  <div class="modal-box" @click.stop>
+    <button class="absolute top-4 right-4 text-gray-400 hover:text-gray-600" @click="showPage=null"><i class="fas fa-times text-lg"></i></button>
+    <h2 class="text-xl font-bold mb-6">写评价</h2>
+    <div class="form-group text-center">
+      <label class="form-label text-center block">评分</label>
+      <div class="rating-stars justify-center" id="rating-stars">
+        <template x-for="i in [1,2,3,4,5]" :key="i">
+          <i class="fas fa-star cursor-pointer transition-colors" :class="reviewScore >= i ? 'text-yellow-400' : 'text-gray-300'"
+             @click="reviewScore=i" @mouseover="reviewHover=i" @mouseleave="reviewHover=0"></i>
+        </template>
+      </div>
+      <div class="form-error" id="review-score-error">请选择评分</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label"><span class="required">*</span>评价内容</label>
+      <textarea class="form-input" id="review-content-input" placeholder="请输入评价内容（5-500个字符）" style="min-height:120px" maxlength="500"></textarea>
+      <div class="form-error" id="review-content-error">请输入评价内容</div>
+    </div>
+    <div class="flex gap-3 mt-2">
+      <button class="btn-outline flex-1" @click="showPage=null">取消</button>
+      <button class="btn-primary flex-1" @click="submitReview">提交评价</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 写评价弹窗 -->
+
+<!-- LOGIN PROMPT Modal -->
+<!-- SECTION START: 登录提示弹窗 -->
+<div id="feature-login-prompt" class="modal-overlay" x-show="showPage==='login-prompt'" @click.self="showPage=null">
+  <div class="modal-box text-center" @click.stop style="max-width:360px">
+    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+      <i class="fas fa-lock text-green-600 text-2xl"></i>
+    </div>
+    <h3 class="text-lg font-bold mb-2">需要登录</h3>
+    <p class="text-sm text-gray-400 mb-6">该操作需要登录后才能进行</p>
+    <div class="flex gap-3">
+      <button class="btn-outline flex-1" @click="showPage=null">稍后再说</button>
+      <button class="btn-primary flex-1" @click="showPage='login'">去登录</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 登录提示弹窗 -->
+
+<!-- Toast -->
+<div id="success-toast" class="success-toast" style="display:none"></div>
+
+<script>
+const MOCK_DATA = {
+  // ======= 用户数据 =======
+  users: [
+    { user_id: 1, username: 'admin001', password: '123456', nick_name: '张建国', role: 'ent_admin', roleName: '企业管理员', user_source: 'platform', user_name: 'admin001', phone: '13812345678', sex: '0', region: '四川省遂宁市蓬溪县', profile: '蓬溪县鑫源养殖场负责人，从事生猪养殖10余年。', status: '0', login_date: '2026-03-05 09:30:00', create_time: '2024-01-15 10:00:00' },
+    { user_id: 2, username: 'reporter01', password: '123456', nick_name: '李小红', role: 'ent_reporter', roleName: '企业填报员', user_source: 'platform', user_name: 'reporter01', phone: '13987654321', sex: '1', region: '四川省遂宁市蓬溪县', profile: '养殖场信息填报员。', status: '0', login_date: '2026-03-04 14:00:00', create_time: '2024-02-10 09:00:00' },
+    { user_id: 3, username: '13698765432', password: '123456', nick_name: '王大山', role: 'kc_portal', roleName: '知识讲堂用户', user_source: 'kc_portal', user_name: '13698765432', phone: '13698765432', sex: '0', region: '四川省遂宁市', profile: '热爱养殖，喜欢交流养殖技术。', status: '0', login_date: '2026-03-06 08:00:00', create_time: '2025-06-01 11:00:00' }
+  ],
+
+  // ======= 轮播Banner =======
+  banners: [
+    { banner_id: 1, banner_title: '生猪知识讲堂正式上线', subtitle: '提升养殖技术，共建数字农业', bg_from: '#065f46', bg_to: '#047857', link_type: '0' },
+    { banner_id: 2, banner_title: '2026年非洲猪瘟防控专题培训', subtitle: '报名截止2026-03-20，名额有限', bg_from: '#1e3a8a', bg_to: '#1d4ed8', link_type: '1' },
+    { banner_id: 3, banner_title: '最新政策：生猪养殖补贴政策解读', subtitle: '了解最新补贴标准和申报流程', bg_from: '#7c3aed', bg_to: '#6d28d9', link_type: '1' },
+    { banner_id: 4, banner_title: '生猪市场价格分析报告发布', subtitle: '2026年一季度生猪价格走势', bg_from: '#b45309', bg_to: '#d97706', link_type: '1' },
+    { banner_id: 5, banner_title: '新型饲料添加剂技术交流会', subtitle: '提升饲料转化率，降低养殖成本', bg_from: '#0f766e', bg_to: '#0d9488', link_type: '1' }
+  ],
+
+  // ======= 课程分类 =======
+  courseCategories: [
+    { category_id: 1, category_name: '养殖基础' },
+    { category_id: 2, category_name: '疫病防控' },
+    { category_id: 3, category_name: '饲料营养' },
+    { category_id: 4, category_name: '繁育技术' },
+    { category_id: 5, category_name: '环保管理' }
+  ],
+
+  // ======= 课程数据 =======
+  courses: [
+    { course_id: 1, course_name: '生猪标准化养殖技术全程指导', category_id: 1, category_name: '养殖基础', teacher_name: '陈志远教授', teacher_intro: '四川农业大学动物科学系教授，从事生猪研究20年，主持多项国家级科研项目。', course_intro: '本课程系统介绍生猪标准化养殖的全流程技术，包括选种、育种、饲养管理、卫生防疫等各环节，帮助养殖户建立规范化的养殖体系。', total_duration: 12600, chapter_count: 8, learn_count: 1256, score: 4.8, review_count: 89, publish_status: '1', publish_time: '2026-01-10 10:00:00',
+      chapters: [
+        { chapter_id: 101, course_id: 1, chapter_sort: 1, chapter_title: '第一章：生猪品种选择与引种要点', video_duration: 1800, is_completed: true },
+        { chapter_id: 102, course_id: 1, chapter_sort: 2, chapter_title: '第二章：猪舍设计与环境控制', video_duration: 2100, is_completed: true },
+        { chapter_id: 103, course_id: 1, chapter_sort: 3, chapter_title: '第三章：饲养管理与营养需求', video_duration: 1680, is_completed: false },
+        { chapter_id: 104, course_id: 1, chapter_sort: 4, chapter_title: '第四章：生长育肥期管理技术', video_duration: 1920, is_completed: false },
+        { chapter_id: 105, course_id: 1, chapter_sort: 5, chapter_title: '第五章：防疫免疫程序制定', video_duration: 1560, is_completed: false },
+        { chapter_id: 106, course_id: 1, chapter_sort: 6, chapter_title: '第六章：粪污处理与环保达标', video_duration: 1440, is_completed: false },
+        { chapter_id: 107, course_id: 1, chapter_sort: 7, chapter_title: '第七章：生产档案记录规范', video_duration: 1200, is_completed: false },
+        { chapter_id: 108, course_id: 1, chapter_sort: 8, chapter_title: '第八章：养殖效益分析与优化', video_duration: 900, is_completed: false }
+      ]
+    },
+    { course_id: 2, course_name: '非洲猪瘟防控关键技术与应急处置', category_id: 2, category_name: '疫病防控', teacher_name: '刘明华研究员', teacher_intro: '四川省动物疫病预防控制中心研究员，长期从事猪病防控研究工作。', course_intro: '重点讲解非洲猪瘟的流行特点、临床症状识别、诊断方法和生物安全防控体系建立，以及疫情发生后的应急处置流程。', total_duration: 9000, chapter_count: 6, learn_count: 987, score: 4.9, review_count: 124, publish_status: '1', publish_time: '2026-01-20 14:00:00',
+      chapters: [
+        { chapter_id: 201, course_id: 2, chapter_sort: 1, chapter_title: '非洲猪瘟流行病学与传播途径', video_duration: 1500, is_completed: false },
+        { chapter_id: 202, course_id: 2, chapter_sort: 2, chapter_title: '临床症状识别与早期预警', video_duration: 1800, is_completed: false },
+        { chapter_id: 203, course_id: 2, chapter_sort: 3, chapter_title: '实验室诊断技术', video_duration: 1200, is_completed: false },
+        { chapter_id: 204, course_id: 2, chapter_sort: 4, chapter_title: '生物安全防控体系构建', video_duration: 2100, is_completed: false },
+        { chapter_id: 205, course_id: 2, chapter_sort: 5, chapter_title: '消毒技术规范与操作要点', video_duration: 1380, is_completed: false },
+        { chapter_id: 206, course_id: 2, chapter_sort: 6, chapter_title: '疫情应急处置与无害化处理', video_duration: 1020, is_completed: false }
+      ]
+    },
+    { course_id: 3, course_name: '精准饲料配方技术与饲养成本管控', category_id: 3, category_name: '饲料营养', teacher_name: '赵丽萍博士', teacher_intro: '西南大学动物营养学博士，主攻生猪饲料配方优化研究。', course_intro: '系统介绍生猪各生长阶段的营养需求及精准饲料配方技术，帮助养殖场降低料肉比，提升养殖效益。', total_duration: 8400, chapter_count: 5, learn_count: 743, score: 4.6, review_count: 67, publish_status: '1', publish_time: '2026-02-01 09:00:00',
+      chapters: [
+        { chapter_id: 301, course_id: 3, chapter_sort: 1, chapter_title: '生猪营养需求与NRC标准解读', video_duration: 2100, is_completed: false },
+        { chapter_id: 302, course_id: 3, chapter_sort: 2, chapter_title: '原料品质鉴别与采购管控', video_duration: 1560, is_completed: false },
+        { chapter_id: 303, course_id: 3, chapter_sort: 3, chapter_title: '阶段性饲料配方设计实战', video_duration: 1980, is_completed: false },
+        { chapter_id: 304, course_id: 3, chapter_sort: 4, chapter_title: '液态饲喂技术应用', video_duration: 1440, is_completed: false },
+        { chapter_id: 305, course_id: 3, chapter_sort: 5, chapter_title: '饲料成本核算与效益优化', video_duration: 1320, is_completed: false }
+      ]
+    },
+    { course_id: 4, course_name: '母猪繁殖性能提升与管理技术', category_id: 4, category_name: '繁育技术', teacher_name: '周国强教授', teacher_intro: '湖南农业大学繁殖学教授，主持省级母猪繁殖技术推广项目。', course_intro: '专注于提高母猪PSY（年提供断奶仔猪数），讲解母猪发情鉴定、人工授精、妊娠管理、接产护理等核心技术。', total_duration: 10800, chapter_count: 7, learn_count: 612, score: 4.7, review_count: 58, publish_status: '1', publish_time: '2026-02-10 11:00:00',
+      chapters: [
+        { chapter_id: 401, course_id: 4, chapter_sort: 1, chapter_title: '后备母猪选育与初配管理', video_duration: 1800, is_completed: false },
+        { chapter_id: 402, course_id: 4, chapter_sort: 2, chapter_title: '发情鉴定技术与适时配种', video_duration: 1620, is_completed: false },
+        { chapter_id: 403, course_id: 4, chapter_sort: 3, chapter_title: '人工授精操作规范', video_duration: 1440, is_completed: false },
+        { chapter_id: 404, course_id: 4, chapter_sort: 4, chapter_title: '妊娠母猪饲养管理', video_duration: 1680, is_completed: false },
+        { chapter_id: 405, course_id: 4, chapter_sort: 5, chapter_title: '分娩接产与初生仔猪护理', video_duration: 1920, is_completed: false },
+        { chapter_id: 406, course_id: 4, chapter_sort: 6, chapter_title: '哺乳期管理与仔猪培育', video_duration: 1440, is_completed: false },
+        { chapter_id: 407, course_id: 4, chapter_sort: 7, chapter_title: 'PSY指标分析与提升策略', video_duration: 900, is_completed: false }
+      ]
+    },
+    { course_id: 5, course_name: '规模猪场污染防治与粪污资源化利用', category_id: 5, category_name: '环保管理', teacher_name: '黄建民工程师', teacher_intro: '四川省环境保护协会高级工程师，长期为养殖企业提供环保技术咨询服务。', course_intro: '针对规模猪场环保合规要求，系统讲解污水处理、固体废弃物处理、臭气防控、粪污资源化利用等技术方案。', total_duration: 7200, chapter_count: 4, learn_count: 389, score: 4.4, review_count: 32, publish_status: '1', publish_time: '2026-02-20 15:00:00',
+      chapters: [
+        { chapter_id: 501, course_id: 5, chapter_sort: 1, chapter_title: '环保法规与排放标准解读', video_duration: 1800, is_completed: false },
+        { chapter_id: 502, course_id: 5, chapter_sort: 2, chapter_title: '污水处理工艺选型与运维', video_duration: 1980, is_completed: false },
+        { chapter_id: 503, course_id: 5, chapter_sort: 3, chapter_title: '固废无害化处理技术', video_duration: 1560, is_completed: false },
+        { chapter_id: 504, course_id: 5, chapter_sort: 4, chapter_title: '粪污有机肥化与还田利用', video_duration: 1860, is_completed: false }
+      ]
+    },
+    { course_id: 6, course_name: '猪传染性胸膜肺炎综合防控技术', category_id: 2, category_name: '疫病防控', teacher_name: '吴医师', teacher_intro: '蓬溪县动物卫生监督所执业兽医师，擅长猪呼吸道疾病诊治。', course_intro: '针对猪传染性胸膜肺炎的流行病学、发病机理、诊断及综合防控策略进行系统讲解，结合实际病例分析。', total_duration: 5400, chapter_count: 3, learn_count: 521, score: 4.5, review_count: 43, publish_status: '1', publish_time: '2026-02-25 10:00:00',
+      chapters: [
+        { chapter_id: 601, course_id: 6, chapter_sort: 1, chapter_title: '病原学特征与流行规律', video_duration: 1800, is_completed: false },
+        { chapter_id: 602, course_id: 6, chapter_sort: 2, chapter_title: '诊断鉴别与药敏试验', video_duration: 1800, is_completed: false },
+        { chapter_id: 603, course_id: 6, chapter_sort: 3, chapter_title: '免疫预防与综合防控方案', video_duration: 1800, is_completed: false }
+      ]
+    },
+    { course_id: 7, course_name: '生猪耳标管理与追溯系统操作指南', category_id: 1, category_name: '养殖基础', teacher_name: '系统培训组', teacher_intro: '蓬溪县农业农村局生猪管理平台培训组。', course_intro: '讲解生猪耳标佩戴规范、二维码信息录入、追溯查询操作方法，帮助养殖户熟练使用数字化管理平台。', total_duration: 3600, chapter_count: 3, learn_count: 1823, score: 4.3, review_count: 156, publish_status: '1', publish_time: '2026-03-01 09:00:00',
+      chapters: [
+        { chapter_id: 701, course_id: 7, chapter_sort: 1, chapter_title: '耳标申领与佩戴操作规范', video_duration: 1200, is_completed: false },
+        { chapter_id: 702, course_id: 7, chapter_sort: 2, chapter_title: '生猪信息录入与变更操作', video_duration: 1320, is_completed: false },
+        { chapter_id: 703, course_id: 7, chapter_sort: 3, chapter_title: '追溯查询与报告生成', video_duration: 1080, is_completed: false }
+      ]
+    },
+    { course_id: 8, course_name: '蓬溪麻辣猪特色品种保护与开发', category_id: 1, category_name: '养殖基础', teacher_name: '蓬溪县畜牧科技推广站', teacher_intro: '蓬溪县畜牧科技推广站技术团队。', course_intro: '介绍蓬溪地方特色猪品种的生物学特性、保护价值、特色饲养技术及市场开发前景，助力地方特色农业发展。', total_duration: 4200, chapter_count: 3, learn_count: 278, score: 4.2, review_count: 21, publish_status: '1', publish_time: '2026-03-05 14:00:00',
+      chapters: [
+        { chapter_id: 801, course_id: 8, chapter_sort: 1, chapter_title: '地方猪品种特征与遗传资源保护', video_duration: 1560, is_completed: false },
+        { chapter_id: 802, course_id: 8, chapter_sort: 2, chapter_title: '特色饲养技术与品质控制', video_duration: 1440, is_completed: false },
+        { chapter_id: 803, course_id: 8, chapter_sort: 3, chapter_title: '品牌建设与市场开发路径', video_duration: 1200, is_completed: false }
+      ]
+    }
+  ],
+
+  // ======= 课程评价 =======
+  reviews: [
+    { review_id: 1, course_id: 1, user_nickname: '张师傅', user_avatar: '', score: 5, review_content: '讲得非常系统，作为多年养猪的老师傅，看完之后还是学到了不少新的标准化管理知识，强烈推荐！', audit_status: '2', create_time: '2026-02-15 16:00:00' },
+    { review_id: 2, course_id: 1, user_nickname: '新手养殖人', user_avatar: '', score: 5, review_content: '刚入行不久，这个课程对我来说真的太及时了，从头到尾讲得很清楚，每个章节都有实际操作的要点。', audit_status: '2', create_time: '2026-02-20 11:00:00' },
+    { review_id: 3, course_id: 1, user_nickname: '王老板', user_avatar: '', score: 4, review_content: '内容不错，讲师经验丰富，就是部分内容稍微有点理论化，希望多结合实际案例。', audit_status: '2', create_time: '2026-03-01 09:30:00' }
+  ],
+
+  // ======= 政策资讯分类 =======
+  policyCategories: [
+    { value: '1', label: '国家政策' },
+    { value: '2', label: '地方政策' },
+    { value: '3', label: '行业动态' },
+    { value: '4', label: '技术指南' }
+  ],
+
+  // ======= 政策资讯 =======
+  policies: [
+    { policy_id: 1, policy_title: '农业农村部关于加强非洲猪瘟防控的紧急通知', policy_summary: '为有效防控非洲猪瘟蔓延，农业农村部对各省市生猪养殖场提出了更严格的生物安全管理要求，并明确了相关补偿政策。', policy_category: '1', policy_source: '农业农村部', cover_image: '1', read_count: 3421, is_top: '1', is_important: '1', publish_time: '2026-03-01 10:00:00', content: '各省、自治区、直辖市农业农村（畜牧兽医）厅（局、委）：\n\n为进一步加强非洲猪瘟防控工作，有效防止疫情扩散蔓延，切实保障生猪产业持续健康发展，现将有关要求通知如下：\n\n一、高度重视防控工作\n各地要深刻认识当前非洲猪瘟防控形势的严峻性和复杂性，将防控工作摆在突出位置，切实增强责任感和紧迫感。\n\n二、严格落实各项防控措施\n（一）强化生物安全管理。各养殖场（户）要落实人员出入登记、车辆消毒、物品管理等生物安全措施。\n（二）加强监测排查。要定期开展生猪临床巡查，发现异常情况及时报告。', attachment_urls: '通知全文.pdf' },
+    { policy_id: 2, policy_title: '2026年生猪养殖补贴申报指南', policy_summary: '蓬溪县2026年生猪规模化养殖补贴政策正式出台，对符合条件的养殖场给予每头生猪100元的补贴，申报截止2026年4月30日。', policy_category: '2', policy_source: '蓬溪县农业农村局', cover_image: '1', read_count: 2156, is_top: '1', is_important: '0', publish_time: '2026-02-25 14:00:00', content: '蓬溪县2026年生猪规模化养殖补贴政策申报条件：\n\n1. 养殖规模：年出栏生猪500头及以上。\n2. 登记要求：已在县农业农村局完成备案登记。\n3. 合规要求：无重大违规记录，环保达标。\n\n补贴标准：每头出栏生猪补贴100元，最高补贴50万元。\n\n申报流程：登录蓬溪县生猪数字化管理平台，在线填写申报表并上传相关证明材料。', attachment_urls: '申报表格模板.xlsx' },
+    { policy_id: 3, policy_title: '关于调整生猪产地检疫申报程序的公告', policy_summary: '为提高检疫效率，蓬溪县生猪产地检疫申报程序进行优化调整，现支持手机APP在线申报，缩短等待时间。', policy_category: '2', policy_source: '蓬溪县动物卫生监督所', cover_image: '0', read_count: 876, is_top: '0', is_important: '0', publish_time: '2026-02-20 09:00:00', content: '为进一步优化生猪产地检疫服务，方便养殖场户申报，特公告如下：...', attachment_urls: '' },
+    { policy_id: 4, policy_title: '全国生猪遗传改良计划（2026-2035年）', policy_summary: '农业农村部印发全国生猪遗传改良计划，明确未来十年生猪育种方向，重点提升PSY和瘦肉率等核心性状。', policy_category: '1', policy_source: '农业农村部', cover_image: '0', read_count: 1543, is_top: '0', is_important: '0', publish_time: '2026-02-15 11:00:00', content: '全国生猪遗传改良计划主要目标：到2035年，生猪PSY（年提供断奶仔猪数）达到28头以上，料肉比降至2.5以下...', attachment_urls: '计划全文.pdf' },
+    { policy_id: 5, policy_title: '生猪养殖技术规范（GB/T XXXX-2026）', policy_summary: '新版生猪养殖技术国家标准正式发布，对养殖密度、饲料营养、用药规范、档案管理等方面提出了更高要求。', policy_category: '4', policy_source: '国家市场监督管理总局', cover_image: '0', read_count: 967, is_top: '0', is_important: '0', publish_time: '2026-02-10 10:00:00', content: '新版生猪养殖技术国家标准主要修订内容：\n\n1. 养殖密度：育肥猪每头最低圈舍面积由0.8㎡提高至1.0㎡。\n2. 饲料安全：禁止使用的添加剂目录新增5种物质。\n3. 用药规范：抗菌药物使用记录保存期限由1年延长至2年。', attachment_urls: '' },
+    { policy_id: 6, policy_title: '四川省生猪产业高质量发展三年行动计划', policy_summary: '四川省制定生猪产业三年行动计划，力争到2028年全省生猪出栏量稳定在7000万头以上，生猪标准化规模化养殖比例达70%。', policy_category: '2', policy_source: '四川省农业农村厅', cover_image: '0', read_count: 1234, is_top: '0', is_important: '0', publish_time: '2026-02-05 09:00:00', content: '四川省生猪产业高质量发展三年行动计划（2026-2028年）重点任务：...', attachment_urls: '' },
+    { policy_id: 7, policy_title: '猪肉产品追溯管理办法（修订版）', policy_summary: '修订版猪肉产品追溯管理办法正式实施，要求所有规模养殖场必须接入国家追溯平台，实现"一猪一码"全程追溯。', policy_category: '4', policy_source: '农业农村部', cover_image: '0', read_count: 789, is_top: '0', is_important: '0', publish_time: '2026-01-25 15:00:00', content: '猪肉产品追溯管理办法修订要点：\n\n一、追溯范围扩大\n年出栏500头及以上的规模养殖场须全部纳入追溯管理。\n\n二、技术要求\n（一）须采用二维码或RFID耳标。\n（二）信息采集频率不低于每周1次。', attachment_urls: '' },
+    { policy_id: 8, policy_title: '蓬溪县生猪保险保费补贴实施方案', policy_summary: '蓬溪县政策性生猪保险保费补贴标准提高，养殖场自付比例降至20%，最高每头赔付金额提高至1500元。', policy_category: '2', policy_source: '蓬溪县财政局', cover_image: '0', read_count: 1678, is_top: '0', is_important: '0', publish_time: '2026-01-20 10:00:00', content: '蓬溪县2026年政策性生猪保险补贴标准：\n中央财政补贴50%，省级财政补贴20%，县级财政补贴10%，养殖场自付20%。每头保额：育肥猪1500元，能繁母猪3000元。', attachment_urls: '' }
+  ],
+
+  // ======= 行业动态分类 =======
+  articleCategories: [
+    { value: '1', label: '市场行情' },
+    { value: '2', label: '技术前沿' },
+    { value: '3', label: '产业分析' },
+    { value: '4', label: '疫病防控' }
+  ],
+
+  // ======= 行业动态 =======
+  articles: [
+    { article_id: 1, title: '2026年一季度生猪价格持续高位，养殖利润丰厚', summary: '受春节后需求回暖及前期补栏不足影响，2026年一季度生猪价格维持在18元/公斤以上，养殖端盈利明显改善，行业补栏积极性明显提升。', article_category: '1', source: '中国养猪网', author: '市场分析组', cover_image: '1', content: '据监测数据显示，2026年1-3月全国生猪出栏均价为18.6元/公斤，比去年同期上涨约15%。当前头均养殖利润达到350元左右，处于近三年较高水平。\n\n主要影响因素：\n1. 供给端：受2024年下半年非洲猪瘟疫情影响，能繁母猪存栏在去年四季度有所下降，当前猪源偏紧。\n2. 需求端：春节消费旺季带动，以及后疫情时代餐饮复苏，猪肉消费需求持续回升。\n\n后市展望：预计二季度随着育肥猪出栏量恢复，价格将有所回落，但仍将维持在盈利线以上。', read_count: 2341, is_top: '1', sort_order: 1, publish_status: '1', publish_time: '2026-03-05 09:00:00' },
+    { article_id: 2, title: '新型猪圆环病毒3型疫苗研发取得重大突破', summary: '中国农业科学院哈尔滨兽医研究所宣布，新型猪圆环病毒3型（PCV3）亚单位疫苗研发成功，即将进入临床试验阶段，有望在2027年实现商业化应用。', article_category: '2', source: '中国农业科学院', author: '科研信息部', cover_image: '1', content: '猪圆环病毒3型（PCV3）是近年来在猪群中新发现的病毒，与猪多系统衰竭综合征、繁殖障碍等疾病密切相关，给养殖业造成重大损失。\n\n研究团队历时三年，采用基因工程技术，成功构建了高效表达PCV3 Cap蛋白的重组杆状病毒，研制出具有良好免疫原性的亚单位疫苗。动物实验显示，该疫苗的中和抗体阳转率达到92%以上，具有良好的安全性和有效性。', read_count: 1876, is_top: '0', sort_order: 0, publish_status: '1', publish_time: '2026-03-03 14:00:00' },
+    { article_id: 3, title: '规模化猪场AI智能监控系统在四川省率先落地', summary: '基于计算机视觉技术的生猪行为分析系统在四川省多家规模猪场投入试用，可自动识别猪只的发热、跛行、打斗等异常行为，提前预警疾病风险。', article_category: '2', source: '四川日报', author: '记者 李方', cover_image: '0', content: '该系统通过在猪舍安装高清摄像头，结合深度学习算法，实现对猪只行为的实时分析，系统识别准确率达到94.5%。采用该系统后，试点猪场的死亡率降低了2.3个百分点，药物使用成本降低约15%。', read_count: 1234, is_top: '0', sort_order: 0, publish_status: '1', publish_time: '2026-03-01 10:00:00' },
+    { article_id: 4, title: '2025年全国生猪出栏量统计报告出炉', summary: '国家统计局数据显示，2025年全国生猪出栏量为7.34亿头，同比增长3.2%，生猪产能全面恢复并稳定在合理水平。', article_category: '3', source: '国家统计局', author: '-', cover_image: '1', content: '2025年全国生猪出栏7.34亿头，猪肉产量5989万吨。全国规模化养殖比例达到68.2%，比2024年提升3.1个百分点。\n\n分地区来看，四川省出栏量6523万头，位居全国前三，同比增长4.8%。', read_count: 3218, is_top: '0', sort_order: 0, publish_status: '1', publish_time: '2026-02-28 09:00:00' },
+    { article_id: 5, title: '口蹄疫O型病毒新变异株在东南亚地区流行，需加强防范', summary: '东南亚多国报告口蹄疫O型病毒新变异株感染案例，该变异株对现有疫苗的中和效果有所下降，我国边境地区需加强生物安全防控。', article_category: '4', source: '中国动物疫病预防控制中心', author: '疫情信息室', cover_image: '0', content: '根据世界动物卫生组织（WOAH）通报，越南、泰国、缅甸等国家近期报告口蹄疫O型病毒新变异株流行情况。该变异株VP1蛋白发生了关键位点突变，导致部分疫苗的中和抗体水平有所下降。\n\n防控建议：加强边境防控，严禁从疫区引进生猪及猪产品；提高疫苗免疫密度，做好抗体检测。', read_count: 987, is_top: '0', sort_order: 0, publish_status: '1', publish_time: '2026-02-26 15:00:00' },
+    { article_id: 6, title: '中国猪肉进口量2025年同比下降18%，自给率创新高', summary: '海关总署数据显示，2025年我国猪肉进口量为162万吨，同比下降18.3%，猪肉自给率提升至98.2%，为近十年最高水平。', article_category: '3', source: '海关总署', author: '-', cover_image: '1', content: '随着国内生猪产能持续恢复，2025年我国猪肉自给率大幅提升。专家分析认为，这一趋势将在2026年继续保持，预计全年进口量将进一步降至140万吨左右。', read_count: 1456, is_top: '0', sort_order: 0, publish_status: '1', publish_time: '2026-02-22 11:00:00' },
+    { article_id: 7, title: '蓬溪县生猪养殖废水处理新技术示范项目启动', summary: '蓬溪县与某环保科技公司合作，在全县10家规模猪场开展MBR膜生物反应器污水处理技术示范项目，处理后水质达地表水IV类标准。', article_category: '3', source: '蓬溪县农业农村局', author: '-', cover_image: '0', content: '该项目总投资500万元，预计2026年底完成建设，每天可处理养殖废水3000立方米，处理后水可作为农业灌溉用水循环利用。', read_count: 567, is_top: '0', sort_order: 0, publish_status: '1', publish_time: '2026-02-18 09:00:00' },
+    { article_id: 8, title: '仔猪腹泻的季节性防控策略', summary: '春秋季节温差大，是仔猪腹泻高发季节。本文系统介绍仔猪腹泻的主要病因、鉴别诊断及综合防控措施，帮助养殖户降低仔猪死亡率。', article_category: '4', source: '中国养猪技术网', author: '王兽医', cover_image: '0', content: '仔猪腹泻是养猪生产中最常见的疾病之一，发病率和死亡率均较高，给养殖场造成重大经济损失。\n\n主要病因：\n1. 病原性因素：大肠杆菌、传染性胃肠炎病毒、流行性腹泻病毒等。\n2. 营养性因素：饲料配方不合理、换料应激等。\n3. 管理性因素：舍温低、潮湿、卫生差等。\n\n防控措施：加强产房保温、母猪免疫、初乳摄入管理是关键。', read_count: 1123, is_top: '0', sort_order: 0, publish_status: '1', publish_time: '2026-02-15 14:00:00' }
+  ],
+
+  // ======= 培训活动 =======
+  trainings: [
+    { training_id: 1, training_name: '2026年春季非洲猪瘟防控技术培训班', training_intro: '为有效应对非洲猪瘟威胁，蓬溪县农业农村局联合四川省动物疫病预防控制中心举办本次专题培训，内容涵盖ASF流行病学、生物安全体系建立、应急处置规程等，全程实战化教学。', training_type: '1', training_mode: '1', speaker: '刘明华研究员', speaker_intro: '四川省动物疫病预防控制中心研究员，ASF防控专家，参与过多起大规模疫情处置工作。', location: '蓬溪县农业农村局三楼会议室', start_time: '2026-03-20 09:00:00', end_time: '2026-03-21 17:00:00', enrollment_deadline: '2026-03-18 18:00:00', max_enrollment: 60, current_enrollment: 42, training_status: '0', publish_status: '1', publish_time: '2026-03-01 09:00:00' },
+    { training_id: 2, training_name: '生猪精准营养与饲料配方实操培训', training_intro: '本次培训聚焦生猪饲料成本控制，通过理论讲解+实际案例分析+配方软件操作演示的形式，帮助养殖场技术人员掌握精准营养技术，有效降低料肉比，提升养殖效益。', training_type: '2', training_mode: '3', speaker: '赵丽萍博士', speaker_intro: '西南大学动物营养学博士，长期从事生猪营养研究和技术推广工作，发表论文30余篇。', location: '线上：腾讯会议（会议号：XXXXXXXX）', start_time: '2026-04-01 09:00:00', end_time: '2026-04-02 17:00:00', enrollment_deadline: '2026-03-30 18:00:00', max_enrollment: 200, current_enrollment: 89, training_status: '0', publish_status: '1', publish_time: '2026-03-05 10:00:00' },
+    { training_id: 3, training_name: '蓬溪县生猪养殖政策及补贴申报宣讲会', training_intro: '蓬溪县农业农村局举办2026年生猪养殖政策宣讲会，详细解读最新补贴申报条件、流程及材料要求，同时介绍生猪数字化管理平台的使用方法和注意事项。', training_type: '3', training_mode: '1', speaker: '县农业农村局政策科负责人', speaker_intro: '长期从事农业政策研究和宣传工作。', location: '蓬溪县人民政府大礼堂', start_time: '2026-03-10 14:00:00', end_time: '2026-03-10 17:00:00', enrollment_deadline: '2026-03-09 18:00:00', max_enrollment: 300, current_enrollment: 256, training_status: '1', publish_status: '1', publish_time: '2026-02-28 09:00:00' },
+    { training_id: 4, training_name: '生猪繁育性能提升技术交流会', training_intro: '邀请全县优秀养殖场分享母猪管理经验，并由技术专家进行点评和补充，通过互动交流帮助养殖场提高PSY指标。', training_type: '4', training_mode: '1', speaker: '周国强教授', speaker_intro: '湖南农业大学繁殖学教授，主持省级母猪繁殖技术推广项目。', location: '蓬溪县畜牧局培训室', start_time: '2026-02-28 09:00:00', end_time: '2026-02-28 17:00:00', enrollment_deadline: '2026-02-26 18:00:00', max_enrollment: 80, current_enrollment: 80, training_status: '2', publish_status: '1', publish_time: '2026-02-10 09:00:00' },
+    { training_id: 5, training_name: '规模猪场智能化设备操作与维护培训', training_intro: '针对新引进自动化饲喂设备、环控系统等智能化装备的操作和日常维护进行培训，确保设备稳定运行，减少人工成本。', training_type: '2', training_mode: '1', speaker: '设备厂商技术团队', speaker_intro: '专业设备技术服务团队，具有丰富的猪场智能化改造经验。', location: '蓬溪县职业技术培训中心', start_time: '2026-04-15 09:00:00', end_time: '2026-04-16 17:00:00', enrollment_deadline: '2026-04-13 18:00:00', max_enrollment: 50, current_enrollment: 12, training_status: '0', publish_status: '1', publish_time: '2026-03-06 09:00:00' }
+  ],
+
+  // ======= 我的报名记录 =======
+  myEnrollments: [
+    { enrollment_id: 1, training_id: 1, training_name: '2026年春季非洲猪瘟防控技术培训班', enrollee_name: '张建国', enrollee_phone: '13812345678', approval_status: '1', approval_remark: '审核通过，请准时参加', create_time: '2026-03-05 10:30:00' },
+    { enrollment_id: 2, training_id: 2, training_name: '生猪精准营养与饲料配方实操培训', enrollee_name: '张建国', enrollee_phone: '13812345678', approval_status: '0', approval_remark: '', create_time: '2026-03-06 08:15:00' },
+    { enrollment_id: 3, training_id: 4, training_name: '生猪繁育性能提升技术交流会', enrollee_name: '张建国', enrollee_phone: '13812345678', approval_status: '2', approval_remark: '名额已满，无法参加本次培训，感谢理解', create_time: '2026-02-22 14:20:00' }
+  ],
+
+  // ======= 论坛板块 =======
+  forumBoards: [
+    { board_id: 1, board_name: '养殖技术交流', board_desc: '分享养殖技术和经验', board_icon: '', post_count: 234, status: '0' },
+    { board_id: 2, board_name: '疫病防控讨论', board_desc: '交流疾病防控经验', board_icon: '', post_count: 187, status: '0' },
+    { board_id: 3, board_name: '政策解读', board_desc: '政策信息交流', board_icon: '', post_count: 98, status: '0' },
+    { board_id: 4, board_name: '市场行情交流', board_desc: '生猪价格及市场信息', board_icon: '', post_count: 156, status: '0' },
+    { board_id: 5, board_name: '设备与技术', board_desc: '养殖设备技术交流', board_icon: '', post_count: 67, status: '0' }
+  ],
+
+  // ======= 论坛帖子 =======
+  forumPosts: [
+    { post_id: 1, board_id: 1, user_id: 1, user_source: 'platform', user_nickname: '张建国', user_avatar: '', title: '我场母猪PSY从22提升到28的实践经验分享', content: '各位同行大家好，我是蓬溪鑫源养殖场的张建国。去年在县农业局专家的指导下，对我场母猪管理进行了系统优化，PSY从22头提升到了28头，提升幅度比较明显。主要做了以下几点改进：\n\n1. 优化后备母猪的选育标准，注重乳头数量和品种选择\n2. 引入了AIAO（全进全出）的生产管理模式\n3. 加强了哺乳期母猪的采食量管理\n4. 缩短了断奶日龄，从28天改为21天\n\n如果有同行感兴趣，可以来场参观交流，希望能帮到大家。', image_urls: '', view_count: 456, reply_count: 23, last_reply_time: '2026-03-05 16:30:00', is_top: '1', is_featured: '1', status: '1', create_time: '2026-03-01 09:00:00' },
+    { post_id: 2, board_id: 2, user_id: 3, user_source: 'kc_portal', user_nickname: '王大山', user_avatar: '', title: '求教：猪场最近出现蓝耳症状，如何判断是PRRS还是PCV2', content: '最近我场有几头育肥猪出现了耳朵发绀、呼吸困难的症状，死亡了2头。请问有没有经验的老师能帮我分析一下，如何区分蓝耳病（PRRS）和猪圆环病毒感染（PCV2）？临床症状上有哪些关键区别点？', image_urls: '', view_count: 312, reply_count: 15, last_reply_time: '2026-03-04 11:00:00', is_top: '0', is_featured: '0', status: '1', create_time: '2026-03-02 15:00:00' },
+    { post_id: 3, board_id: 4, user_id: 2, user_source: 'platform', user_nickname: '李小红', user_avatar: '', title: '蓬溪地区3月份生猪收购价格汇总', content: '整理了一下本月蓬溪地区各大屠宰场的收购价格：\n鑫隆屠宰场：17.8元/公斤\n蓬溪冷链物流：17.6元/公斤\n县城个体收购：18.0元/公斤\n\n相比上个月涨了约0.5元/公斤，目前出栏一头120公斤的育肥猪，扣除成本利润在260元左右。大家有没有其他渠道的价格信息，欢迎补充。', image_urls: '', view_count: 567, reply_count: 18, last_reply_time: '2026-03-06 08:00:00', is_top: '0', is_featured: '0', status: '1', create_time: '2026-03-04 10:00:00' },
+    { post_id: 4, board_id: 1, user_id: 3, user_source: 'kc_portal', user_nickname: '王大山', user_avatar: '', title: '新建猪场通风设计求助，南方高温高湿地区怎么设计', content: '准备新建一个500头育肥猪场，地处四川盆地，夏季高温高湿。请问有没有这方面经验的朋友分享一下通风降温方案？纵向通风还是横向通风？湿帘风机怎么布局？', image_urls: '', view_count: 234, reply_count: 11, last_reply_time: '2026-03-03 14:00:00', is_top: '0', is_featured: '0', status: '1', create_time: '2026-03-02 09:00:00' },
+    { post_id: 5, board_id: 3, user_id: 1, user_source: 'platform', user_nickname: '张建国', user_avatar: '', title: '2026年蓬溪县生猪养殖补贴申报，我已经提交，分享一下流程', content: '今天把2026年的补贴申报材料提交了，分享一下流程给大家参考：\n1. 登录生猪数字化管理平台，在"项目申报"模块找到2026年补贴申报表\n2. 如实填写年出栏量、平均存栏量，系统会自动计算补贴金额\n3. 需要上传营业执照、环评合格证、防疫证明等材料\n4. 提交后等待县农业农村局审核，审核周期大约15个工作日\n\n预计补贴金额：年出栏800头×100元=8万元。', image_urls: '', view_count: 389, reply_count: 9, last_reply_time: '2026-03-05 17:00:00', is_top: '0', is_featured: '0', status: '1', create_time: '2026-03-05 08:30:00' },
+    { post_id: 6, board_id: 5, user_id: 2, user_source: 'platform', user_nickname: '李小红', user_avatar: '', title: '使用自动化液态饲喂系统一年后的感受', content: '去年年初引进了一套液态饲喂系统，管理150头育肥猪。用了一年下来总体感受不错，分享几点：\n优点：1.减少了2名工人，人工成本降低明显；2.猪的采食量提升，出栏时间缩短了约3天；3.减少了饲料浪费。\n缺点：1.管道需要每天冲洗，维护稍麻烦；2.冬天需要加热装置，增加了一定能耗。\n\n总体来说投资回报不错，建议规模100头以上的猪场可以考虑引入。', image_urls: '', view_count: 178, reply_count: 7, last_reply_time: '2026-03-04 16:00:00', is_top: '0', is_featured: '0', status: '1', create_time: '2026-03-03 14:00:00' }
+  ],
+
+  // ======= 帖子回复 =======
+  postReplies: [
+    { reply_id: 1, post_id: 1, user_id: 2, user_source: 'platform', user_nickname: '李小红', user_avatar: '', parent_id: 0, reply_to_nickname: '', content: '张老板分享得非常详细！我们场也有这个问题，PSY一直上不去，主要卡在哺乳期母猪采食量这块，请问您是怎么提高的？', status: '1', create_time: '2026-03-01 10:30:00' },
+    { reply_id: 2, post_id: 1, user_id: 1, user_source: 'platform', user_nickname: '张建国', user_avatar: '', parent_id: 1, reply_to_nickname: '李小红', content: '哺乳期采食量是关键！我们主要是：1.增加喂料次数到4次/天；2.调整饲料配方，适当降低哺乳母猪料的粗纤维；3.加强产房通风降温，热应激是影响采食量的大敌。希望有帮助！', status: '1', create_time: '2026-03-01 11:00:00' },
+    { reply_id: 3, post_id: 1, user_id: 3, user_source: 'kc_portal', user_nickname: '王大山', user_avatar: '', parent_id: 0, reply_to_nickname: '', content: '请问缩短断奶日龄到21天，仔猪的后续健康有没有受到影响？我一直担心这个问题不敢操作。', status: '1', create_time: '2026-03-02 09:00:00' }
+  ],
+
+  // ======= 问答分类 =======
+  qaCategories: [
+    { value: '1', label: '养殖技术' },
+    { value: '2', label: '疫病防治' },
+    { value: '3', label: '饲料营养' },
+    { value: '4', label: '市场价格' },
+    { value: '5', label: '政策法规' }
+  ],
+
+  // ======= 问题列表 =======
+  qaQuestions: [
+    { question_id: 1, user_id: 3, user_source: 'kc_portal', user_nickname: '王大山', user_avatar: '', title: '育肥猪从100kg到120kg阶段为什么增重速度明显变慢？', description: '我的育肥猪从80kg到100kg阶段日增重能达到850g，但一过100kg日增重就降到600g左右，料肉比也明显上升。请问是饲料配方问题还是猪本身的生理原因？有没有什么改善方法？', question_category: '1', image_urls: '', view_count: 234, answer_count: 3, question_status: '2', create_time: '2026-02-20 09:00:00' },
+    { question_id: 2, user_id: 2, user_source: 'platform', user_nickname: '李小红', user_avatar: '', title: '母猪产后不发情超过30天，有什么处理方法？', description: '有两头母猪断奶后已经超过30天了还没有出现发情症状，饲料正常，体况良好（背膘约18mm）。请问是否需要注射激素？如果需要的话应该用什么药、什么时间注射？', question_category: '1', image_urls: '', view_count: 178, answer_count: 2, question_status: '1', create_time: '2026-02-25 14:00:00' },
+    { question_id: 3, user_id: 3, user_source: 'kc_portal', user_nickname: '王大山', user_avatar: '', title: '怎么判断猪场是否需要申请环评？小规模散养需要吗？', description: '我家有50头母猪，年出栏约1000头。想咨询一下按照现行法规，这个规模是否需要办理环评手续？如果需要，流程是什么？费用大概是多少？', question_category: '5', image_urls: '', view_count: 156, answer_count: 1, question_status: '1', create_time: '2026-03-01 10:00:00' },
+    { question_id: 4, user_id: 1, user_source: 'platform', user_nickname: '张建国', user_avatar: '', title: '仔猪黄白痢特别严重，换了好几种抗生素还是反复发作', description: '20日龄以内仔猪腹泻非常严重，用过庆大霉素、阿莫西林、恩诺沙星都控制不住，总是反复。每窝都有2-3头死亡，损失很大。请问是耐药性问题还是其他原因？如何彻底解决？', question_category: '2', image_urls: '', view_count: 312, answer_count: 4, question_status: '2', create_time: '2026-03-02 09:00:00' },
+    { question_id: 5, user_id: 2, user_source: 'platform', user_nickname: '李小红', user_avatar: '', title: '当前猪价走势判断，3月底到4月是否适合出栏？', description: '现在手上有150头育肥猪，目前均重115公斤，当前价格17.8元。有的说最近价格要涨，有的说4月后会跌。想请教有经验的老师们，是现在出还是再等等？', question_category: '4', image_urls: '', view_count: 423, answer_count: 2, question_status: '1', create_time: '2026-03-04 08:00:00' },
+    { question_id: 6, user_id: 3, user_source: 'kc_portal', user_nickname: '王大山', user_avatar: '', title: '购买饲料原料时，玉米水分超标如何处理？', description: '最近进了一批玉米，到货后检测水分是16%，超过了14%的安全储存标准。现在库存有20吨，请问可以直接用吗？如果不能直接用，有什么简单的处理方法可以降低水分？', question_category: '3', image_urls: '', view_count: 189, answer_count: 0, question_status: '0', create_time: '2026-03-05 14:00:00' }
+  ],
+
+  // ======= 问答回答 =======
+  qaAnswers: [
+    { answer_id: 1, question_id: 1, user_id: 99, user_source: 'platform', user_nickname: '陈志远教授', user_avatar: '', content: '这是正常的生理现象。生猪100kg以后进入脂肪沉积为主的阶段，蛋白质沉积速度减慢，肌肉增长率下降，所以日增重和料肉比都会出现下降。\n\n改善建议：1.适当降低100kg后阶段饲料的蛋白水平到14-15%，增加能量浓度；2.如果追求增重速度，可以适当增加饲料添加剂（如β-受体激动剂，但需注意休药期）；3.更经济的方案是在90-100kg阶段及时出栏，此时经济效益最优。', is_accepted: '1', is_expert: '1', create_time: '2026-02-20 14:00:00' },
+    { answer_id: 2, question_id: 1, user_id: 1, user_source: 'platform', user_nickname: '张建国', user_avatar: '', content: '同意楼上专家的分析！我们场也遇到过这个问题，后来我们选择在105kg时出栏，整体料肉比控制在2.8以内，比硬撑到120kg要划算。当然最终还是要看你出栏时的价格和自己的目标体重。', is_accepted: '0', is_expert: '0', create_time: '2026-02-21 09:00:00' },
+    { answer_id: 3, question_id: 1, user_id: 99, user_source: 'platform', user_nickname: '刘明华研究员', user_avatar: '', content: '补充一点：100kg后增重减缓也可能与遗传因素有关。建议选择生长潜力更好的良种猪（如PIC、DanBred等进口品系），这些品系在120-130kg阶段仍能保持较好的增重性能，适合走高端市场或做重磅猪。', is_accepted: '0', is_expert: '1', create_time: '2026-02-22 11:00:00' }
+  ]
+};
+
+function kcPortal() {
+  return {
+    currentPage: 'home',
+    currentUser: null,
+    showPage: null,
+
+    // Nav
+    navItems: [
+      { key: 'home', label: '首页' },
+      { key: 'courses', label: '课程查看' },
+      { key: 'policy', label: '政策资讯' },
+      { key: 'news', label: '行业动态' },
+      { key: 'training', label: '培训活动' },
+      { key: 'forum', label: '在线交流' }
+    ],
+    MOCK_DATA: MOCK_DATA,
+
+    // Banner
+    bannerIdx: 0,
+    bannerTimer: null,
+
+    // Course
+    courseTab: 'all',
+    courseSearch: '',
+    coursePage: 1,
+    filteredCourses: [...MOCK_DATA.courses],
+    selectedCourse: null,
+    playingChapter: null,
+    courseDetailTab: 'intro',
+    reviewScore: 0,
+    reviewHover: 0,
+
+    // Policy
+    policyTab: 'all',
+    policySearch: '',
+    policyPage: 1,
+    filteredPolicies: [...MOCK_DATA.policies],
+    selectedPolicy: null,
+
+    // News
+    newsTab: 'all',
+    newsSearch: '',
+    newsPage: 1,
+    filteredNews: [...MOCK_DATA.articles],
+    selectedArticle: null,
+
+    // Training
+    trainingTab: 'all',
+    trainingSearch: '',
+    trainingPage: 1,
+    filteredTrainings: [...MOCK_DATA.trainings],
+    selectedTraining: null,
+
+    // Forum
+    forumMainTab: 'forum',
+    selectedBoard: null,
+    postSearch: '',
+    selectedPost: null,
+
+    // QA
+    qaTab: 'all',
+    qaStatusTab: 'all',
+    qaSearch: '',
+    selectedQuestion: null,
+
+    init() {
+      this.startBannerAuto();
+      this.filterCourses();
+      this.filterPolicies();
+      this.filterNews();
+      this.filterTrainings();
+    },
+
+    startBannerAuto() {
+      this.bannerTimer = setInterval(() => {
+        this.bannerIdx = (this.bannerIdx + 1) % MOCK_DATA.banners.length;
+      }, 5000);
+    },
+
+    goPage(page) {
+      this.currentPage = page;
+      window.scrollTo(0, 0);
+    },
+
+    closeModal() {},
+
+    // ===== COURSE =====
+    get paginatedCourses() {
+      const start = (this.coursePage - 1) * 12;
+      return this.filteredCourses.slice(start, start + 12);
+    },
+
+    setCourseTab(tab) {
+      this.courseTab = tab;
+      this.coursePage = 1;
+      this.filterCourses();
+    },
+
+    filterCourses() {
+      let list = [...MOCK_DATA.courses];
+      if (this.courseSearch.trim()) {
+        const kw = this.courseSearch.toLowerCase();
+        list = list.filter(c => c.course_name.toLowerCase().includes(kw));
+      } else if (this.courseTab !== 'all') {
+        list = list.filter(c => c.category_id === this.courseTab);
+      }
+      this.filteredCourses = list;
+    },
+
+    openCourseDetail(course) {
+      this.selectedCourse = course;
+      this.playingChapter = course.chapters[0];
+      this.courseDetailTab = 'intro';
+      this.goPage('course-detail');
+    },
+
+    // ===== POLICY =====
+    get paginatedPolicies() {
+      const start = (this.policyPage - 1) * 20;
+      return this.filteredPolicies.slice(start, start + 20);
+    },
+
+    setPolicyTab(tab) {
+      this.policyTab = tab;
+      this.policyPage = 1;
+      this.filterPolicies();
+    },
+
+    filterPolicies() {
+      let list = [...MOCK_DATA.policies];
+      if (this.policySearch.trim()) {
+        const kw = this.policySearch.toLowerCase();
+        list = list.filter(p => p.policy_title.toLowerCase().includes(kw) || p.policy_source.toLowerCase().includes(kw));
+      } else if (this.policyTab !== 'all') {
+        list = list.filter(p => p.policy_category === this.policyTab);
+      }
+      list.sort((a, b) => {
+        if (a.is_top === '1' && b.is_top !== '1') return -1;
+        if (b.is_top === '1' && a.is_top !== '1') return 1;
+        return new Date(b.publish_time) - new Date(a.publish_time);
+      });
+      this.filteredPolicies = list;
+    },
+
+    openPolicyDetail(p) {
+      this.selectedPolicy = p;
+      this.goPage('policy-detail');
+    },
+
+    getPolicyCategoryLabel(v) {
+      const map = {'1':'国家政策','2':'地方政策','3':'行业动态','4':'技术指南'};
+      return map[v] || '其他';
+    },
+
+    // ===== NEWS =====
+    get paginatedNews() {
+      const start = (this.newsPage - 1) * 20;
+      return this.filteredNews.slice(start, start + 20);
+    },
+
+    setNewsTab(tab) {
+      this.newsTab = tab;
+      this.newsPage = 1;
+      this.filterNews();
+    },
+
+    filterNews() {
+      let list = [...MOCK_DATA.articles];
+      if (this.newsSearch.trim()) {
+        const kw = this.newsSearch.toLowerCase();
+        list = list.filter(a => a.title.toLowerCase().includes(kw));
+      } else if (this.newsTab !== 'all') {
+        list = list.filter(a => a.article_category === this.newsTab);
+      }
+      list.sort((a, b) => {
+        if (a.is_top === '1' && b.is_top !== '1') return -1;
+        if (b.is_top === '1' && a.is_top !== '1') return 1;
+        return new Date(b.publish_time) - new Date(a.publish_time);
+      });
+      this.filteredNews = list;
+    },
+
+    openArticleDetail(a) {
+      this.selectedArticle = a;
+      this.goPage('article-detail');
+    },
+
+    getArticleCategoryLabel(v) {
+      const map = {'1':'市场行情','2':'技术前沿','3':'产业分析','4':'疫病防控'};
+      return map[v] || '其他';
+    },
+
+    // ===== TRAINING =====
+    get paginatedTrainings() {
+      const start = (this.trainingPage - 1) * 10;
+      return this.filteredTrainings.slice(start, start + 10);
+    },
+
+    setTrainingTab(tab) {
+      this.trainingTab = tab;
+      this.trainingPage = 1;
+      this.filterTrainings();
+    },
+
+    filterTrainings() {
+      let list = [...MOCK_DATA.trainings];
+      if (this.trainingSearch.trim()) {
+        const kw = this.trainingSearch.toLowerCase();
+        list = list.filter(t => t.training_name.toLowerCase().includes(kw));
+      } else if (this.trainingTab !== 'all') {
+        list = list.filter(t => t.training_status === this.trainingTab);
+      }
+      this.filteredTrainings = list;
+    },
+
+    openTrainingDetail(t) {
+      this.selectedTraining = t;
+      this.goPage('training-detail');
+    },
+
+    handleEnroll() {
+      if (!this.currentUser) { this.showPage = 'login-prompt'; return; }
+      this.showPage = 'enroll';
+    },
+
+    getTrainingTypeLabel(v) {
+      return {'1':'专题培训','2':'技术指导','3':'政策宣讲','4':'经验交流'}[v] || '-';
+    },
+    getTrainingModeLabel(v) {
+      return {'1':'线下培训','2':'线上培训','3':'线上线下结合'}[v] || '-';
+    },
+
+    submitEnrollment() {
+      const name = document.getElementById('en-name')?.value?.trim();
+      const phone = document.getElementById('en-phone')?.value?.trim();
+      let valid = true;
+      if (!name) { showError('en-name', 'en-name-error', '请输入您的姓名'); valid = false; }
+      if (!phone || !/^1[3-9]\d{9}$/.test(phone)) { showError('en-phone', 'en-phone-error', '手机号格式不正确'); valid = false; }
+      if (!valid) return;
+      if (this.selectedTraining) {
+        this.selectedTraining.current_enrollment++;
+        MOCK_DATA.myEnrollments.unshift({
+          enrollment_id: Date.now(),
+          training_id: this.selectedTraining.training_id,
+          training_name: this.selectedTraining.training_name,
+          enrollee_name: name,
+          enrollee_phone: phone,
+          approval_status: '0',
+          approval_remark: '',
+          create_time: new Date().toISOString().replace('T', ' ').substring(0, 19)
+        });
+      }
+      this.showPage = null;
+      this.toast('报名已提交，等待审批！');
+    },
+
+    // ===== FORUM =====
+    get filteredPosts() {
+      let list = [...MOCK_DATA.forumPosts];
+      if (this.selectedBoard !== null) {
+        list = list.filter(p => p.board_id === this.selectedBoard);
+      }
+      if (this.postSearch.trim()) {
+        const kw = this.postSearch.toLowerCase();
+        list = list.filter(p => p.title.toLowerCase().includes(kw));
+      }
+      list.sort((a, b) => {
+        if (a.is_top === '1' && b.is_top !== '1') return -1;
+        if (b.is_top === '1' && a.is_top !== '1') return 1;
+        return new Date(b.last_reply_time || b.create_time) - new Date(a.last_reply_time || a.create_time);
+      });
+      return list;
+    },
+
+    openPostDetail(p) {
+      this.selectedPost = p;
+      this.goPage('post-detail');
+    },
+
+    submitReply() {
+      const content = document.getElementById('reply-content')?.value?.trim();
+      const errEl = document.getElementById('reply-error');
+      if (!content || content.length < 2) {
+        errEl.style.display = 'block';
+        errEl.textContent = content ? '回复最少2个字符' : '回复内容不能为空';
+        return;
+      }
+      errEl.style.display = 'none';
+      MOCK_DATA.postReplies.push({
+        reply_id: Date.now(), post_id: this.selectedPost.post_id,
+        user_id: this.currentUser.user_id, user_source: this.currentUser.user_source,
+        user_nickname: this.currentUser.nick_name, user_avatar: '',
+        parent_id: 0, reply_to_nickname: '', content: content,
+        status: '1', create_time: new Date().toISOString().replace('T', ' ').substring(0, 16)
+      });
+      if (this.selectedPost) {
+        this.selectedPost.reply_count++;
+        this.selectedPost.last_reply_time = new Date().toISOString().replace('T', ' ').substring(0, 16);
+      }
+      document.getElementById('reply-content').value = '';
+      this.toast('回复发表成功！');
+    },
+
+    deletePost() {
+      if (confirm(`确认删除帖子「${this.selectedPost.title.substring(0, 20)}」吗？`)) {
+        MOCK_DATA.forumPosts.splice(MOCK_DATA.forumPosts.findIndex(p => p.post_id === this.selectedPost.post_id), 1);
+        this.toast('帖子已删除');
+        this.goPage('forum');
+      }
+    },
+
+    submitPost() {
+      const title = document.getElementById('np-title')?.value?.trim();
+      const content = document.getElementById('np-content')?.value?.trim();
+      const boardId = parseInt(document.getElementById('np-board')?.value);
+      let valid = true;
+      if (!title || title.length < 5) { showError('np-title', 'np-title-error', title ? '标题最少5个字符' : '请输入帖子标题'); valid = false; }
+      if (!content || content.length < 10) { showError('np-content', 'np-content-error', content ? '内容最少10个字符' : '请输入帖子内容'); valid = false; }
+      if (!valid) return;
+      const board = MOCK_DATA.forumBoards.find(b => b.board_id === boardId);
+      const newPost = {
+        post_id: Date.now(), board_id: boardId,
+        user_id: this.currentUser.user_id, user_source: this.currentUser.user_source,
+        user_nickname: this.currentUser.nick_name, user_avatar: '',
+        title, content, image_urls: '',
+        view_count: 0, reply_count: 0, last_reply_time: null,
+        is_top: '0', is_featured: '0', status: '1',
+        create_time: new Date().toISOString().replace('T', ' ').substring(0, 19)
+      };
+      MOCK_DATA.forumPosts.unshift(newPost);
+      if (board) board.post_count++;
+      this.showPage = null;
+      this.toast('帖子发布成功！');
+    },
+
+    // ===== QA =====
+    get filteredQuestions() {
+      let list = [...MOCK_DATA.qaQuestions];
+      if (this.qaSearch.trim()) {
+        const kw = this.qaSearch.toLowerCase();
+        list = list.filter(q => q.title.toLowerCase().includes(kw));
+      }
+      if (this.qaTab !== 'all') {
+        list = list.filter(q => q.question_category === this.qaTab);
+      }
+      if (this.qaStatusTab !== 'all') {
+        list = list.filter(q => q.question_status === this.qaStatusTab);
+      }
+      return list;
+    },
+
+    openQuestionDetail(q) {
+      this.selectedQuestion = q;
+      this.goPage('question-detail');
+    },
+
+    getQaCategoryLabel(v) {
+      return {'1':'养殖技术','2':'疫病防治','3':'饲料营养','4':'市场价格','5':'政策法规'}[v] || '-';
+    },
+
+    submitQuestion() {
+      const category = document.getElementById('nq-category')?.value;
+      const title = document.getElementById('nq-title')?.value?.trim();
+      const desc = document.getElementById('nq-desc')?.value?.trim();
+      let valid = true;
+      if (!category) { showError('nq-category', 'nq-category-error', '请选择问题分类'); valid = false; }
+      if (!title || title.length < 5) { showError('nq-title', 'nq-title-error', title ? '标题最少5个字符' : '请输入问题标题'); valid = false; }
+      if (!desc || desc.length < 10) { showError('nq-desc', 'nq-desc-error', desc ? '描述最少10个字符' : '请输入问题描述'); valid = false; }
+      if (!valid) return;
+      MOCK_DATA.qaQuestions.unshift({
+        question_id: Date.now(), user_id: this.currentUser.user_id,
+        user_source: this.currentUser.user_source, user_nickname: this.currentUser.nick_name,
+        user_avatar: '', title, description: desc, question_category: category,
+        image_urls: '', view_count: 0, answer_count: 0, question_status: '0',
+        create_time: new Date().toISOString().replace('T', ' ').substring(0, 19)
+      });
+      this.showPage = null;
+      this.toast('问题已提交，等待专家回答！');
+    },
+
+    submitAnswer() {
+      const content = document.getElementById('answer-content')?.value?.trim();
+      const errEl = document.getElementById('answer-error');
+      if (!content || content.length < 10) {
+        errEl.style.display = 'block';
+        errEl.textContent = content ? '回答最少10个字符' : '回答内容不能为空';
+        return;
+      }
+      errEl.style.display = 'none';
+      MOCK_DATA.qaAnswers.push({
+        answer_id: Date.now(), question_id: this.selectedQuestion.question_id,
+        user_id: this.currentUser.user_id, user_source: this.currentUser.user_source,
+        user_nickname: this.currentUser.nick_name, user_avatar: '',
+        content, image_urls: '', is_accepted: '0', is_expert: '0',
+        create_time: new Date().toISOString().replace('T', ' ').substring(0, 16)
+      });
+      if (this.selectedQuestion) {
+        this.selectedQuestion.answer_count++;
+        if (this.selectedQuestion.question_status === '0') {
+          this.selectedQuestion.question_status = '1';
+        }
+      }
+      document.getElementById('answer-content').value = '';
+      this.toast('回答提交成功！');
+    },
+
+    acceptAnswer(answer) {
+      if (confirm('确认采纳此条回答为最佳答案吗？')) {
+        MOCK_DATA.qaAnswers.forEach(a => a.is_accepted = '0');
+        answer.is_accepted = '1';
+        if (this.selectedQuestion) this.selectedQuestion.question_status = '2';
+        this.toast('已采纳为最佳答案！');
+      }
+    },
+
+    // ===== AUTH =====
+    doLogin() {
+      const username = document.getElementById('login-username')?.value?.trim();
+      const password = document.getElementById('login-password')?.value;
+      const generalError = document.getElementById('login-general-error');
+      let valid = true;
+      if (!username) { showError('login-username', 'login-username-error', '请输入用户名或手机号'); valid = false; }
+      if (!password) { showError('login-password', 'login-password-error', '请输入密码'); valid = false; }
+      if (!valid) return;
+      const user = MOCK_DATA.users.find(u => (u.username === username || u.phone === username) && u.password === password);
+      if (!user) {
+        generalError.style.display = 'block';
+        generalError.textContent = '用户名或密码错误';
+        return;
+      }
+      if (user.status === '1') {
+        generalError.style.display = 'block';
+        generalError.textContent = '该账号已被禁用，请联系管理员';
+        return;
+      }
+      generalError.style.display = 'none';
+      this.currentUser = { ...user };
+      this.showPage = null;
+      this.toast(`欢迎回来，${user.nick_name}！`);
+    },
+
+    doRegister() {
+      const phone = document.getElementById('reg-phone')?.value?.trim();
+      const code = document.getElementById('reg-code')?.value?.trim();
+      const nickname = document.getElementById('reg-nickname')?.value?.trim();
+      const password = document.getElementById('reg-password')?.value;
+      const confirm = document.getElementById('reg-confirm')?.value;
+      let valid = true;
+      if (!phone || !/^1[3-9]\d{9}$/.test(phone)) { showError('reg-phone', 'reg-phone-error', phone ? '手机号格式不正确' : '请输入手机号'); valid = false; }
+      if (!code || !/^\d{6}$/.test(code)) { showError('reg-code', 'reg-code-error', code ? '验证码为6位纯数字' : '请输入验证码'); valid = false; }
+      if (!nickname || nickname.length < 2) { showError('reg-nickname', 'reg-nickname-error', nickname ? '昵称长度2~30个字符' : '请输入昵称'); valid = false; }
+      if (!password || password.length < 6) { showError('reg-password', 'reg-password-error', password ? '密码长度6~20个字符' : '请设置密码'); valid = false; }
+      if (!confirm || confirm !== password) { showError('reg-confirm', 'reg-confirm-error', confirm ? '两次密码输入不一致' : '请再次输入密码'); valid = false; }
+      if (!valid) return;
+      const exists = MOCK_DATA.users.find(u => u.phone === phone || u.username === phone);
+      if (exists) { alert('该手机号已注册，请直接登录'); return; }
+      const newUser = {
+        user_id: Date.now(), username: phone, password, nick_name: nickname,
+        role: 'kc_portal', roleName: '知识讲堂用户', user_source: 'kc_portal',
+        user_name: phone, phone, sex: '2', region: '', profile: '',
+        status: '0', login_date: new Date().toISOString().replace('T', ' ').substring(0, 19),
+        create_time: new Date().toISOString().replace('T', ' ').substring(0, 19)
+      };
+      MOCK_DATA.users.push(newUser);
+      this.currentUser = { ...newUser };
+      this.showPage = null;
+      this.toast(`注册成功，欢迎 ${nickname}！`);
+    },
+
+    doResetPassword() {
+      const phone = document.getElementById('fp-phone')?.value?.trim();
+      const code = document.getElementById('fp-code')?.value?.trim();
+      const newpwd = document.getElementById('fp-newpwd')?.value;
+      const confirmpwd = document.getElementById('fp-confirmpwd')?.value;
+      let valid = true;
+      if (!phone || !/^1[3-9]\d{9}$/.test(phone)) { showError('fp-phone', 'fp-phone-error', '手机号格式不正确'); valid = false; }
+      if (!code) { showError('fp-code', 'fp-code-error', '请输入验证码'); valid = false; }
+      if (!newpwd || newpwd.length < 6) { showError('fp-newpwd', 'fp-newpwd-error', '密码长度6~20个字符'); valid = false; }
+      if (!confirmpwd || confirmpwd !== newpwd) { showError('fp-confirmpwd', 'fp-confirmpwd-error', '两次密码输入不一致'); valid = false; }
+      if (!valid) return;
+      const user = MOCK_DATA.users.find(u => u.phone === phone && u.user_source === 'kc_portal');
+      if (!user) { alert('该手机号未注册知识讲堂独立账号'); return; }
+      user.password = newpwd;
+      this.showPage = 'login';
+      this.toast('密码重置成功，请重新登录');
+    },
+
+    logout() {
+      this.currentUser = null;
+      this.goPage('home');
+      this.toast('已退出登录');
+    },
+
+    saveProfile() {
+      const nickname = document.getElementById('ep-nickname')?.value?.trim();
+      if (!nickname) { showError('ep-nickname', 'ep-nickname-error', '昵称不能为空'); return; }
+      if (this.currentUser) {
+        this.currentUser.nick_name = nickname;
+        this.currentUser.sex = document.getElementById('ep-sex')?.value || this.currentUser.sex;
+        this.currentUser.region = document.getElementById('ep-region')?.value?.trim() || this.currentUser.region;
+        this.currentUser.profile = document.getElementById('ep-profile')?.value?.trim() || this.currentUser.profile;
+      }
+      this.showPage = null;
+      this.toast('个人信息已保存！');
+    },
+
+    doChangePassword() {
+      const oldpwd = document.getElementById('cp-old')?.value;
+      const newpwd = document.getElementById('cp-new')?.value;
+      const confirmpwd = document.getElementById('cp-confirm')?.value;
+      let valid = true;
+      if (!oldpwd) { showError('cp-old', 'cp-old-error', '请输入旧密码'); valid = false; }
+      if (!newpwd || newpwd.length < 6) { showError('cp-new', 'cp-new-error', newpwd ? '密码长度6~20个字符' : '请输入新密码'); valid = false; }
+      if (!confirmpwd || confirmpwd !== newpwd) { showError('cp-confirm', 'cp-confirm-error', confirmpwd ? '两次密码输入不一致' : '请再次输入新密码'); valid = false; }
+      if (!valid) return;
+      const user = MOCK_DATA.users.find(u => u.user_id === this.currentUser.user_id);
+      if (user && user.password !== oldpwd) { showError('cp-old', 'cp-old-error', '旧密码不正确'); return; }
+      if (user) user.password = newpwd;
+      this.showPage = null;
+      this.toast('密码修改成功！');
+    },
+
+    // ===== REVIEW =====
+    submitReview() {
+      const errEl = document.getElementById('review-score-error');
+      const contentEl = document.getElementById('review-content-input');
+      const contentErrEl = document.getElementById('review-content-error');
+      let valid = true;
+      if (!this.reviewScore) { errEl.style.display = 'block'; valid = false; } else { errEl.style.display = 'none'; }
+      const content = contentEl?.value?.trim();
+      if (!content || content.length < 5) { contentErrEl.style.display = 'block'; contentErrEl.textContent = content ? '评价内容最少5个字符' : '请输入评价内容'; valid = false; } else { contentErrEl.style.display = 'none'; }
+      if (!valid) return;
+      MOCK_DATA.reviews.unshift({
+        review_id: Date.now(), course_id: this.selectedCourse.course_id,
+        user_nickname: this.currentUser.nick_name, user_avatar: '',
+        score: this.reviewScore, review_content: content,
+        audit_status: '1', create_time: new Date().toISOString().replace('T', ' ').substring(0, 19)
+      });
+      this.showPage = null;
+      this.reviewScore = 0;
+      this.toast('评价已提交，等待审核');
+    },
+
+    // ===== UTILS =====
+    formatDuration(sec) {
+      if (!sec) return '0:00';
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return m + ':' + String(s).padStart(2, '0');
+    },
+
+    toast(msg) {
+      const el = document.getElementById('success-toast');
+      el.textContent = msg;
+      el.style.display = 'block';
+      el.style.opacity = '1';
+      setTimeout(() => { el.style.opacity = '0'; setTimeout(() => { el.style.display = 'none'; }, 300); }, 2500);
+    }
+  };
+}
+
+// Utility functions
+function showError(inputId, errorId, msg) {
+  const input = document.getElementById(inputId);
+  const error = document.getElementById(errorId);
+  if (input) input.classList.add('error');
+  if (error) { error.textContent = msg; error.style.display = 'block'; }
+  if (input) {
+    input.addEventListener('input', () => {
+      input.classList.remove('error');
+      if (error) error.style.display = 'none';
+    }, { once: true });
+  }
+}
+
+function togglePwd(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.innerHTML = '<i class="fas fa-eye-slash"></i>';
+  } else {
+    input.type = 'password';
+    btn.innerHTML = '<i class="fas fa-eye"></i>';
+  }
+}
+
+function validatePhone(inputId, errorId) {
+  const val = document.getElementById(inputId)?.value?.trim();
+  if (!val) { showError(inputId, errorId, '请输入手机号'); return false; }
+  if (!/^1[3-9]\d{9}$/.test(val)) { showError(inputId, errorId, '手机号格式不正确'); return false; }
+  return true;
+}
+
+function validateNickname(inputId, errorId) {
+  const val = document.getElementById(inputId)?.value?.trim();
+  if (!val || val.length < 2) { showError(inputId, errorId, val ? '昵称长度2~30个字符' : '请输入昵称'); return false; }
+  return true;
+}
+
+function validatePassword(inputId, errorId) {
+  const val = document.getElementById(inputId)?.value;
+  if (!val || val.length < 6 || val.length > 20) { showError(inputId, errorId, val ? '密码长度6~20个字符' : '请设置密码'); return false; }
+  return true;
+}
+
+function validateConfirmPwd(pwdId, confirmId, errorId) {
+  const pwd = document.getElementById(pwdId)?.value;
+  const confirm = document.getElementById(confirmId)?.value;
+  if (!confirm || confirm !== pwd) { showError(confirmId, errorId, confirm ? '两次密码输入不一致' : '请再次输入密码'); return false; }
+  return true;
+}
+
+function validateLength(inputId, errorId, min, max) {
+  const el = document.getElementById(inputId);
+  const val = el?.value?.trim();
+  if (!val || val.length < min) { showError(inputId, errorId, val ? `内容最少${min}个字符` : `此字段不能为空`); return false; }
+  if (val.length > max) { showError(inputId, errorId, `内容不能超过${max}个字符`); return false; }
+  return true;
+}
+
+// SMS countdown simulation
+function sendSmsCode(btnId) {
+  const phone = document.querySelector('#reg-phone, #fp-phone, #ep-phone')?.value?.trim();
+  if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
+    alert('请先输入正确的手机号');
+    return;
+  }
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  let count = 60;
+  btn.disabled = true;
+  btn.style.color = '#bfbfbf';
+  btn.style.borderColor = '#bfbfbf';
+  btn.style.cursor = 'not-allowed';
+  btn.textContent = `${count}s后重新获取`;
+  const timer = setInterval(() => {
+    count--;
+    btn.textContent = `${count}s后重新获取`;
+    if (count <= 0) {
+      clearInterval(timer);
+      btn.disabled = false;
+      btn.style.color = '';
+      btn.style.borderColor = '';
+      btn.style.cursor = '';
+      btn.textContent = '获取验证码';
+    }
+  }, 1000);
+  alert('验证码已发送（模拟：123456）');
+}
+</script>
+</body>
+</html>

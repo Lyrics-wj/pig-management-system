@@ -1,0 +1,996 @@
+<!--
+  功能名称：信息收集管理
+  对应PRD：doc_prd/WEB/监管端/智慧监管/工作通知管理/WEB监管端-信息收集管理.prd.md
+  所属端口：WEB监管端
+  所属模块：智慧监管 / 工作通知管理
+  制作日期：2026-03-10
+  最后更新：2026-03-10
+  角色说明：county_admin（县级管理员）、county_staff（县级业务人员）、town_gov_staff（乡镇政府业务人员）、town_vet_station（乡镇畜牧兽医站）、ent_admin（企业管理员）
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>信息收集管理 - 2024年蓬溪县生猪数字化管理平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    /* SHARED STYLES */
+    [x-cloak] { display: none !important; }
+    body { font-size: 14px; }
+    .sidebar-menu a.active { background-color: #1677ff; color: #fff; }
+    .sidebar-menu a:hover:not(.active) { background-color: #e6f4ff; color: #1677ff; }
+    .tab-btn { padding: 8px 20px; border-bottom: 2px solid transparent; cursor: pointer; font-size: 14px; color: #595959; white-space: nowrap; }
+    .tab-btn.active { border-bottom-color: #1677ff; color: #1677ff; font-weight: 600; }
+    .tab-btn:hover:not(.active) { color: #1677ff; }
+    .table-container { overflow-x: auto; }
+    .data-table { min-width: 800px; border-collapse: collapse; width: 100%; }
+    .data-table th { background: #fafafa; color: #595959; font-weight: 600; padding: 10px 12px; border-bottom: 1px solid #e8e8e8; white-space: nowrap; }
+    .data-table td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+    .data-table tr:hover td { background-color: #fafafa; }
+    .data-table tr:nth-child(even) td { background-color: #fafafa; }
+    .data-table .op-col { position: sticky; right: 0; background: #fff; }
+    .data-table tr:nth-child(even) .op-col { background: #fafafa; }
+    .data-table tr:hover .op-col { background: #fafafa; }
+    .tag { display: inline-block; padding: 1px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+    .btn-primary { background: #1677ff; color: #fff; border: none; padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+    .btn-primary:hover { background: #4096ff; }
+    .btn-default { background: #fff; color: #333; border: 1px solid #d9d9d9; padding: 5px 15px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+    .btn-default:hover { border-color: #1677ff; color: #1677ff; }
+    .btn-link { background: none; border: none; padding: 2px 6px; cursor: pointer; font-size: 12px; }
+    .btn-danger { background: none; border: none; padding: 2px 6px; cursor: pointer; font-size: 12px; color: #ff4d4f; }
+    .form-input { border: 1px solid #d9d9d9; border-radius: 6px; padding: 6px 10px; font-size: 13px; width: 100%; box-sizing: border-box; }
+    .form-input:focus { outline: none; border-color: #1677ff; }
+    .form-label { font-size: 13px; color: #333; margin-bottom: 4px; display: block; }
+    .required::before { content: '*'; color: #ff4d4f; margin-right: 4px; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+    .modal-box { background: #fff; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.18); padding: 24px; position: relative; max-height: 90vh; overflow-y: auto; }
+    .error-msg { color: #ff4d4f; font-size: 12px; margin-top: 2px; }
+    .row-overdue td { background: #FFF0F0 !important; }
+    .progress-bar-bg { background: #e8e8e8; border-radius: 4px; height: 6px; overflow: hidden; display: inline-block; width: 60px; vertical-align: middle; }
+    .progress-bar-fill { background: #1677ff; height: 6px; border-radius: 4px; }
+    .pagination { display: flex; align-items: center; gap: 4px; }
+    .page-btn { border: 1px solid #d9d9d9; background: #fff; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    .page-btn.active { background: #1677ff; color: #fff; border-color: #1677ff; }
+    .page-btn:hover:not(.active) { border-color: #1677ff; color: #1677ff; }
+    .field-row { background: #f9f9f9; border: 1px solid #e8e8e8; border-radius: 6px; padding: 10px; margin-bottom: 8px; }
+    .summary-table th { background: #f0f0f0; }
+    .summary-table .total-row td { background: #e6f4ff; font-weight: bold; }
+    .summary-table .avg-row td { background: #f6ffed; font-weight: bold; }
+  </style>
+</head>
+<body class="bg-gray-100" x-data="collectApp()">
+
+<!-- SECTION START: 顶部导航栏 -->
+<header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 flex items-center px-4 z-50" style="height:60px;">
+  <div class="flex items-center gap-3 flex-1">
+    <i class="fa-solid fa-piggy-bank text-blue-500 text-xl"></i>
+    <span class="font-bold text-gray-800 text-base">2024年蓬溪县生猪数字化管理平台</span>
+    <span class="text-gray-300 mx-2">|</span>
+    <span class="text-gray-500 text-sm">智慧监管</span>
+  </div>
+  <div class="flex items-center gap-4">
+    <div class="relative" x-data="{open:false}">
+      <button class="flex items-center gap-2 hover:bg-gray-100 px-3 py-1 rounded-lg" @click="open=!open">
+        <i class="fa-solid fa-user-circle text-blue-500"></i>
+        <span class="text-sm text-gray-700" x-text="currentUser.roleName"></span>
+        <span class="text-xs text-gray-400" x-text="currentUser.name"></span>
+        <i class="fa-solid fa-chevron-down text-xs text-gray-400"></i>
+      </button>
+      <div x-show="open" @click.away="open=false" class="absolute right-0 top-10 bg-white border border-gray-200 rounded-lg shadow-lg z-50 w-52" x-cloak>
+        <div class="px-3 py-2 text-xs text-gray-400 border-b">切换角色</div>
+        <template x-for="u in MOCK_DATA.users" :key="u.id">
+          <button class="w-full text-left px-4 py-2 text-sm hover:bg-blue-50 flex items-center gap-2"
+            :class="currentUser.id===u.id?'text-blue-600 font-medium':'text-gray-700'"
+            @click="switchRole(u);open=false">
+            <i class="fa-solid fa-check text-blue-500 text-xs" x-show="currentUser.id===u.id"></i>
+            <span x-show="currentUser.id!==u.id" class="w-3"></span>
+            <span x-text="u.roleName+' - '+u.name"></span>
+          </button>
+        </template>
+      </div>
+    </div>
+    <button class="btn-default text-xs" @click="alert('退出登录')"><i class="fa-solid fa-right-from-bracket mr-1"></i>退出</button>
+  </div>
+</header>
+<!-- SECTION END: 顶部导航栏 -->
+
+<div class="flex" style="padding-top:60px; min-height:100vh;">
+  <!-- SECTION START: 侧边菜单 -->
+  <aside class="fixed left-0 bottom-0 bg-white border-r border-gray-200 overflow-y-auto sidebar-menu" style="top:60px;width:220px;">
+    <div class="py-3">
+      <div class="px-4 py-1 text-xs text-gray-400 font-medium tracking-widest uppercase">智慧监管</div>
+      <a href="WEB监管端-通知公告管理.html" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 rounded mx-2">
+        <i class="fa-solid fa-bullhorn w-4"></i>通知公告管理
+      </a>
+      <a href="WEB监管端-工作任务管理.html" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 rounded mx-2">
+        <i class="fa-solid fa-tasks w-4"></i>工作任务管理
+      </a>
+      <a href="#" class="flex items-center gap-2 px-4 py-2 text-sm rounded mx-2 active">
+        <i class="fa-solid fa-database w-4"></i>信息收集管理
+      </a>
+      <a href="WEB监管端-情况总结看板.html" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 rounded mx-2">
+        <i class="fa-solid fa-chart-line w-4"></i>情况总结看板
+      </a>
+    </div>
+  </aside>
+  <!-- SECTION END: 侧边菜单 -->
+
+  <main class="flex-1 flex flex-col" style="margin-left:220px;">
+    <div class="bg-white border-b border-gray-200 px-6 py-2 text-xs text-gray-400">
+      <span>智慧监管</span> <span class="mx-1">></span> <span class="text-gray-700">信息收集管理</span>
+    </div>
+
+    <!-- SECTION START: 发布方视角（Tab切换） -->
+    <template x-if="isPublisher()">
+      <div class="flex-1 flex flex-col">
+        <!-- Tab导航 -->
+        <div class="bg-white border-b border-gray-200 px-6 flex gap-0">
+          <button class="tab-btn" :class="activeTab==='collect'?'active':''" @click="activeTab='collect'">
+            <i class="fa-solid fa-clipboard-list mr-1"></i>收集任务
+          </button>
+          <button class="tab-btn" :class="activeTab==='template'?'active':''" @click="activeTab='template'">
+            <i class="fa-solid fa-file-alt mr-1"></i>模板管理
+          </button>
+        </div>
+
+        <div class="flex-1 p-6 flex flex-col gap-4">
+
+          <!-- ===== 收集任务 Tab ===== -->
+          <template x-if="activeTab==='collect'">
+            <div class="flex flex-col gap-4">
+              <div id="feature-collect-header" class="flex items-center justify-between">
+                <h1 class="text-lg font-bold text-gray-800">收集任务</h1>
+                <button class="btn-primary" @click="openAddCollectModal()"><i class="fa-solid fa-plus mr-1"></i>新增</button>
+              </div>
+
+              <!-- 筛选 -->
+              <section id="feature-collect-filter" class="bg-white rounded-lg p-4 border border-gray-200">
+                <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                  <div>
+                    <label class="form-label text-xs text-gray-500">任务名称</label>
+                    <input class="form-input" type="text" placeholder="请输入任务名称" x-model="collectFilter.name">
+                  </div>
+                  <div>
+                    <label class="form-label text-xs text-gray-500">状态</label>
+                    <select class="form-input" x-model="collectFilter.status">
+                      <option value="">全部</option>
+                      <option value="0">草稿</option>
+                      <option value="1">已下发</option>
+                      <option value="2">进行中</option>
+                      <option value="3">已完成</option>
+                      <option value="4">已撤回</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="form-label text-xs text-gray-500">下发时间</label>
+                    <input class="form-input" type="date" x-model="collectFilter.dateFrom">
+                  </div>
+                </div>
+                <div class="flex gap-2 mt-3">
+                  <button class="btn-primary text-xs" @click="collectPage=1"><i class="fa-solid fa-search mr-1"></i>搜索</button>
+                  <button class="btn-default text-xs" @click="collectFilter={name:'',status:'',dateFrom:''}"><i class="fa-solid fa-rotate-right mr-1"></i>重置</button>
+                </div>
+              </section>
+
+              <!-- 表格 -->
+              <section id="feature-collect-list" class="bg-white rounded-lg border border-gray-200 flex flex-col">
+                <div class="table-container flex-1">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th style="min-width:200px;">任务名称</th>
+                        <th>使用模板</th>
+                        <th>下发范围</th>
+                        <th>填报进度</th>
+                        <th>填报期限</th>
+                        <th>状态</th>
+                        <th>下发时间</th>
+                        <th class="op-col" style="min-width:180px;">操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <template x-for="item in pagedCollectList" :key="item.collect_id">
+                        <tr>
+                          <td><span class="truncate max-w-xs inline-block" :title="item.collect_name" x-text="item.collect_name"></span></td>
+                          <td x-text="item.template_name"></td>
+                          <td x-text="getScopeText(item)"></td>
+                          <td>
+                            <span class="text-xs mr-1" x-text="'已填报'+item.fill_count+'/共'+item.total_count"></span>
+                            <div class="progress-bar-bg inline-block"><div class="progress-bar-fill" :style="'width:'+(item.total_count>0?Math.round(item.fill_count/item.total_count*100):0)+'%'"></div></div>
+                          </td>
+                          <td x-text="item.deadline"></td>
+                          <td><span class="tag" :class="getCollectStatusClass(item.status)" x-text="getCollectStatusLabel(item.status)"></span></td>
+                          <td x-text="item.dispatch_time||'—'"></td>
+                          <td class="op-col">
+                            <template x-if="item.status==='0'">
+                              <span class="flex gap-1 flex-wrap">
+                                <button class="btn-link text-blue-500" @click="openEditCollectModal(item)">编辑</button>
+                                <button class="btn-link text-green-600" @click="dispatchCollect(item)">下发</button>
+                                <button class="btn-danger" @click="deleteCollect(item)">删除</button>
+                              </span>
+                            </template>
+                            <template x-if="item.status==='1'||item.status==='2'">
+                              <span class="flex gap-1 flex-wrap">
+                                <button class="btn-link text-blue-500" @click="viewCollectDetail(item)">查看</button>
+                                <button class="btn-link text-orange-500" @click="revokeCollect(item)">撤回</button>
+                                <button class="btn-link text-purple-600" @click="viewSummary(item)">数据汇总</button>
+                              </span>
+                            </template>
+                            <template x-if="item.status==='3'">
+                              <span class="flex gap-1 flex-wrap">
+                                <button class="btn-link text-blue-500" @click="viewCollectDetail(item)">查看</button>
+                                <button class="btn-link text-purple-600" @click="viewSummary(item)">数据汇总</button>
+                              </span>
+                            </template>
+                            <template x-if="item.status==='4'">
+                              <button class="btn-link text-blue-500" @click="viewCollectDetail(item)">查看</button>
+                            </template>
+                          </td>
+                        </tr>
+                      </template>
+                      <tr x-show="pagedCollectList.length===0">
+                        <td colspan="8" class="text-center text-gray-400 py-8">暂无数据</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+                  <span class="text-xs text-gray-400">共 <span x-text="filteredCollectList.length"></span> 条</span>
+                  <div class="pagination">
+                    <button class="page-btn" :disabled="collectPage===1" @click="collectPage=Math.max(1,collectPage-1)"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                    <template x-for="p in collectTotalPages" :key="p">
+                      <button class="page-btn" :class="p===collectPage?'active':''" @click="collectPage=p" x-text="p"></button>
+                    </template>
+                    <button class="page-btn" :disabled="collectPage===collectTotalPages" @click="collectPage=Math.min(collectTotalPages,collectPage+1)"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </template>
+
+          <!-- ===== 模板管理 Tab ===== -->
+          <template x-if="activeTab==='template'">
+            <div class="flex flex-col gap-4">
+              <div id="feature-template-header" class="flex items-center justify-between">
+                <h1 class="text-lg font-bold text-gray-800">模板管理</h1>
+                <button class="btn-primary" @click="openAddTemplateModal()"><i class="fa-solid fa-plus mr-1"></i>新增模板</button>
+              </div>
+              <section id="feature-template-filter" class="bg-white rounded-lg p-4 border border-gray-200">
+                <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                  <div>
+                    <label class="form-label text-xs text-gray-500">模板名称</label>
+                    <input class="form-input" type="text" placeholder="请输入模板名称" x-model="templateFilter.name">
+                  </div>
+                  <div>
+                    <label class="form-label text-xs text-gray-500">状态</label>
+                    <select class="form-input" x-model="templateFilter.status">
+                      <option value="">全部</option>
+                      <option value="0">正常</option>
+                      <option value="1">停用</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="flex gap-2 mt-3">
+                  <button class="btn-primary text-xs" @click="templatePage=1"><i class="fa-solid fa-search mr-1"></i>搜索</button>
+                  <button class="btn-default text-xs" @click="templateFilter={name:'',status:''}"><i class="fa-solid fa-rotate-right mr-1"></i>重置</button>
+                </div>
+              </section>
+              <section id="feature-template-list" class="bg-white rounded-lg border border-gray-200 flex flex-col">
+                <div class="table-container">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>模板名称</th>
+                        <th>字段数量</th>
+                        <th>状态</th>
+                        <th>创建人</th>
+                        <th>创建时间</th>
+                        <th class="op-col" style="min-width:120px;">操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <template x-for="item in pagedTemplateList" :key="item.template_id">
+                        <tr>
+                          <td x-text="item.template_name"></td>
+                          <td x-text="JSON.parse(item.template_fields).length+'个字段'"></td>
+                          <td><span class="tag" :class="item.status==='0'?'bg-green-100 text-green-700':'bg-red-100 text-red-600'" x-text="item.status==='0'?'正常':'停用'"></span></td>
+                          <td x-text="item.create_by"></td>
+                          <td x-text="item.create_time"></td>
+                          <td class="op-col">
+                            <button class="btn-link text-blue-500" @click="openEditTemplateModal(item)">编辑</button>
+                            <button class="btn-danger" @click="deleteTemplate(item)">删除</button>
+                          </td>
+                        </tr>
+                      </template>
+                      <tr x-show="pagedTemplateList.length===0">
+                        <td colspan="6" class="text-center text-gray-400 py-8">暂无数据</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+                  <span class="text-xs text-gray-400">共 <span x-text="filteredTemplateList.length"></span> 条</span>
+                  <div class="pagination">
+                    <button class="page-btn" :disabled="templatePage===1" @click="templatePage=Math.max(1,templatePage-1)"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                    <template x-for="p in templateTotalPages" :key="p">
+                      <button class="page-btn" :class="p===templatePage?'active':''" @click="templatePage=p" x-text="p"></button>
+                    </template>
+                    <button class="page-btn" :disabled="templatePage===templateTotalPages" @click="templatePage=Math.min(templateTotalPages,templatePage+1)"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </template>
+
+        </div>
+      </div>
+    </template>
+    <!-- SECTION END: 发布方视角 -->
+
+    <!-- SECTION START: 接收方视角 -->
+    <template x-if="!isPublisher()">
+      <div class="flex-1 p-6 flex flex-col gap-4">
+        <div id="feature-receiver-header" class="flex items-center justify-between">
+          <h1 class="text-lg font-bold text-gray-800">我收到的收集任务</h1>
+        </div>
+        <section id="feature-receiver-filter" class="bg-white rounded-lg p-4 border border-gray-200">
+          <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <div>
+              <label class="form-label text-xs text-gray-500">任务名称</label>
+              <input class="form-input" type="text" placeholder="请输入任务名称" x-model="receiverFilter.name">
+            </div>
+            <div>
+              <label class="form-label text-xs text-gray-500">填报状态</label>
+              <select class="form-input" x-model="receiverFilter.fillStatus">
+                <option value="">全部</option>
+                <option value="0">未填报</option>
+                <option value="1">草稿</option>
+                <option value="2">已提交</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex gap-2 mt-3">
+            <button class="btn-primary text-xs" @click="receiverPage=1"><i class="fa-solid fa-search mr-1"></i>搜索</button>
+            <button class="btn-default text-xs" @click="receiverFilter={name:'',fillStatus:''}"><i class="fa-solid fa-rotate-right mr-1"></i>重置</button>
+          </div>
+        </section>
+        <section id="feature-receiver-list" class="bg-white rounded-lg border border-gray-200 flex flex-col">
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="min-width:200px;">任务名称</th>
+                  <th>下发单位</th>
+                  <th>下发人</th>
+                  <th>填报期限</th>
+                  <th>我的填报状态</th>
+                  <th>超期</th>
+                  <th class="op-col" style="min-width:100px;">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="item in pagedReceiverCollectList" :key="item.collect_id">
+                  <tr :class="item.is_overdue==='1'&&item.fill_status!=='2'?'row-overdue':''">
+                    <td><span class="truncate max-w-xs inline-block" :title="item.collect_name" x-text="item.collect_name"></span></td>
+                    <td x-text="item.dispatch_dept"></td>
+                    <td x-text="item.dispatch_by"></td>
+                    <td x-text="item.deadline"></td>
+                    <td>
+                      <span class="tag" :class="getFillStatusClass(item.fill_status)" x-text="getFillStatusLabel(item.fill_status)"></span>
+                    </td>
+                    <td>
+                      <span x-show="item.is_overdue==='1'&&item.fill_status!=='2'" class="tag bg-red-100 text-red-600">超期</span>
+                      <span x-show="!(item.is_overdue==='1'&&item.fill_status!=='2')" class="text-gray-300">—</span>
+                    </td>
+                    <td class="op-col">
+                      <button x-show="item.fill_status!=='2'" class="btn-link text-blue-500" @click="openFillForm(item)">填报</button>
+                      <button x-show="item.fill_status==='2'" class="btn-link text-blue-500" @click="viewFillData(item)">查看</button>
+                    </td>
+                  </tr>
+                </template>
+                <tr x-show="pagedReceiverCollectList.length===0">
+                  <td colspan="7" class="text-center text-gray-400 py-8">暂无数据</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+            <span class="text-xs text-gray-400">共 <span x-text="filteredReceiverCollectList.length"></span> 条</span>
+            <div class="pagination">
+              <button class="page-btn" :disabled="receiverPage===1" @click="receiverPage=Math.max(1,receiverPage-1)"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+              <template x-for="p in receiverTotalPages" :key="p">
+                <button class="page-btn" :class="p===receiverPage?'active':''" @click="receiverPage=p" x-text="p"></button>
+              </template>
+              <button class="page-btn" :disabled="receiverPage===receiverTotalPages" @click="receiverPage=Math.min(receiverTotalPages,receiverPage+1)"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </template>
+    <!-- SECTION END: 接收方视角 -->
+  </main>
+</div>
+
+<!-- SECTION START: 新增/编辑模板弹窗 -->
+<div id="feature-template-modal" class="modal-overlay" x-show="showTemplateModal" x-cloak @click.self="showTemplateModal=false">
+  <div class="modal-box" style="width:min(800px,95vw);">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-base font-bold text-gray-800" x-text="editTemplate?'编辑模板':'新增模板'"></h2>
+      <button @click="showTemplateModal=false" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    <div class="grid grid-cols-2 gap-4 mb-4">
+      <div class="col-span-2">
+        <label class="form-label required">模板名称</label>
+        <input class="form-input" type="text" placeholder="请输入模板名称（最多100字）" x-model="templateForm.template_name" maxlength="100">
+        <p class="error-msg" x-show="templateErrors.name" x-text="templateErrors.name"></p>
+      </div>
+      <div>
+        <label class="form-label required">状态</label>
+        <div class="flex gap-4 mt-1">
+          <label class="flex items-center gap-2 cursor-pointer"><input type="radio" x-model="templateForm.status" value="0"> 正常</label>
+          <label class="flex items-center gap-2 cursor-pointer"><input type="radio" x-model="templateForm.status" value="1"> 停用</label>
+        </div>
+      </div>
+    </div>
+    <div class="mb-2 flex items-center justify-between">
+      <label class="font-medium text-gray-700 text-sm">字段定义</label>
+      <button type="button" class="btn-primary text-xs" @click="addField()"><i class="fa-solid fa-plus mr-1"></i>添加字段</button>
+    </div>
+    <p class="error-msg mb-2" x-show="templateErrors.fields" x-text="templateErrors.fields"></p>
+    <div class="max-h-64 overflow-y-auto mb-4">
+      <template x-for="(field, idx) in templateForm.fields" :key="idx">
+        <div class="field-row">
+          <div class="grid grid-cols-4 gap-3 items-start">
+            <div>
+              <label class="form-label text-xs required">字段名称</label>
+              <input class="form-input" type="text" placeholder="字段名称" x-model="field.fieldName" maxlength="50">
+            </div>
+            <div>
+              <label class="form-label text-xs required">字段类型</label>
+              <select class="form-input" x-model="field.fieldType">
+                <option value="">请选择</option>
+                <option value="text">文本输入</option>
+                <option value="number">数字输入</option>
+                <option value="date">日期选择</option>
+                <option value="select">下拉选择</option>
+                <option value="textarea">多行文本</option>
+                <option value="file">附件上传</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label text-xs">是否必填</label>
+              <div class="relative inline-flex items-center cursor-pointer mt-1" @click="field.required=!field.required">
+                <div class="w-10 h-5 rounded-full transition-colors" :class="field.required?'bg-blue-500':'bg-gray-300'"></div>
+                <div class="absolute left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform" :style="field.required?'transform:translateX(20px)':''"></div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 mt-5">
+              <button type="button" class="btn-link text-blue-400" :disabled="idx===0" @click="moveField(idx,-1)" title="上移"><i class="fa-solid fa-arrow-up text-xs"></i></button>
+              <button type="button" class="btn-link text-blue-400" :disabled="idx===templateForm.fields.length-1" @click="moveField(idx,1)" title="下移"><i class="fa-solid fa-arrow-down text-xs"></i></button>
+              <button type="button" class="btn-danger" @click="removeField(idx)" title="删除"><i class="fa-solid fa-trash text-xs"></i></button>
+            </div>
+          </div>
+          <template x-if="field.fieldType==='select'">
+            <div class="mt-2">
+              <label class="form-label text-xs">下拉选项（每行一个，至少2项）</label>
+              <textarea class="form-input" rows="3" placeholder="选项1&#10;选项2&#10;选项3" x-model="field.optionsText"></textarea>
+            </div>
+          </template>
+        </div>
+      </template>
+      <div x-show="templateForm.fields.length===0" class="text-center text-gray-400 py-4 text-sm">请至少添加一个模板字段</div>
+    </div>
+    <div class="flex gap-3 pt-4 border-t border-gray-100 justify-end">
+      <button type="button" class="btn-default" @click="showTemplateModal=false">取消</button>
+      <button type="button" class="btn-primary" @click="saveTemplate()">确定</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 新增/编辑模板弹窗 -->
+
+<!-- SECTION START: 新增/编辑收集任务弹窗 -->
+<div id="feature-collect-modal" class="modal-overlay" x-show="showCollectModal" x-cloak @click.self="if(confirm('确认关闭？未保存的内容将丢失。'))showCollectModal=false">
+  <div class="modal-box" style="width:min(720px,95vw);">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-base font-bold text-gray-800" x-text="editCollect?'编辑收集任务':'新增收集任务'"></h2>
+      <button @click="if(confirm('确认关闭？未保存的内容将丢失。'))showCollectModal=false" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    <div class="grid grid-cols-2 gap-4">
+      <div class="col-span-2">
+        <label class="form-label required">任务名称</label>
+        <input class="form-input" type="text" placeholder="请输入任务名称（最多100字）" x-model="collectForm.collect_name" maxlength="100">
+        <p class="error-msg" x-show="collectErrors.name" x-text="collectErrors.name"></p>
+      </div>
+      <div class="col-span-2">
+        <label class="form-label">任务说明</label>
+        <textarea class="form-input" rows="3" placeholder="请输入任务说明（最多500字）" x-model="collectForm.collect_desc" maxlength="500"></textarea>
+      </div>
+      <div class="col-span-2">
+        <label class="form-label required">报送模板</label>
+        <select class="form-input" x-model="collectForm.template_id">
+          <option value="">请选择报送模板</option>
+          <template x-for="t in normalTemplates" :key="t.template_id">
+            <option :value="t.template_id" x-text="t.template_name"></option>
+          </template>
+        </select>
+        <p class="error-msg" x-show="collectErrors.template" x-text="collectErrors.template"></p>
+        <!-- 模板字段预览 -->
+        <template x-if="collectForm.template_id">
+          <div class="mt-2 border border-blue-100 rounded-lg p-3 bg-blue-50">
+            <div class="text-xs text-blue-600 font-medium mb-2">模板字段预览</div>
+            <table class="w-full text-xs">
+              <thead><tr class="text-gray-500"><th class="text-left py-1">字段名称</th><th class="text-left py-1">类型</th><th class="text-left py-1">必填</th></tr></thead>
+              <tbody>
+                <template x-for="f in getTemplateFields(collectForm.template_id)" :key="f.fieldKey">
+                  <tr>
+                    <td class="py-1" x-text="f.fieldName"></td>
+                    <td class="py-1" x-text="getFieldTypeLabel(f.fieldType)"></td>
+                    <td class="py-1" x-text="f.required?'是':'否'"></td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </template>
+      </div>
+      <div class="col-span-2">
+        <label class="form-label required">下发范围</label>
+        <div class="flex gap-4 mt-1">
+          <label class="flex items-center gap-2 cursor-pointer"><input type="radio" x-model="collectForm.scope_type" value="0"> 全部</label>
+          <label class="flex items-center gap-2 cursor-pointer"><input type="radio" x-model="collectForm.scope_type" value="1"> 按机构</label>
+          <label class="flex items-center gap-2 cursor-pointer"><input type="radio" x-model="collectForm.scope_type" value="2"> 按人员</label>
+        </div>
+        <p class="error-msg" x-show="collectErrors.scope" x-text="collectErrors.scope"></p>
+      </div>
+      <template x-if="collectForm.scope_type==='1'">
+        <div class="col-span-2">
+          <label class="form-label required">选择目标机构</label>
+          <div class="border border-gray-200 rounded-lg p-3 bg-gray-50 grid grid-cols-2 gap-1">
+            <template x-for="dept in MOCK_DATA.depts" :key="dept.id">
+              <label class="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="checkbox" :value="dept.id" x-model="collectForm.scope_value_arr">
+                <span x-text="dept.name"></span>
+              </label>
+            </template>
+          </div>
+        </div>
+      </template>
+      <template x-if="collectForm.scope_type==='2'">
+        <div class="col-span-2">
+          <label class="form-label required">选择目标人员</label>
+          <div class="border border-gray-200 rounded-lg p-3 bg-gray-50 grid grid-cols-2 gap-1">
+            <template x-for="user in MOCK_DATA.receiverUsers" :key="user.id">
+              <label class="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="checkbox" :value="user.id" x-model="collectForm.scope_value_arr">
+                <span x-text="user.name+'（'+user.deptName+'）'"></span>
+              </label>
+            </template>
+          </div>
+        </div>
+      </template>
+      <div>
+        <label class="form-label required">填报期限</label>
+        <input class="form-input" type="datetime-local" x-model="collectForm.deadline">
+        <p class="error-msg" x-show="collectErrors.deadline" x-text="collectErrors.deadline"></p>
+      </div>
+      <div class="flex items-center gap-2">
+        <label class="form-label mb-0">短信通知</label>
+        <div class="relative inline-flex items-center cursor-pointer" @click="collectForm.is_sms_notify=collectForm.is_sms_notify==='1'?'0':'1'">
+          <div class="w-10 h-5 rounded-full transition-colors" :class="collectForm.is_sms_notify==='1'?'bg-blue-500':'bg-gray-300'"></div>
+          <div class="absolute left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform" :style="collectForm.is_sms_notify==='1'?'transform:translateX(20px)':''"></div>
+        </div>
+      </div>
+    </div>
+    <div class="flex gap-3 mt-6 pt-4 border-t border-gray-100 justify-end">
+      <button type="button" class="btn-default" @click="if(confirm('确认关闭？未保存的内容将丢失。'))showCollectModal=false">取消</button>
+      <button type="button" class="btn-default" @click="saveCollect('draft')">保存草稿</button>
+      <button type="button" class="btn-primary" @click="saveCollect('dispatch')">下发</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 新增/编辑收集任务弹窗 -->
+
+<!-- SECTION START: 填报表单弹窗 -->
+<div id="feature-fill-form" class="modal-overlay" x-show="showFillFormModal" x-cloak @click.self="showFillFormModal=false">
+  <div class="modal-box" style="width:min(680px,95vw);">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-base font-bold text-gray-800" x-text="fillTask&&fillTask.collect_name"></h2>
+      <button @click="showFillFormModal=false" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    <template x-if="fillTask">
+      <div>
+        <div class="bg-blue-50 rounded-lg p-3 mb-4 text-sm">
+          <span class="text-gray-500">填报期限：</span><span class="text-red-500 font-medium" x-text="fillTask.deadline"></span>
+          <span class="text-gray-400 ml-4 text-xs" x-text="fillTask.collect_desc"></span>
+        </div>
+        <div class="grid grid-cols-1 gap-4">
+          <template x-for="field in getFillFields(fillTask)" :key="field.fieldKey">
+            <div>
+              <label class="form-label" :class="field.required?'required':''">
+                <span x-text="field.fieldName"></span>
+              </label>
+              <template x-if="field.fieldType==='text'">
+                <input class="form-input" type="text" :placeholder="'请输入'+field.fieldName" x-model="fillFormData[field.fieldKey]">
+              </template>
+              <template x-if="field.fieldType==='number'">
+                <input class="form-input" type="number" :placeholder="'请输入'+field.fieldName" x-model="fillFormData[field.fieldKey]">
+              </template>
+              <template x-if="field.fieldType==='date'">
+                <input class="form-input" type="date" x-model="fillFormData[field.fieldKey]">
+              </template>
+              <template x-if="field.fieldType==='select'">
+                <select class="form-input" x-model="fillFormData[field.fieldKey]">
+                  <option value="">请选择</option>
+                  <template x-for="opt in (field.options||[])" :key="opt">
+                    <option :value="opt" x-text="opt"></option>
+                  </template>
+                </select>
+              </template>
+              <template x-if="field.fieldType==='textarea'">
+                <textarea class="form-input" rows="3" :placeholder="'请输入'+field.fieldName" x-model="fillFormData[field.fieldKey]"></textarea>
+              </template>
+              <template x-if="field.fieldType==='file'">
+                <div class="border border-dashed border-gray-300 rounded-lg p-3 text-center cursor-pointer hover:border-blue-400" @click="alert('文件选择框（原型模拟）')">
+                  <i class="fa-solid fa-cloud-arrow-up text-gray-300"></i>
+                  <span class="text-xs text-gray-400 ml-2">点击上传文件</span>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+      </div>
+    </template>
+    <div class="flex gap-3 mt-6 pt-4 border-t border-gray-100 justify-end">
+      <button class="btn-default" @click="showFillFormModal=false">返回</button>
+      <button class="btn-default" @click="saveFillDraft()">保存草稿</button>
+      <button class="btn-primary" @click="submitFill()">提交</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 填报表单弹窗 -->
+
+<!-- SECTION START: 数据汇总弹窗 -->
+<div id="feature-summary" class="modal-overlay" x-show="showSummaryModal" x-cloak @click.self="showSummaryModal=false">
+  <div class="modal-box" style="width:min(900px,95vw);">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-base font-bold text-gray-800">数据汇总 - <span x-text="summaryTask&&summaryTask.collect_name"></span></h2>
+      <button @click="showSummaryModal=false" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    <template x-if="summaryTask">
+      <div>
+        <div class="flex items-center gap-4 mb-4">
+          <div class="bg-blue-50 rounded-lg px-4 py-2 text-sm">
+            填报进度：<span class="text-blue-600 font-bold" x-text="summaryTask.fill_count+'/'+summaryTask.total_count"></span>
+            <div class="progress-bar-bg inline-block ml-2"><div class="progress-bar-fill" :style="'width:'+(summaryTask.total_count>0?Math.round(summaryTask.fill_count/summaryTask.total_count*100):0)+'%'"></div></div>
+          </div>
+          <button class="btn-default text-xs" @click="alert('导出Excel成功！（原型模拟）')"><i class="fa-solid fa-file-excel mr-1 text-green-600"></i>导出Excel</button>
+        </div>
+        <div class="table-container">
+          <table class="data-table summary-table" style="min-width:1000px;">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>填报人姓名</th>
+                <th>所属机构</th>
+                <th>填报状态</th>
+                <th>提交时间</th>
+                <th>超期</th>
+                <template x-for="field in getSummaryFields(summaryTask)" :key="field.fieldKey">
+                  <th x-text="field.fieldName"></th>
+                </template>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="(row,idx) in MOCK_DATA.summaryData" :key="row.user_id">
+                <tr>
+                  <td x-text="idx+1"></td>
+                  <td x-text="row.name"></td>
+                  <td x-text="row.dept"></td>
+                  <td><span class="tag" :class="getFillStatusClass(row.fill_status)" x-text="getFillStatusLabel(row.fill_status)"></span></td>
+                  <td x-text="row.submit_time||'—'"></td>
+                  <td>
+                    <span x-show="row.is_overdue==='1'" class="tag bg-red-100 text-red-600">超期</span>
+                    <span x-show="row.is_overdue!=='1'" class="text-gray-300">—</span>
+                  </td>
+                  <template x-for="field in getSummaryFields(summaryTask)" :key="field.fieldKey">
+                    <td x-text="row.fill_status==='2'?(row.form_data&&row.form_data[field.fieldKey]!==undefined?row.form_data[field.fieldKey]:'—'):'—'"></td>
+                  </template>
+                </tr>
+              </template>
+              <!-- 合计行 -->
+              <tr class="total-row">
+                <td colspan="6" class="text-right font-bold">合计</td>
+                <template x-for="field in getSummaryFields(summaryTask)" :key="field.fieldKey">
+                  <td x-text="field.fieldType==='number'?calcSum(field.fieldKey):'—'"></td>
+                </template>
+              </tr>
+              <!-- 平均值行 -->
+              <tr class="avg-row">
+                <td colspan="6" class="text-right font-bold">平均值</td>
+                <template x-for="field in getSummaryFields(summaryTask)" :key="field.fieldKey">
+                  <td x-text="field.fieldType==='number'?calcAvg(field.fieldKey):'—'"></td>
+                </template>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </template>
+    <div class="flex justify-end mt-4 pt-4 border-t border-gray-100">
+      <button class="btn-default" @click="showSummaryModal=false">关闭</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 数据汇总弹窗 -->
+
+<script>
+const MOCK_DATA = {
+  users: [
+    { id: 1, username: 'county_admin', password: '123456', role: 'county_admin', roleName: '县级管理员', name: '李主任', deptName: '蓬溪县农业农村局' },
+    { id: 2, username: 'county_staff', password: '123456', role: 'county_staff', roleName: '县级业务人员', name: '王科员', deptName: '蓬溪县农业农村局' },
+    { id: 3, username: 'town_gov', password: '123456', role: 'town_gov_staff', roleName: '乡镇政府业务人员', name: '张镇长', deptName: '蓬溪镇人民政府' },
+    { id: 4, username: 'town_vet', password: '123456', role: 'town_vet_station', roleName: '乡镇畜牧兽医站', name: '刘站长', deptName: '蓬溪镇畜牧兽医站' },
+    { id: 5, username: 'ent_admin', password: '123456', role: 'ent_admin', roleName: '企业管理员', name: '陈经理', deptName: '蓬溪县鑫源养殖场' }
+  ],
+  depts: [
+    { id: 101, name: '蓬溪镇人民政府' }, { id: 102, name: '新会镇人民政府' }, { id: 103, name: '明月镇人民政府' },
+    { id: 104, name: '蓬溪镇畜牧兽医站' }, { id: 105, name: '新会镇畜牧兽医站' }, { id: 106, name: '明月镇畜牧兽医站' }
+  ],
+  receiverUsers: [
+    { id: 3, name: '张镇长', deptName: '蓬溪镇人民政府' }, { id: 4, name: '刘站长', deptName: '蓬溪镇畜牧兽医站' },
+    { id: 5, name: '陈经理', deptName: '蓬溪县鑫源养殖场' }, { id: 6, name: '赵主任', deptName: '新会镇人民政府' },
+    { id: 7, name: '孙站长', deptName: '新会镇畜牧兽医站' }
+  ],
+  templates: [
+    { template_id: 1, template_name: '生猪季度养殖情况报送模板', template_fields: JSON.stringify([
+      { fieldKey:'field_1', fieldName:'本季度末生猪存栏数（头）', fieldType:'number', required:true, options:null, sort:1 },
+      { fieldKey:'field_2', fieldName:'本季度出栏数（头）', fieldType:'number', required:true, options:null, sort:2 },
+      { fieldKey:'field_3', fieldName:'养殖场类型', fieldType:'select', required:true, options:['规模化养殖场','中小养殖户','散养户'], sort:3 },
+      { fieldKey:'field_4', fieldName:'主要品种', fieldType:'text', required:false, options:null, sort:4 },
+      { fieldKey:'field_5', fieldName:'备注', fieldType:'textarea', required:false, options:null, sort:5 }
+    ]), status:'0', create_by:'李主任', create_time:'2026-01-10 10:00' },
+    { template_id: 2, template_name: '防疫巡查结果记录模板', template_fields: JSON.stringify([
+      { fieldKey:'field_1', fieldName:'巡查日期', fieldType:'date', required:true, options:null, sort:1 },
+      { fieldKey:'field_2', fieldName:'巡查养殖场数量（个）', fieldType:'number', required:true, options:null, sort:2 },
+      { fieldKey:'field_3', fieldName:'是否发现异常', fieldType:'select', required:true, options:['是','否'], sort:3 },
+      { fieldKey:'field_4', fieldName:'异常情况说明', fieldType:'textarea', required:false, options:null, sort:4 },
+      { fieldKey:'field_5', fieldName:'巡查照片', fieldType:'file', required:false, options:null, sort:5 }
+    ]), status:'0', create_by:'王科员', create_time:'2026-01-15 14:30' },
+    { template_id: 3, template_name: '环保设施整改情况报送模板', template_fields: JSON.stringify([
+      { fieldKey:'field_1', fieldName:'整改完成时间', fieldType:'date', required:true, options:null, sort:1 },
+      { fieldKey:'field_2', fieldName:'整改措施说明', fieldType:'textarea', required:true, options:null, sort:2 },
+      { fieldKey:'field_3', fieldName:'整改投入金额（万元）', fieldType:'number', required:true, options:null, sort:3 },
+      { fieldKey:'field_4', fieldName:'整改完成程度', fieldType:'select', required:true, options:['已全部完成','部分完成','未完成'], sort:4 }
+    ]), status:'0', create_by:'李主任', create_time:'2026-02-05 09:00' },
+    { template_id: 4, template_name: '月度出栏量汇报模板（已停用）', template_fields: JSON.stringify([
+      { fieldKey:'field_1', fieldName:'月度出栏数', fieldType:'number', required:true, options:null, sort:1 }
+    ]), status:'1', create_by:'王科员', create_time:'2025-11-20 11:00' }
+  ],
+  collectTasks: [
+    { collect_id: 1, collect_name: '2026年第一季度生猪养殖情况数据收集', collect_desc: '请各乡镇、各养殖企业如实填报2026年第一季度生猪养殖情况数据。', template_id: 1, template_name: '生猪季度养殖情况报送模板', scope_type: '0', scope_value: null, deadline: '2026-04-10 18:00', is_sms_notify: '0', status: '2', dispatch_time: '2026-03-05 10:00', dispatch_dept: '蓬溪县农业农村局', dispatch_by: '李主任', fill_count: 12, total_count: 25 },
+    { collect_id: 2, collect_name: '2026年3月防疫巡查结果收集（各乡镇）', collect_desc: '收集各乡镇2026年3月防疫巡查工作结果。', template_id: 2, template_name: '防疫巡查结果记录模板', scope_type: '1', scope_value: '[101,102,103,104,105,106]', deadline: '2026-04-05 18:00', is_sms_notify: '1', status: '1', dispatch_time: '2026-03-08 14:00', dispatch_dept: '蓬溪县农业农村局', dispatch_by: '王科员', fill_count: 0, total_count: 18 },
+    { collect_id: 3, collect_name: '2025年度环保设施整改情况报送', collect_desc: '收集各养殖场2025年度环保设施整改完成情况。', template_id: 3, template_name: '环保设施整改情况报送模板', scope_type: '2', scope_value: '[3,4,5]', deadline: '2026-03-31 18:00', is_sms_notify: '0', status: '3', dispatch_time: '2026-02-28 09:00', dispatch_dept: '蓬溪县农业农村局', dispatch_by: '李主任', fill_count: 3, total_count: 3 },
+    { collect_id: 4, collect_name: '2026年生猪补贴资格申报数据收集（草稿）', collect_desc: '收集符合补贴申报条件的养殖主体数据。', template_id: 1, template_name: '生猪季度养殖情况报送模板', scope_type: '0', scope_value: null, deadline: '2026-05-30 18:00', is_sms_notify: '0', status: '0', dispatch_time: null, dispatch_dept: '蓬溪县农业农村局', dispatch_by: '王科员', fill_count: 0, total_count: 0 },
+    { collect_id: 5, collect_name: '冬季生猪存栏情况摸底收集', collect_desc: null, template_id: 1, template_name: '生猪季度养殖情况报送模板', scope_type: '0', scope_value: null, deadline: '2025-12-20 18:00', is_sms_notify: '0', status: '4', dispatch_time: '2025-12-01 10:00', dispatch_dept: '蓬溪县农业农村局', dispatch_by: '李主任', fill_count: 8, total_count: 25 },
+    { collect_id: 6, collect_name: '2026年2月生猪出栏量统计收集', collect_desc: null, template_id: 1, template_name: '生猪季度养殖情况报送模板', scope_type: '1', scope_value: '[101,102,103]', deadline: '2026-03-10 18:00', is_sms_notify: '0', status: '2', dispatch_time: '2026-03-01 09:00', dispatch_dept: '蓬溪县农业农村局', dispatch_by: '王科员', fill_count: 5, total_count: 8 }
+  ],
+  receiverCollects: [
+    { collect_id: 1, collect_name: '2026年第一季度生猪养殖情况数据收集', dispatch_dept: '蓬溪县农业农村局', dispatch_by: '李主任', deadline: '2026-04-10 18:00', fill_status: '0', is_overdue: '0', template_id: 1 },
+    { collect_id: 2, collect_name: '2026年3月防疫巡查结果收集（各乡镇）', dispatch_dept: '蓬溪县农业农村局', dispatch_by: '王科员', deadline: '2026-04-05 18:00', fill_status: '1', is_overdue: '0', template_id: 2 },
+    { collect_id: 3, collect_name: '2025年度环保设施整改情况报送', dispatch_dept: '蓬溪县农业农村局', dispatch_by: '李主任', deadline: '2026-03-31 18:00', fill_status: '2', is_overdue: '0', template_id: 3 },
+    { collect_id: 6, collect_name: '2026年2月生猪出栏量统计收集', dispatch_dept: '蓬溪县农业农村局', dispatch_by: '王科员', deadline: '2026-03-10 18:00', fill_status: '0', is_overdue: '1', template_id: 1 }
+  ],
+  summaryData: [
+    { user_id: 3, name: '张镇长', dept: '蓬溪镇人民政府', fill_status: '2', submit_time: '2026-03-20 14:22', is_overdue: '0', form_data: { field_1: 1280, field_2: 450, field_3: '规模化养殖场', field_4: '长白猪×杜洛克', field_5: '数据已核实' } },
+    { user_id: 4, name: '刘站长', dept: '蓬溪镇畜牧兽医站', fill_status: '2', submit_time: '2026-03-22 09:15', is_overdue: '0', form_data: { field_1: 860, field_2: 320, field_3: '中小养殖户', field_4: '大白猪', field_5: '' } },
+    { user_id: 5, name: '陈经理', dept: '蓬溪县鑫源养殖场', fill_status: '0', submit_time: null, is_overdue: '0', form_data: null },
+    { user_id: 6, name: '赵主任', dept: '新会镇人民政府', fill_status: '2', submit_time: '2026-03-25 16:40', is_overdue: '0', form_data: { field_1: 950, field_2: 380, field_3: '规模化养殖场', field_4: '杜洛克', field_5: '已审核' } },
+    { user_id: 7, name: '孙站长', dept: '新会镇畜牧兽医站', fill_status: '1', submit_time: null, is_overdue: '0', form_data: { field_1: 620, field_2: null, field_3: '中小养殖户', field_4: '', field_5: '' } },
+    { user_id: 8, name: '李场长', dept: '明月镇鑫盛养殖场', fill_status: '2', submit_time: '2026-03-18 11:30', is_overdue: '0', form_data: { field_1: 1450, field_2: 560, field_3: '规模化养殖场', field_4: '长白猪', field_5: '规模最大' } },
+    { user_id: 9, name: '周主任', dept: '明月镇人民政府', fill_status: '0', submit_time: null, is_overdue: '0', form_data: null },
+    { user_id: 10, name: '吴科员', dept: '明月镇畜牧兽医站', fill_status: '2', submit_time: '2026-04-02 10:05', is_overdue: '0', form_data: { field_1: 730, field_2: 290, field_3: '中小养殖户', field_4: '大白猪', field_5: '' } }
+  ]
+};
+
+function collectApp() {
+  return {
+    MOCK_DATA,
+    currentUser: MOCK_DATA.users[0],
+    activeTab: 'collect',
+
+    // 筛选
+    collectFilter: { name: '', status: '', dateFrom: '' },
+    templateFilter: { name: '', status: '' },
+    receiverFilter: { name: '', fillStatus: '' },
+
+    // 分页
+    collectPage: 1, collectPageSize: 10,
+    templatePage: 1, templatePageSize: 10,
+    receiverPage: 1, receiverPageSize: 10,
+
+    // 弹窗
+    showTemplateModal: false, showCollectModal: false, showFillFormModal: false, showSummaryModal: false,
+    editTemplate: null, editCollect: null, fillTask: null, summaryTask: null,
+    templateForm: {}, templateErrors: {},
+    collectForm: {}, collectErrors: {},
+    fillFormData: {},
+
+    switchRole(u) { this.currentUser = u; },
+    isPublisher() { return this.currentUser.role === 'county_admin' || this.currentUser.role === 'county_staff'; },
+
+    get filteredCollectList() {
+      let list = MOCK_DATA.collectTasks;
+      if (this.collectFilter.name) list = list.filter(t => t.collect_name.includes(this.collectFilter.name));
+      if (this.collectFilter.status) list = list.filter(t => t.status === this.collectFilter.status);
+      return list;
+    },
+    get collectTotalPages() { return Math.max(1, Math.ceil(this.filteredCollectList.length / this.collectPageSize)); },
+    get pagedCollectList() { return this.filteredCollectList.slice((this.collectPage-1)*this.collectPageSize, this.collectPage*this.collectPageSize); },
+
+    get filteredTemplateList() {
+      let list = MOCK_DATA.templates;
+      if (this.templateFilter.name) list = list.filter(t => t.template_name.includes(this.templateFilter.name));
+      if (this.templateFilter.status) list = list.filter(t => t.status === this.templateFilter.status);
+      return list;
+    },
+    get templateTotalPages() { return Math.max(1, Math.ceil(this.filteredTemplateList.length / this.templatePageSize)); },
+    get pagedTemplateList() { return this.filteredTemplateList.slice((this.templatePage-1)*this.templatePageSize, this.templatePage*this.templatePageSize); },
+
+    get filteredReceiverCollectList() {
+      let list = MOCK_DATA.receiverCollects;
+      if (this.receiverFilter.name) list = list.filter(t => t.collect_name.includes(this.receiverFilter.name));
+      if (this.receiverFilter.fillStatus !== '') list = list.filter(t => t.fill_status === this.receiverFilter.fillStatus);
+      return list;
+    },
+    get receiverTotalPages() { return Math.max(1, Math.ceil(this.filteredReceiverCollectList.length / this.receiverPageSize)); },
+    get pagedReceiverCollectList() { return this.filteredReceiverCollectList.slice((this.receiverPage-1)*this.receiverPageSize, this.receiverPage*this.receiverPageSize); },
+
+    get normalTemplates() { return MOCK_DATA.templates.filter(t => t.status === '0'); },
+
+    openAddTemplateModal() {
+      this.editTemplate = null;
+      this.templateForm = { template_name: '', status: '0', fields: [] };
+      this.templateErrors = {};
+      this.showTemplateModal = true;
+    },
+    openEditTemplateModal(item) {
+      this.editTemplate = item;
+      const fields = JSON.parse(item.template_fields).map(f => ({...f, optionsText: (f.options||[]).join('\n')}));
+      this.templateForm = { template_name: item.template_name, status: item.status, fields };
+      this.templateErrors = {};
+      this.showTemplateModal = true;
+    },
+    addField() {
+      const newKey = 'field_' + (this.templateForm.fields.length + 1);
+      this.templateForm.fields.push({ fieldKey: newKey, fieldName: '', fieldType: 'text', required: false, options: null, optionsText: '', sort: this.templateForm.fields.length + 1 });
+    },
+    removeField(idx) { this.templateForm.fields.splice(idx, 1); },
+    moveField(idx, dir) {
+      const fields = this.templateForm.fields;
+      const newIdx = idx + dir;
+      if (newIdx < 0 || newIdx >= fields.length) return;
+      [fields[idx], fields[newIdx]] = [fields[newIdx], fields[idx]];
+    },
+    saveTemplate() {
+      this.templateErrors = {};
+      if (!this.templateForm.template_name) { this.templateErrors.name = '请输入模板名称'; return; }
+      if (this.templateForm.fields.length === 0) { this.templateErrors.fields = '请至少定义一个模板字段'; return; }
+      const fields = this.templateForm.fields.map((f, i) => ({
+        fieldKey: f.fieldKey || 'field_'+(i+1),
+        fieldName: f.fieldName,
+        fieldType: f.fieldType,
+        required: f.required,
+        options: f.fieldType === 'select' ? (f.optionsText||'').split('\n').filter(o=>o.trim()) : null,
+        sort: i + 1
+      }));
+      if (this.editTemplate) {
+        Object.assign(this.editTemplate, { template_name: this.templateForm.template_name, status: this.templateForm.status, template_fields: JSON.stringify(fields) });
+      } else {
+        const newId = Math.max(...MOCK_DATA.templates.map(t=>t.template_id)) + 1;
+        MOCK_DATA.templates.push({ template_id: newId, template_name: this.templateForm.template_name, template_fields: JSON.stringify(fields), status: this.templateForm.status, create_by: this.currentUser.name, create_time: '2026-03-10 '+new Date().toTimeString().slice(0,5) });
+      }
+      alert('模板保存成功！');
+      this.showTemplateModal = false;
+    },
+    deleteTemplate(item) {
+      if (confirm(`确认删除模板「${item.template_name}」吗？`)) {
+        const used = MOCK_DATA.collectTasks.some(c => c.template_id === item.template_id);
+        if (used) { alert('该模板已被收集任务使用，无法删除'); return; }
+        const idx = MOCK_DATA.templates.indexOf(item);
+        if (idx > -1) MOCK_DATA.templates.splice(idx, 1);
+        alert('删除成功！');
+      }
+    },
+
+    openAddCollectModal() {
+      this.editCollect = null;
+      this.collectForm = { collect_name: '', collect_desc: '', template_id: '', scope_type: '0', scope_value_arr: [], deadline: '', is_sms_notify: '0' };
+      this.collectErrors = {};
+      this.showCollectModal = true;
+    },
+    openEditCollectModal(item) {
+      this.editCollect = item;
+      this.collectForm = { ...item, template_id: String(item.template_id), scope_value_arr: item.scope_value ? JSON.parse(item.scope_value) : [] };
+      this.collectErrors = {};
+      this.showCollectModal = true;
+    },
+    saveCollect(mode) {
+      this.collectErrors = {};
+      if (!this.collectForm.collect_name) { this.collectErrors.name = '请输入任务名称'; return; }
+      if (!this.collectForm.template_id) { this.collectErrors.template = '请选择报送模板'; return; }
+      if (this.collectForm.scope_type==='1' && this.collectForm.scope_value_arr.length===0) { this.collectErrors.scope = '请选择目标机构'; return; }
+      if (this.collectForm.scope_type==='2' && this.collectForm.scope_value_arr.length===0) { this.collectErrors.scope = '请选择目标人员'; return; }
+      if (!this.collectForm.deadline) { this.collectErrors.deadline = '请选择填报期限'; return; }
+      const isDraft = mode === 'draft';
+      const tmpl = MOCK_DATA.templates.find(t => String(t.template_id) === String(this.collectForm.template_id));
+      if (this.editCollect) {
+        Object.assign(this.editCollect, { ...this.collectForm, template_id: parseInt(this.collectForm.template_id), template_name: tmpl?.template_name||'', status: isDraft?'0':'1', dispatch_time: isDraft?null:'2026-03-10 '+new Date().toTimeString().slice(0,5) });
+      } else {
+        const newId = Math.max(...MOCK_DATA.collectTasks.map(c=>c.collect_id)) + 1;
+        MOCK_DATA.collectTasks.push({ ...this.collectForm, collect_id: newId, template_id: parseInt(this.collectForm.template_id), template_name: tmpl?.template_name||'', status: isDraft?'0':'1', dispatch_time: isDraft?null:'2026-03-10 '+new Date().toTimeString().slice(0,5), dispatch_dept: this.currentUser.deptName, dispatch_by: this.currentUser.name, fill_count: 0, total_count: isDraft?0:(this.collectForm.scope_value_arr.length||25) });
+      }
+      alert(isDraft ? '草稿保存成功！' : '收集任务已下发！');
+      this.showCollectModal = false;
+    },
+    dispatchCollect(item) { if(confirm('确认下发此收集任务？')) { item.status='1'; item.dispatch_time='2026-03-10 '+new Date().toTimeString().slice(0,5); item.total_count=20; alert('下发成功！'); } },
+    revokeCollect(item) { if(confirm('确认撤回该收集任务？撤回后未填报的接收方将不再需要填报。')) { item.status='4'; alert('已撤回。'); } },
+    deleteCollect(item) {
+      if(confirm(`确认删除收集任务「${item.collect_name}」吗？`)) { const idx=MOCK_DATA.collectTasks.indexOf(item); if(idx>-1) MOCK_DATA.collectTasks.splice(idx,1); alert('删除成功！'); }
+    },
+    viewCollectDetail(item) { alert('查看收集任务详情：\n' + item.collect_name + '\n使用模板：' + item.template_name + '\n填报期限：' + item.deadline); },
+    viewSummary(item) { this.summaryTask = item; this.showSummaryModal = true; },
+
+    openFillForm(item) { this.fillTask = item; this.fillFormData = {}; this.showFillFormModal = true; },
+    viewFillData(item) { alert('查看已提交的填报数据（原型模拟）'); },
+    saveFillDraft() {
+      const rc = MOCK_DATA.receiverCollects.find(c => c.collect_id === this.fillTask.collect_id);
+      if (rc) rc.fill_status = '1';
+      alert('草稿保存成功！');
+      this.showFillFormModal = false;
+    },
+    submitFill() {
+      if (!confirm('确认提交报送数据？提交后不可修改。')) return;
+      const rc = MOCK_DATA.receiverCollects.find(c => c.collect_id === this.fillTask.collect_id);
+      if (rc) rc.fill_status = '2';
+      alert('数据提交成功！');
+      this.showFillFormModal = false;
+    },
+
+    getTemplateFields(templateId) {
+      const t = MOCK_DATA.templates.find(t => String(t.template_id) === String(templateId));
+      return t ? JSON.parse(t.template_fields) : [];
+    },
+    getFillFields(item) {
+      return this.getTemplateFields(item.template_id);
+    },
+    getSummaryFields(item) {
+      return this.getTemplateFields(item.template_id);
+    },
+    calcSum(fieldKey) {
+      const vals = MOCK_DATA.summaryData.filter(r => r.fill_status==='2' && r.form_data && r.form_data[fieldKey] !== null && r.form_data[fieldKey] !== undefined && r.form_data[fieldKey] !== '').map(r => Number(r.form_data[fieldKey]));
+      return vals.length ? vals.reduce((a,b)=>a+b,0) : '—';
+    },
+    calcAvg(fieldKey) {
+      const vals = MOCK_DATA.summaryData.filter(r => r.fill_status==='2' && r.form_data && r.form_data[fieldKey] !== null && r.form_data[fieldKey] !== undefined && r.form_data[fieldKey] !== '').map(r => Number(r.form_data[fieldKey]));
+      return vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) : '—';
+    },
+
+    getScopeText(item) {
+      if (item.scope_type==='0') return '全部';
+      if (item.scope_type==='1') return (item.scope_value?JSON.parse(item.scope_value).length:0)+'个机构';
+      if (item.scope_type==='2') return (item.scope_value?JSON.parse(item.scope_value).length:0)+'人';
+      return '—';
+    },
+    getCollectStatusLabel(s) { return {0:'草稿',1:'已下发',2:'进行中',3:'已完成',4:'已撤回'}[s]||s; },
+    getCollectStatusClass(s) { return {0:'bg-gray-100 text-gray-500',1:'bg-blue-100 text-blue-700',2:'bg-orange-100 text-orange-600',3:'bg-green-100 text-green-700',4:'bg-red-100 text-red-600'}[s]||'bg-gray-100 text-gray-500'; },
+    getFillStatusLabel(s) { return {0:'未填报',1:'草稿',2:'已提交'}[s]||s; },
+    getFillStatusClass(s) { return {0:'bg-gray-100 text-gray-500',1:'bg-blue-100 text-blue-700',2:'bg-green-100 text-green-700'}[s]||'bg-gray-100 text-gray-500'; },
+    getFieldTypeLabel(t) { return {text:'文本输入',number:'数字输入',date:'日期选择',select:'下拉选择',textarea:'多行文本',file:'附件上传'}[t]||t; }
+  };
+}
+</script>
+</body>
+</html>

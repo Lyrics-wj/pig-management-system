@@ -1,0 +1,690 @@
+<!--
+  功能名称：生猪知识讲堂后台管理-培训活动管理
+  对应PRD：doc_prd/WEB/生猪知识讲堂/后台管理/WEB-生猪知识讲堂后台管理-培训活动管理.prd.md
+  所属端口：生猪知识讲堂后台管理系统（监管端）
+  所属模块：培训活动管理、培训报名审批
+  制作日期：2026-03-06
+  最后更新：2026-03-06
+  角色说明：县级管理员(county_admin)、县级业务人员(county_staff)
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>培训活动管理 - 生猪知识讲堂后台</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  [x-cloak] { display: none !important; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f4f8; color: #1e293b; }
+  .sidebar { width: 220px; background: linear-gradient(180deg, #0f4c2a 0%, #1a6e3a 60%, #166534 100%); display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-brand { padding: 20px 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .sidebar-brand-icon { width: 36px; height: 36px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.25); }
+  .sidebar-group-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: rgba(255,255,255,0.4); text-transform: uppercase; padding: 12px 16px 4px; }
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 9px 16px; font-size: 13.5px; color: rgba(255,255,255,0.7); cursor: pointer; transition: all 0.15s ease; margin: 1px 8px; border-radius: 8px; }
+  .sidebar-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .sidebar-item.active { background: rgba(255,255,255,0.18); color: #fff; font-weight: 600; box-shadow: inset 3px 0 0 #86efac; }
+  .sidebar-item .si-icon { width: 16px; text-align: center; opacity: 0.85; }
+  .sidebar-user { padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.1); }
+  .sidebar-user-avatar { width: 30px; height: 30px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; }
+  .btn-primary { display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #16a34a, #15803d); color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 13.5px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; box-shadow: 0 1px 3px rgba(22,163,74,0.3); }
+  .btn-primary:hover { background: linear-gradient(135deg, #15803d, #166534); box-shadow: 0 4px 12px rgba(22,163,74,0.35); transform: translateY(-1px); }
+  .btn-secondary { display: inline-flex; align-items: center; gap: 6px; background: #fff; color: #475569; padding: 8px 14px; border-radius: 8px; font-size: 13.5px; font-weight: 500; cursor: pointer; border: 1px solid #cbd5e1; transition: all 0.15s; }
+  .btn-secondary:hover { background: #f8fafc; border-color: #94a3b8; }
+  .act-btn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid transparent; transition: all 0.15s; white-space: nowrap; }
+  .act-edit   { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; } .act-edit:hover   { background: #dbeafe; }
+  .act-stop   { background: #fffbeb; color: #d97706; border-color: #fde68a; } .act-stop:hover   { background: #fef3c7; }
+  .act-start  { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; } .act-start:hover  { background: #dcfce7; }
+  .act-delete { background: #fef2f2; color: #dc2626; border-color: #fecaca; } .act-delete:hover { background: #fee2e2; }
+  .act-publish{ background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; } .act-publish:hover{ background: #dcfce7; }
+  .act-down   { background: #fffbeb; color: #d97706; border-color: #fde68a; } .act-down:hover   { background: #fef3c7; }
+  .act-review { background: #faf5ff; color: #7c3aed; border-color: #ddd6fe; } .act-review:hover { background: #ede9fe; }
+  .act-pass   { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; } .act-pass:hover   { background: #dcfce7; }
+  .act-reject { background: #fef2f2; color: #dc2626; border-color: #fecaca; } .act-reject:hover { background: #fee2e2; }
+  .act-view   { background: #f0f9ff; color: #0284c7; border-color: #bae6fd; } .act-view:hover   { background: #e0f2fe; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-size: 11.5px; font-weight: 500; }
+  .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; display: inline-block; }
+  .badge-success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; } .badge-success::before { background: #22c55e; }
+  .badge-warning { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; } .badge-warning::before { background: #f59e0b; }
+  .badge-danger  { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; } .badge-danger::before  { background: #ef4444; }
+  .badge-gray    { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; } .badge-gray::before    { background: #94a3b8; }
+  .badge-blue    { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; } .badge-blue::before    { background: #3b82f6; }
+  .badge-purple  { background: #faf5ff; color: #7c3aed; border: 1px solid #ddd6fe; } .badge-purple::before  { background: #8b5cf6; }
+  .form-label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 5px; }
+  .form-input { width: 100%; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; font-size: 13.5px; color: #1e293b; background: #fff; transition: border-color 0.15s, box-shadow 0.15s; outline: none; }
+  .form-input:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.12); }
+  .form-select { width: 100%; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; font-size: 13.5px; background: #fff; outline: none; cursor: pointer; transition: border-color 0.15s; }
+  .form-select:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.12); }
+  .form-error { font-size: 11.5px; color: #ef4444; margin-top: 4px; }
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table thead tr { background: #f8fafc; border-bottom: 2px solid #e8edf2; }
+  .table-th { padding: 11px 14px; text-align: left; font-size: 11.5px; font-weight: 700; color: #64748b; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; }
+  .table-td { padding: 12px 14px; font-size: 13.5px; color: #374151; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+  .data-table tbody tr { transition: background 0.12s; }
+  .data-table tbody tr:hover { background: #f8fafc; }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+  .filter-bar { background: #fff; border-radius: 12px; padding: 14px 18px; border: 1px solid #e8edf2; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .filter-select { border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 6px 10px; font-size: 13px; outline: none; background: #fff; color: #374151; cursor: pointer; transition: border-color 0.15s; }
+  .filter-select:focus { border-color: #16a34a; }
+  .filter-input { border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 6px 10px; font-size: 13px; outline: none; color: #374151; transition: border-color 0.15s; }
+  .filter-input:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.1); }
+  .content-card { background: #fff; border-radius: 12px; border: 1px solid #e8edf2; box-shadow: 0 1px 3px rgba(0,0,0,0.04); overflow: hidden; }
+  .stat-card { background: #fff; border-radius: 12px; padding: 16px 20px; border: 1px solid #e8edf2; box-shadow: 0 1px 3px rgba(0,0,0,0.04); transition: transform 0.2s, box-shadow 0.2s; }
+  .stat-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.45); backdrop-filter: blur(3px); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .modal-box { background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); width: 100%; max-width: 480px; animation: modal-in 0.2s ease; }
+  .modal-box-lg { background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; animation: modal-in 0.2s ease; }
+  .modal-box-xl { background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); width: 100%; max-width: 860px; max-height: 90vh; overflow-y: auto; animation: modal-in 0.2s ease; }
+  @keyframes modal-in { from { opacity: 0; transform: translateY(-12px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid #f1f5f9; }
+  .modal-header h3 { font-size: 16px; font-weight: 700; color: #0f172a; }
+  .modal-close { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; color: #94a3b8; transition: all 0.15s; background: none; border: none; }
+  .modal-close:hover { background: #f1f5f9; color: #475569; }
+  .modal-body { padding: 20px 22px; }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 22px; border-top: 1px solid #f1f5f9; background: #f8fafc; border-radius: 0 0 16px 16px; }
+  .page-btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; font-size: 13px; cursor: pointer; border: 1px solid #e2e8f0; color: #475569; background: #fff; transition: all 0.15s; }
+  .page-btn:hover:not(:disabled) { background: #f0fdf4; border-color: #86efac; color: #16a34a; }
+  .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .section-title { font-size: 18px; font-weight: 700; color: #0f172a; }
+  .section-sub { font-size: 13px; color: #64748b; margin-top: 2px; }
+  .tab-pill { padding: 5px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 500; cursor: pointer; border: 1.5px solid #e2e8f0; color: #64748b; background: #fff; transition: all 0.15s; }
+  .tab-pill:hover { border-color: #86efac; color: #16a34a; }
+  .tab-pill.active-all    { background: #1e293b; color: #fff; border-color: #1e293b; }
+  .tab-pill.active-warn   { background: #f59e0b; color: #fff; border-color: #f59e0b; }
+  .tab-pill.active-ok     { background: #16a34a; color: #fff; border-color: #16a34a; }
+  .tab-pill.active-danger { background: #ef4444; color: #fff; border-color: #ef4444; }
+  .tab-pill.active-blue   { background: #2563eb; color: #fff; border-color: #2563eb; }
+  .star-filled { color: #f59e0b; } .star-empty { color: #e2e8f0; }
+</style>
+
+</head>
+<body class="bg-gray-50 min-h-screen" x-data="app()" x-cloak>
+
+<script>
+const MOCK_DATA = {
+  currentUser: { username: 'admin', nick_name: '李管理员', roleName: '县级管理员' },
+
+  trainings: [
+    { training_id: 1, training_name: '2026年春季生猪养殖技术培训班', training_intro: '本次培训班将系统讲解春季生猪养殖的关键技术要点...', cover_image: '', training_type: '1', training_mode: '1', speaker: '张教授', speaker_intro: '四川农业大学畜牧学院教授', location: '蓬溪县农业农村局培训室', start_time: '2026-03-15 09:00:00', end_time: '2026-03-17 17:00:00', enrollment_deadline: '2026-03-10 17:00:00', max_enrollment: 100, current_enrollment: 68, training_status: '0', publish_status: '1', publish_time: '2026-02-20 09:00:00', create_time: '2026-02-18 14:00:00', create_by: 'admin', hasEnrollments: true },
+    { training_id: 2, training_name: '非洲猪瘟生物安全防控在线培训', training_intro: '针对非洲猪瘟防控，开展线上培训，讲解生物安全管理规程...', cover_image: '', training_type: '2', training_mode: '2', speaker: '王兽医', speaker_intro: '县动物疫病预防控制中心主任兽医师', location: '腾讯会议（会议号将于活动开始前通知）', start_time: '2026-03-20 14:00:00', end_time: '2026-03-20 17:00:00', enrollment_deadline: '2026-03-18 17:00:00', max_enrollment: 200, current_enrollment: 145, training_status: '0', publish_status: '1', publish_time: '2026-02-25 10:00:00', create_time: '2026-02-23 09:00:00', create_by: 'admin', hasEnrollments: true },
+    { training_id: 3, training_name: '生猪养殖补贴政策宣讲会', training_intro: '宣讲2026年最新生猪养殖补贴政策，帮助养殖户了解申报流程...', cover_image: '', training_type: '3', training_mode: '1', speaker: '赵主任', speaker_intro: '蓬溪县农业农村局畜牧股股长', location: '蓬溪县政务中心三楼报告厅', start_time: '2026-04-10 09:00:00', end_time: '2026-04-10 12:00:00', enrollment_deadline: '2026-04-05 17:00:00', max_enrollment: 150, current_enrollment: 0, training_status: '0', publish_status: '0', publish_time: null, create_time: '2026-03-01 10:00:00', create_by: 'staff01', hasEnrollments: false },
+    { training_id: 4, training_name: '养猪户经验交流座谈会', training_intro: '邀请蓬溪县优秀养猪户代表分享经验，促进相互学习...', cover_image: '', training_type: '4', training_mode: '1', speaker: '多位代表', speaker_intro: '蓬溪县优秀养猪户代表', location: '蓬溪县农业农村局会议室', start_time: '2026-01-20 09:00:00', end_time: '2026-01-20 12:00:00', enrollment_deadline: '2026-01-15 17:00:00', max_enrollment: 50, current_enrollment: 48, training_status: '2', publish_status: '1', publish_time: '2026-01-10 09:00:00', create_time: '2026-01-08 14:00:00', create_by: 'admin', hasEnrollments: true },
+  ],
+
+  enrollments: [
+    { enrollment_id: 1, training_id: 1, enrollee_name: '张大山', enrollee_phone: '13812345678', enrollee_org: '蓬溪县鑫源养殖场', enrollee_remark: '希望能学到春季防病要点', approval_status: '1', approval_remark: '审核通过', approval_by: 'admin', approval_time: '2026-03-01 10:00:00', create_time: '2026-02-28 09:00:00' },
+    { enrollment_id: 2, training_id: 1, enrollee_name: '李二牛', enrollee_phone: '13987654321', enrollee_org: '蓬溪县牛山养殖合作社', enrollee_remark: '', approval_status: '0', approval_remark: '', approval_by: '', approval_time: null, create_time: '2026-02-28 10:30:00' },
+    { enrollment_id: 3, training_id: 1, enrollee_name: '王小明', enrollee_phone: '15012345678', enrollee_org: '蓬溪县绿野养猪场', enrollee_remark: '我们场有100头猪', approval_status: '0', approval_remark: '', approval_by: '', approval_time: null, create_time: '2026-02-28 14:00:00' },
+    { enrollment_id: 4, training_id: 1, enrollee_name: '赵五', enrollee_phone: '13600001234', enrollee_org: '', enrollee_remark: '', approval_status: '2', approval_remark: '信息不完整', approval_by: 'admin', approval_time: '2026-03-02 09:00:00', create_time: '2026-03-01 08:00:00' },
+    { enrollment_id: 5, training_id: 2, enrollee_name: '孙六', enrollee_phone: '13700005678', enrollee_org: '蓬溪县南山猪场', enrollee_remark: '请问有录播吗', approval_status: '1', approval_remark: '', approval_by: 'admin', approval_time: '2026-03-01 14:00:00', create_time: '2026-02-27 15:00:00' },
+  ],
+};
+
+function app() {
+  return {
+    activeMenu: 'training',
+
+    TYPE_MAP: { '1': '专题培训', '2': '技术指导', '3': '政策宣讲', '4': '经验交流' },
+    MODE_MAP: { '1': '线下培训', '2': '线上培训', '3': '线上线下结合' },
+    TSTATUS_MAP: { '0': '报名中', '1': '进行中', '2': '已结束' },
+    PSTATUS_MAP: { '0': '草稿', '1': '已发布', '2': '已下架' },
+    ASTATUS_MAP: { '0': '待审批', '1': '已通过', '2': '已拒绝' },
+
+    // 培训活动
+    trainings: JSON.parse(JSON.stringify(MOCK_DATA.trainings)),
+    tFilter: { training_type: '', training_status: '', publish_status: '', keyword: '' },
+    tPage: 1, tPageSize: 10,
+    tFormModal: false, tFormMode: 'add', editingTraining: null,
+    tForm: { training_name: '', training_intro: '', cover_image: '', training_type: '', training_mode: '', speaker: '', speaker_intro: '', location: '', start_time: '', end_time: '', enrollment_deadline: '', max_enrollment: 50 },
+    tFormErrors: {},
+    confirmModal: false, confirmTitle: '', confirmMsg: '', confirmAction: null,
+
+    get filteredTrainings() {
+      return this.trainings.filter(t => {
+        if (this.tFilter.training_type && t.training_type !== this.tFilter.training_type) return false;
+        if (this.tFilter.training_status !== '' && t.training_status !== this.tFilter.training_status) return false;
+        if (this.tFilter.publish_status !== '' && t.publish_status !== this.tFilter.publish_status) return false;
+        if (this.tFilter.keyword && !t.training_name.includes(this.tFilter.keyword)) return false;
+        return true;
+      });
+    },
+    get pagedTrainings() { const s=(this.tPage-1)*this.tPageSize; return this.filteredTrainings.slice(s,s+this.tPageSize); },
+    get tTotalPages() { return Math.ceil(this.filteredTrainings.length/this.tPageSize)||1; },
+
+    tStatusClass(s) { return {'0':'badge-success','1':'badge-blue','2':'badge-gray'}[s]||'badge-gray'; },
+    pStatusClass(s) { return {'0':'badge-gray','1':'badge-success','2':'badge-warning'}[s]||'badge-gray'; },
+    aStatusClass(s) { return {'0':'badge-warning','1':'badge-success','2':'badge-danger'}[s]||'badge-gray'; },
+
+    openTForm(mode, item=null) {
+      this.tFormMode = mode; this.tFormErrors = {};
+      if (mode==='edit' && item) {
+        this.editingTraining = item;
+        this.tForm = { training_name: item.training_name, training_intro: item.training_intro, cover_image: item.cover_image, training_type: item.training_type, training_mode: item.training_mode, speaker: item.speaker, speaker_intro: item.speaker_intro||'', location: item.location, start_time: item.start_time.replace(' ','T'), end_time: item.end_time.replace(' ','T'), enrollment_deadline: item.enrollment_deadline.replace(' ','T'), max_enrollment: item.max_enrollment };
+        if (item.publish_status === '1') {
+          if (!confirm('该活动已发布，修改后将即时对用户生效，是否继续？')) return;
+        }
+      } else {
+        this.editingTraining = null;
+        this.tForm = { training_name: '', training_intro: '', cover_image: '', training_type: '', training_mode: '', speaker: '', speaker_intro: '', location: '', start_time: '', end_time: '', enrollment_deadline: '', max_enrollment: 50 };
+      }
+      this.tFormModal = true;
+    },
+
+    validateTForm() {
+      this.tFormErrors = {};
+      if (!this.tForm.training_name.trim()) this.tFormErrors.training_name = '活动名称不能为空';
+      if (!this.tForm.training_intro.trim()) this.tFormErrors.training_intro = '活动简介不能为空';
+      if (!this.tForm.training_type) this.tFormErrors.training_type = '请选择培训类型';
+      if (!this.tForm.training_mode) this.tFormErrors.training_mode = '请选择培训方式';
+      if (!this.tForm.speaker.trim()) this.tFormErrors.speaker = '讲师不能为空';
+      if (!this.tForm.location.trim()) this.tFormErrors.location = '培训地点不能为空';
+      if (!this.tForm.start_time) this.tFormErrors.start_time = '请选择开始时间';
+      if (!this.tForm.end_time) this.tFormErrors.end_time = '请选择结束时间';
+      else if (this.tForm.start_time && this.tForm.end_time <= this.tForm.start_time) this.tFormErrors.end_time = '结束时间必须晚于开始时间';
+      if (!this.tForm.enrollment_deadline) this.tFormErrors.enrollment_deadline = '请选择报名截止时间';
+      else if (this.tForm.start_time && this.tForm.enrollment_deadline > this.tForm.start_time) this.tFormErrors.enrollment_deadline = '报名截止时间必须早于或等于开始时间';
+      const m = parseInt(this.tForm.max_enrollment);
+      if (isNaN(m)||m<1||m>9999) this.tFormErrors.max_enrollment = '最大报名人数须在1~9999之间';
+      return Object.keys(this.tFormErrors).length === 0;
+    },
+
+    submitTForm() {
+      if (!this.validateTForm()) return;
+      const fmtTime = t => t.replace('T',' ');
+      if (this.tFormMode === 'add') {
+        this.trainings.push({ training_id: Date.now(), ...this.tForm, start_time: fmtTime(this.tForm.start_time), end_time: fmtTime(this.tForm.end_time), enrollment_deadline: fmtTime(this.tForm.enrollment_deadline), current_enrollment: 0, training_status: '0', publish_status: '0', publish_time: null, create_time: new Date().toLocaleString('zh-CN'), create_by: MOCK_DATA.currentUser.username, hasEnrollments: false });
+        this.showToast('新增成功');
+      } else {
+        const idx = this.trainings.findIndex(t=>t.training_id===this.editingTraining.training_id);
+        if (idx>-1) Object.assign(this.trainings[idx], { ...this.tForm, start_time: fmtTime(this.tForm.start_time), end_time: fmtTime(this.tForm.end_time), enrollment_deadline: fmtTime(this.tForm.enrollment_deadline) });
+        this.showToast('修改成功');
+      }
+      this.tFormModal = false;
+    },
+
+    showConfirm(title, msg, action) { this.confirmTitle=title; this.confirmMsg=msg; this.confirmAction=action; this.confirmModal=true; },
+    doConfirm() { if(this.confirmAction) this.confirmAction(); this.confirmModal=false; },
+
+    changePubStatus(item, status) {
+      const msgs = { '1': '确认发布该活动？发布后在网站端展示。', '2': '确认下架？下架后网站端将不可见。' };
+      this.showConfirm(status==='1'?'发布活动':'下架活动', msgs[status], () => {
+        item.publish_status = status;
+        if (status==='1') item.publish_time = new Date().toLocaleString('zh-CN');
+        this.showToast('操作成功');
+      });
+    },
+
+    deleteTraining(item) {
+      if (item.hasEnrollments) { this.showToast('该活动已有报名记录，不可删除', 'error'); return; }
+      this.showConfirm('删除活动', `确认删除「${item.training_name}」？删除后不可恢复。`, () => {
+        this.trainings = this.trainings.filter(t=>t.training_id!==item.training_id);
+        this.showToast('删除成功');
+      });
+    },
+
+    // 报名审批
+    enrollments: JSON.parse(JSON.stringify(MOCK_DATA.enrollments)),
+    selectedTrainingId: '',
+    enrollFilter: '',
+    selectedEnrollments: [],
+    auditModal: false, auditType: 'approve', auditBatch: false, auditTargets: [], auditRemark: '',
+
+    get currentTrainingEnrollments() {
+      if (!this.selectedTrainingId) return [];
+      return this.enrollments.filter(e => {
+        if (e.training_id != this.selectedTrainingId) return false;
+        if (this.enrollFilter !== '' && e.approval_status !== this.enrollFilter) return false;
+        return true;
+      });
+    },
+
+    get currentTrainingName() {
+      const t = this.trainings.find(t=>t.training_id==this.selectedTrainingId);
+      return t ? t.training_name : '请先选择活动';
+    },
+
+    get pendingEnrollments() {
+      return this.currentTrainingEnrollments.filter(e=>e.approval_status==='0');
+    },
+
+    openAudit(type, enrollment=null, batch=false) {
+      this.auditType = type;
+      this.auditBatch = batch;
+      this.auditRemark = '';
+      this.auditTargets = batch ? this.pendingEnrollments : [enrollment];
+      this.auditModal = true;
+    },
+
+    submitAudit() {
+      const status = this.auditType==='approve' ? '1' : '2';
+      this.auditTargets.forEach(target => {
+        const e = this.enrollments.find(e=>e.enrollment_id===target.enrollment_id);
+        if (e) {
+          e.approval_status = status;
+          e.approval_remark = this.auditRemark;
+          e.approval_by = MOCK_DATA.currentUser.username;
+          e.approval_time = new Date().toLocaleString('zh-CN');
+        }
+      });
+      this.auditModal = false;
+      this.showToast(this.auditType==='approve' ? '已通过审批' : '已拒绝');
+    },
+
+    exportEnrollments() {
+      this.showToast('导出报名名单（模拟）：已生成Excel文件');
+    },
+
+    toast: { show: false, msg: '', type: 'success' },
+    showToast(msg, type='success') { this.toast={show:true,msg,type}; setTimeout(()=>this.toast.show=false, 2500); },
+  };
+}
+</script>
+
+<div class="flex h-screen overflow-hidden">
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="sidebar-brand-icon">
+          <i class="fas fa-calendar-check text-white" style="font-size:15px"></i>
+        </div>
+        <div>
+          <div style="font-size:13.5px;font-weight:700;color:#fff;line-height:1.2">知识讲堂</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px">培训活动管理</div>
+        </div>
+      </div>
+    </div>
+    <nav style="flex:1;padding:12px 0;overflow-y:auto">
+      <div class="sidebar-group-label">活动管理</div>
+      <div class="sidebar-item" :class="activeMenu==='training' ? 'active' : ''" @click="activeMenu='training'">
+        <i class="fas fa-chalkboard-teacher si-icon"></i> 培训活动
+      </div>
+      <div class="sidebar-item" :class="activeMenu==='enrollment' ? 'active' : ''" @click="activeMenu='enrollment'">
+        <i class="fas fa-clipboard-list si-icon"></i> 报名审批
+      </div>
+      <div class="sidebar-group-label" style="margin-top:16px">系统</div>
+      <div class="sidebar-item" @click="window.open('../../index-生猪知识讲堂.html','_blank')" style="cursor:pointer">
+        <i class="fas fa-th-large si-icon"></i> 返回导航
+      </div>
+    </nav>
+    <div class="sidebar-user">
+      <div class="flex items-center gap-2">
+        <div class="sidebar-user-avatar">
+          <i class="fas fa-user" style="font-size:11px"></i>
+        </div>
+        <div>
+          <div style="font-size:12.5px;font-weight:600;color:#fff" x-text="MOCK_DATA.currentUser.nick_name"></div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.5)" x-text="MOCK_DATA.currentUser.roleName"></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 主内容 -->
+  <main class="flex-1 overflow-auto" style="background:#f0f4f8">
+
+    <!-- SECTION START: 培训活动管理 -->
+    <div id="feature-training" x-show="activeMenu==='training'" class="p-6">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-xl font-bold text-gray-800">培训活动管理</h1>
+          <p class="text-sm text-gray-500 mt-0.5">发布和管理培训活动，活动状态根据时间自动流转</p>
+        </div>
+        <button class="btn-primary" @click="openTForm('add')">
+          <i class="fas fa-plus"></i> 新增活动
+        </button>
+      </div>
+
+      <div class="filter-bar">
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex items-center gap-2">
+            <label class="text-sm text-gray-500 whitespace-nowrap">培训类型</label>
+            <select class="form-select w-32" x-model="tFilter.training_type">
+              <option value="">全部</option>
+              <option value="1">专题培训</option>
+              <option value="2">技术指导</option>
+              <option value="3">政策宣讲</option>
+              <option value="4">经验交流</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="text-sm text-gray-500 whitespace-nowrap">活动状态</label>
+            <select class="form-select w-28" x-model="tFilter.training_status">
+              <option value="">全部</option>
+              <option value="0">报名中</option>
+              <option value="1">进行中</option>
+              <option value="2">已结束</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="text-sm text-gray-500 whitespace-nowrap">发布状态</label>
+            <select class="form-select w-28" x-model="tFilter.publish_status">
+              <option value="">全部</option>
+              <option value="0">草稿</option>
+              <option value="1">已发布</option>
+              <option value="2">已下架</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="text" class="form-input w-48" x-model="tFilter.keyword" placeholder="请输入活动名称">
+          </div>
+          <button class="btn-primary" @click="tPage=1"><i class="fas fa-search"></i> 查询</button>
+          <button class="btn-secondary" @click="tFilter={training_type:'',training_status:'',publish_status:'',keyword:''}; tPage=1">重置</button>
+        </div>
+      </div>
+
+      <div class="content-card">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="table-th">活动名称</th>
+              <th class="table-th">类型</th>
+              <th class="table-th">方式</th>
+              <th class="table-th">讲师</th>
+              <th class="table-th">地点</th>
+              <th class="table-th">开始时间</th>
+              <th class="table-th">报名情况</th>
+              <th class="table-th">活动状态</th>
+              <th class="table-th">发布状态</th>
+              <th class="table-th">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="item in pagedTrainings" :key="item.training_id">
+              <tr>
+                <td class="table-td">
+                  <div class="font-medium text-gray-800 max-w-xs" x-text="item.training_name"></div>
+                </td>
+                <td class="table-td"><span class="badge-blue text-xs" x-text="TYPE_MAP[item.training_type]"></span></td>
+                <td class="table-td"><span class="badge-purple text-xs" x-text="MODE_MAP[item.training_mode]"></span></td>
+                <td class="table-td text-gray-600" x-text="item.speaker"></td>
+                <td class="table-td text-xs text-gray-500 max-w-xs truncate" x-text="item.location"></td>
+                <td class="table-td text-xs text-gray-500" x-text="item.start_time.substring(0,10)"></td>
+                <td class="table-td">
+                  <div class="text-sm font-medium" x-text="item.current_enrollment + '/' + item.max_enrollment"></div>
+                  <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1 max-w-16">
+                    <div class="bg-green-500 h-1.5 rounded-full" :style="'width:'+Math.min(100, item.current_enrollment/item.max_enrollment*100)+'%'"></div>
+                  </div>
+                </td>
+                <td class="table-td"><span :class="tStatusClass(item.training_status)" x-text="TSTATUS_MAP[item.training_status]"></span></td>
+                <td class="table-td"><span :class="pStatusClass(item.publish_status)" x-text="PSTATUS_MAP[item.publish_status]"></span></td>
+                <td class="table-td">
+                  <div class="flex flex-wrap gap-1">
+                    <button class="act-btn act-edit" @click="openTForm('edit',item)">编辑</button>
+                    <button class="act-btn act-start" x-show="item.publish_status!=='1'" @click="changePubStatus(item,'1')">发布</button>
+                    <button class="act-btn act-stop" x-show="item.publish_status==='1'" @click="changePubStatus(item,'2')">下架</button>
+                    <button class="act-btn act-review" @click="selectedTrainingId=item.training_id; activeMenu='enrollment'">报名</button>
+                    <button class="act-btn act-delete" x-show="item.publish_status!=='1'" @click="deleteTraining(item)">删除</button>
+                  </div>
+                </td>
+              </tr>
+            </template>
+            <tr x-show="pagedTrainings.length===0">
+              <td colspan="10" class="table-td text-center text-gray-400 py-12">暂无数据</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+          <div class="text-sm text-gray-500">共 <span class="font-medium" x-text="filteredTrainings.length"></span> 条</div>
+          <div class="flex items-center gap-2">
+            <button class="page-btn" :disabled="tPage===1" @click="tPage--">上一页</button>
+            <span class="text-sm text-gray-600"><span x-text="tPage"></span> / <span x-text="tTotalPages"></span></span>
+            <button class="page-btn" :disabled="tPage>=tTotalPages" @click="tPage++">下一页</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- SECTION END: 培训活动管理 -->
+
+    <!-- SECTION START: 培训报名审批 -->
+    <div id="feature-enrollment" x-show="activeMenu==='enrollment'" class="p-6">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-xl font-bold text-gray-800">培训报名审批</h1>
+          <p class="text-sm text-gray-500 mt-0.5">审批培训活动报名申请，可批量审批并导出报名名单</p>
+        </div>
+        <button class="btn-primary" @click="exportEnrollments()" :disabled="!selectedTrainingId">
+          <i class="fas fa-file-excel"></i> 导出报名名单
+        </button>
+      </div>
+
+      <div class="filter-bar">
+        <div class="flex flex-wrap items-center gap-4">
+          <div class="flex items-center gap-2 flex-1">
+            <label class="text-sm text-gray-500 whitespace-nowrap font-medium">选择活动 <span class="text-red-500">*</span></label>
+            <select class="form-select" x-model="selectedTrainingId">
+              <option value="">请选择培训活动</option>
+              <template x-for="t in trainings" :key="t.training_id">
+                <option :value="t.training_id" x-text="t.training_name"></option>
+              </template>
+            </select>
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="text-sm text-gray-500">审批状态</label>
+            <div class="flex gap-2">
+              <button class="btn-sm px-3 py-1.5" :class="enrollFilter===''?'bg-green-600 text-white':'bg-gray-100 text-gray-600 hover:bg-gray-200'" @click="enrollFilter=''">全部</button>
+              <button class="btn-sm px-3 py-1.5" :class="enrollFilter==='0'?'bg-amber-500 text-white':'bg-gray-100 text-gray-600 hover:bg-gray-200'" @click="enrollFilter='0'">待审批</button>
+              <button class="btn-sm px-3 py-1.5" :class="enrollFilter==='1'?'bg-green-600 text-white':'bg-gray-100 text-gray-600 hover:bg-gray-200'" @click="enrollFilter='1'">已通过</button>
+              <button class="btn-sm px-3 py-1.5" :class="enrollFilter==='2'?'bg-red-500 text-white':'bg-gray-100 text-gray-600 hover:bg-gray-200'" @click="enrollFilter='2'">已拒绝</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 批量操作 -->
+      <div class="flex items-center gap-3 mb-4" x-show="selectedTrainingId">
+        <div class="text-sm text-gray-600">当前活动：<strong x-text="currentTrainingName"></strong></div>
+        <div class="ml-auto flex gap-2" x-show="pendingEnrollments.length > 0">
+          <button class="btn-sm bg-green-100 text-green-700 hover:bg-green-200 px-3 py-1.5" @click="openAudit('approve', null, true)">
+            <i class="fas fa-check mr-1"></i> 批量通过 (<span x-text="pendingEnrollments.length"></span>条待审批)
+          </button>
+          <button class="btn-sm bg-red-100 text-red-700 hover:bg-red-200 px-3 py-1.5" @click="openAudit('reject', null, true)">
+            <i class="fas fa-times mr-1"></i> 批量拒绝
+          </button>
+        </div>
+      </div>
+
+      <div class="content-card" x-show="selectedTrainingId">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="table-th">报名人</th>
+              <th class="table-th">联系电话</th>
+              <th class="table-th">所属单位</th>
+              <th class="table-th">报名备注</th>
+              <th class="table-th">审批状态</th>
+              <th class="table-th">审批意见</th>
+              <th class="table-th">报名时间</th>
+              <th class="table-th">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="e in currentTrainingEnrollments" :key="e.enrollment_id">
+              <tr>
+                <td class="table-td font-medium" x-text="e.enrollee_name"></td>
+                <td class="table-td text-gray-600" x-text="e.enrollee_phone"></td>
+                <td class="table-td text-gray-500 text-xs" x-text="e.enrollee_org||'-'"></td>
+                <td class="table-td text-gray-500 text-xs max-w-xs truncate" x-text="e.enrollee_remark||'-'"></td>
+                <td class="table-td"><span :class="aStatusClass(e.approval_status)" x-text="ASTATUS_MAP[e.approval_status]"></span></td>
+                <td class="table-td text-xs text-gray-400" x-text="e.approval_remark||'-'"></td>
+                <td class="table-td text-xs text-gray-400" x-text="e.create_time.substring(0,10)"></td>
+                <td class="table-td">
+                  <div class="flex gap-1" x-show="e.approval_status==='0'">
+                    <button class="act-btn act-start" @click="openAudit('approve', e, false)">通过</button>
+                    <button class="act-btn act-delete" @click="openAudit('reject', e, false)">拒绝</button>
+                  </div>
+                  <span class="text-xs text-gray-400" x-show="e.approval_status!=='0'">已处理</span>
+                </td>
+              </tr>
+            </template>
+            <tr x-show="currentTrainingEnrollments.length===0">
+              <td colspan="8" class="table-td text-center text-gray-400 py-12">
+                <span x-show="selectedTrainingId">该活动暂无报名记录</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm p-12 text-center" x-show="!selectedTrainingId">
+        <i class="fas fa-clipboard-list text-gray-200 text-5xl mb-4"></i>
+        <p class="text-gray-400">请先选择培训活动</p>
+      </div>
+    </div>
+    <!-- SECTION END: 培训报名审批 -->
+
+  </main>
+</div>
+
+<!-- 培训活动新增/编辑弹窗 -->
+<div class="modal-overlay" x-show="tFormModal" @click.self="tFormModal=false">
+  <div class="modal-box-xl">
+    <div class="flex items-center justify-between p-5 border-b sticky top-0 bg-white z-10">
+      <h3 class="font-semibold text-gray-800" x-text="tFormMode==='add'?'新增培训活动':'编辑培训活动'"></h3>
+      <button @click="tFormModal=false" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="p-5">
+      <div class="grid grid-cols-2 gap-4">
+        <div class="col-span-2">
+          <label class="form-label">活动名称 <span class="text-red-500">*</span></label>
+          <input type="text" class="form-input" :class="tFormErrors.training_name?'border-red-400':''" x-model="tForm.training_name" placeholder="请输入活动名称" maxlength="200">
+          <p class="form-error" x-show="tFormErrors.training_name" x-text="tFormErrors.training_name"></p>
+        </div>
+        <div>
+          <label class="form-label">培训类型 <span class="text-red-500">*</span></label>
+          <select class="form-select" :class="tFormErrors.training_type?'border-red-400':''" x-model="tForm.training_type">
+            <option value="">请选择培训类型</option>
+            <option value="1">专题培训</option>
+            <option value="2">技术指导</option>
+            <option value="3">政策宣讲</option>
+            <option value="4">经验交流</option>
+          </select>
+          <p class="form-error" x-show="tFormErrors.training_type" x-text="tFormErrors.training_type"></p>
+        </div>
+        <div>
+          <label class="form-label">培训方式 <span class="text-red-500">*</span></label>
+          <select class="form-select" :class="tFormErrors.training_mode?'border-red-400':''" x-model="tForm.training_mode">
+            <option value="">请选择培训方式</option>
+            <option value="1">线下培训</option>
+            <option value="2">线上培训</option>
+            <option value="3">线上线下结合</option>
+          </select>
+          <p class="form-error" x-show="tFormErrors.training_mode" x-text="tFormErrors.training_mode"></p>
+        </div>
+        <div>
+          <label class="form-label">讲师/主讲人 <span class="text-red-500">*</span></label>
+          <input type="text" class="form-input" :class="tFormErrors.speaker?'border-red-400':''" x-model="tForm.speaker" placeholder="请输入讲师名称" maxlength="100">
+          <p class="form-error" x-show="tFormErrors.speaker" x-text="tFormErrors.speaker"></p>
+        </div>
+        <div>
+          <label class="form-label">培训地点 <span class="text-red-500">*</span></label>
+          <input type="text" class="form-input" :class="tFormErrors.location?'border-red-400':''" x-model="tForm.location" placeholder="线上培训填写在线平台名称" maxlength="200">
+          <p class="form-error" x-show="tFormErrors.location" x-text="tFormErrors.location"></p>
+        </div>
+        <div>
+          <label class="form-label">开始时间 <span class="text-red-500">*</span></label>
+          <input type="datetime-local" class="form-input" :class="tFormErrors.start_time?'border-red-400':''" x-model="tForm.start_time">
+          <p class="form-error" x-show="tFormErrors.start_time" x-text="tFormErrors.start_time"></p>
+        </div>
+        <div>
+          <label class="form-label">结束时间 <span class="text-red-500">*</span></label>
+          <input type="datetime-local" class="form-input" :class="tFormErrors.end_time?'border-red-400':''" x-model="tForm.end_time">
+          <p class="form-error" x-show="tFormErrors.end_time" x-text="tFormErrors.end_time"></p>
+        </div>
+        <div>
+          <label class="form-label">报名截止时间 <span class="text-red-500">*</span></label>
+          <input type="datetime-local" class="form-input" :class="tFormErrors.enrollment_deadline?'border-red-400':''" x-model="tForm.enrollment_deadline">
+          <p class="form-error" x-show="tFormErrors.enrollment_deadline" x-text="tFormErrors.enrollment_deadline"></p>
+          <p class="text-xs text-gray-400 mt-1">必须早于或等于开始时间</p>
+        </div>
+        <div>
+          <label class="form-label">最大报名人数 <span class="text-red-500">*</span></label>
+          <input type="number" class="form-input" :class="tFormErrors.max_enrollment?'border-red-400':''" x-model="tForm.max_enrollment" min="1" max="9999" placeholder="最大报名人数">
+          <p class="form-error" x-show="tFormErrors.max_enrollment" x-text="tFormErrors.max_enrollment"></p>
+        </div>
+        <div class="col-span-2">
+          <label class="form-label">讲师简介</label>
+          <textarea class="form-input" x-model="tForm.speaker_intro" rows="2" placeholder="讲师简介（选填）" maxlength="500"></textarea>
+        </div>
+        <div class="col-span-2">
+          <label class="form-label">活动简介 <span class="text-red-500">*</span></label>
+          <textarea class="form-input" :class="tFormErrors.training_intro?'border-red-400':''" x-model="tForm.training_intro" rows="4" placeholder="请输入活动简介（富文本）"></textarea>
+          <p class="form-error" x-show="tFormErrors.training_intro" x-text="tFormErrors.training_intro"></p>
+        </div>
+      </div>
+    </div>
+    <div class="flex justify-end gap-3 px-5 py-4 border-t bg-gray-50 rounded-b-xl sticky bottom-0">
+      <button class="btn-secondary" @click="tFormModal=false">取消</button>
+      <button class="btn-primary" @click="submitTForm">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 审批弹窗 -->
+<div class="modal-overlay" x-show="auditModal" @click.self="auditModal=false">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
+    <h3 class="font-semibold text-gray-800 mb-4">
+      <span x-show="!auditBatch">审批 - </span>
+      <span x-show="auditBatch">批量</span>
+      <span x-text="auditType==='approve'?'通过':'拒绝'" :class="auditType==='approve'?'text-green-600':'text-red-600'"></span>
+      <span x-show="auditBatch">（<span x-text="auditTargets.length"></span>条记录）</span>
+    </h3>
+    <template x-if="!auditBatch && auditTargets.length > 0">
+      <div class="bg-gray-50 rounded-lg p-3 mb-4 text-sm">
+        <div class="text-gray-700">报名人：<strong x-text="auditTargets[0].enrollee_name"></strong></div>
+        <div class="text-gray-500 text-xs mt-1" x-text="auditTargets[0].enrollee_org||''"></div>
+      </div>
+    </template>
+    <div class="mb-4">
+      <label class="form-label">审批意见（选填）</label>
+      <textarea class="form-input" x-model="auditRemark" rows="3" placeholder="请输入审批意见（选填）" maxlength="200"></textarea>
+      <p class="text-xs text-gray-400 mt-1">拒绝时建议填写拒绝原因</p>
+    </div>
+    <div class="flex justify-end gap-3">
+      <button class="btn-secondary" @click="auditModal=false">取消</button>
+      <button class="btn-primary" :class="auditType==='approve'?'':'bg-red-500 hover:bg-red-600'" @click="submitAudit">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- 二次确认弹窗 -->
+<div class="modal-overlay" x-show="confirmModal" @click.self="confirmModal=false">
+  <div style="background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.15);width:100%;max-width:400px;padding:28px;animation:modal-in 0.2s ease">
+    <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:20px">
+      <div style="width:44px;height:44px;background:#fef3c7;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <i class="fas fa-exclamation-triangle" style="color:#d97706;font-size:18px"></i>
+      </div>
+      <div>
+        <h3 style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:6px" x-text="confirmTitle"></h3>
+        <p style="font-size:13.5px;color:#64748b;line-height:1.5" x-text="confirmMsg"></p>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px">
+      <button class="btn-secondary" @click="confirmModal=false">取消</button>
+      <button class="btn-primary" @click="doConfirm">
+        <i class="fas fa-check" style="font-size:11px"></i> 确认操作
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast 提示 -->
+<div style="position:fixed;bottom:24px;right:24px;z-index:100;transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1)"
+  :style="toast.show ? 'opacity:1;transform:translateY(0)' : 'opacity:0;transform:translateY(16px);pointer-events:none'">
+  <div style="display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.12);font-size:13.5px;font-weight:600;color:#fff;min-width:200px"
+    :style="toast.type==='error' ? 'background:linear-gradient(135deg,#ef4444,#dc2626)' : 'background:linear-gradient(135deg,#16a34a,#15803d)'">
+    <div style="width:28px;height:28px;background:rgba(255,255,255,0.2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <i :class="toast.type==='error' ? 'fas fa-times' : 'fas fa-check'" style="font-size:12px"></i>
+    </div>
+    <span x-text="toast.msg"></span>
+  </div>
+</div>
+
+</body>
+</html>

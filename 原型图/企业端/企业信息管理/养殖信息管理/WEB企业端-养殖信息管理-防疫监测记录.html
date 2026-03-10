@@ -1,0 +1,1050 @@
+<!--
+  功能名称：防疫监测记录填报
+  对应PRD：doc_prd/WEB/企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-防疫监测记录.prd.md
+  所属端口：WEB企业端
+  所属模块：养殖信息管理
+  制作日期：2026-03-09
+  最后更新：2026-03-09
+  角色说明：企业管理员(ent_admin)、企业填报员(ent_reporter)、乡镇畜牧兽医站(town_vet_station)、
+            乡镇政府业务人员(town_gov_staff)、县级管理员(county_admin)、县级业务人员(county_staff)
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>防疫监测记录 - 2024年蓬溪县生猪数字化管理平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    /* SHARED STYLES */
+    [x-cloak] { display: none !important; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; font-size: 14px; color: #262626; background: #f0f2f5; }
+    .sidebar { width: 240px; min-width: 240px; }
+    .main-content { flex: 1; min-width: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    .content-area { flex: 1; overflow-y: auto; padding: 16px; }
+    .table-wrapper { overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { padding: 10px 12px; text-align: left; white-space: nowrap; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+    thead th { background: #fafafa; font-weight: 600; color: #595959; }
+    tbody tr:hover { background: #fafafa; }
+    tbody tr:nth-child(even) { background: #fafafa; }
+    tbody tr:nth-child(even):hover { background: #f0f0f0; }
+    .op-col { position: sticky; right: 0; background: white; }
+    thead .op-col { background: #fafafa; }
+    tbody tr:nth-child(even) .op-col { background: #fafafa; }
+    tbody tr:hover .op-col { background: #fafafa; }
+    .status-badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 500; white-space: nowrap; }
+    .status-0 { background: #f5f5f5; color: #999999; }
+    .status-1 { background: #e6f7ff; color: #1890ff; }
+    .status-2 { background: #fff7e6; color: #fa8c16; }
+    .status-3 { background: #f9f0ff; color: #722ed1; }
+    .status-4 { background: #f6ffed; color: #52c41a; }
+    .status-5 { background: #fff1f0; color: #f5222d; }
+    .status-6 { background: #fff1f0; color: #f5222d; }
+    .status-7 { background: #fff1f0; color: #f5222d; }
+    .btn-primary { background: #1677ff; color: white; border: none; padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 4px; }
+    .btn-primary:hover { background: #4096ff; }
+    .btn-default { background: white; color: #262626; border: 1px solid #d9d9d9; padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 4px; }
+    .btn-default:hover { border-color: #1677ff; color: #1677ff; }
+    .btn-danger { background: #ff4d4f; color: white; border: none; padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    .btn-danger:hover { background: #ff7875; }
+    .btn-link { background: none; border: none; color: #1677ff; cursor: pointer; font-size: 12px; padding: 2px 4px; }
+    .btn-link:hover { color: #4096ff; }
+    .btn-link-danger { background: none; border: none; color: #ff4d4f; cursor: pointer; font-size: 12px; padding: 2px 4px; }
+    .form-label { display: block; margin-bottom: 4px; font-size: 13px; color: #595959; }
+    .required { color: #ff4d4f; margin-right: 2px; }
+    .form-input { width: 100%; padding: 6px 10px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 13px; color: #262626; outline: none; box-sizing: border-box; }
+    .form-input:focus { border-color: #1677ff; box-shadow: 0 0 0 2px rgba(22,119,255,0.1); }
+    .form-input.readonly { background: #f5f5f5; color: #999; cursor: not-allowed; }
+    .form-error { color: #ff4d4f; font-size: 12px; margin-top: 2px; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+    .modal-box { background: white; border-radius: 6px; box-shadow: 0 6px 16px rgba(0,0,0,0.15); max-height: 90vh; display: flex; flex-direction: column; }
+    .modal-header { padding: 14px 20px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 15px; }
+    .modal-body { overflow-y: auto; padding: 20px; flex: 1; }
+    .modal-footer { padding: 12px 20px; border-top: 1px solid #f0f0f0; display: flex; gap: 8px; justify-content: flex-end; }
+    .pagination { display: flex; align-items: center; gap: 4px; }
+    .page-btn { min-width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #d9d9d9; border-radius: 4px; cursor: pointer; font-size: 12px; background: white; }
+    .page-btn:hover { border-color: #1677ff; color: #1677ff; }
+    .page-btn.active { background: #1677ff; color: white; border-color: #1677ff; }
+    .toast { position: fixed; top: 70px; right: 24px; z-index: 9999; padding: 10px 16px; border-radius: 6px; font-size: 13px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .toast-success { background: #f6ffed; border: 1px solid #b7eb8f; color: #52c41a; }
+    .toast-error { background: #fff1f0; border: 1px solid #ffa39e; color: #f5222d; }
+    .reject-row { background: #fff5f5 !important; }
+    .reject-row .op-col { background: #fff5f5 !important; }
+    .step-bar { display: flex; align-items: flex-start; gap: 0; margin: 16px 0; }
+    .step-item { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; }
+    .step-item:not(:last-child)::after { content: ''; position: absolute; top: 14px; left: 50%; width: 100%; height: 2px; background: #e8e8e8; z-index: 0; }
+    .step-item.done::after { background: #1677ff; }
+    .step-circle { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; z-index: 1; position: relative; background: #e8e8e8; color: #8c8c8c; }
+    .step-item.done .step-circle { background: #1677ff; color: white; }
+    .step-item.current .step-circle { background: #1677ff; color: white; border: 3px solid #91caff; }
+    .step-item.failed .step-circle { background: #ff4d4f; color: white; }
+    .step-label { margin-top: 6px; font-size: 11px; color: #8c8c8c; text-align: center; line-height: 1.3; }
+    .step-item.done .step-label { color: #1677ff; }
+    .step-item.failed .step-label { color: #ff4d4f; }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; }
+    .detail-item { display: flex; gap: 8px; }
+    .detail-label { color: #8c8c8c; white-space: nowrap; min-width: 110px; text-align: right; }
+    .detail-value { color: #262626; flex: 1; word-break: break-all; }
+    .filter-bar { background: white; border-radius: 4px; padding: 14px 16px; margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+    .filter-item { display: flex; flex-direction: column; gap: 4px; }
+    .filter-label { font-size: 12px; color: #8c8c8c; }
+    select.form-input { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%238c8c8c'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; padding-right: 28px; }
+    .nav-item { padding: 10px 16px; display: flex; align-items: center; gap: 8px; cursor: pointer; color: #595959; border-radius: 4px; transition: all 0.2s; font-size: 13px; }
+    .nav-item:hover { background: #e6f4ff; color: #1677ff; }
+    .nav-item.active { background: #e6f4ff; color: #1677ff; font-weight: 500; }
+    .nav-group-title { padding: 8px 16px 4px; font-size: 11px; color: #8c8c8c; text-transform: uppercase; }
+    .detail-section-title { font-weight: 600; color: #262626; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #f0f0f0; }
+  </style>
+</head>
+<body x-data="app()" x-init="init()">
+
+<!-- Toast -->
+<div x-show="toast.show" x-cloak :class="'toast ' + (toast.type === 'success' ? 'toast-success' : 'toast-error')" x-transition>
+  <i :class="toast.type === 'success' ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
+  <span x-text="toast.msg"></span>
+</div>
+
+<!-- 顶部导航栏 -->
+<header class="fixed top-0 left-0 right-0 h-14 bg-blue-700 flex items-center justify-between px-4 z-50" style="background:#1677ff;">
+  <div class="flex items-center gap-3">
+    <i class="fas fa-piggy-bank text-white text-lg"></i>
+    <span class="text-white font-semibold text-base">2024年蓬溪县生猪数字化管理平台</span>
+    <span class="text-blue-200 text-sm">· 企业端</span>
+  </div>
+  <div class="flex items-center gap-4">
+    <!-- 角色切换器 -->
+    <div class="flex items-center gap-2">
+      <span class="text-blue-200 text-xs">切换角色：</span>
+      <select x-model="currentRole" @change="onRoleChange()" class="text-xs border-0 rounded px-2 py-1 bg-blue-600 text-white" style="background:#1565c0;">
+        <template x-for="u in MOCK_DATA.users" :key="u.role">
+          <option :value="u.role" x-text="u.roleName"></option>
+        </template>
+      </select>
+    </div>
+    <div class="flex items-center gap-2 text-white">
+      <i class="fas fa-user-circle"></i>
+      <span class="text-sm" x-text="currentUser.name"></span>
+      <span class="text-xs text-blue-200" x-text="'(' + currentUser.roleName + ')'"></span>
+    </div>
+    <button class="text-blue-200 hover:text-white text-xs flex items-center gap-1">
+      <i class="fas fa-sign-out-alt"></i> 退出
+    </button>
+  </div>
+</header>
+
+<!-- 主体布局 -->
+<div class="flex" style="margin-top:56px; height:calc(100vh - 56px);">
+
+  <!-- 侧边栏 -->
+  <aside class="sidebar bg-white border-r border-gray-200 flex flex-col overflow-y-auto">
+    <div class="p-3">
+      <div class="nav-group-title">企业信息管理</div>
+      <div class="nav-item" @click="navigateTo('enterprise-info')">
+        <i class="fas fa-building w-4"></i>
+        <span>企业基本信息</span>
+      </div>
+      <div class="nav-item" @click="navigateTo('real-monitor')">
+        <i class="fas fa-desktop w-4"></i>
+        <span>实时监测</span>
+      </div>
+      <div class="nav-group-title mt-2">养殖信息管理</div>
+      <div class="nav-item" @click="navigateTo('breed-info')">
+        <i class="fas fa-database w-4"></i>
+        <span>养殖信息</span>
+      </div>
+      <div class="nav-item active">
+        <i class="fas fa-shield-virus w-4"></i>
+        <span>防疫监测记录</span>
+      </div>
+      <div class="nav-item" @click="navigateTo('disinfect')">
+        <i class="fas fa-spray-can w-4"></i>
+        <span>消毒记录</span>
+      </div>
+      <div class="nav-item" @click="navigateTo('dead-animal')">
+        <i class="fas fa-skull w-4"></i>
+        <span>病死畜禽无害化处理</span>
+      </div>
+      <div class="nav-item" @click="navigateTo('medicine')">
+        <i class="fas fa-pills w-4"></i>
+        <span>兽药使用记录</span>
+      </div>
+      <div class="nav-item" @click="navigateTo('vaccine')">
+        <i class="fas fa-syringe w-4"></i>
+        <span>免疫记录</span>
+      </div>
+      <div class="nav-group-title mt-2">项目信息管理</div>
+      <div class="nav-item">
+        <i class="fas fa-file-alt w-4"></i>
+        <span>项目申报</span>
+      </div>
+      <div class="nav-group-title mt-2">政策资讯</div>
+      <div class="nav-item">
+        <i class="fas fa-newspaper w-4"></i>
+        <span>政策资讯查看</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 主内容区 -->
+  <main class="main-content">
+    <div class="content-area">
+
+      <!-- 面包屑 -->
+      <div class="flex items-center gap-2 text-xs text-gray-500 mb-3">
+        <span>企业信息管理</span>
+        <i class="fas fa-chevron-right text-gray-300"></i>
+        <span>养殖信息管理</span>
+        <i class="fas fa-chevron-right text-gray-300"></i>
+        <span class="text-gray-700">防疫监测记录</span>
+      </div>
+
+      <!-- SECTION START: 页面标题栏 -->
+      <section id="feature-header" class="flex items-center justify-between mb-3">
+        <h1 class="text-base font-semibold text-gray-800">防疫监测记录</h1>
+        <div class="flex gap-2">
+          <button x-show="canAdd()" @click="openAdd()" class="btn-primary">
+            <i class="fas fa-plus"></i> 新增记录
+          </button>
+          <button class="btn-default" @click="showToast('success', '导出成功，请查收文件')">
+            <i class="fas fa-download"></i> 导出
+          </button>
+        </div>
+      </section>
+      <!-- SECTION END: 页面标题栏 -->
+
+      <!-- SECTION START: 筛选区 -->
+      <section id="feature-filter">
+        <div class="filter-bar">
+          <template x-if="!isEntRole()">
+            <div class="filter-item">
+              <span class="filter-label">企业名称</span>
+              <input type="text" x-model="filter.entName" placeholder="请输入企业名称" class="form-input" style="width:160px;">
+            </div>
+          </template>
+          <template x-if="!isEntRole()">
+            <div class="filter-item">
+              <span class="filter-label">行政区划</span>
+              <select x-model="filter.district" class="form-input" style="width:130px;">
+                <option value="">全部</option>
+                <option>蓬南镇</option>
+                <option>新会镇</option>
+                <option>明月镇</option>
+                <option>常乐镇</option>
+              </select>
+            </div>
+          </template>
+          <div class="filter-item">
+            <span class="filter-label">圈舍名称</span>
+            <input type="text" x-model="filter.houseName" placeholder="请输入圈舍名称" class="form-input" style="width:140px;">
+          </div>
+          <div class="filter-item">
+            <span class="filter-label">监测项目</span>
+            <input type="text" x-model="filter.monitorItem" placeholder="请输入监测项目" class="form-input" style="width:140px;">
+          </div>
+          <div class="filter-item">
+            <span class="filter-label">检测结论</span>
+            <select x-model="filter.conclusion" class="form-input" style="width:110px;">
+              <option value="">全部</option>
+              <option>合格</option>
+              <option>不合格</option>
+              <option>待复检</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <span class="filter-label">状态</span>
+            <select x-model="filter.status" class="form-input" style="width:110px;">
+              <option value="">全部</option>
+              <template x-for="s in MOCK_DATA.dict.statusList" :key="s.value">
+                <option :value="s.value" x-text="s.label"></option>
+              </template>
+            </select>
+          </div>
+          <div class="filter-item">
+            <span class="filter-label">监测日期</span>
+            <div class="flex gap-1 items-center">
+              <input type="date" x-model="filter.dateFrom" class="form-input" style="width:130px;">
+              <span class="text-gray-400 text-xs">至</span>
+              <input type="date" x-model="filter.dateTo" class="form-input" style="width:130px;">
+            </div>
+          </div>
+          <div class="filter-item justify-end">
+            <div class="flex gap-2" style="margin-top:18px;">
+              <button class="btn-primary" @click="doFilter()"><i class="fas fa-search"></i> 查询</button>
+              <button class="btn-default" @click="resetFilter()"><i class="fas fa-redo"></i> 重置</button>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- SECTION END: 筛选区 -->
+
+      <!-- SECTION START: 数据列表 -->
+      <section id="feature-list" class="bg-white rounded" style="display:flex;flex-direction:column;">
+        <div class="table-wrapper" style="flex:1;">
+          <table>
+            <thead>
+              <tr>
+                <th>序号</th>
+                <template x-if="!isEntRole()"><th>企业名称</th></template>
+                <template x-if="!isEntRole()"><th>行政区划</th></template>
+                <th>圈舍名称</th>
+                <th>监测日期</th>
+                <th>监测项目</th>
+                <th>监测方法</th>
+                <th>抽检数量（头）</th>
+                <th>阳性数量（头）</th>
+                <th>阳性率(%)</th>
+                <th>检测结论</th>
+                <th>检测机构</th>
+                <th>状态</th>
+                <th>填报人</th>
+                <th>创建时间</th>
+                <th class="op-col">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="(row, idx) in pagedRecords()" :key="row.id">
+                <tr :class="isRejectStatus(row.status) ? 'reject-row' : ''">
+                  <td x-text="(currentPage-1)*pageSize + idx + 1"></td>
+                  <template x-if="!isEntRole()"><td x-text="row.entName"></td></template>
+                  <template x-if="!isEntRole()"><td x-text="row.district"></td></template>
+                  <td x-text="row.houseName"></td>
+                  <td x-text="row.monitorDate"></td>
+                  <td x-text="row.monitorItem"></td>
+                  <td x-text="row.monitorMethod"></td>
+                  <td x-text="row.sampleCount"></td>
+                  <td x-text="row.positiveCount"></td>
+                  <td x-text="row.positiveRate + '%'"></td>
+                  <td>
+                    <span :class="row.conclusion === '合格' ? 'status-badge status-4' : (row.conclusion === '不合格' ? 'status-badge status-5' : 'status-badge status-2')" x-text="row.conclusion"></span>
+                  </td>
+                  <td x-text="row.testOrg || '——'"></td>
+                  <td>
+                    <span :class="'status-badge status-' + row.status" x-text="getStatusLabel(row.status)"></span>
+                  </td>
+                  <td x-text="row.reporter"></td>
+                  <td x-text="row.createdAt"></td>
+                  <td class="op-col">
+                    <div class="flex gap-1 items-center">
+                      <button class="btn-link" @click="openDetail(row)">查看</button>
+                      <template x-if="canEdit(row)">
+                        <button class="btn-link" @click="openEdit(row)">编辑</button>
+                      </template>
+                      <template x-if="canSubmit(row)">
+                        <button class="btn-link" @click="doSubmit(row)">提交</button>
+                      </template>
+                      <template x-if="canVerify(row)">
+                        <button class="btn-link" @click="openVerify(row)">核实</button>
+                      </template>
+                      <template x-if="canAudit(row)">
+                        <button class="btn-link" @click="openAudit(row)">审核</button>
+                      </template>
+                      <template x-if="canFinalAudit(row)">
+                        <button class="btn-link" @click="openFinalAudit(row)">终审</button>
+                      </template>
+                      <template x-if="canCountyStore(row)">
+                        <button class="btn-link" @click="doCountyStore(row)">直接入库</button>
+                      </template>
+                      <template x-if="canDelete(row)">
+                        <button class="btn-link-danger" @click="confirmDelete(row)">删除</button>
+                      </template>
+                    </div>
+                  </td>
+                </tr>
+              </template>
+              <template x-if="filteredRecords().length === 0">
+                <tr><td :colspan="isEntRole() ? 13 : 15" class="text-center text-gray-400 py-8">暂无数据</td></tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+        <!-- 分页 -->
+        <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+          <span class="text-xs text-gray-500">共 <strong x-text="filteredRecords().length"></strong> 条记录</span>
+          <div class="pagination">
+            <button class="page-btn" @click="prevPage()" :disabled="currentPage===1">&lt;</button>
+            <template x-for="p in totalPages()" :key="p">
+              <button :class="'page-btn' + (p===currentPage?' active':'')" @click="currentPage=p" x-text="p"></button>
+            </template>
+            <button class="page-btn" @click="nextPage()" :disabled="currentPage===totalPages().length">&gt;</button>
+          </div>
+        </div>
+      </section>
+      <!-- SECTION END: 数据列表 -->
+
+    </div>
+  </main>
+</div>
+
+<!-- SECTION START: 新增/编辑弹窗 -->
+<div id="feature-add-modal" class="modal-overlay" x-show="modal.form" x-cloak @click.self="modal.form=false">
+  <div class="modal-box" style="width:680px;">
+    <div class="modal-header">
+      <span x-text="modal.isEdit ? '编辑防疫监测记录' : '新增防疫监测记录'"></span>
+      <button @click="modal.form=false" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="grid grid-cols-2 gap-x-6 gap-y-4">
+        <!-- 圈舍 -->
+        <div>
+          <label class="form-label"><span class="required">*</span>圈舍</label>
+          <select x-model="formData.houseId" class="form-input" :class="formErrors.houseId ? 'border-red-400':''">
+            <option value="">请选择圈舍</option>
+            <template x-for="h in MOCK_DATA.houses" :key="h.id">
+              <option :value="h.id" x-text="h.name"></option>
+            </template>
+          </select>
+          <div class="form-error" x-show="formErrors.houseId" x-text="formErrors.houseId"></div>
+        </div>
+        <!-- 监测日期 -->
+        <div>
+          <label class="form-label"><span class="required">*</span>监测日期</label>
+          <input type="date" x-model="formData.monitorDate" :max="today()" class="form-input" :class="formErrors.monitorDate?'border-red-400':''">
+          <div class="form-error" x-show="formErrors.monitorDate" x-text="formErrors.monitorDate"></div>
+        </div>
+        <!-- 监测项目 -->
+        <div class="col-span-2">
+          <label class="form-label"><span class="required">*</span>监测项目</label>
+          <input type="text" x-model="formData.monitorItem" maxlength="100" placeholder="如：口蹄疫抗体、猪瘟抗体" class="form-input" :class="formErrors.monitorItem?'border-red-400':''">
+          <div class="form-error" x-show="formErrors.monitorItem" x-text="formErrors.monitorItem"></div>
+        </div>
+        <!-- 监测方法 -->
+        <div>
+          <label class="form-label"><span class="required">*</span>监测方法</label>
+          <select x-model="formData.monitorMethod" class="form-input" :class="formErrors.monitorMethod?'border-red-400':''">
+            <option value="">请选择监测方法</option>
+            <option>ELISA</option>
+            <option>PCR</option>
+            <option>血清中和试验</option>
+            <option>其他</option>
+          </select>
+          <div class="form-error" x-show="formErrors.monitorMethod" x-text="formErrors.monitorMethod"></div>
+        </div>
+        <!-- 抽检数量 -->
+        <div>
+          <label class="form-label"><span class="required">*</span>抽检数量（头）</label>
+          <input type="number" x-model.number="formData.sampleCount" min="1" max="9999" @input="calcPositiveRate()" class="form-input" :class="formErrors.sampleCount?'border-red-400':''">
+          <div class="form-error" x-show="formErrors.sampleCount" x-text="formErrors.sampleCount"></div>
+        </div>
+        <!-- 阳性数量 -->
+        <div>
+          <label class="form-label">阳性数量（头）</label>
+          <input type="number" x-model.number="formData.positiveCount" min="0" max="9999" @input="calcPositiveRate()" class="form-input">
+        </div>
+        <!-- 阳性率（只读） -->
+        <div>
+          <label class="form-label">阳性率（%）</label>
+          <input type="text" :value="formData.positiveRate" readonly class="form-input readonly" placeholder="自动计算">
+        </div>
+        <!-- 参考范围 -->
+        <div>
+          <label class="form-label">参考范围</label>
+          <input type="text" x-model="formData.referenceRange" placeholder="如：≥70%为合格" class="form-input">
+        </div>
+        <!-- 检测结论 -->
+        <div>
+          <label class="form-label"><span class="required">*</span>检测结论</label>
+          <select x-model="formData.conclusion" class="form-input" :class="formErrors.conclusion?'border-red-400':''">
+            <option value="">请选择检测结论</option>
+            <option>合格</option>
+            <option>不合格</option>
+            <option>待复检</option>
+          </select>
+          <div class="form-error" x-show="formErrors.conclusion" x-text="formErrors.conclusion"></div>
+        </div>
+        <!-- 检测机构 -->
+        <div>
+          <label class="form-label">检测机构</label>
+          <input type="text" x-model="formData.testOrg" maxlength="100" placeholder="请输入检测机构名称" class="form-input">
+        </div>
+        <!-- 检测报告编号 -->
+        <div>
+          <label class="form-label">检测报告编号</label>
+          <input type="text" x-model="formData.reportNo" placeholder="请输入报告编号" class="form-input">
+        </div>
+        <!-- 备注 -->
+        <div class="col-span-2">
+          <label class="form-label">备注</label>
+          <textarea x-model="formData.remark" rows="3" placeholder="请输入备注信息" class="form-input"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-default" @click="modal.form=false">取消</button>
+      <button class="btn-primary" @click="saveForm()">
+        <i class="fas fa-save"></i> <span x-text="modal.isEdit ? '保存' : '提交保存'"></span>
+      </button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 新增/编辑弹窗 -->
+
+<!-- SECTION START: 详情弹窗 -->
+<div id="feature-detail" class="modal-overlay" x-show="modal.detail" x-cloak @click.self="modal.detail=false">
+  <div class="modal-box" style="width:700px;">
+    <div class="modal-header">
+      <span>防疫监测记录详情</span>
+      <button @click="modal.detail=false" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" x-show="currentRecord">
+      <!-- 审批进度条 -->
+      <div class="mb-4">
+        <div class="detail-section-title">审批进度</div>
+        <div class="step-bar">
+          <div :class="'step-item ' + getStepClass(currentRecord, 0)">
+            <div class="step-circle"><i class="fas fa-edit text-xs"></i></div>
+            <div class="step-label">企业填报</div>
+          </div>
+          <div :class="'step-item ' + getStepClass(currentRecord, 1)">
+            <div class="step-circle"><i class="fas fa-search text-xs"></i></div>
+            <div class="step-label">乡镇核实</div>
+          </div>
+          <div :class="'step-item ' + getStepClass(currentRecord, 2)">
+            <div class="step-circle"><i class="fas fa-check text-xs"></i></div>
+            <div class="step-label">乡镇审核</div>
+          </div>
+          <div :class="'step-item ' + getStepClass(currentRecord, 3)">
+            <div class="step-circle"><i class="fas fa-stamp text-xs"></i></div>
+            <div class="step-label">县级终审</div>
+          </div>
+          <div :class="'step-item ' + getStepClass(currentRecord, 4)">
+            <div class="step-circle"><i class="fas fa-database text-xs"></i></div>
+            <div class="step-label">已入库</div>
+          </div>
+        </div>
+      </div>
+      <!-- 基本信息 -->
+      <div class="mb-4">
+        <div class="detail-section-title">基本信息</div>
+        <div class="detail-grid">
+          <div class="detail-item"><span class="detail-label">企业名称：</span><span class="detail-value" x-text="currentRecord?.entName || '——'"></span></div>
+          <div class="detail-item"><span class="detail-label">行政区划：</span><span class="detail-value" x-text="currentRecord?.district || '——'"></span></div>
+          <div class="detail-item"><span class="detail-label">圈舍名称：</span><span class="detail-value" x-text="currentRecord?.houseName || '——'"></span></div>
+          <div class="detail-item"><span class="detail-label">监测日期：</span><span class="detail-value" x-text="currentRecord?.monitorDate || '——'"></span></div>
+          <div class="detail-item"><span class="detail-label">监测项目：</span><span class="detail-value" x-text="currentRecord?.monitorItem || '——'"></span></div>
+          <div class="detail-item"><span class="detail-label">监测方法：</span><span class="detail-value" x-text="currentRecord?.monitorMethod || '——'"></span></div>
+          <div class="detail-item"><span class="detail-label">抽检数量（头）：</span><span class="detail-value" x-text="currentRecord?.sampleCount || '——'"></span></div>
+          <div class="detail-item"><span class="detail-label">阳性数量（头）：</span><span class="detail-value" x-text="currentRecord?.positiveCount ?? '——'"></span></div>
+          <div class="detail-item"><span class="detail-label">阳性率(%)：</span><span class="detail-value" x-text="currentRecord?.positiveRate !== undefined ? currentRecord.positiveRate + '%' : '——'"></span></div>
+          <div class="detail-item"><span class="detail-label">参考范围：</span><span class="detail-value" x-text="currentRecord?.referenceRange || '——'"></span></div>
+          <div class="detail-item"><span class="detail-label">检测结论：</span><span class="detail-value" x-text="currentRecord?.conclusion || '——'"></span></div>
+          <div class="detail-item"><span class="detail-label">检测机构：</span><span class="detail-value" x-text="currentRecord?.testOrg || '——'"></span></div>
+          <div class="detail-item"><span class="detail-label">检测报告编号：</span><span class="detail-value" x-text="currentRecord?.reportNo || '——'"></span></div>
+          <div class="detail-item"><span class="detail-label">状态：</span><span class="detail-value"><span :class="'status-badge status-' + currentRecord?.status" x-text="getStatusLabel(currentRecord?.status)"></span></span></div>
+          <div class="detail-item"><span class="detail-label">填报人：</span><span class="detail-value" x-text="currentRecord?.reporter || '——'"></span></div>
+          <div class="detail-item"><span class="detail-label">创建时间：</span><span class="detail-value" x-text="currentRecord?.createdAt || '——'"></span></div>
+          <div class="detail-item col-span-2"><span class="detail-label">备注：</span><span class="detail-value" x-text="currentRecord?.remark || '——'"></span></div>
+        </div>
+      </div>
+      <!-- 审批意见 -->
+      <template x-if="currentRecord?.auditLogs && currentRecord.auditLogs.length > 0">
+        <div>
+          <div class="detail-section-title">审批记录</div>
+          <template x-for="log in currentRecord.auditLogs" :key="log.id">
+            <div class="flex gap-3 mb-2 p-3 rounded" style="background:#fafafa;">
+              <i class="fas fa-comment-alt text-blue-400 mt-0.5"></i>
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="font-medium text-sm" x-text="log.operator"></span>
+                  <span class="text-xs text-gray-400" x-text="log.time"></span>
+                  <span :class="log.action==='通过'?'status-badge status-4':'status-badge status-5'" style="font-size:11px;" x-text="log.action"></span>
+                </div>
+                <div class="text-xs text-gray-600" x-text="log.comment || '无意见'"></div>
+              </div>
+            </div>
+          </template>
+        </div>
+      </template>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-default" @click="modal.detail=false">关闭</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 详情弹窗 -->
+
+<!-- SECTION START: 核实弹窗 -->
+<div id="feature-verify-modal" class="modal-overlay" x-show="modal.verify" x-cloak @click.self="modal.verify=false">
+  <div class="modal-box" style="width:480px;">
+    <div class="modal-header">
+      <span>乡镇核实</span>
+      <button @click="modal.verify=false" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="mb-3 p-3 rounded" style="background:#e6f7ff;">
+        <div class="text-xs text-blue-600"><i class="fas fa-info-circle mr-1"></i>正在核实：<span x-text="currentRecord?.monitorItem"></span>（<span x-text="currentRecord?.monitorDate"></span>）</div>
+      </div>
+      <div class="mb-4">
+        <label class="form-label"><span class="required">*</span>核实结果</label>
+        <div class="flex gap-4 mt-1">
+          <label class="flex items-center gap-2 cursor-pointer"><input type="radio" x-model="auditForm.action" value="通过"> <span class="text-sm">核实通过</span></label>
+          <label class="flex items-center gap-2 cursor-pointer"><input type="radio" x-model="auditForm.action" value="退回"> <span class="text-sm">核实退回</span></label>
+        </div>
+      </div>
+      <div>
+        <label class="form-label">核实意见 <span x-show="auditForm.action==='退回'" class="required">*</span></label>
+        <textarea x-model="auditForm.comment" rows="3" placeholder="请填写核实意见" class="form-input"></textarea>
+        <div class="form-error" x-show="auditErrors.comment" x-text="auditErrors.comment"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-default" @click="modal.verify=false">取消</button>
+      <button :class="auditForm.action==='退回'?'btn-danger':'btn-primary'" @click="doVerify()">
+        <span x-text="auditForm.action==='退回'?'退回':'确认通过'"></span>
+      </button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 核实弹窗 -->
+
+<!-- SECTION START: 审核弹窗 -->
+<div id="feature-audit-modal" class="modal-overlay" x-show="modal.audit" x-cloak @click.self="modal.audit=false">
+  <div class="modal-box" style="width:480px;">
+    <div class="modal-header">
+      <span>乡镇审核</span>
+      <button @click="modal.audit=false" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="mb-3 p-3 rounded" style="background:#fff7e6;">
+        <div class="text-xs text-orange-600"><i class="fas fa-info-circle mr-1"></i>正在审核：<span x-text="currentRecord?.monitorItem"></span>（<span x-text="currentRecord?.monitorDate"></span>）</div>
+      </div>
+      <div class="mb-4">
+        <label class="form-label"><span class="required">*</span>审核结果</label>
+        <div class="flex gap-4 mt-1">
+          <label class="flex items-center gap-2 cursor-pointer"><input type="radio" x-model="auditForm.action" value="通过"> <span class="text-sm">审核通过</span></label>
+          <label class="flex items-center gap-2 cursor-pointer"><input type="radio" x-model="auditForm.action" value="退回"> <span class="text-sm">审核退回</span></label>
+        </div>
+      </div>
+      <div>
+        <label class="form-label">审核意见 <span x-show="auditForm.action==='退回'" class="required">*</span></label>
+        <textarea x-model="auditForm.comment" rows="3" placeholder="请填写审核意见" class="form-input"></textarea>
+        <div class="form-error" x-show="auditErrors.comment" x-text="auditErrors.comment"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-default" @click="modal.audit=false">取消</button>
+      <button :class="auditForm.action==='退回'?'btn-danger':'btn-primary'" @click="doAudit()">
+        <span x-text="auditForm.action==='退回'?'退回':'确认通过'"></span>
+      </button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 审核弹窗 -->
+
+<!-- SECTION START: 终审弹窗 -->
+<div id="feature-final-audit-modal" class="modal-overlay" x-show="modal.finalAudit" x-cloak @click.self="modal.finalAudit=false">
+  <div class="modal-box" style="width:480px;">
+    <div class="modal-header">
+      <span>县级终审</span>
+      <button @click="modal.finalAudit=false" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="mb-3 p-3 rounded" style="background:#f9f0ff;">
+        <div class="text-xs" style="color:#722ed1;"><i class="fas fa-info-circle mr-1"></i>正在终审：<span x-text="currentRecord?.monitorItem"></span>（<span x-text="currentRecord?.monitorDate"></span>）</div>
+      </div>
+      <div class="mb-4">
+        <label class="form-label"><span class="required">*</span>终审结果</label>
+        <div class="flex gap-4 mt-1">
+          <label class="flex items-center gap-2 cursor-pointer"><input type="radio" x-model="auditForm.action" value="通过"> <span class="text-sm">终审通过（入库）</span></label>
+          <label class="flex items-center gap-2 cursor-pointer"><input type="radio" x-model="auditForm.action" value="退回"> <span class="text-sm">终审退回</span></label>
+        </div>
+      </div>
+      <div>
+        <label class="form-label">终审意见 <span x-show="auditForm.action==='退回'" class="required">*</span></label>
+        <textarea x-model="auditForm.comment" rows="3" placeholder="请填写终审意见" class="form-input"></textarea>
+        <div class="form-error" x-show="auditErrors.comment" x-text="auditErrors.comment"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-default" @click="modal.finalAudit=false">取消</button>
+      <button :class="auditForm.action==='退回'?'btn-danger':'btn-primary'" @click="doFinalAudit()">
+        <span x-text="auditForm.action==='退回'?'退回':'终审入库'"></span>
+      </button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 终审弹窗 -->
+
+<!-- SECTION START: 删除确认弹窗 -->
+<div id="feature-delete-confirm" class="modal-overlay" x-show="modal.deleteConfirm" x-cloak @click.self="modal.deleteConfirm=false">
+  <div class="modal-box" style="width:400px;">
+    <div class="modal-header">
+      <span>确认删除</span>
+      <button @click="modal.deleteConfirm=false" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="flex items-start gap-3">
+        <i class="fas fa-exclamation-triangle text-red-400 text-xl mt-0.5"></i>
+        <div>
+          <div class="font-medium mb-1">确认删除该记录？</div>
+          <div class="text-sm text-gray-500">监测项目：<span class="text-gray-700" x-text="pendingDelete?.monitorItem"></span></div>
+          <div class="text-sm text-gray-500">监测日期：<span class="text-gray-700" x-text="pendingDelete?.monitorDate"></span></div>
+          <div class="text-xs text-red-500 mt-2">删除后无法恢复，请谨慎操作。</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-default" @click="modal.deleteConfirm=false">取消</button>
+      <button class="btn-danger" @click="doDelete()"><i class="fas fa-trash"></i> 确认删除</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 删除确认弹窗 -->
+
+<script>
+const MOCK_DATA = {
+  users: [
+    { id: 1, name: '李建国', role: 'ent_admin',        roleName: '企业管理员',         entId: 1, entName: '蓬溪县鑫源生猪养殖有限公司', district: '蓬南镇' },
+    { id: 2, name: '王芳',   role: 'ent_reporter',     roleName: '企业填报员',         entId: 1, entName: '蓬溪县鑫源生猪养殖有限公司', district: '蓬南镇' },
+    { id: 3, name: '赵兽医', role: 'town_vet_station', roleName: '乡镇畜牧兽医站',    entId: null, entName: null, district: '蓬南镇' },
+    { id: 4, name: '周建设', role: 'town_gov_staff',   roleName: '乡镇政府业务人员',  entId: null, entName: null, district: '蓬南镇' },
+    { id: 5, name: '陈志远', role: 'county_admin',     roleName: '县级管理员',        entId: null, entName: null, district: null },
+    { id: 6, name: '刘云',   role: 'county_staff',     roleName: '县级业务人员',      entId: null, entName: null, district: null }
+  ],
+  houses: [
+    { id: 1, name: '1号育肥舍' },
+    { id: 2, name: '2号育肥舍' },
+    { id: 3, name: '母猪产房A' },
+    { id: 4, name: '保育舍B区' },
+    { id: 5, name: '隔离观察舍' }
+  ],
+  dict: {
+    statusList: [
+      { value: '0', label: '草稿' },
+      { value: '1', label: '待核实' },
+      { value: '2', label: '待审核' },
+      { value: '3', label: '待终审' },
+      { value: '4', label: '已入库' },
+      { value: '5', label: '核实退回' },
+      { value: '6', label: '审核退回' },
+      { value: '7', label: '终审退回' }
+    ]
+  },
+  records: [
+    {
+      id: 1, entName: '蓬溪县鑫源生猪养殖有限公司', district: '蓬南镇',
+      houseId: 1, houseName: '1号育肥舍',
+      monitorDate: '2026-02-10', monitorItem: '口蹄疫抗体', monitorMethod: 'ELISA',
+      sampleCount: 30, positiveCount: 25, positiveRate: '83.33',
+      referenceRange: '≥70%为合格', conclusion: '合格',
+      testOrg: '蓬溪县动物疫病预防控制中心', reportNo: 'RPT-2026-001',
+      status: 4, reporter: '王芳', createdAt: '2026-02-10 09:15',
+      remark: '抽检样本来自育肥后期猪只',
+      auditLogs: [
+        { id: 1, operator: '赵兽医', time: '2026-02-11 10:00', action: '通过', comment: '现场核查情况属实' },
+        { id: 2, operator: '周建设', time: '2026-02-12 14:30', action: '通过', comment: '资料完整，审核通过' },
+        { id: 3, operator: '刘云',   time: '2026-02-13 09:00', action: '通过', comment: '终审通过，准予入库' }
+      ]
+    },
+    {
+      id: 2, entName: '蓬溪县鑫源生猪养殖有限公司', district: '蓬南镇',
+      houseId: 2, houseName: '2号育肥舍',
+      monitorDate: '2026-02-15', monitorItem: '猪瘟抗体', monitorMethod: 'ELISA',
+      sampleCount: 25, positiveCount: 20, positiveRate: '80.00',
+      referenceRange: '≥70%为合格', conclusion: '合格',
+      testOrg: '蓬溪县动物疫病预防控制中心', reportNo: 'RPT-2026-002',
+      status: 3, reporter: '王芳', createdAt: '2026-02-15 10:30',
+      remark: '',
+      auditLogs: [
+        { id: 1, operator: '赵兽医', time: '2026-02-16 09:00', action: '通过', comment: '情况属实' },
+        { id: 2, operator: '周建设', time: '2026-02-17 11:00', action: '通过', comment: '审核通过' }
+      ]
+    },
+    {
+      id: 3, entName: '蓬溪县鑫源生猪养殖有限公司', district: '蓬南镇',
+      houseId: 3, houseName: '母猪产房A',
+      monitorDate: '2026-02-20', monitorItem: '蓝耳病抗体', monitorMethod: 'ELISA',
+      sampleCount: 20, positiveCount: 8, positiveRate: '40.00',
+      referenceRange: '≥70%为合格', conclusion: '不合格',
+      testOrg: '蓬溪县动物疫病预防控制中心', reportNo: 'RPT-2026-003',
+      status: 6, reporter: '王芳', createdAt: '2026-02-20 14:00',
+      remark: '蓝耳病抗体合格率偏低，需加强免疫',
+      auditLogs: [
+        { id: 1, operator: '赵兽医', time: '2026-02-21 09:00', action: '通过', comment: '现场核查无误' },
+        { id: 2, operator: '周建设', time: '2026-02-22 10:00', action: '退回', comment: '检测结论栏填写不规范，请修改后重新提交' }
+      ]
+    },
+    {
+      id: 4, entName: '蓬溪县鑫源生猪养殖有限公司', district: '蓬南镇',
+      houseId: 4, houseName: '保育舍B区',
+      monitorDate: '2026-02-25', monitorItem: '伪狂犬病gE抗体', monitorMethod: 'ELISA',
+      sampleCount: 15, positiveCount: 2, positiveRate: '13.33',
+      referenceRange: '≤10%为阴性合格', conclusion: '待复检',
+      testOrg: '四川省动物疫病预防控制中心', reportNo: 'RPT-2026-004',
+      status: 2, reporter: '李建国', createdAt: '2026-02-25 09:00',
+      remark: '部分猪只gE抗体阳性，疑似野毒感染，需复检',
+      auditLogs: [
+        { id: 1, operator: '赵兽医', time: '2026-02-26 10:00', action: '通过', comment: '核查情况属实' }
+      ]
+    },
+    {
+      id: 5, entName: '蓬溪县鑫源生猪养殖有限公司', district: '蓬南镇',
+      houseId: 5, houseName: '隔离观察舍',
+      monitorDate: '2026-03-01', monitorItem: '非洲猪瘟病原', monitorMethod: 'PCR',
+      sampleCount: 10, positiveCount: 0, positiveRate: '0.00',
+      referenceRange: '阴性为合格', conclusion: '合格',
+      testOrg: '蓬溪县动物疫病预防控制中心', reportNo: 'RPT-2026-005',
+      status: 1, reporter: '王芳', createdAt: '2026-03-01 11:00',
+      remark: '新引进猪只隔离期PCR检测',
+      auditLogs: []
+    },
+    {
+      id: 6, entName: '蓬溪县鑫源生猪养殖有限公司', district: '蓬南镇',
+      houseId: 1, houseName: '1号育肥舍',
+      monitorDate: '2026-03-03', monitorItem: '猪流行性腹泻抗体', monitorMethod: '血清中和试验',
+      sampleCount: 20, positiveCount: 18, positiveRate: '90.00',
+      referenceRange: '≥70%为合格', conclusion: '合格',
+      testOrg: '蓬溪县动物疫病预防控制中心', reportNo: '',
+      status: 5, reporter: '王芳', createdAt: '2026-03-03 09:30',
+      remark: '',
+      auditLogs: [
+        { id: 1, operator: '赵兽医', time: '2026-03-04 09:00', action: '退回', comment: '缺少检测报告编号，请补充后重新提交' }
+      ]
+    },
+    {
+      id: 7, entName: '蓬溪县鑫源生猪养殖有限公司', district: '蓬南镇',
+      houseId: 2, houseName: '2号育肥舍',
+      monitorDate: '2026-03-05', monitorItem: '口蹄疫O型抗体', monitorMethod: 'ELISA',
+      sampleCount: 30, positiveCount: 0, positiveRate: '0.00',
+      referenceRange: '≥70%为合格', conclusion: '不合格',
+      testOrg: '蓬溪县动物疫病预防控制中心', reportNo: 'RPT-2026-007',
+      status: 7, reporter: '李建国', createdAt: '2026-03-05 15:00',
+      remark: '免疫失败，需重新制定免疫方案',
+      auditLogs: [
+        { id: 1, operator: '赵兽医', time: '2026-03-06 10:00', action: '通过', comment: '' },
+        { id: 2, operator: '周建设', time: '2026-03-07 09:00', action: '通过', comment: '' },
+        { id: 3, operator: '刘云',   time: '2026-03-08 11:00', action: '退回', comment: '检测机构资质证明文件缺失，请补充附件' }
+      ]
+    },
+    {
+      id: 8, entName: '蓬溪县鑫源生猪养殖有限公司', district: '蓬南镇',
+      houseId: 3, houseName: '母猪产房A',
+      monitorDate: '2026-03-07', monitorItem: '猪繁殖与呼吸综合征抗体', monitorMethod: 'ELISA',
+      sampleCount: 12, positiveCount: 0, positiveRate: '0.00',
+      referenceRange: '阴性为合格', conclusion: '合格',
+      testOrg: '', reportNo: '',
+      status: 0, reporter: '王芳', createdAt: '2026-03-07 16:00',
+      remark: '',
+      auditLogs: []
+    }
+  ]
+};
+
+function app() {
+  return {
+    MOCK_DATA,
+    currentRole: 'ent_admin',
+    currentUser: null,
+    records: [],
+    filter: { entName: '', district: '', houseName: '', monitorItem: '', conclusion: '', status: '', dateFrom: '', dateTo: '' },
+    currentPage: 1,
+    pageSize: 10,
+    modal: { form: false, detail: false, verify: false, audit: false, finalAudit: false, deleteConfirm: false },
+    modal_isEdit: false,
+    formData: {},
+    formErrors: {},
+    auditForm: { action: '通过', comment: '' },
+    auditErrors: {},
+    currentRecord: null,
+    pendingDelete: null,
+    toast: { show: false, type: 'success', msg: '' },
+
+    init() {
+      this.currentUser = MOCK_DATA.users.find(u => u.role === this.currentRole);
+      this.records = JSON.parse(JSON.stringify(MOCK_DATA.records));
+    },
+    onRoleChange() {
+      this.currentUser = MOCK_DATA.users.find(u => u.role === this.currentRole);
+      this.currentPage = 1;
+    },
+    isEntRole() { return ['ent_admin','ent_reporter'].includes(this.currentRole); },
+    isRejectStatus(s) { return [5,6,7].includes(Number(s)); },
+    getStatusLabel(s) {
+      const m = {0:'草稿',1:'待核实',2:'待审核',3:'待终审',4:'已入库',5:'核实退回',6:'审核退回',7:'终审退回'};
+      return m[s] || '未知';
+    },
+    today() { return new Date().toISOString().slice(0,10); },
+
+    // 权限方法
+    canAdd() { return ['ent_admin','ent_reporter','county_admin'].includes(this.currentRole); },
+    canEdit(row) {
+      if (this.currentRole === 'county_admin') return true;
+      if (['ent_admin','ent_reporter'].includes(this.currentRole)) return [0,5,6,7].includes(Number(row.status));
+      return false;
+    },
+    canSubmit(row) {
+      return ['ent_admin','ent_reporter'].includes(this.currentRole) && [0,5,6,7].includes(Number(row.status));
+    },
+    canDelete(row) {
+      if (this.currentRole === 'county_admin') return true;
+      return ['ent_admin','ent_reporter'].includes(this.currentRole) && [0,5,6,7].includes(Number(row.status));
+    },
+    canVerify(row) { return this.currentRole === 'town_vet_station' && Number(row.status) === 1; },
+    canAudit(row) { return this.currentRole === 'town_gov_staff' && Number(row.status) === 2; },
+    canFinalAudit(row) { return this.currentRole === 'county_staff' && Number(row.status) === 3; },
+    canCountyStore(row) { return this.currentRole === 'county_admin' && Number(row.status) !== 4; },
+
+    filteredRecords() {
+      return this.records.filter(r => {
+        if (this.isEntRole() && this.currentUser.entId) {
+          if (r.entName !== this.currentUser.entName) return false;
+        }
+        if (this.filter.entName && !r.entName.includes(this.filter.entName)) return false;
+        if (this.filter.district && r.district !== this.filter.district) return false;
+        if (this.filter.houseName && !r.houseName.includes(this.filter.houseName)) return false;
+        if (this.filter.monitorItem && !r.monitorItem.includes(this.filter.monitorItem)) return false;
+        if (this.filter.conclusion && r.conclusion !== this.filter.conclusion) return false;
+        if (this.filter.status !== '' && String(r.status) !== this.filter.status) return false;
+        if (this.filter.dateFrom && r.monitorDate < this.filter.dateFrom) return false;
+        if (this.filter.dateTo && r.monitorDate > this.filter.dateTo) return false;
+        return true;
+      });
+    },
+    pagedRecords() {
+      const list = this.filteredRecords();
+      return list.slice((this.currentPage-1)*this.pageSize, this.currentPage*this.pageSize);
+    },
+    totalPages() {
+      const t = Math.ceil(this.filteredRecords().length / this.pageSize) || 1;
+      return Array.from({length: t}, (_, i) => i+1);
+    },
+    prevPage() { if (this.currentPage > 1) this.currentPage--; },
+    nextPage() { if (this.currentPage < this.totalPages().length) this.currentPage++; },
+    doFilter() { this.currentPage = 1; },
+    resetFilter() { this.filter = { entName:'',district:'',houseName:'',monitorItem:'',conclusion:'',status:'',dateFrom:'',dateTo:'' }; this.currentPage=1; },
+
+    openAdd() {
+      this.formData = { houseId:'', monitorDate:'', monitorItem:'', monitorMethod:'', sampleCount:'', positiveCount:'', positiveRate:'', referenceRange:'', conclusion:'', testOrg:'', reportNo:'', remark:'' };
+      this.formErrors = {};
+      this.modal.isEdit = false;
+      this.modal.form = true;
+    },
+    openEdit(row) {
+      this.formData = Object.assign({}, row);
+      this.formErrors = {};
+      this.modal.isEdit = true;
+      this.modal.form = true;
+    },
+    calcPositiveRate() {
+      const s = Number(this.formData.sampleCount), p = Number(this.formData.positiveCount);
+      if (s > 0 && p >= 0) {
+        this.formData.positiveRate = ((p / s) * 100).toFixed(2);
+      } else {
+        this.formData.positiveRate = '';
+      }
+    },
+    validateForm() {
+      const e = {};
+      if (!this.formData.houseId) e.houseId = '圈舍不能为空';
+      if (!this.formData.monitorDate) e.monitorDate = '监测日期不能为空';
+      if (!this.formData.monitorItem) e.monitorItem = '监测项目不能为空';
+      if (!this.formData.monitorMethod) e.monitorMethod = '监测方法不能为空';
+      if (!this.formData.sampleCount || this.formData.sampleCount < 1) e.sampleCount = '抽检数量须≥1';
+      if (this.formData.positiveCount !== '' && this.formData.positiveCount > this.formData.sampleCount) e.positiveCount = '阳性数量不能大于抽检数量';
+      if (!this.formData.conclusion) e.conclusion = '检测结论不能为空';
+      this.formErrors = e;
+      return Object.keys(e).length === 0;
+    },
+    saveForm() {
+      if (!this.validateForm()) return;
+      const house = MOCK_DATA.houses.find(h => h.id == this.formData.houseId);
+      if (this.modal.isEdit) {
+        const idx = this.records.findIndex(r => r.id === this.formData.id);
+        if (idx >= 0) {
+          this.records[idx] = Object.assign({}, this.formData, { houseName: house?.name || this.formData.houseName });
+        }
+        this.showToast('success', '保存成功');
+      } else {
+        const newRecord = Object.assign({}, this.formData, {
+          id: Date.now(),
+          entName: this.currentUser.entName || '蓬溪县鑫源生猪养殖有限公司',
+          district: this.currentUser.district || '蓬南镇',
+          houseName: house?.name || '',
+          status: 0,
+          reporter: this.currentUser.name,
+          createdAt: new Date().toLocaleString('zh-CN').replace(/\//g,'-'),
+          auditLogs: []
+        });
+        this.records.unshift(newRecord);
+        this.showToast('success', '新增成功');
+      }
+      this.modal.form = false;
+    },
+    doSubmit(row) {
+      row.status = 1;
+      this.showToast('success', '提交成功，等待乡镇畜牧兽医站核实');
+    },
+    openDetail(row) { this.currentRecord = row; this.modal.detail = true; },
+    openVerify(row) { this.currentRecord = row; this.auditForm = { action: '通过', comment: '' }; this.auditErrors = {}; this.modal.verify = true; },
+    openAudit(row) { this.currentRecord = row; this.auditForm = { action: '通过', comment: '' }; this.auditErrors = {}; this.modal.audit = true; },
+    openFinalAudit(row) { this.currentRecord = row; this.auditForm = { action: '通过', comment: '' }; this.auditErrors = {}; this.modal.finalAudit = true; },
+    doVerify() {
+      if (this.auditForm.action === '退回' && !this.auditForm.comment) { this.auditErrors.comment = '退回时必须填写核实意见'; return; }
+      const log = { id: Date.now(), operator: this.currentUser.name, time: new Date().toLocaleString('zh-CN').replace(/\//g,'-'), action: this.auditForm.action, comment: this.auditForm.comment };
+      this.currentRecord.auditLogs = this.currentRecord.auditLogs || [];
+      this.currentRecord.auditLogs.push(log);
+      this.currentRecord.status = this.auditForm.action === '通过' ? 2 : 5;
+      this.modal.verify = false;
+      this.showToast('success', this.auditForm.action === '通过' ? '核实通过，已流转至乡镇审核' : '已退回，请企业修改后重新提交');
+    },
+    doAudit() {
+      if (this.auditForm.action === '退回' && !this.auditForm.comment) { this.auditErrors.comment = '退回时必须填写审核意见'; return; }
+      const log = { id: Date.now(), operator: this.currentUser.name, time: new Date().toLocaleString('zh-CN').replace(/\//g,'-'), action: this.auditForm.action, comment: this.auditForm.comment };
+      this.currentRecord.auditLogs = this.currentRecord.auditLogs || [];
+      this.currentRecord.auditLogs.push(log);
+      this.currentRecord.status = this.auditForm.action === '通过' ? 3 : 6;
+      this.modal.audit = false;
+      this.showToast('success', this.auditForm.action === '通过' ? '审核通过，已流转至县级终审' : '已退回，请企业修改后重新提交');
+    },
+    doFinalAudit() {
+      if (this.auditForm.action === '退回' && !this.auditForm.comment) { this.auditErrors.comment = '退回时必须填写终审意见'; return; }
+      const log = { id: Date.now(), operator: this.currentUser.name, time: new Date().toLocaleString('zh-CN').replace(/\//g,'-'), action: this.auditForm.action, comment: this.auditForm.comment };
+      this.currentRecord.auditLogs = this.currentRecord.auditLogs || [];
+      this.currentRecord.auditLogs.push(log);
+      this.currentRecord.status = this.auditForm.action === '通过' ? 4 : 7;
+      this.modal.finalAudit = false;
+      this.showToast('success', this.auditForm.action === '通过' ? '终审通过，记录已成功入库' : '已退回，请企业修改后重新提交');
+    },
+    doCountyStore(row) {
+      row.status = 4;
+      this.showToast('success', '已直接入库');
+    },
+    confirmDelete(row) { this.pendingDelete = row; this.modal.deleteConfirm = true; },
+    doDelete() {
+      this.records = this.records.filter(r => r.id !== this.pendingDelete.id);
+      this.modal.deleteConfirm = false;
+      this.showToast('success', '删除成功');
+    },
+    getStepClass(record, stepIndex) {
+      if (!record) return '';
+      const s = Number(record.status);
+      const stepMap = { 0: [0], 1: [1], 2: [2], 3: [3], 4: [4], 5: [1], 6: [2], 7: [3] };
+      const failedStep = { 5: 1, 6: 2, 7: 3 };
+      if (failedStep[s] === stepIndex) return 'failed';
+      if (s === 0 && stepIndex === 0) return 'current';
+      if (s === 1 && stepIndex === 1) return 'current';
+      if (s === 2 && stepIndex === 2) return 'current';
+      if (s === 3 && stepIndex === 3) return 'current';
+      if (s === 4) return 'done';
+      if (stepIndex < (stepMap[s]?.[0] ?? 0)) return 'done';
+      return '';
+    },
+    showToast(type, msg) {
+      this.toast = { show: true, type, msg };
+      setTimeout(() => { this.toast.show = false; }, 3000);
+    },
+    navigateTo(page) {
+      const pageMap = {
+        'disinfect': 'WEB企业端-养殖信息管理-消毒记录.html',
+        'dead-animal': 'WEB企业端-养殖信息管理-病死畜禽无害化处理记录.html',
+        'breed-info': 'WEB企业端-养殖信息管理-养殖信息.html'
+      };
+      if (pageMap[page]) window.location.href = pageMap[page];
+    }
+  };
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1771 @@
+<!--
+  功能名称：产业总览大屏
+  对应PRD：doc_prd/WEB/监管端/产业驾驶舱/产业总览/WEB监管端-产业总览大屏.prd.md
+  所属端口：WEB监管端
+  所属模块：产业驾驶舱 > 产业总览
+  制作日期：2026-03-10
+  最后更新：2026-03-10
+  角色说明：县级管理员（county_admin）、县级业务人员（county_staff）
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>蓬溪县生猪数字化产业总览大屏</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <style>
+    /* === 全局深色主题 === */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-main: #0d1b2a;
+      --bg-panel: #1b2838;
+      --bg-panel-dark: #152030;
+      --border-color: #2a4a6b;
+      --border-highlight: #00d4ff;
+      --text-primary: #e0e6ed;
+      --text-secondary: #8899aa;
+      --text-muted: #556677;
+      --accent-blue: #1890ff;
+      --accent-cyan: #00d4ff;
+      --color-success: #52c41a;
+      --color-warning: #faad14;
+      --color-error: #f5222d;
+      --color-purple: #722ed1;
+      --color-orange: #fa8c16;
+      --color-number: #00d4ff;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--bg-main);
+      color: var(--text-primary);
+      font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    /* === 布局 === */
+    #screen-root {
+      display: flex;
+      flex-direction: column;
+      width: 100vw; height: 100vh;
+      min-width: 1280px;
+    }
+
+    /* === 顶部标题栏 === */
+    #feature-header {
+      flex: 0 0 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: linear-gradient(90deg, #0d1b2a 0%, #1b3a5c 50%, #0d1b2a 100%);
+      border-bottom: 1px solid var(--border-color);
+      position: relative;
+      z-index: 10;
+    }
+
+    #feature-header::before {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+    }
+
+    .header-left {
+      display: flex; align-items: center; gap: 12px;
+      width: 280px;
+    }
+
+    .header-deco {
+      width: 4px; height: 28px;
+      background: linear-gradient(180deg, var(--accent-cyan), transparent);
+      border-radius: 2px;
+    }
+
+    .header-weather {
+      font-size: 13px; color: var(--text-secondary);
+    }
+
+    .header-title {
+      flex: 1;
+      text-align: center;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      color: var(--text-primary);
+      text-shadow: 0 0 20px rgba(0, 212, 255, 0.6), 0 0 40px rgba(0, 212, 255, 0.3);
+      position: relative;
+    }
+
+    .header-title::before,
+    .header-title::after {
+      content: '◆◆◆';
+      font-size: 10px;
+      color: var(--accent-cyan);
+      opacity: 0.6;
+      margin: 0 16px;
+      letter-spacing: 4px;
+    }
+
+    .header-right {
+      display: flex; align-items: center; gap: 16px;
+      width: 280px; justify-content: flex-end;
+    }
+
+    #clock {
+      font-size: 14px; color: var(--accent-cyan);
+      font-family: 'Courier New', monospace;
+      font-weight: 600;
+    }
+
+    .btn-exit {
+      padding: 6px 16px;
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    .btn-exit:hover {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    /* === 主体内容区 === */
+    #feature-main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* === 左侧栏 === */
+    #feature-left {
+      width: 25%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 10px 8px 10px 12px;
+      overflow: hidden;
+    }
+
+    /* === 中央区域 === */
+    #feature-center {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 10px 8px;
+      overflow: hidden;
+    }
+
+    /* === 右侧栏 === */
+    #feature-right {
+      width: 25%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 10px 12px 10px 8px;
+      overflow: hidden;
+    }
+
+    /* === 底部信息栏 === */
+    #feature-footer {
+      flex: 0 0 36px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 0 20px;
+      background: var(--bg-panel-dark);
+      border-top: 1px solid var(--border-color);
+      font-size: 12px;
+      color: var(--text-secondary);
+      overflow: hidden;
+    }
+
+    .footer-update-time {
+      white-space: nowrap; flex-shrink: 0;
+    }
+
+    .footer-broadcast-wrap {
+      flex: 1; overflow: hidden; position: relative; height: 100%;
+    }
+
+    .footer-broadcast {
+      display: inline-flex; align-items: center; height: 36px;
+      white-space: nowrap;
+      animation: scrollLeft 60s linear infinite;
+      color: var(--text-secondary);
+    }
+
+    @keyframes scrollLeft {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+
+    /* === 面板通用样式 === */
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .panel::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+      opacity: 0.6;
+    }
+
+    .panel-title {
+      padding: 8px 14px 6px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent-cyan);
+      border-bottom: 1px solid rgba(42, 74, 107, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-title i {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    .panel-title::before {
+      content: '';
+      width: 3px; height: 14px;
+      background: var(--accent-cyan);
+      border-radius: 2px;
+    }
+
+    .panel-body {
+      padding: 10px 12px;
+      /* 不设固定高度，由具体面板决定 */
+    }
+
+    /* 需要撑满剩余高度的 panel-body（如图表区域） */
+    .panel-body-fill {
+      padding: 4px;
+      position: absolute;
+      top: 37px; left: 0; right: 0; bottom: 0;
+      min-height: 0;
+    }
+
+    /* 含 panel-body-fill 的 panel 需要 position:relative，并允许子绝对定位元素不被裁剪 */
+    .panel-fill-host {
+      position: relative;
+      overflow: visible; /* 允许图例等绝对定位子元素溢出显示 */
+    }
+    /* 但面板本身需要圆角裁剪，用 outline 替代 border 来保持视觉 */
+    .panel-fill-host .panel-title {
+      border-radius: 6px 6px 0 0;
+    }
+
+    /* === 呼吸灯动效 === */
+    @keyframes breathe {
+      0%, 100% { box-shadow: 0 0 8px rgba(0,212,255,0.3), inset 0 0 8px rgba(0,212,255,0.05); }
+      50% { box-shadow: 0 0 16px rgba(0,212,255,0.6), inset 0 0 16px rgba(0,212,255,0.1); }
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.2; }
+    }
+
+    @keyframes countUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInLeft {
+      from { opacity: 0; transform: translateX(-20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes fadeInRight {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInCenter {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    #feature-left { animation: fadeInLeft 0.6s ease 0.1s both; }
+    #feature-center { animation: fadeInCenter 0.8s ease 0.3s both; }
+    #feature-right { animation: fadeInRight 0.6s ease 0.5s both; }
+    #feature-footer { animation: fadeInUp 0.5s ease 0.7s both; }
+
+    /* === L1 核心指标卡片 === */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 8px;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .kpi-card {
+      background: var(--bg-panel-dark);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      animation: breathe 3s ease-in-out infinite;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .kpi-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .kpi-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--color-number);
+      font-family: 'Courier New', monospace;
+      line-height: 1.1;
+      animation: countUp 1.5s ease both;
+    }
+
+    .kpi-unit {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-left: 2px;
+    }
+
+    .kpi-change {
+      font-size: 11px;
+      margin-top: 2px;
+    }
+
+    .kpi-change.up { color: var(--color-success); }
+    .kpi-change.down { color: var(--color-error); }
+    .kpi-change.flat { color: var(--text-muted); }
+
+    /* === L2 环形图 === */
+    #chart-structure { width: 100%; height: 100%; }
+
+    /* === L3 Top5 === */
+    #chart-ranking { width: 100%; height: 100%; }
+
+    /* === 中央地图 === */
+    #chart-map { width: 100%; height: 100%; }
+
+    /* === 地图图例 === */
+    .map-legend {
+      position: absolute;
+      bottom: 14px; right: 14px;
+      background: rgba(27,40,56,0.92);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      z-index: 20;
+    }
+
+    .map-legend-title {
+      font-size: 11px; font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .legend-item {
+      display: flex; align-items: center; gap: 6px;
+      margin-bottom: 4px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .legend-item.hidden { opacity: 0.4; text-decoration: line-through; color: #595959; }
+
+    .legend-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%; flex-shrink: 0;
+    }
+
+    .legend-divider {
+      border-top: 1px solid var(--border-color);
+      margin: 8px 0;
+    }
+
+    .legend-heat-bar {
+      height: 8px; width: 120px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #1b2838, #1a3a5c, #1e5a8a, #2080b8, #22a6e6);
+      margin-bottom: 4px;
+    }
+
+    .legend-heat-labels {
+      display: flex; justify-content: space-between;
+      font-size: 10px; color: var(--text-muted);
+      width: 120px;
+    }
+
+    /* === 企业弹窗 === */
+    #feature-enterprise-modal {
+      display: none;
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 50;
+    }
+
+    #feature-enterprise-modal.show { display: block; }
+
+    .modal-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+    }
+
+    .modal-box {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 400px;
+      background: #1b2838;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 0 40px rgba(0, 212, 255, 0.2);
+    }
+
+    .modal-header {
+      padding: 14px 16px;
+      background: linear-gradient(90deg, rgba(24,144,255,0.15), transparent);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .modal-close {
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 16px;
+      transition: color 0.2s;
+    }
+    .modal-close:hover { color: var(--text-primary); }
+
+    .modal-body {
+      padding: 16px;
+    }
+
+    .modal-row {
+      display: flex;
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+
+    .modal-row-label {
+      width: 90px;
+      color: var(--text-secondary);
+      flex-shrink: 0;
+    }
+
+    .modal-row-value {
+      flex: 1;
+      color: var(--text-primary);
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 1px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .tag-success { background: rgba(82,196,26,0.15); color: #52c41a; }
+    .tag-warning { background: rgba(250,173,20,0.15); color: #faad14; }
+    .tag-purple { background: rgba(114,46,209,0.15); color: #722ed1; }
+    .tag-default { background: rgba(140,140,140,0.15); color: #8c8c8c; }
+
+    .modal-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .btn-video {
+      padding: 7px 16px;
+      background: var(--accent-blue);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.2s;
+    }
+    .btn-video:hover { background: #40a9ff; }
+
+    .no-video {
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    .btn-close-modal {
+      padding: 7px 16px;
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    .btn-close-modal:hover {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    /* === C2 趋势图 === */
+    #chart-trend { width: 100%; height: 100%; }
+
+    /* === R1 市场行情 === */
+    .market-card {
+      display: flex;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(42,74,107,0.3);
+    }
+
+    .market-card:last-of-type { border-bottom: none; }
+
+    .market-name {
+      font-size: 12px;
+      color: var(--text-secondary);
+      width: 70px;
+      flex-shrink: 0;
+    }
+
+    .market-price-wrap {
+      flex: 1;
+    }
+
+    .market-price {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+      font-family: 'Courier New', monospace;
+    }
+
+    .market-unit {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-left: 2px;
+    }
+
+    .market-change {
+      font-size: 11px;
+      margin-top: 1px;
+    }
+
+    .market-change.up { color: #f5222d; }
+    .market-change.down { color: #52c41a; }
+    .market-change.flat { color: #8c8c8c; }
+
+    .sparkline {
+      width: 60px; height: 24px; flex-shrink: 0;
+    }
+
+    .pig-grain-ratio {
+      margin-top: 8px;
+      padding: 8px 10px;
+      background: rgba(24,144,255,0.08);
+      border: 1px solid rgba(24,144,255,0.2);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .pgr-label { font-size: 12px; color: var(--text-secondary); }
+    .pgr-value { font-size: 18px; font-weight: 700; font-family: 'Courier New', monospace; }
+    .pgr-value.green { color: #52c41a; }
+    .pgr-value.blue { color: #1890ff; }
+    .pgr-value.red { color: #f5222d; }
+
+    /* === R2 检验检疫 === */
+    .quarantine-kpi {
+      text-align: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(42,74,107,0.3);
+      margin-bottom: 8px;
+    }
+
+    .quarantine-kpi-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--color-number);
+      font-family: 'Courier New', monospace;
+    }
+
+    .quarantine-kpi-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .progress-item {
+      margin-bottom: 10px;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .progress-bar-bg {
+      height: 6px;
+      background: rgba(42,74,107,0.5);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+      will-change: width;
+    }
+
+    .dead-animal-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(42,74,107,0.3);
+    }
+
+    .dead-animal-label { font-size: 11px; color: var(--text-secondary); }
+    .dead-animal-value { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+
+    #chart-dead-pie { width: 48px; height: 48px; }
+
+    /* === R3 预警滚动 === */
+    .warning-list-wrap {
+      overflow: hidden;
+      position: relative;
+      height: 100%;
+    }
+
+    .warning-list {
+      transition: transform 0.5s ease;
+    }
+
+    .warning-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(42,74,107,0.2);
+      font-size: 12px;
+    }
+
+    .warning-time {
+      color: var(--text-muted);
+      flex-shrink: 0;
+      width: 38px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .warning-tag {
+      flex-shrink: 0;
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-size: 11px;
+    }
+
+    .warning-content {
+      flex: 1;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    .warning-icon {
+      width: 16px; text-align: center; flex-shrink: 0;
+    }
+
+    .no-warning {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--color-success);
+      font-size: 13px;
+      gap: 8px;
+    }
+
+    .no-warning i { font-size: 28px; }
+
+    /* === 加载动画 === */
+    #loading-screen {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--bg-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.8s;
+    }
+
+    #loading-screen.hidden { opacity: 0; pointer-events: none; }
+
+    .loading-spinner {
+      width: 60px; height: 60px;
+      border: 3px solid rgba(0,212,255,0.2);
+      border-top-color: var(--accent-cyan);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-text {
+      color: var(--accent-cyan);
+      font-size: 14px;
+      letter-spacing: 2px;
+    }
+
+    /* === 响应式文字 === */
+    @media (max-width: 1600px) {
+      .kpi-value { font-size: 20px; }
+      .header-title { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 加载动画 -->
+<div id="loading-screen">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">数据加载中...</div>
+</div>
+
+<!-- 企业弹窗 -->
+<div id="feature-enterprise-modal">
+  <div class="modal-overlay" onclick="closeEnterpriseModal()"></div>
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-enterprise-name">企业名称</div>
+      <div class="modal-close" onclick="closeEnterpriseModal()"><i class="fa fa-times"></i></div>
+    </div>
+    <div class="modal-body" id="modal-body-content"></div>
+    <div class="modal-footer">
+      <div id="modal-video-area"></div>
+      <button class="btn-close-modal" onclick="closeEnterpriseModal()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 主屏 -->
+<div id="screen-root">
+
+  <!-- SECTION START: 顶部标题栏 -->
+  <header id="feature-header">
+    <div class="header-left">
+      <div class="header-deco"></div>
+      <div class="header-weather">
+        <i class="fa fa-sun" style="color:#faad14;"></i>
+        蓬溪县 &nbsp; 晴 &nbsp; 12°C / 22°C
+      </div>
+    </div>
+    <div class="header-title">蓬溪县生猪数字化产业总览</div>
+    <div class="header-right">
+      <div id="clock">2026-03-10 00:00:00</div>
+      <button class="btn-exit" onclick="exitScreen()"><i class="fa fa-compress-arrows-alt"></i> 退出大屏</button>
+    </div>
+  </header>
+  <!-- SECTION END: 顶部标题栏 -->
+
+  <!-- 主体 -->
+  <div id="feature-main">
+
+    <!-- SECTION START: 左侧栏 -->
+    <div id="feature-left">
+
+      <!-- L1 核心指标 -->
+      <div class="panel panel-fill-host" style="flex: 0 0 168px;">
+        <div class="panel-title"><i class="fa fa-chart-bar"></i> 核心指标</div>
+        <div class="panel-body-fill" style="padding: 8px;">
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-label">养殖企业总数</div>
+              <div>
+                <span class="kpi-value" id="kpi-enterprise">0</span>
+                <span class="kpi-unit">家</span>
+              </div>
+              <div class="kpi-change up"><i class="fa fa-arrow-up"></i> 同比 +8.3%</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">生猪存栏总量</div>
+              <div>
+                <span class="kpi-value" id="kpi-stock">0</span>
+                <span class="kpi-unit">头</span>
+              </div>
+              <div class="kpi-change up"><i class="fa fa-arrow-up"></i> 同比 +12.5%</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">能繁母猪存栏</div>
+              <div>
+                <span class="kpi-value" id="kpi-sow">0</span>
+                <span class="kpi-unit">头</span>
+              </div>
+              <div class="kpi-change flat">占存栏 11.8%</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">本年出栏总量</div>
+              <div>
+                <span class="kpi-value" id="kpi-exit">0</span>
+                <span class="kpi-unit">头</span>
+              </div>
+              <div class="kpi-change down"><i class="fa fa-arrow-down"></i> 同比 -3.2%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- L2 养殖结构 -->
+      <div class="panel panel-fill-host" style="flex: 1; min-height: 0;">
+        <div class="panel-title"><i class="fa fa-chart-pie"></i> 养殖结构分布</div>
+        <div class="panel-body-fill">
+          <div id="chart-structure" style="width:100%;height:100%;"></div>
+        </div>
+      </div>
+
+      <!-- L3 规模Top5 -->
+      <div class="panel panel-fill-host" style="flex: 1; min-height: 0;">
+        <div class="panel-title"><i class="fa fa-trophy"></i> 养殖规模 Top5</div>
+        <div class="panel-body-fill">
+          <div id="chart-ranking" style="width:100%;height:100%;"></div>
+        </div>
+      </div>
+
+    </div>
+    <!-- SECTION END: 左侧栏 -->
+
+    <!-- SECTION START: 中央主区域 -->
+    <div id="feature-center">
+
+      <!-- C1 地图 -->
+      <div class="panel panel-fill-host" style="flex: 6; min-height: 0;">
+        <div class="panel-title"><i class="fa fa-map-marked-alt"></i> 蓬溪县养殖分布地图</div>
+        <div id="chart-map" style="position:absolute; top:37px; left:0; right:0; bottom:0;"></div>
+
+        <!-- 地图图例 -->
+        <div class="map-legend">
+          <div class="map-legend-title">图 例</div>
+          <div style="font-size:11px; color: var(--text-secondary); margin-bottom: 4px;">企业状态</div>
+          <div class="legend-item" onclick="toggleLegend(this, 'normal')" data-type="normal">
+            <div class="legend-dot" style="background:#52c41a; box-shadow: 0 0 6px #52c41a;"></div>
+            <span>正常运营</span>
+          </div>
+          <div class="legend-item" onclick="toggleLegend(this, 'disabled')" data-type="disabled">
+            <div class="legend-dot" style="background:#8c8c8c;"></div>
+            <span>停用</span>
+          </div>
+          <div class="legend-item" onclick="toggleLegend(this, 'paused')" data-type="paused">
+            <div class="legend-dot" style="background:#faad14;"></div>
+            <span>停养</span>
+          </div>
+          <div class="legend-item" onclick="toggleLegend(this, 'transformed')" data-type="transformed">
+            <div class="legend-dot" style="background:#722ed1;"></div>
+            <span>转产</span>
+          </div>
+          <div class="legend-divider"></div>
+          <div style="font-size:11px; color: var(--text-secondary); margin-bottom: 4px;">乡镇企业密度</div>
+          <div class="legend-heat-bar"></div>
+          <div class="legend-heat-labels"><span>0家</span><span>31+家</span></div>
+        </div>
+      </div>
+
+      <!-- C2 趋势图 -->
+      <div class="panel panel-fill-host" style="flex: 4; min-height: 0;">
+        <div class="panel-title"><i class="fa fa-chart-area"></i> 生猪存栏出栏量趋势（近12个月）</div>
+        <div id="chart-trend" style="position:absolute; top:37px; left:0; right:0; bottom:0;"></div>
+      </div>
+
+    </div>
+    <!-- SECTION END: 中央主区域 -->
+
+    <!-- SECTION START: 右侧栏 -->
+    <div id="feature-right">
+
+      <!-- R1 市场行情 -->
+      <div class="panel" style="flex: 4;">
+        <div class="panel-title"><i class="fa fa-coins"></i> 市场行情速览</div>
+        <div class="panel-body">
+          <div id="market-list"></div>
+          <div class="pig-grain-ratio">
+            <div>
+              <div class="pgr-label">猪粮比</div>
+              <div class="pgr-label" style="font-size:10px; margin-top:2px;" id="pgr-status-label">盈利区间</div>
+            </div>
+            <div class="pgr-value" id="pgr-value">7.82:1</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- R2 检验检疫 -->
+      <div class="panel" style="flex: 3; min-height: 0; overflow: hidden;">
+        <div class="panel-title"><i class="fa fa-shield-alt"></i> 检验检疫概况</div>
+        <div class="panel-body" style="overflow: hidden;">
+          <div class="quarantine-kpi">
+            <div class="quarantine-kpi-value" id="quarantine-total">0</div>
+            <div class="quarantine-kpi-label">本年检疫总量（头次）</div>
+          </div>
+          <div class="progress-item">
+            <div class="progress-label">
+              <span>检疫合格率</span>
+              <span id="qualified-rate-text">0%</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar" id="qualified-rate-bar" style="width:0%; background:#52c41a;"></div>
+            </div>
+          </div>
+          <div class="progress-item">
+            <div class="progress-label">
+              <span>免疫覆盖率</span>
+              <span id="immune-rate-text">0%</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar" id="immune-rate-bar" style="width:0%; background:#1890ff;"></div>
+            </div>
+          </div>
+          <div class="dead-animal-row">
+            <div>
+              <div class="dead-animal-label">病死猪处理量</div>
+              <div class="dead-animal-value" id="dead-total">0 头次</div>
+            </div>
+            <div id="chart-dead-pie"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- R3 预警滚动 -->
+      <div class="panel panel-fill-host" style="flex: 3; min-height: 0;">
+        <div class="panel-title"><i class="fa fa-exclamation-triangle" style="animation: blink 1s ease-in-out infinite; color: #f5222d;"></i> 预警事件滚动</div>
+        <div class="panel-body-fill" style="padding: 8px 12px; overflow: hidden;">
+          <div class="warning-list-wrap">
+            <div class="warning-list" id="warning-list"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <!-- SECTION END: 右侧栏 -->
+
+  </div><!-- end main -->
+
+  <!-- SECTION START: 底部信息栏 -->
+  <footer id="feature-footer">
+    <div class="footer-update-time">
+      <i class="fa fa-clock" style="color: var(--accent-cyan); margin-right: 4px;"></i>
+      数据更新于 <span id="update-time">2026-03-10 14:00</span>
+    </div>
+    <div style="width:1px; height:16px; background: var(--border-color); flex-shrink:0;"></div>
+    <div class="footer-broadcast-wrap">
+      <div class="footer-broadcast" id="broadcast-text">正在加载播报信息...</div>
+    </div>
+  </footer>
+  <!-- SECTION END: 底部信息栏 -->
+
+</div><!-- end screen-root -->
+
+<script>
+/* ============================================================
+   MOCK_DATA - 集中定义所有模拟数据
+   ============================================================ */
+const MOCK_DATA = {
+
+  // 当前登录用户
+  currentUser: {
+    id: 1,
+    name: '李波',
+    role: 'county_admin',
+    roleName: '县级管理员',
+  },
+
+  // 核心指标
+  overview: {
+    enterpriseTotal: 1248,
+    stockTotal: 89632,
+    sowStock: 10583,
+    exitTotal: 142760,
+    enterpriseChange: 8.3,
+    stockChange: 12.5,
+    sowRate: 11.8,
+    exitChange: -3.2,
+  },
+
+  // 养殖结构分布
+  structure: [
+    { name: '规模养殖场', value: 312, color: '#1890ff' },
+    { name: '家庭农场', value: 486, color: '#52c41a' },
+    { name: '散养户', value: 378, color: '#faad14' },
+    { name: '合作社', value: 72, color: '#722ed1' },
+  ],
+
+  // 规模Top5
+  scaleRanking: [
+    { name: '蓬溪鑫源农业有限公司', stock: 15200 },
+    { name: '四川禾丰牧业蓬溪分公司', stock: 12480 },
+    { name: '蓬溪县天一家庭农场', stock: 8960 },
+    { name: '蓬溪荣丰养殖合作社', stock: 6530 },
+    { name: '蓬溪县龙溪散养场', stock: 4270 },
+  ],
+
+  // 存栏出栏趋势 近12月
+  stockTrend: [
+    { month: '2025-04', stock: 76200, exit: 8900 },
+    { month: '2025-05', stock: 78500, exit: 10200 },
+    { month: '2025-06', stock: 80100, exit: 11500 },
+    { month: '2025-07', stock: 81300, exit: 12800 },
+    { month: '2025-08', stock: 79800, exit: 11200 },
+    { month: '2025-09', stock: 82400, exit: 13500 },
+    { month: '2025-10', stock: 84600, exit: 14100 },
+    { month: '2025-11', stock: 86200, exit: 15300 },
+    { month: '2025-12', stock: 85800, exit: 16400 },
+    { month: '2026-01', stock: 87100, exit: 14800 },
+    { month: '2026-02', stock: 88600, exit: 13200 },
+    { month: '2026-03', stock: 89632, exit: 11600 },
+  ],
+
+  // 乡镇数据（模拟，实际需GeoJSON配合）
+  towns: [
+    { townName: '蓬溪镇', enterpriseCount: 45, stockQuantity: 18600, monthlyExitQuantity: 2100, warningCount: 2 },
+    { townName: '赤城镇', enterpriseCount: 38, stockQuantity: 15800, monthlyExitQuantity: 1800, warningCount: 0 },
+    { townName: '明月镇', enterpriseCount: 32, stockQuantity: 12400, monthlyExitQuantity: 1500, warningCount: 1 },
+    { townName: '新会镇', enterpriseCount: 28, stockQuantity: 10200, monthlyExitQuantity: 1200, warningCount: 0 },
+    { townName: '大石镇', enterpriseCount: 22, stockQuantity: 8800, monthlyExitQuantity: 980, warningCount: 3 },
+    { townName: '三凤镇', enterpriseCount: 18, stockQuantity: 7200, monthlyExitQuantity: 820, warningCount: 0 },
+    { townName: '槐花镇', enterpriseCount: 15, stockQuantity: 5600, monthlyExitQuantity: 640, warningCount: 1 },
+    { townName: '天福镇', enterpriseCount: 12, stockQuantity: 4200, monthlyExitQuantity: 480, warningCount: 0 },
+    { townName: '吉星乡', enterpriseCount: 8, stockQuantity: 2800, monthlyExitQuantity: 320, warningCount: 0 },
+    { townName: '荷叶乡', enterpriseCount: 5, stockQuantity: 1600, monthlyExitQuantity: 180, warningCount: 0 },
+  ],
+
+  // 企业点位（含经纬度）- 模拟蓬溪县范围内的坐标（经度105.65左右，纬度30.76左右）
+  enterprises: [
+    { enterpriseId: 1001, enterpriseName: '蓬溪鑫源农业有限公司', enterpriseType: '1', enterpriseTypeName: '规模养殖场', status: '0', operationStatus: '1', longitude: 105.71, latitude: 30.78, hasVideoDevice: true, videoDeviceOnline: 3, videoDeviceTotal: 4 },
+    { enterpriseId: 1002, enterpriseName: '四川禾丰牧业蓬溪分公司', enterpriseType: '1', enterpriseTypeName: '规模养殖场', status: '0', operationStatus: '1', longitude: 105.68, latitude: 30.74, hasVideoDevice: true, videoDeviceOnline: 2, videoDeviceTotal: 2 },
+    { enterpriseId: 1003, enterpriseName: '蓬溪县天一家庭农场', enterpriseType: '2', enterpriseTypeName: '家庭农场', status: '0', operationStatus: '1', longitude: 105.63, latitude: 30.82, hasVideoDevice: false, videoDeviceOnline: 0, videoDeviceTotal: 0 },
+    { enterpriseId: 1004, enterpriseName: '蓬溪荣丰养殖合作社', enterpriseType: '4', enterpriseTypeName: '合作社', status: '0', operationStatus: '2', longitude: 105.75, latitude: 30.71, hasVideoDevice: true, videoDeviceOnline: 1, videoDeviceTotal: 2 },
+    { enterpriseId: 1005, enterpriseName: '蓬溪县龙溪散养场', enterpriseType: '3', enterpriseTypeName: '散养户', status: '0', operationStatus: '1', longitude: 105.60, latitude: 30.76, hasVideoDevice: false, videoDeviceOnline: 0, videoDeviceTotal: 0 },
+    { enterpriseId: 1006, enterpriseName: '蓬溪华盛牧业', enterpriseType: '1', enterpriseTypeName: '规模养殖场', status: '1', operationStatus: '1', longitude: 105.79, latitude: 30.69, hasVideoDevice: true, videoDeviceOnline: 0, videoDeviceTotal: 3 },
+    { enterpriseId: 1007, enterpriseName: '明月山家庭农场', enterpriseType: '2', enterpriseTypeName: '家庭农场', status: '0', operationStatus: '3', longitude: 105.66, latitude: 30.85, hasVideoDevice: false, videoDeviceOnline: 0, videoDeviceTotal: 0 },
+    { enterpriseId: 1008, enterpriseName: '蓬溪绿源养殖场', enterpriseType: '2', enterpriseTypeName: '家庭农场', status: '0', operationStatus: '1', longitude: 105.55, latitude: 30.80, hasVideoDevice: true, videoDeviceOnline: 2, videoDeviceTotal: 2 },
+    { enterpriseId: 1009, enterpriseName: '赤城兴旺养殖场', enterpriseType: '3', enterpriseTypeName: '散养户', status: '0', operationStatus: '1', longitude: 105.82, latitude: 30.77, hasVideoDevice: false, videoDeviceOnline: 0, videoDeviceTotal: 0 },
+    { enterpriseId: 1010, enterpriseName: '蓬溪丰收合作社', enterpriseType: '4', enterpriseTypeName: '合作社', status: '0', operationStatus: '1', longitude: 105.73, latitude: 30.64, hasVideoDevice: true, videoDeviceOnline: 1, videoDeviceTotal: 1 },
+  ],
+
+  // 企业详情（弹窗用）
+  enterpriseDetails: {
+    1001: { creditCode: '91510921MA624XXX01', legalPerson: '王建国', contactPhone: '138****8801', address: '蓬溪县蓬溪镇工业园区A区3号', breedingScale: 15200 },
+    1002: { creditCode: '91510921MA625XXX02', legalPerson: '张明远', contactPhone: '139****8802', address: '蓬溪县赤城镇赤城村5组', breedingScale: 12480 },
+    1003: { creditCode: '91510921MA626XXX03', legalPerson: '李秀华', contactPhone: '135****8803', address: '蓬溪县大石镇荷花村2组', breedingScale: 8960 },
+    1004: { creditCode: '91510921MA627XXX04', legalPerson: '陈志远', contactPhone: '137****8804', address: '蓬溪县明月镇明月村8组', breedingScale: 6530 },
+    1005: { creditCode: '91510921MA628XXX05', legalPerson: '刘大勇', contactPhone: '136****8805', address: '蓬溪县新会镇新会村3组', breedingScale: 4270 },
+    1006: { creditCode: '91510921MA629XXX06', legalPerson: '周华强', contactPhone: '132****8806', address: '蓬溪县三凤镇三凤社区1号', breedingScale: 3800 },
+    1007: { creditCode: '91510921MA630XXX07', legalPerson: '吴春梅', contactPhone: '133****8807', address: '蓬溪县槐花镇槐花村6组', breedingScale: 2100 },
+    1008: { creditCode: '91510921MA631XXX08', legalPerson: '赵宏涛', contactPhone: '134****8808', address: '蓬溪县天福镇天福路18号', breedingScale: 1850 },
+    1009: { creditCode: '91510921MA632XXX09', legalPerson: '孙梦琪', contactPhone: '130****8809', address: '蓬溪县赤城镇青龙村12组', breedingScale: 960 },
+    1010: { creditCode: '91510921MA633XXX10', legalPerson: '黄明辉', contactPhone: '131****8810', address: '蓬溪县新会镇新会村15组', breedingScale: 760 },
+  },
+
+  // 市场行情
+  market: {
+    pigPrice: 14.88,
+    pigChange: 0.32,
+    cornPrice: 2340,
+    cornChange: -18,
+    soyMealPrice: 3280,
+    soyMealChange: 45,
+    porkPrice: 22.50,
+    porkChange: 0.10,
+    pigGrainRatio: 7.82,
+    // 7日迷你数据
+    sparklines: {
+      pig: [14.20, 14.35, 14.60, 14.42, 14.75, 14.55, 14.88],
+      corn: [2380, 2360, 2350, 2370, 2360, 2358, 2340],
+      soyMeal: [3190, 3210, 3220, 3235, 3250, 3265, 3280],
+      pork: [22.20, 22.30, 22.40, 22.35, 22.42, 22.40, 22.50],
+    }
+  },
+
+  // 检验检疫
+  quarantine: {
+    quarantineTotal: 328640,
+    qualifiedRate: 99.2,
+    immuneCoverage: 96.8,
+    deadAnimalTotal: 3186,
+    deadAnimalTypes: [
+      { name: '焚烧', value: 42, color: '#f5222d' },
+      { name: '化尸', value: 28, color: '#fa8c16' },
+      { name: '掩埋', value: 8, color: '#a0d911' },
+      { name: '发酵', value: 12, color: '#52c41a' },
+      { name: '委托集中', value: 10, color: '#1890ff' },
+    ]
+  },
+
+  // 预警事件
+  warnings: [
+    { time: '08:42', type: 'disease', icon: 'fa-virus', color: '#f5222d', tagText: '疫病预警', content: '蓬溪鑫源农业有限公司 存在疑似猪流感病例，建议立即排查' },
+    { time: '09:15', type: 'death', icon: 'fa-exclamation-triangle', color: '#fa8c16', tagText: '死亡预警', content: '蓬溪荣丰养殖合作社 本月病死猪数量超过预警阈值（已达15头）' },
+    { time: '10:03', type: 'video', icon: 'fa-video', color: '#faad14', tagText: '视频告警', content: '蓬溪华盛牧业 3号摄像头离线超过4小时，请检查设备' },
+    { time: '10:30', type: 'capacity', icon: 'fa-chart-line', color: '#722ed1', tagText: '产能预警', content: '明月山家庭农场 已停产转产，存栏数量连续60天为零' },
+    { time: '11:18', type: 'overdue', icon: 'fa-clock', color: '#8c8c8c', tagText: '超期预警', content: '蓬溪县天一家庭农场 防疫监测记录已超过30天未填报' },
+    { time: '13:05', type: 'disease', icon: 'fa-virus', color: '#f5222d', tagText: '疫病预警', content: '大石镇辖区企业免疫覆盖率低于80%，需重点督导' },
+    { time: '14:22', type: 'death', icon: 'fa-exclamation-triangle', color: '#fa8c16', tagText: '死亡预警', content: '赤城兴旺养殖场 发现不明原因死猪2头，已通知兽医核查' },
+    { time: '15:08', type: 'overdue', icon: 'fa-clock', color: '#8c8c8c', tagText: '超期预警', content: '蓬溪绿源养殖场 消毒记录连续15天未更新，请督促填报' },
+  ],
+
+  // 底部播报
+  broadcasts: [
+    { time: '2026-03-10 14:00', type: 'market', content: '今日生猪外三元价格14.88元/kg，较昨日上涨0.32元' },
+    { time: '2026-03-10 13:30', type: 'enterprise', content: '蓬溪鑫源农业有限公司完成2026年度防疫档案更新，共录入记录128条' },
+    { time: '2026-03-10 12:45', type: 'quarantine', content: '今日已完成出栏检疫1286头次，检疫合格率100%' },
+    { time: '2026-03-10 11:20', type: 'enterprise', content: '赤城镇新增家庭农场2家，预计年存栏规模合计1200头' },
+    { time: '2026-03-10 10:05', type: 'warning', content: '系统检测到3条新增预警事件，请相关监管人员及时处理' },
+    { time: '2026-03-10 09:00', type: 'market', content: '猪粮比7.82:1，处于正常区间，养殖经济效益稳定' },
+  ],
+};
+
+/* ============================================================
+   图表与页面初始化
+   ============================================================ */
+
+let hiddenTypes = new Set();
+let mapChart, structureChart, rankingChart, trendChart, deadPieChart;
+const sparklineCharts = {};
+
+// 颜色工具
+function getProgressColor(val) {
+  if (val >= 99) return '#52c41a';
+  if (val >= 90) return '#1890ff';
+  if (val >= 80) return '#faad14';
+  return '#f5222d';
+}
+
+function getEnterpriseColor(e) {
+  if (e.status === '1') return '#8c8c8c';
+  if (e.operationStatus === '2') return '#faad14';
+  if (e.operationStatus === '3') return '#722ed1';
+  return '#52c41a';
+}
+
+// 数字滚动动画
+function countUp(el, target, duration = 1500) {
+  const start = performance.now();
+  const startVal = 0;
+  const step = (timestamp) => {
+    const progress = Math.min((timestamp - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(startVal + eased * (target - startVal)).toLocaleString();
+    if (progress < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+// 实时时钟
+function startClock() {
+  const clockEl = document.getElementById('clock');
+  const update = () => {
+    const now = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    clockEl.textContent = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  };
+  update();
+  setInterval(update, 1000);
+}
+
+// 初始化核心指标
+function initKPIs() {
+  const { overview } = MOCK_DATA;
+  setTimeout(() => countUp(document.getElementById('kpi-enterprise'), overview.enterpriseTotal), 500);
+  setTimeout(() => countUp(document.getElementById('kpi-stock'), overview.stockTotal), 600);
+  setTimeout(() => countUp(document.getElementById('kpi-sow'), overview.sowStock), 700);
+  setTimeout(() => countUp(document.getElementById('kpi-exit'), overview.exitTotal), 800);
+}
+
+// 养殖结构环形图
+function initStructureChart() {
+  const el = document.getElementById('chart-structure');
+  structureChart = echarts.init(el, 'dark', { renderer: 'svg' });
+  const total = MOCK_DATA.overview.enterpriseTotal;
+  structureChart.setOption({
+    backgroundColor: 'transparent',
+    tooltip: {
+      trigger: 'item',
+      backgroundColor: 'rgba(27,40,56,0.95)',
+      borderColor: '#2a4a6b',
+      textStyle: { color: '#e0e6ed', fontSize: 12 },
+      formatter: p => `${p.name}<br/>数量：${p.value} 家<br/>占比：${p.percent}%`
+    },
+    legend: { show: false },
+    series: [{
+      type: 'pie',
+      radius: ['48%', '70%'],
+      center: ['50%', '50%'],
+      data: MOCK_DATA.structure.map(d => ({ name: d.name, value: d.value, itemStyle: { color: d.color } })),
+      label: {
+        position: 'outside',
+        color: '#8899aa',
+        fontSize: 11,
+        formatter: '{b}\n{d}%',
+      },
+      graphic: [],
+    }],
+    graphic: [{
+      type: 'text',
+      left: 'center',
+      top: 'center',
+      style: {
+        text: `${total.toLocaleString()}\n企业总数`,
+        fill: '#e0e6ed',
+        fontSize: 13,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        lineHeight: 20,
+      }
+    }]
+  });
+}
+
+// 规模Top5横向柱状图
+function initRankingChart() {
+  const el = document.getElementById('chart-ranking');
+  rankingChart = echarts.init(el, 'dark', { renderer: 'svg' });
+  const rankColors = ['#ffd700', '#c0c0c0', '#cd7f32', '#8c8c8c', '#8c8c8c'];
+  const names = MOCK_DATA.scaleRanking.map(d => d.name.length > 8 ? d.name.slice(0, 8) + '..' : d.name).reverse();
+  const values = MOCK_DATA.scaleRanking.map(d => d.stock).reverse();
+  const colorList = rankColors.slice().reverse();
+
+  rankingChart.setOption({
+    backgroundColor: 'transparent',
+    grid: { top: 8, bottom: 4, left: 90, right: 40, containLabel: false },
+    xAxis: {
+      type: 'value',
+      axisLine: { lineStyle: { color: '#2a4a6b' } },
+      splitLine: { lineStyle: { color: '#1e3a55', type: 'dashed' } },
+      axisLabel: { color: '#556677', fontSize: 10 },
+    },
+    yAxis: {
+      type: 'category',
+      data: names,
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: { color: '#8899aa', fontSize: 11 },
+    },
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: 'rgba(27,40,56,0.95)',
+      borderColor: '#2a4a6b',
+      textStyle: { color: '#e0e6ed', fontSize: 12 },
+      formatter: p => `${MOCK_DATA.scaleRanking[MOCK_DATA.scaleRanking.length - 1 - p[0].dataIndex].name}<br/>存栏量：${p[0].value.toLocaleString()} 头`
+    },
+    series: [{
+      type: 'bar',
+      data: values.map((v, i) => ({
+        value: v,
+        itemStyle: {
+          color: {
+            type: 'linear', x: 0, y: 0, x2: 1, y2: 0,
+            colorStops: [{ offset: 0, color: colorList[i] }, { offset: 1, color: '#1890ff' }]
+          },
+          borderRadius: [0, 3, 3, 0],
+        }
+      })),
+      barWidth: 14,
+      label: {
+        show: true, position: 'right',
+        color: '#8899aa', fontSize: 10,
+        formatter: p => p.value.toLocaleString()
+      }
+    }]
+  });
+}
+
+// 存栏出栏趋势图
+function initTrendChart() {
+  const el = document.getElementById('chart-trend');
+  trendChart = echarts.init(el, 'dark', { renderer: 'svg' });
+  const months = MOCK_DATA.stockTrend.map(d => d.month);
+  const stocks = MOCK_DATA.stockTrend.map(d => d.stock);
+  const exits = MOCK_DATA.stockTrend.map(d => d.exit);
+
+  trendChart.setOption({
+    backgroundColor: 'transparent',
+    grid: { top: 36, bottom: 28, left: 60, right: 20 },
+    legend: {
+      data: ['存栏量', '出栏量'],
+      right: 20, top: 8,
+      textStyle: { color: '#8899aa', fontSize: 12 },
+      icon: 'rect',
+      itemWidth: 16, itemHeight: 3,
+    },
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: 'rgba(27,40,56,0.95)',
+      borderColor: '#2a4a6b',
+      textStyle: { color: '#e0e6ed', fontSize: 12 },
+      formatter: p => `${p[0].axisValue}<br/>存栏量：${p[0].value.toLocaleString()} 头<br/>出栏量：${p[1].value.toLocaleString()} 头`
+    },
+    xAxis: {
+      type: 'category', data: months,
+      axisLine: { lineStyle: { color: '#2a4a6b' } },
+      axisLabel: { color: '#556677', fontSize: 10, rotate: 0 },
+      axisTick: { show: false },
+    },
+    yAxis: {
+      type: 'value',
+      axisLine: { show: false },
+      splitLine: { lineStyle: { color: '#1e3a55', type: 'dashed' } },
+      axisLabel: { color: '#556677', fontSize: 10, formatter: v => (v / 10000).toFixed(1) + '万' },
+    },
+    series: [
+      {
+        name: '存栏量', type: 'line', data: stocks,
+        smooth: true, symbol: 'circle', symbolSize: 5,
+        lineStyle: { color: '#1890ff', width: 2 },
+        itemStyle: { color: '#1890ff', shadowBlur: 10, shadowColor: 'rgba(24,144,255,0.5)' },
+        areaStyle: {
+          color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+            colorStops: [{ offset: 0, color: 'rgba(24,144,255,0.35)' }, { offset: 1, color: 'rgba(24,144,255,0.03)' }] }
+        },
+      },
+      {
+        name: '出栏量', type: 'line', data: exits,
+        smooth: true, symbol: 'circle', symbolSize: 5,
+        lineStyle: { color: '#52c41a', width: 2 },
+        itemStyle: { color: '#52c41a', shadowBlur: 10, shadowColor: 'rgba(82,196,26,0.5)' },
+        areaStyle: {
+          color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+            colorStops: [{ offset: 0, color: 'rgba(82,196,26,0.3)' }, { offset: 1, color: 'rgba(82,196,26,0.03)' }] }
+        },
+      }
+    ]
+  });
+}
+
+// 蓬溪县地图（使用ECharts散点模拟，因无真实GeoJSON）
+function initMapChart() {
+  const el = document.getElementById('chart-map');
+  mapChart = echarts.init(el, 'dark', { renderer: 'svg' });
+
+  // 使用散点图模拟地图效果（无真实GeoJSON时的降级展示）
+  const enterprises = MOCK_DATA.enterprises.filter(e => {
+    if (hiddenTypes.has('normal') && e.status === '0' && (e.operationStatus === '1' || !e.operationStatus)) return false;
+    if (hiddenTypes.has('disabled') && e.status === '1') return false;
+    if (hiddenTypes.has('paused') && e.status === '0' && e.operationStatus === '2') return false;
+    if (hiddenTypes.has('transformed') && e.status === '0' && e.operationStatus === '3') return false;
+    return true;
+  });
+
+  const groups = {
+    normal: enterprises.filter(e => e.status === '0' && (e.operationStatus === '1' || !e.operationStatus)),
+    disabled: enterprises.filter(e => e.status === '1'),
+    paused: enterprises.filter(e => e.status === '0' && e.operationStatus === '2'),
+    transformed: enterprises.filter(e => e.status === '0' && e.operationStatus === '3'),
+  };
+
+  const makeScatterData = (list) => list.map(e => ({
+    value: [e.longitude, e.latitude, e.enterpriseId],
+    name: e.enterpriseName,
+    enterpriseData: e,
+  }));
+
+  mapChart.setOption({
+    backgroundColor: 'transparent',
+    tooltip: {
+      trigger: 'item',
+      backgroundColor: 'rgba(27,40,56,0.95)',
+      borderColor: '#2a4a6b',
+      textStyle: { color: '#e0e6ed', fontSize: 12 },
+      formatter: p => {
+        if (!p.data) return '';
+        const e = p.data.enterpriseData;
+        const opMap = { '1': '正常', '2': '停养', '3': '转产' };
+        return `<b>${e.enterpriseName}</b><br/>类型：${e.enterpriseTypeName}<br/>状态：${e.status === '1' ? '停用' : (opMap[e.operationStatus] || '正常运营')}`;
+      }
+    },
+    xAxis: {
+      min: 105.45, max: 105.95,
+      axisLine: { lineStyle: { color: '#2a4a6b' } },
+      splitLine: { lineStyle: { color: '#1b2838', type: 'dashed' } },
+      axisLabel: { color: '#2a4a6b', fontSize: 10, formatter: v => v.toFixed(2) + '°' }
+    },
+    yAxis: {
+      min: 30.58, max: 30.95,
+      axisLine: { lineStyle: { color: '#2a4a6b' } },
+      splitLine: { lineStyle: { color: '#1b2838', type: 'dashed' } },
+      axisLabel: { color: '#2a4a6b', fontSize: 10, formatter: v => v.toFixed(2) + '°' }
+    },
+    graphic: [
+      {
+        type: 'text', left: 'center', top: 16,
+        style: { text: '蓬溪县养殖企业分布图（GeoJSON地图需接入真实数据）', fill: '#2a4a6b', fontSize: 11 }
+      },
+      // 模拟蓬溪县轮廓背景区域
+      { type: 'rect', shape: { x: '5%', y: '8%', width: '90%', height: '85%' },
+        style: { fill: 'rgba(26,58,92,0.2)', stroke: '#2a4a6b', lineWidth: 1, lineDash: [4,4] } }
+    ],
+    series: [
+      {
+        name: '正常运营', type: 'effectScatter',
+        data: makeScatterData(groups.normal),
+        symbolSize: 12, effectType: 'ripple',
+        rippleEffect: { brushType: 'stroke', scale: 3, period: 4 },
+        itemStyle: { color: '#52c41a' },
+      },
+      {
+        name: '停用', type: 'scatter',
+        data: makeScatterData(groups.disabled),
+        symbolSize: 12,
+        itemStyle: { color: '#8c8c8c' },
+      },
+      {
+        name: '停养', type: 'scatter',
+        data: makeScatterData(groups.paused),
+        symbolSize: 12,
+        itemStyle: { color: '#faad14' },
+      },
+      {
+        name: '转产', type: 'scatter',
+        data: makeScatterData(groups.transformed),
+        symbolSize: 12,
+        itemStyle: { color: '#722ed1' },
+      },
+    ]
+  });
+
+  mapChart.on('click', params => {
+    if (params.data && params.data.enterpriseData) {
+      showEnterpriseModal(params.data.enterpriseData.enterpriseId);
+    }
+  });
+}
+
+// 图例切换
+function toggleLegend(el, type) {
+  if (hiddenTypes.has(type)) {
+    hiddenTypes.delete(type);
+    el.classList.remove('hidden');
+  } else {
+    hiddenTypes.add(type);
+    el.classList.add('hidden');
+  }
+  initMapChart();
+}
+
+// 企业弹窗
+function showEnterpriseModal(enterpriseId) {
+  const e = MOCK_DATA.enterprises.find(x => x.enterpriseId === enterpriseId);
+  const detail = MOCK_DATA.enterpriseDetails[enterpriseId];
+  if (!e || !detail) return;
+
+  const opMap = { '1': ['正常', 'success'], '2': ['停养', 'warning'], '3': ['转产', 'purple'] };
+  const [opName, opClass] = opMap[e.operationStatus] || ['正常', 'success'];
+
+  document.getElementById('modal-enterprise-name').textContent = e.enterpriseName;
+
+  document.getElementById('modal-body-content').innerHTML = `
+    <div class="modal-row"><div class="modal-row-label">统一社会信用代码</div><div class="modal-row-value" style="font-size:11px;">${detail.creditCode}</div></div>
+    <div class="modal-row"><div class="modal-row-label">企业类型</div><div class="modal-row-value"><span class="tag tag-default">${e.enterpriseTypeName}</span></div></div>
+    <div class="modal-row"><div class="modal-row-label">经营状况</div><div class="modal-row-value"><span class="tag tag-${opClass}">${opName}</span></div></div>
+    <div class="modal-row"><div class="modal-row-label">法人代表</div><div class="modal-row-value">${detail.legalPerson}</div></div>
+    <div class="modal-row"><div class="modal-row-label">联系电话</div><div class="modal-row-value">${detail.contactPhone}</div></div>
+    <div class="modal-row"><div class="modal-row-label">详细地址</div><div class="modal-row-value">${detail.address}</div></div>
+    <div class="modal-row"><div class="modal-row-label">养殖规模</div><div class="modal-row-value">${detail.breedingScale.toLocaleString()} 头</div></div>
+  `;
+
+  const videoArea = document.getElementById('modal-video-area');
+  if (e.hasVideoDevice) {
+    videoArea.innerHTML = `
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button class="btn-video" onclick="gotoVideoMonitor(${enterpriseId})">
+          <i class="fa fa-video"></i> 查看视频监控
+        </button>
+        <span style="font-size:11px; color: var(--text-secondary);">${e.videoDeviceOnline}台在线 / 共${e.videoDeviceTotal}台</span>
+      </div>
+    `;
+  } else {
+    videoArea.innerHTML = `<span class="no-video"><i class="fa fa-video-slash" style="margin-right:4px;"></i>未接入视频监控</span>`;
+  }
+
+  document.getElementById('feature-enterprise-modal').classList.add('show');
+}
+
+function closeEnterpriseModal() {
+  document.getElementById('feature-enterprise-modal').classList.remove('show');
+}
+
+function gotoVideoMonitor(enterpriseId) {
+  alert(`跳转至视频监管模块\n路由：/video/monitor?enterpriseId=${enterpriseId}\n\n【原型模拟：实际将退出大屏并跳转到视频监控页面】`);
+}
+
+// 市场行情
+function initMarket() {
+  const { market } = MOCK_DATA;
+  const items = [
+    { name: '生猪（外三元）', price: market.pigPrice, change: market.pigChange, unit: '元/kg', sparkData: market.sparklines.pig },
+    { name: '玉米', price: market.cornPrice, change: market.cornChange, unit: '元/吨', sparkData: market.sparklines.corn },
+    { name: '豆粕', price: market.soyMealPrice, change: market.soyMealChange, unit: '元/吨', sparkData: market.sparklines.soyMeal },
+    { name: '白条猪肉', price: market.porkPrice, change: market.porkChange, unit: '元/kg', sparkData: market.sparklines.pork },
+  ];
+
+  const container = document.getElementById('market-list');
+  items.forEach((item, idx) => {
+    const changeClass = item.change > 0 ? 'up' : item.change < 0 ? 'down' : 'flat';
+    const changeIcon = item.change > 0 ? '↑' : item.change < 0 ? '↓' : '—';
+    const changeAbs = Math.abs(item.change);
+    const div = document.createElement('div');
+    div.className = 'market-card';
+    div.innerHTML = `
+      <div class="market-name">${item.name}</div>
+      <div class="market-price-wrap">
+        <div class="market-price">${item.price.toFixed(2)}<span class="market-unit">${item.unit}</span></div>
+        <div class="market-change ${changeClass}">${changeIcon}${changeAbs}</div>
+      </div>
+      <canvas class="sparkline" id="spark-${idx}"></canvas>
+    `;
+    container.appendChild(div);
+    setTimeout(() => drawSparkline(`spark-${idx}`, item.sparkData, item.change), 300);
+  });
+
+  // 猪粮比
+  const ratio = market.pigGrainRatio;
+  const pgrEl = document.getElementById('pgr-value');
+  pgrEl.textContent = `${ratio.toFixed(2)}:1`;
+  if (ratio >= 9) { pgrEl.className = 'pgr-value green'; document.getElementById('pgr-status-label').textContent = '盈利区间'; }
+  else if (ratio >= 6) { pgrEl.className = 'pgr-value blue'; document.getElementById('pgr-status-label').textContent = '正常区间'; }
+  else { pgrEl.className = 'pgr-value red'; document.getElementById('pgr-status-label').textContent = '亏损区间'; }
+}
+
+function drawSparkline(canvasId, data, change) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  const min = Math.min(...data), max = Math.max(...data);
+  const range = max - min || 1;
+  const points = data.map((v, i) => ({
+    x: (i / (data.length - 1)) * w,
+    y: h - ((v - min) / range) * h
+  }));
+  ctx.clearRect(0, 0, w, h);
+  ctx.beginPath();
+  ctx.strokeStyle = change >= 0 ? '#f5222d' : '#52c41a';
+  ctx.lineWidth = 1.5;
+  points.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+  ctx.stroke();
+}
+
+// 进度条动画辅助：确保 transition 有效触发
+function animateProgressBar(barId, textId, value, delay) {
+  setTimeout(() => {
+    const bar = document.getElementById(barId);
+    const text = document.getElementById(textId);
+    if (!bar || !text) return;
+    const color = getProgressColor(value);
+    text.textContent = value + '%';
+    bar.style.background = color;
+    // 先确保是 0，再在下一帧设置目标值以触发 transition
+    bar.style.width = '0%';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        bar.style.width = value + '%';
+      });
+    });
+  }, delay);
+}
+
+// 检验检疫概况
+function initQuarantine() {
+  const q = MOCK_DATA.quarantine;
+  countUp(document.getElementById('quarantine-total'), q.quarantineTotal, 1500);
+
+  animateProgressBar('qualified-rate-bar', 'qualified-rate-text', q.qualifiedRate, 700);
+  animateProgressBar('immune-rate-bar', 'immune-rate-text', q.immuneCoverage, 900);
+
+  document.getElementById('dead-total').textContent = q.deadAnimalTotal.toLocaleString() + ' 头次';
+
+  // 迷你饼图
+  const pieEl = document.getElementById('chart-dead-pie');
+  deadPieChart = echarts.init(pieEl, 'dark', { renderer: 'svg' });
+  deadPieChart.setOption({
+    backgroundColor: 'transparent',
+    tooltip: {
+      trigger: 'item',
+      backgroundColor: 'rgba(27,40,56,0.95)',
+      borderColor: '#2a4a6b',
+      textStyle: { color: '#e0e6ed', fontSize: 11 },
+      formatter: p => `${p.name}: ${p.percent}%`,
+    },
+    series: [{
+      type: 'pie',
+      radius: ['35%', '80%'],
+      center: ['50%', '50%'],
+      data: q.deadAnimalTypes.map(d => ({ name: d.name, value: d.value, itemStyle: { color: d.color } })),
+      label: { show: false },
+      emphasis: { label: { show: false } },
+    }]
+  });
+}
+
+// 预警滚动列表
+let warningScrollTimer = null;
+let warningIndex = 0;
+
+function initWarningList() {
+  const warnings = MOCK_DATA.warnings;
+  const container = document.getElementById('warning-list');
+
+  if (!warnings.length) {
+    container.innerHTML = `<div class="no-warning"><i class="fa fa-check-circle"></i><span>当前无待处理预警</span></div>`;
+    return;
+  }
+
+  const typeColorMap = {
+    disease: { icon: 'fa-virus', color: '#f5222d', tagClass: 'background:rgba(245,34,45,0.15);color:#f5222d;' },
+    death: { icon: 'fa-exclamation-triangle', color: '#fa8c16', tagClass: 'background:rgba(250,140,22,0.15);color:#fa8c16;' },
+    video: { icon: 'fa-video', color: '#faad14', tagClass: 'background:rgba(250,173,20,0.15);color:#faad14;' },
+    capacity: { icon: 'fa-chart-line', color: '#722ed1', tagClass: 'background:rgba(114,46,209,0.15);color:#722ed1;' },
+    overdue: { icon: 'fa-clock', color: '#8c8c8c', tagClass: 'background:rgba(140,140,140,0.15);color:#8c8c8c;' },
+  };
+
+  const render = () => {
+    container.innerHTML = warnings.map(w => {
+      const t = typeColorMap[w.type] || typeColorMap.overdue;
+      return `
+        <div class="warning-item">
+          <div class="warning-time">${w.time}</div>
+          <div class="warning-icon"><i class="fa ${t.icon}" style="color:${t.color}; animation: blink 1s ease-in-out infinite;"></i></div>
+          <span class="tag" style="${t.tagClass}; font-size:10px; padding:1px 5px; border-radius:8px; flex-shrink:0;">${w.tagText}</span>
+          <div class="warning-content">${w.content}</div>
+        </div>
+      `;
+    }).join('');
+  };
+
+  render();
+  startWarningScroll();
+}
+
+function startWarningScroll() {
+  const list = document.getElementById('warning-list');
+  const wrap = list.parentElement;
+  let paused = false;
+
+  wrap.addEventListener('mouseenter', () => { paused = true; });
+  wrap.addEventListener('mouseleave', () => { paused = false; });
+
+  warningScrollTimer = setInterval(() => {
+    if (paused) return;
+    const items = list.querySelectorAll('.warning-item');
+    if (!items.length) return;
+    const itemH = items[0].offsetHeight + 1;
+    warningIndex = (warningIndex + 1) % MOCK_DATA.warnings.length;
+    list.style.transform = `translateY(-${warningIndex * itemH}px)`;
+  }, 3000);
+}
+
+// 底部播报
+function initBroadcast() {
+  const msgs = MOCK_DATA.broadcasts;
+  const text = msgs.map(m => `◆ [${m.time}] ${m.content}`).join('  ');
+  document.getElementById('broadcast-text').textContent = text;
+  document.getElementById('update-time').textContent = '2026-03-10 14:00';
+}
+
+// ESC退出
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const modal = document.getElementById('feature-enterprise-modal');
+    if (modal.classList.contains('show')) {
+      closeEnterpriseModal();
+    } else {
+      exitScreen();
+    }
+  }
+});
+
+function exitScreen() {
+  alert('退出大屏\n\n【原型模拟：实际将返回管理系统正常浅色界面，恢复顶栏和侧栏显示】');
+}
+
+// 图表自适应
+window.addEventListener('resize', () => {
+  [mapChart, structureChart, rankingChart, trendChart, deadPieChart].forEach(c => c && c.resize());
+  Object.values(sparklineCharts).forEach(c => c && c.resize());
+});
+
+// 主初始化流程
+function init() {
+  startClock();
+  initKPIs();
+  initMarket();
+  initBroadcast();
+
+  setTimeout(() => {
+    initStructureChart();
+    initRankingChart();
+    initTrendChart();
+    initMapChart();
+    initQuarantine();
+    initWarningList();
+
+    // 隐藏加载屏
+    setTimeout(() => {
+      const ls = document.getElementById('loading-screen');
+      ls.classList.add('hidden');
+      setTimeout(() => { ls.style.display = 'none'; }, 800);
+    }, 800);
+  }, 400);
+}
+
+init();
+</script>
+</body>
+</html>

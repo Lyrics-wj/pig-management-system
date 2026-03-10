@@ -1,0 +1,693 @@
+<!--
+  功能名称：视频监控告警管理
+  对应PRD：doc_prd/WEB/监管端/视频监管/WEB监管端-视频监控告警管理.prd.md
+  所属端口：WEB监管端
+  所属模块：视频监管
+  制作日期：2026-03-10
+  最后更新：2026-03-10
+  角色说明：county_admin可见告警规则Tab；所有角色可查看告警记录和处理告警
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>视频监控告警管理 - 蓬溪县生猪数字化管理平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    /* SHARED STYLES */
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; }
+    .sidebar { width: 240px; min-width: 240px; background: #001529; }
+    .menu-item { padding: 10px 20px; cursor: pointer; color: rgba(255,255,255,0.65); font-size: 14px; transition: all 0.2s; }
+    .menu-item:hover { background: rgba(255,255,255,0.1); color: white; }
+    .menu-item.active { background: #1677ff; color: white; }
+    .tab-btn { padding: 10px 20px; cursor: pointer; font-size: 14px; border-bottom: 3px solid transparent; color: #595959; transition: all 0.2s; }
+    .tab-btn.active { color: #1677ff; border-bottom-color: #1677ff; }
+    .status-badge { padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 500; }
+    .tag-unhandled { background: #fff2f0; color: #ff4d4f; border: 1px solid #ffccc7; }
+    .tag-handled { background: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
+    .tag-ignored { background: #fafafa; color: #8c8c8c; border: 1px solid #d9d9d9; }
+    .tag-alarm-type { background: #fff2f0; color: #ff4d4f; border: 1px solid #ffccc7; }
+    .row-unhandled { background: #fff1f0 !important; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+    .modal { background: white; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+    .form-label { font-size: 14px; color: #262626; font-weight: 500; }
+    .required::before { content: '*'; color: #ff4d4f; margin-right: 4px; }
+    .form-input { border: 1px solid #d9d9d9; border-radius: 4px; padding: 6px 10px; width: 100%; font-size: 14px; outline: none; transition: border-color 0.2s; }
+    .form-input:focus { border-color: #1677ff; box-shadow: 0 0 0 2px rgba(22,119,255,0.1); }
+    .form-input.error { border-color: #ff4d4f; }
+    .error-msg { color: #ff4d4f; font-size: 12px; margin-top: 2px; }
+    table { border-collapse: collapse; width: 100%; }
+    th { background: #fafafa; font-weight: 600; font-size: 13px; color: #595959; border-bottom: 1px solid #e8e8e8; padding: 12px 8px; text-align: left; white-space: nowrap; }
+    td { padding: 10px 8px; font-size: 13px; color: #262626; border-bottom: 1px solid #f0f0f0; white-space: nowrap; }
+    tr:nth-child(even) td { background: inherit; }
+    tr:hover td { background: #e6f4ff; }
+    .op-btn { color: #1677ff; cursor: pointer; font-size: 13px; padding: 2px 6px; border-radius: 3px; }
+    .op-btn:hover { background: #e6f4ff; }
+    .op-btn.danger { color: #ff4d4f; }
+    .op-btn.danger:hover { background: #fff2f0; }
+    .btn-primary { background: #1677ff; color: white; border: none; border-radius: 4px; padding: 6px 16px; font-size: 14px; cursor: pointer; }
+    .btn-primary:hover { background: #4096ff; }
+    .btn-default { background: white; color: #262626; border: 1px solid #d9d9d9; border-radius: 4px; padding: 6px 16px; font-size: 14px; cursor: pointer; }
+    .btn-default:hover { border-color: #1677ff; color: #1677ff; }
+    .btn-danger { background: #ff4d4f; color: white; border: none; border-radius: 4px; padding: 6px 16px; font-size: 14px; cursor: pointer; }
+    .sticky-op { position: sticky; right: 0; background: white; }
+    tr:hover td.sticky-op { background: #e6f4ff; }
+    .pagination-btn { border: 1px solid #d9d9d9; background: white; padding: 4px 10px; border-radius: 4px; font-size: 13px; cursor: pointer; }
+    .pagination-btn:hover, .pagination-btn.active { border-color: #1677ff; color: #1677ff; }
+    .success-toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); background: #f6ffed; border: 1px solid #b7eb8f; color: #52c41a; padding: 10px 24px; border-radius: 6px; font-size: 14px; z-index: 9999; }
+    .alarm-snapshot { width: 60px; height: 40px; object-fit: cover; border-radius: 3px; cursor: pointer; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #888; }
+    .switch-track { width: 44px; height: 22px; border-radius: 11px; cursor: pointer; transition: background 0.2s; position: relative; }
+    .switch-thumb { width: 18px; height: 18px; border-radius: 50%; background: white; position: absolute; top: 2px; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+    /* 绘制区域样式 */
+    .draw-area { position: relative; background: #000; border-radius: 4px; overflow: hidden; cursor: crosshair; }
+    .draw-canvas { position: absolute; inset: 0; }
+  </style>
+</head>
+<body x-data="alarmApp()" x-init="init()">
+
+<div class="flex h-screen overflow-hidden">
+
+  <!-- SECTION START: 侧边菜单 -->
+  <aside class="sidebar flex flex-col flex-shrink-0">
+    <div class="p-4 border-b" style="border-color: rgba(255,255,255,0.08);">
+      <div class="flex items-center space-x-2">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: #1677ff;">
+          <i class="fas fa-video text-white text-sm"></i>
+        </div>
+        <div>
+          <div class="text-white font-bold text-sm">蓬溪县生猪数字化</div>
+          <div class="text-xs text-gray-400">管理平台 · 监管端</div>
+        </div>
+      </div>
+    </div>
+    <nav class="flex-1 py-3">
+      <div class="px-4 mb-2 text-xs text-gray-500">视频监管</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-视频监管驾驶舱.html'"><i class="fas fa-tachometer-alt mr-2"></i>视频监管驾驶舱</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-视频设备信息管理.html'"><i class="fas fa-camera mr-2"></i>视频设备信息管理</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-视频监控实时查看.html'"><i class="fas fa-desktop mr-2"></i>视频监控实时查看</div>
+      <div class="menu-item active"><i class="fas fa-bell mr-2"></i>视频监控告警管理</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-视频监控历史回放.html'"><i class="fas fa-history mr-2"></i>视频监控历史回放</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-云存储管理.html'"><i class="fas fa-cloud mr-2"></i>云存储管理</div>
+    </nav>
+    <div class="p-3 border-t" style="border-color: rgba(255,255,255,0.08);">
+      <select x-model="currentRole" @change="switchRole()" class="w-full text-sm px-2 py-1 rounded text-white" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
+        <option value="county_admin" style="background:#001529">县级管理员</option>
+        <option value="county_staff" style="background:#001529">县级业务人员</option>
+        <option value="town_gov_staff" style="background:#001529">乡镇政府业务人员</option>
+        <option value="ent_admin" style="background:#001529">企业管理员</option>
+      </select>
+    </div>
+  </aside>
+  <!-- SECTION END: 侧边菜单 -->
+
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <!-- 顶部 -->
+    <header class="bg-white border-b px-6 flex items-center justify-between flex-shrink-0" style="height: 56px; border-color: #e8e8e8;">
+      <div>
+        <span class="text-gray-400 text-sm">视频监管</span>
+        <span class="text-gray-400 text-sm mx-2">/</span>
+        <span class="text-gray-700 text-sm font-medium">视频监控告警管理</span>
+      </div>
+      <div class="flex items-center space-x-3">
+        <!-- 铃铛 -->
+        <div class="relative" x-data="{ bellOpen: false }">
+          <i class="fas fa-bell text-gray-500 text-lg cursor-pointer" @click="bellOpen = !bellOpen"></i>
+          <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">3</span>
+          <!-- 铃铛下拉面板 -->
+          <div x-show="bellOpen" @click.outside="bellOpen=false" class="absolute right-0 top-8 bg-white rounded-lg shadow-lg border z-50" style="width: 320px; border-color: #e8e8e8;">
+            <div class="px-4 py-3 border-b font-semibold text-gray-700 text-sm">未处理告警 (3条)</div>
+            <template x-for="a in alarmList.filter(x=>x.handleStatus==='0').slice(0,5)" :key="a.alarmId">
+              <div class="px-4 py-2 hover:bg-gray-50 cursor-pointer border-b" style="border-color:#f0f0f0" @click="openDetail(a); bellOpen=false">
+                <div class="flex justify-between">
+                  <span class="text-sm font-medium text-gray-800 truncate" x-text="a.deviceName"></span>
+                  <span class="text-xs text-gray-400 ml-2 flex-shrink-0" x-text="a.alarmTime.slice(11)"></span>
+                </div>
+                <div class="text-xs text-gray-500 mt-0.5" x-text="a.enterpriseName"></div>
+              </div>
+            </template>
+            <div class="px-4 py-2 text-center">
+              <a class="text-sm text-blue-500 cursor-pointer hover:underline" @click="bellOpen=false">查看全部告警</a>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <div class="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-bold">张</div>
+          <span class="text-sm text-gray-600" x-text="currentRoleName"></span>
+          <i class="fas fa-sign-out-alt text-gray-400 cursor-pointer"></i>
+        </div>
+      </div>
+    </header>
+
+    <div class="flex-1 overflow-y-auto">
+      <!-- SECTION START: Tab页签 -->
+      <div class="bg-white border-b flex" style="border-color: #e8e8e8;">
+        <div class="tab-btn" :class="activeTab==='records'?'active':''" @click="activeTab='records'">
+          告警记录
+          <span class="ml-1 text-xs bg-red-100 text-red-500 px-1.5 py-0.5 rounded-full" x-text="alarmList.filter(a=>a.handleStatus==='0').length"></span>
+        </div>
+        <div class="tab-btn" :class="activeTab==='rules'?'active':''" @click="activeTab='rules'" x-show="currentRole==='county_admin'">
+          告警规则
+        </div>
+      </div>
+      <!-- SECTION END: Tab页签 -->
+
+      <!-- SECTION START: 告警记录Tab -->
+      <div x-show="activeTab==='records'" class="p-5">
+        <!-- 筛选栏 -->
+        <div class="bg-white rounded-lg p-4 mb-4 shadow-sm">
+          <div class="grid grid-cols-5 gap-3">
+            <div>
+              <label class="text-sm text-gray-600 mb-1 block">设备名称</label>
+              <input x-model="filter.deviceName" type="text" placeholder="请输入设备名称" class="form-input">
+            </div>
+            <div>
+              <label class="text-sm text-gray-600 mb-1 block">使用单位</label>
+              <input x-model="filter.enterpriseName" type="text" placeholder="请输入使用单位" class="form-input">
+            </div>
+            <div x-show="currentRole!=='ent_admin' && currentRole!=='town_gov_staff'">
+              <label class="text-sm text-gray-600 mb-1 block">所属乡镇</label>
+              <select x-model="filter.town" class="form-input">
+                <option value="">全部</option>
+                <option>蓬南镇</option><option>天福镇</option><option>赤城镇</option><option>新会镇</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-sm text-gray-600 mb-1 block">处理状态</label>
+              <select x-model="filter.handleStatus" class="form-input">
+                <option value="">全部</option>
+                <option value="0">未处理</option><option value="1">已处理</option><option value="2">已忽略</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-sm text-gray-600 mb-1 block">告警时间</label>
+              <input x-model="filter.dateStart" type="date" class="form-input">
+            </div>
+          </div>
+          <div class="flex mt-3 space-x-2">
+            <button @click="doSearch()" class="btn-primary"><i class="fas fa-search mr-1"></i>查询</button>
+            <button @click="resetFilter()" class="btn-default"><i class="fas fa-redo mr-1"></i>重置</button>
+          </div>
+        </div>
+        <!-- 表格 -->
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col" style="max-height: calc(100vh - 340px);">
+          <div class="overflow-auto flex-1">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:60px">序号</th>
+                  <th style="width:160px">告警时间</th>
+                  <th style="width:180px">设备名称</th>
+                  <th style="width:180px">使用单位</th>
+                  <th style="width:100px">所属乡镇</th>
+                  <th style="width:80px">告警类型</th>
+                  <th style="width:80px">告警截图</th>
+                  <th style="width:80px">处理状态</th>
+                  <th style="width:100px">处理人</th>
+                  <th style="width:160px">处理时间</th>
+                  <th style="width:200px; position:sticky; right:0;" class="sticky-op">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="(row, idx) in pagedAlarms" :key="row.alarmId">
+                  <tr :class="row.handleStatus==='0' ? 'row-unhandled' : ''">
+                    <td x-text="(currentPage-1)*pageSize + idx + 1"></td>
+                    <td x-text="row.alarmTime"></td>
+                    <td class="truncate" style="max-width:180px" :title="row.deviceName" x-text="row.deviceName"></td>
+                    <td class="truncate" style="max-width:180px" :title="row.enterpriseName" x-text="row.enterpriseName"></td>
+                    <td x-text="row.areaName"></td>
+                    <td><span class="status-badge tag-alarm-type">人员入侵</span></td>
+                    <td>
+                      <div class="alarm-snapshot flex items-center justify-center text-gray-400" @click="openDetail(row)">
+                        <i class="fas fa-image text-xl"></i>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="status-badge" :class="row.handleStatus==='0'?'tag-unhandled':row.handleStatus==='1'?'tag-handled':'tag-ignored'" x-text="row.handleStatus==='0'?'未处理':row.handleStatus==='1'?'已处理':'已忽略'"></span>
+                    </td>
+                    <td x-text="row.handleBy || '—'"></td>
+                    <td x-text="row.handleTime || '—'"></td>
+                    <td class="sticky-op" style="position:sticky; right:0;" :class="row.handleStatus==='0' ? '' : ''">
+                      <div class="flex space-x-1 flex-wrap gap-y-1">
+                        <span class="op-btn" @click="openDetail(row)">查看详情</span>
+                        <span class="op-btn" x-show="row.handleStatus==='0'" @click="openHandleModal(row)">处理</span>
+                        <span class="op-btn" @click="viewPlayback(row)">查看回放</span>
+                      </div>
+                    </td>
+                  </tr>
+                </template>
+                <template x-if="filteredAlarms.length === 0">
+                  <tr><td colspan="11" class="text-center py-12 text-gray-400"><i class="fas fa-shield-alt text-4xl mb-2 block text-green-300"></i>暂无告警记录</td></tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+          <div class="flex items-center justify-between px-4 py-3 border-t flex-shrink-0" style="border-color: #f0f0f0;">
+            <span class="text-sm text-gray-500">共 <span x-text="filteredAlarms.length"></span> 条记录</span>
+            <div class="flex items-center space-x-1">
+              <button class="pagination-btn" @click="currentPage=Math.max(1,currentPage-1)" :disabled="currentPage===1">&#8249;</button>
+              <template x-for="p in totalPages" :key="p">
+                <button class="pagination-btn" :class="p===currentPage?'active':''" @click="currentPage=p" x-text="p"></button>
+              </template>
+              <button class="pagination-btn" @click="currentPage=Math.min(totalPages,currentPage+1)" :disabled="currentPage===totalPages">&#8250;</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- SECTION END: 告警记录Tab -->
+
+      <!-- SECTION START: 告警规则Tab -->
+      <div x-show="activeTab==='rules' && currentRole==='county_admin'" class="p-5">
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+          <div class="flex items-center justify-between px-4 py-3 border-b" style="border-color: #f0f0f0;">
+            <span class="font-medium text-gray-700">告警规则列表</span>
+            <button @click="openRuleModal('add', null)" class="btn-primary text-sm py-1.5"><i class="fas fa-plus mr-1"></i>新增规则</button>
+          </div>
+          <div class="overflow-auto">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:60px">序号</th>
+                  <th style="width:180px">设备名称</th>
+                  <th style="width:180px">使用单位</th>
+                  <th style="width:150px">告警时段</th>
+                  <th style="width:80px">灵敏度</th>
+                  <th style="width:80px">是否喊话</th>
+                  <th style="width:120px">推送方式</th>
+                  <th style="width:80px">启用状态</th>
+                  <th style="width:160px">创建时间</th>
+                  <th style="width:120px; position:sticky; right:0;" class="sticky-op">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="(rule, idx) in ruleList" :key="rule.ruleId">
+                  <tr>
+                    <td x-text="idx+1"></td>
+                    <td x-text="rule.deviceName"></td>
+                    <td x-text="rule.enterpriseName"></td>
+                    <td x-text="rule.alarmStartTime + ' ~ ' + rule.alarmEndTime"></td>
+                    <td x-text="rule.sensitivity==='1'?'低':rule.sensitivity==='2'?'中':'高'"></td>
+                    <td x-text="rule.isBroadcast==='1'?'是':'否'"></td>
+                    <td x-text="rule.notifyType==='platform'?'平台消息':rule.notifyType==='sms'?'短信':'平台消息+短信'"></td>
+                    <td>
+                      <div class="switch-track" :style="rule.status==='0'?'background:#1677ff':'background:#d9d9d9'" @click="toggleRuleStatus(rule)">
+                        <div class="switch-thumb" :style="rule.status==='0'?'transform:translateX(24px)':'transform:translateX(2px)'"></div>
+                      </div>
+                    </td>
+                    <td x-text="rule.createTime"></td>
+                    <td class="sticky-op" style="position:sticky; right:0;">
+                      <div class="flex space-x-1">
+                        <span class="op-btn" @click="openRuleModal('edit', rule)">编辑</span>
+                        <span class="op-btn danger" @click="deleteRule(rule)">删除</span>
+                      </div>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- SECTION END: 告警规则Tab -->
+    </div>
+  </div>
+</div>
+
+<!-- SECTION START: 告警详情弹窗 -->
+<div class="modal-overlay" x-show="showDetailModal" x-transition @click.self="showDetailModal=false">
+  <div class="modal" style="width: 700px; max-height: 90vh; overflow-y: auto;">
+    <div class="flex items-center justify-between px-6 py-4 border-b">
+      <h3 class="font-semibold text-gray-800">告警详情</h3>
+      <i class="fas fa-times cursor-pointer text-gray-400" @click="showDetailModal=false"></i>
+    </div>
+    <div class="px-6 py-4" x-show="detailAlarm">
+      <!-- 截图区域 -->
+      <div class="bg-gray-100 rounded-lg p-8 text-center mb-4" style="min-height: 200px;">
+        <i class="fas fa-image text-6xl text-gray-300 mb-3"></i>
+        <p class="text-gray-400 text-sm">告警截图（模拟展示）</p>
+        <p class="text-gray-400 text-xs mt-1" x-text="detailAlarm && detailAlarm.alarmTime + ' 抓拍'"></p>
+      </div>
+      <!-- 信息表格 -->
+      <div class="grid grid-cols-2 gap-3 text-sm">
+        <div class="flex"><span class="text-gray-500 w-24 flex-shrink-0">告警时间：</span><span class="text-gray-800" x-text="detailAlarm && detailAlarm.alarmTime"></span></div>
+        <div class="flex"><span class="text-gray-500 w-24 flex-shrink-0">设备名称：</span><span class="text-gray-800" x-text="detailAlarm && detailAlarm.deviceName"></span></div>
+        <div class="flex"><span class="text-gray-500 w-24 flex-shrink-0">使用单位：</span><span class="text-gray-800" x-text="detailAlarm && detailAlarm.enterpriseName"></span></div>
+        <div class="flex"><span class="text-gray-500 w-24 flex-shrink-0">所属乡镇：</span><span class="text-gray-800" x-text="detailAlarm && detailAlarm.areaName"></span></div>
+        <div class="flex"><span class="text-gray-500 w-24 flex-shrink-0">告警类型：</span><span class="status-badge tag-alarm-type">人员入侵</span></div>
+        <div class="flex"><span class="text-gray-500 w-24 flex-shrink-0">处理状态：</span>
+          <span class="status-badge" :class="detailAlarm && (detailAlarm.handleStatus==='0'?'tag-unhandled':detailAlarm.handleStatus==='1'?'tag-handled':'tag-ignored')" x-text="detailAlarm && (detailAlarm.handleStatus==='0'?'未处理':detailAlarm.handleStatus==='1'?'已处理':'已忽略')"></span>
+        </div>
+        <div class="flex"><span class="text-gray-500 w-24 flex-shrink-0">处理人：</span><span class="text-gray-800" x-text="detailAlarm && (detailAlarm.handleBy || '—')"></span></div>
+        <div class="flex"><span class="text-gray-500 w-24 flex-shrink-0">处理时间：</span><span class="text-gray-800" x-text="detailAlarm && (detailAlarm.handleTime || '—')"></span></div>
+        <div class="flex col-span-2"><span class="text-gray-500 w-24 flex-shrink-0">处理说明：</span><span class="text-gray-800" x-text="detailAlarm && (detailAlarm.handleRemark || '—')"></span></div>
+      </div>
+    </div>
+    <div class="flex justify-end space-x-3 px-6 py-4 border-t bg-gray-50">
+      <button class="btn-primary" x-show="detailAlarm && detailAlarm.handleStatus==='0'" @click="showDetailModal=false; openHandleModal(detailAlarm)">处理</button>
+      <button class="btn-default" @click="viewPlayback(detailAlarm)">查看回放</button>
+      <button class="btn-default" @click="showDetailModal=false">关闭</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 告警详情弹窗 -->
+
+<!-- SECTION START: 告警处理弹窗 -->
+<div class="modal-overlay" x-show="showHandleModal" x-transition @click.self="showHandleModal=false">
+  <div class="modal" style="width: 500px;">
+    <div class="flex items-center justify-between px-6 py-4 border-b">
+      <h3 class="font-semibold text-gray-800">处理告警</h3>
+      <i class="fas fa-times cursor-pointer text-gray-400" @click="showHandleModal=false"></i>
+    </div>
+    <div class="px-6 py-4 space-y-4">
+      <div>
+        <label class="form-label block mb-1"><span class="required"></span>处理结果</label>
+        <select x-model="handleForm.handleStatus" class="form-input" :class="handleErrors.handleStatus?'error':''">
+          <option value="">请选择处理结果</option>
+          <option value="1">已确认处理</option>
+          <option value="2">误报忽略</option>
+        </select>
+        <p class="error-msg" x-show="handleErrors.handleStatus" x-text="handleErrors.handleStatus"></p>
+      </div>
+      <div>
+        <label class="form-label block mb-1"><span class="required"></span>处理说明 <span class="text-gray-400 text-xs font-normal">（至少10字符）</span></label>
+        <textarea x-model="handleForm.handleRemark" rows="4" placeholder="请详细描述处理情况..." class="form-input" :class="handleErrors.handleRemark?'error':''" style="resize: vertical;"></textarea>
+        <div class="flex justify-between mt-1">
+          <p class="error-msg" x-show="handleErrors.handleRemark" x-text="handleErrors.handleRemark"></p>
+          <span class="text-xs text-gray-400 ml-auto" x-text="`${handleForm.handleRemark.length}/500`"></span>
+        </div>
+      </div>
+    </div>
+    <div class="flex justify-end space-x-3 px-6 py-4 border-t bg-gray-50">
+      <button @click="showHandleModal=false" class="btn-default">取消</button>
+      <button @click="submitHandle()" class="btn-primary">确定</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 告警处理弹窗 -->
+
+<!-- SECTION START: 新增/编辑告警规则弹窗 -->
+<div class="modal-overlay" x-show="showRuleModal" x-transition @click.self="showRuleModal=false">
+  <div class="modal" style="width: 800px; max-height: 90vh; overflow-y: auto;">
+    <div class="flex items-center justify-between px-6 py-4 border-b">
+      <h3 class="font-semibold text-gray-800" x-text="ruleMode==='add'?'新增告警规则':'编辑告警规则'"></h3>
+      <i class="fas fa-times cursor-pointer text-gray-400" @click="showRuleModal=false"></i>
+    </div>
+    <div class="px-6 py-4">
+      <div class="grid grid-cols-2 gap-x-6 gap-y-4">
+        <div>
+          <label class="form-label block mb-1"><span class="required"></span>选择设备</label>
+          <select x-model="ruleForm.deviceId" :disabled="ruleMode==='edit'" class="form-input">
+            <option value="">请选择告警区域摄像头</option>
+            <option value="1">鸿鹄养殖场-大门入口</option>
+            <option value="3">金源牧业-猪舍B区</option>
+            <option value="5">裕丰猪场-生产区入口</option>
+            <option value="6">绿源牧业-东门</option>
+            <option value="11">裕丰猪场-消毒间</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label block mb-1"><span class="required"></span>灵敏度</label>
+          <div class="flex space-x-3 pt-1">
+            <label class="flex items-center space-x-1 cursor-pointer"><input type="radio" x-model="ruleForm.sensitivity" value="1"> <span class="text-sm">低</span></label>
+            <label class="flex items-center space-x-1 cursor-pointer"><input type="radio" x-model="ruleForm.sensitivity" value="2"> <span class="text-sm">中</span></label>
+            <label class="flex items-center space-x-1 cursor-pointer"><input type="radio" x-model="ruleForm.sensitivity" value="3"> <span class="text-sm">高</span></label>
+          </div>
+        </div>
+        <div>
+          <label class="form-label block mb-1"><span class="required"></span>告警开始时间</label>
+          <input x-model="ruleForm.alarmStartTime" type="time" class="form-input">
+        </div>
+        <div>
+          <label class="form-label block mb-1"><span class="required"></span>告警结束时间</label>
+          <input x-model="ruleForm.alarmEndTime" type="time" class="form-input">
+        </div>
+        <div class="flex items-center space-x-3">
+          <label class="form-label">是否喊话</label>
+          <div @click="ruleForm.isBroadcast = ruleForm.isBroadcast === '1' ? '0' : '1'" class="switch-track cursor-pointer" :style="ruleForm.isBroadcast==='1'?'background:#1677ff':'background:#d9d9d9'">
+            <div class="switch-thumb" :style="ruleForm.isBroadcast==='1'?'transform:translateX(24px)':'transform:translateX(2px)'"></div>
+          </div>
+        </div>
+        <div x-show="ruleForm.isBroadcast==='1'">
+          <label class="form-label block mb-1"><span class="required"></span>喊话内容</label>
+          <input x-model="ruleForm.broadcastContent" type="text" placeholder="请输入喊话内容" class="form-input">
+        </div>
+        <div class="col-span-2">
+          <label class="form-label block mb-2"><span class="required"></span>推送方式</label>
+          <div class="flex space-x-4">
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" :checked="ruleForm.notifyType.includes('platform')" @change="toggleNotify('platform', $event)">
+              <span class="text-sm">平台消息</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" :checked="ruleForm.notifyType.includes('sms')" @change="toggleNotify('sms', $event)">
+              <span class="text-sm">短信</span>
+            </label>
+          </div>
+        </div>
+        <div class="col-span-2">
+          <label class="form-label block mb-2"><span class="required"></span>通知人员</label>
+          <div class="flex flex-wrap gap-2">
+            <template x-for="u in notifyUsers" :key="u.userId">
+              <label class="flex items-center space-x-1 cursor-pointer px-3 py-1 border rounded" :class="ruleForm.notifyUserIds.includes(u.userId) ? 'border-blue-400 bg-blue-50' : 'border-gray-200'">
+                <input type="checkbox" :value="u.userId" x-model="ruleForm.notifyUserIds" class="hidden">
+                <span class="text-sm" x-text="u.name"></span>
+              </label>
+            </template>
+          </div>
+        </div>
+        <!-- 告警区域绘制 -->
+        <div class="col-span-2">
+          <label class="form-label block mb-2"><span class="required"></span>告警区域绘制</label>
+          <div class="draw-area" style="height: 200px; background: #1a2535;" @click="addPoint($event)">
+            <div class="w-full h-full flex items-center justify-center" style="position: relative;">
+              <i class="fas fa-video text-6xl" style="color: rgba(255,255,255,0.05);"></i>
+              <div class="absolute inset-0 flex items-center justify-center" style="color: rgba(255,255,255,0.3); font-size: 12px;" x-show="ruleForm.points.length === 0">
+                点击画面添加顶点绘制检测区域（3~8个顶点）
+              </div>
+              <!-- 顶点和线条 -->
+              <svg class="absolute inset-0 w-full h-full" style="pointer-events: none;">
+                <template x-for="(pt, i) in ruleForm.points" :key="i">
+                  <circle :cx="`${pt.x}%`" :cy="`${pt.y}%`" r="5" fill="#ff4d4f" stroke="white" stroke-width="1.5"/>
+                </template>
+                <template x-if="ruleForm.points.length >= 2">
+                  <polyline :points="ruleForm.points.map(p => `${p.x}% ${p.y}%`).join(' ')" fill="rgba(255,0,0,0.2)" stroke="#ff4d4f" stroke-width="2" :points="ruleForm.points.map(p => (p.x/100*400) + ',' + (p.y/100*200)).join(' ')"/>
+                </template>
+              </svg>
+            </div>
+          </div>
+          <div class="flex items-center justify-between mt-2">
+            <span class="text-xs text-gray-400" x-text="`已绘制 ${ruleForm.points.length} 个顶点`"></span>
+            <button @click="ruleForm.points=[]" class="text-xs text-blue-500 hover:underline cursor-pointer">重新绘制</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="flex justify-end space-x-3 px-6 py-4 border-t bg-gray-50">
+      <button @click="showRuleModal=false" class="btn-default">取消</button>
+      <button @click="submitRule()" class="btn-primary">确定</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 新增/编辑告警规则弹窗 -->
+
+<!-- 删除确认 -->
+<div class="modal-overlay" x-show="showDeleteModal" x-transition>
+  <div class="modal" style="width: 420px;">
+    <div class="px-6 py-5">
+      <div class="flex items-start space-x-3">
+        <i class="fas fa-exclamation-circle text-red-400 text-xl mt-0.5"></i>
+        <div><h4 class="font-semibold text-gray-800 mb-2">确认删除</h4><p class="text-sm text-gray-600" x-text="deleteMsg"></p></div>
+      </div>
+    </div>
+    <div class="flex justify-end space-x-3 px-6 py-4 border-t bg-gray-50">
+      <button @click="showDeleteModal=false" class="btn-default">取消</button>
+      <button @click="confirmDeleteRule()" class="btn-danger">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<div class="success-toast" x-show="showToast" x-transition><i class="fas fa-check-circle mr-2"></i><span x-text="toastMsg"></span></div>
+
+<script>
+const MOCK_DATA = {
+  alarms: [
+    { alarmId: 1001, deviceName: '鸿鹄养殖场-大门入口', enterpriseName: '蓬溪县鸿鹄畜牧有限公司', areaName: '蓬南镇', alarmTime: '2026-03-10 14:32:18', alarmType: '1', handleStatus: '0', handleBy: '', handleTime: '', handleRemark: '' },
+    { alarmId: 1002, deviceName: '金源牧业-猪舍B区', enterpriseName: '蓬溪县金源牧业有限公司', areaName: '天福镇', alarmTime: '2026-03-10 13:15:42', alarmType: '1', handleStatus: '0', handleBy: '', handleTime: '', handleRemark: '' },
+    { alarmId: 1003, deviceName: '天府农场-围栏监控', enterpriseName: '蓬溪县天府农场', areaName: '赤城镇', alarmTime: '2026-03-10 11:58:05', alarmType: '1', handleStatus: '0', handleBy: '', handleTime: '', handleRemark: '' },
+    { alarmId: 1004, deviceName: '裕丰猪场-生产区入口', enterpriseName: '蓬溪县裕丰猪场', areaName: '新会镇', alarmTime: '2026-03-09 16:22:33', alarmType: '1', handleStatus: '1', handleBy: '张监管员', handleTime: '2026-03-09 16:45:00', handleRemark: '现场核实系工作人员正常巡查，已确认处理。' },
+    { alarmId: 1005, deviceName: '绿源牧业-东门', enterpriseName: '蓬溪县绿源牧业有限公司', areaName: '荷叶镇', alarmTime: '2026-03-09 09:47:11', alarmType: '1', handleStatus: '2', handleBy: '李业务', handleTime: '2026-03-09 10:00:00', handleRemark: '经确认为误报，摄像头画面晃动触发，已标记忽略。' },
+    { alarmId: 1006, deviceName: '华兴养殖-仓库区', enterpriseName: '蓬溪县华兴养殖基地', areaName: '金桥乡', alarmTime: '2026-03-08 22:15:03', alarmType: '1', handleStatus: '1', handleBy: '张监管员', handleTime: '2026-03-08 22:30:00', handleRemark: '发现陌生人员入侵，已通知企业保安处理，警方已到场核实。' },
+    { alarmId: 1007, deviceName: '裕丰猪场-消毒间', enterpriseName: '蓬溪县裕丰猪场', areaName: '新会镇', alarmTime: '2026-03-08 19:33:21', alarmType: '1', handleStatus: '1', handleBy: '王乡镇', handleTime: '2026-03-08 20:00:00', handleRemark: '核实为供货商正常送货，已处理确认。' },
+    { alarmId: 1008, deviceName: '鸿鹄养殖场-饲料仓库', enterpriseName: '蓬溪县鸿鹄畜牧有限公司', areaName: '蓬南镇', alarmTime: '2026-03-07 03:22:44', alarmType: '1', handleStatus: '2', handleBy: '赵兽医', handleTime: '2026-03-07 08:15:00', handleRemark: '确认为清洁人员夜间作业，已忽略。' },
+    { alarmId: 1009, deviceName: '金源牧业-大门入口', enterpriseName: '蓬溪县金源牧业有限公司', areaName: '天福镇', alarmTime: '2026-03-06 11:05:17', alarmType: '1', handleStatus: '1', handleBy: '张监管员', handleTime: '2026-03-06 11:30:00', handleRemark: '政府检查人员到访，已核实并处理。' },
+    { alarmId: 1010, deviceName: '绿源牧业-猪舍A区', enterpriseName: '蓬溪县绿源牧业有限公司', areaName: '荷叶镇', alarmTime: '2026-03-05 14:48:52', alarmType: '1', handleStatus: '1', handleBy: '李业务', handleTime: '2026-03-05 15:10:00', handleRemark: '维修人员入场检修设备，已处理确认。' },
+  ],
+  rules: [
+    { ruleId: 1, deviceId: '1', deviceName: '鸿鹄养殖场-大门入口', enterpriseName: '蓬溪县鸿鹄畜牧有限公司', alarmStartTime: '20:00', alarmEndTime: '06:00', sensitivity: '2', isBroadcast: '1', broadcastContent: '注意！您已进入监控区域，请立即离开！', notifyType: 'platform,sms', status: '0', createTime: '2026-01-15 10:00' },
+    { ruleId: 2, deviceId: '3', deviceName: '金源牧业-猪舍B区', enterpriseName: '蓬溪县金源牧业有限公司', alarmStartTime: '22:00', alarmEndTime: '07:00', sensitivity: '3', isBroadcast: '0', broadcastContent: '', notifyType: 'platform', status: '0', createTime: '2026-01-20 14:30' },
+    { ruleId: 3, deviceId: '5', deviceName: '裕丰猪场-生产区入口', enterpriseName: '蓬溪县裕丰猪场', alarmStartTime: '00:00', alarmEndTime: '23:59', sensitivity: '2', isBroadcast: '1', broadcastContent: '警告！非法入侵区域！', notifyType: 'sms', status: '1', createTime: '2026-02-01 09:00' },
+  ],
+  notifyUsers: [
+    { userId: 1, name: '张监管员' }, { userId: 2, name: '李业务' }, { userId: 3, name: '王乡镇' }, { userId: 4, name: '赵兽医' }, { userId: 5, name: '刘主任' }
+  ]
+};
+
+function alarmApp() {
+  return {
+    currentRole: 'county_admin',
+    currentRoleName: '县级管理员',
+    activeTab: 'records',
+    filter: { deviceName: '', enterpriseName: '', town: '', handleStatus: '', dateStart: '' },
+    alarmList: [...MOCK_DATA.alarms],
+    filteredAlarms: [...MOCK_DATA.alarms],
+    currentPage: 1,
+    pageSize: 10,
+    ruleList: [...MOCK_DATA.rules],
+    notifyUsers: MOCK_DATA.notifyUsers,
+    showDetailModal: false,
+    detailAlarm: null,
+    showHandleModal: false,
+    handleForm: { handleStatus: '', handleRemark: '' },
+    handleErrors: {},
+    handleTarget: null,
+    showRuleModal: false,
+    ruleMode: 'add',
+    ruleForm: { deviceId: '', alarmStartTime: '20:00', alarmEndTime: '06:00', sensitivity: '2', isBroadcast: '0', broadcastContent: '', notifyType: 'platform', notifyUserIds: [], points: [] },
+    showDeleteModal: false,
+    deleteMsg: '',
+    deleteRuleTarget: null,
+    showToast: false,
+    toastMsg: '',
+
+    get pagedAlarms() {
+      const start = (this.currentPage - 1) * this.pageSize;
+      return this.filteredAlarms.slice(start, start + this.pageSize);
+    },
+    get totalPages() { return Math.max(1, Math.ceil(this.filteredAlarms.length / this.pageSize)); },
+
+    init() { this.filteredAlarms = [...this.alarmList]; },
+
+    switchRole() {
+      const map = { county_admin: '县级管理员', county_staff: '县级业务人员', town_gov_staff: '乡镇政府业务人员', ent_admin: '企业管理员' };
+      this.currentRoleName = map[this.currentRole];
+      if (this.activeTab === 'rules' && this.currentRole !== 'county_admin') this.activeTab = 'records';
+    },
+
+    doSearch() {
+      this.filteredAlarms = this.alarmList.filter(r => {
+        if (this.filter.deviceName && !r.deviceName.includes(this.filter.deviceName)) return false;
+        if (this.filter.enterpriseName && !r.enterpriseName.includes(this.filter.enterpriseName)) return false;
+        if (this.filter.town && r.areaName !== this.filter.town) return false;
+        if (this.filter.handleStatus && r.handleStatus !== this.filter.handleStatus) return false;
+        return true;
+      });
+      this.currentPage = 1;
+    },
+
+    resetFilter() {
+      this.filter = { deviceName: '', enterpriseName: '', town: '', handleStatus: '', dateStart: '' };
+      this.filteredAlarms = [...this.alarmList];
+      this.currentPage = 1;
+    },
+
+    openDetail(alarm) {
+      this.detailAlarm = alarm;
+      this.showDetailModal = true;
+    },
+
+    openHandleModal(alarm) {
+      this.handleTarget = alarm;
+      this.handleForm = { handleStatus: '', handleRemark: '' };
+      this.handleErrors = {};
+      this.showHandleModal = true;
+    },
+
+    submitHandle() {
+      this.handleErrors = {};
+      if (!this.handleForm.handleStatus) this.handleErrors.handleStatus = '请选择处理结果';
+      if (!this.handleForm.handleRemark) this.handleErrors.handleRemark = '处理说明不能为空';
+      else if (this.handleForm.handleRemark.length < 10) this.handleErrors.handleRemark = '处理说明至少输入10个字符';
+      if (Object.keys(this.handleErrors).length > 0) return;
+
+      const idx = this.alarmList.findIndex(a => a.alarmId === this.handleTarget.alarmId);
+      if (idx >= 0) {
+        this.alarmList[idx] = { ...this.alarmList[idx], handleStatus: this.handleForm.handleStatus, handleBy: '张监管员', handleTime: new Date().toLocaleString('zh-CN'), handleRemark: this.handleForm.handleRemark };
+      }
+      this.doSearch();
+      this.showHandleModal = false;
+      this.showSuccessToast('告警处理完成！');
+    },
+
+    viewPlayback(alarm) {
+      window.location.href = `WEB监管端-视频监控历史回放.html?deviceId=${alarm && alarm.alarmId}&date=2026-03-10`;
+    },
+
+    openRuleModal(mode, rule) {
+      this.ruleMode = mode;
+      if (mode === 'add') {
+        this.ruleForm = { deviceId: '', alarmStartTime: '20:00', alarmEndTime: '06:00', sensitivity: '2', isBroadcast: '0', broadcastContent: '', notifyType: 'platform', notifyUserIds: [], points: [] };
+      } else {
+        this.ruleForm = { ...rule, notifyUserIds: [1], points: [{ x: 10, y: 20 }, { x: 60, y: 20 }, { x: 60, y: 70 }, { x: 10, y: 70 }] };
+      }
+      this.showRuleModal = true;
+    },
+
+    toggleNotify(type, e) {
+      const parts = this.ruleForm.notifyType ? this.ruleForm.notifyType.split(',').filter(Boolean) : [];
+      if (e.target.checked && !parts.includes(type)) parts.push(type);
+      else if (!e.target.checked) { const i = parts.indexOf(type); if (i >= 0) parts.splice(i, 1); }
+      this.ruleForm.notifyType = parts.join(',');
+    },
+
+    addPoint(e) {
+      if (this.ruleForm.points.length >= 8) { alert('告警区域最多支持8个顶点'); return; }
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
+      const y = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
+      this.ruleForm.points.push({ x: parseFloat(x), y: parseFloat(y) });
+    },
+
+    submitRule() {
+      if (!this.ruleForm.deviceId) { alert('请选择设备'); return; }
+      if (this.ruleForm.points.length < 3) { alert('请绘制告警检测区域（至少3个顶点）'); return; }
+      if (!this.ruleForm.notifyType) { alert('请至少选择一种推送方式'); return; }
+      if (this.ruleMode === 'add') {
+        const devOpts = { '1': '鸿鹄养殖场-大门入口', '3': '金源牧业-猪舍B区', '5': '裕丰猪场-生产区入口', '6': '绿源牧业-东门', '11': '裕丰猪场-消毒间' };
+        this.ruleList.push({ ruleId: Date.now(), ...this.ruleForm, deviceName: devOpts[this.ruleForm.deviceId] || '未知设备', enterpriseName: '蓬溪县鸿鹄畜牧有限公司', status: '0', createTime: '2026-03-10 10:00' });
+      } else {
+        const idx = this.ruleList.findIndex(r => r.ruleId === this.ruleForm.ruleId);
+        if (idx >= 0) this.ruleList[idx] = { ...this.ruleList[idx], ...this.ruleForm };
+      }
+      this.showRuleModal = false;
+      this.showSuccessToast(this.ruleMode === 'add' ? '规则新增成功！' : '规则已更新！');
+    },
+
+    toggleRuleStatus(rule) {
+      rule.status = rule.status === '0' ? '1' : '0';
+      this.showSuccessToast(`规则已${rule.status === '0' ? '启用' : '停用'}！`);
+    },
+
+    deleteRule(rule) {
+      this.deleteRuleTarget = rule;
+      this.deleteMsg = `确定要删除设备「${rule.deviceName}」的告警规则吗？`;
+      this.showDeleteModal = true;
+    },
+
+    confirmDeleteRule() {
+      this.ruleList = this.ruleList.filter(r => r.ruleId !== this.deleteRuleTarget.ruleId);
+      this.showDeleteModal = false;
+      this.showSuccessToast('规则已删除！');
+    },
+
+    showSuccessToast(msg) {
+      this.toastMsg = msg;
+      this.showToast = true;
+      setTimeout(() => { this.showToast = false; }, 2500);
+    }
+  };
+}
+</script>
+</body>
+</html>

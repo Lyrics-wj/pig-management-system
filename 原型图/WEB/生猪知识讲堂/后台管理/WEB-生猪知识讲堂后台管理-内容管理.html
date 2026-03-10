@@ -1,0 +1,714 @@
+<!--
+  功能名称：生猪知识讲堂后台管理-内容管理
+  对应PRD：doc_prd/WEB/生猪知识讲堂/后台管理/WEB-生猪知识讲堂后台管理-内容管理.prd.md
+  所属端口：生猪知识讲堂后台管理系统（监管端）
+  所属模块：行业动态管理、轮播Banner管理
+  制作日期：2026-03-06
+  最后更新：2026-03-06
+  角色说明：县级管理员(county_admin)、县级业务人员(county_staff)
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>内容管理 - 生猪知识讲堂后台</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  [x-cloak] { display: none !important; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f4f8; color: #1e293b; }
+  .sidebar { width: 220px; background: linear-gradient(180deg, #0f4c2a 0%, #1a6e3a 60%, #166534 100%); display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-brand { padding: 20px 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .sidebar-brand-icon { width: 36px; height: 36px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.25); }
+  .sidebar-group-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: rgba(255,255,255,0.4); text-transform: uppercase; padding: 12px 16px 4px; }
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 9px 16px; font-size: 13.5px; color: rgba(255,255,255,0.7); cursor: pointer; transition: all 0.15s ease; margin: 1px 8px; border-radius: 8px; }
+  .sidebar-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .sidebar-item.active { background: rgba(255,255,255,0.18); color: #fff; font-weight: 600; box-shadow: inset 3px 0 0 #86efac; }
+  .sidebar-item .si-icon { width: 16px; text-align: center; opacity: 0.85; }
+  .sidebar-user { padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.1); }
+  .sidebar-user-avatar { width: 30px; height: 30px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; }
+  .btn-primary { display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #16a34a, #15803d); color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 13.5px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; box-shadow: 0 1px 3px rgba(22,163,74,0.3); }
+  .btn-primary:hover { background: linear-gradient(135deg, #15803d, #166534); box-shadow: 0 4px 12px rgba(22,163,74,0.35); transform: translateY(-1px); }
+  .btn-secondary { display: inline-flex; align-items: center; gap: 6px; background: #fff; color: #475569; padding: 8px 14px; border-radius: 8px; font-size: 13.5px; font-weight: 500; cursor: pointer; border: 1px solid #cbd5e1; transition: all 0.15s; }
+  .btn-secondary:hover { background: #f8fafc; border-color: #94a3b8; }
+  .act-btn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid transparent; transition: all 0.15s; white-space: nowrap; }
+  .act-edit   { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; } .act-edit:hover   { background: #dbeafe; }
+  .act-stop   { background: #fffbeb; color: #d97706; border-color: #fde68a; } .act-stop:hover   { background: #fef3c7; }
+  .act-start  { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; } .act-start:hover  { background: #dcfce7; }
+  .act-delete { background: #fef2f2; color: #dc2626; border-color: #fecaca; } .act-delete:hover { background: #fee2e2; }
+  .act-publish{ background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; } .act-publish:hover{ background: #dcfce7; }
+  .act-down   { background: #fffbeb; color: #d97706; border-color: #fde68a; } .act-down:hover   { background: #fef3c7; }
+  .act-review { background: #faf5ff; color: #7c3aed; border-color: #ddd6fe; } .act-review:hover { background: #ede9fe; }
+  .act-pass   { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; } .act-pass:hover   { background: #dcfce7; }
+  .act-reject { background: #fef2f2; color: #dc2626; border-color: #fecaca; } .act-reject:hover { background: #fee2e2; }
+  .act-view   { background: #f0f9ff; color: #0284c7; border-color: #bae6fd; } .act-view:hover   { background: #e0f2fe; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-size: 11.5px; font-weight: 500; }
+  .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; display: inline-block; }
+  .badge-success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; } .badge-success::before { background: #22c55e; }
+  .badge-warning { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; } .badge-warning::before { background: #f59e0b; }
+  .badge-danger  { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; } .badge-danger::before  { background: #ef4444; }
+  .badge-gray    { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; } .badge-gray::before    { background: #94a3b8; }
+  .badge-blue    { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; } .badge-blue::before    { background: #3b82f6; }
+  .badge-purple  { background: #faf5ff; color: #7c3aed; border: 1px solid #ddd6fe; } .badge-purple::before  { background: #8b5cf6; }
+  .form-label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 5px; }
+  .form-input { width: 100%; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; font-size: 13.5px; color: #1e293b; background: #fff; transition: border-color 0.15s, box-shadow 0.15s; outline: none; }
+  .form-input:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.12); }
+  .form-select { width: 100%; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; font-size: 13.5px; background: #fff; outline: none; cursor: pointer; transition: border-color 0.15s; }
+  .form-select:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.12); }
+  .form-error { font-size: 11.5px; color: #ef4444; margin-top: 4px; }
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table thead tr { background: #f8fafc; border-bottom: 2px solid #e8edf2; }
+  .table-th { padding: 11px 14px; text-align: left; font-size: 11.5px; font-weight: 700; color: #64748b; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; }
+  .table-td { padding: 12px 14px; font-size: 13.5px; color: #374151; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+  .data-table tbody tr { transition: background 0.12s; }
+  .data-table tbody tr:hover { background: #f8fafc; }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+  .filter-bar { background: #fff; border-radius: 12px; padding: 14px 18px; border: 1px solid #e8edf2; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .filter-select { border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 6px 10px; font-size: 13px; outline: none; background: #fff; color: #374151; cursor: pointer; transition: border-color 0.15s; }
+  .filter-select:focus { border-color: #16a34a; }
+  .filter-input { border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 6px 10px; font-size: 13px; outline: none; color: #374151; transition: border-color 0.15s; }
+  .filter-input:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.1); }
+  .content-card { background: #fff; border-radius: 12px; border: 1px solid #e8edf2; box-shadow: 0 1px 3px rgba(0,0,0,0.04); overflow: hidden; }
+  .stat-card { background: #fff; border-radius: 12px; padding: 16px 20px; border: 1px solid #e8edf2; box-shadow: 0 1px 3px rgba(0,0,0,0.04); transition: transform 0.2s, box-shadow 0.2s; }
+  .stat-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.45); backdrop-filter: blur(3px); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .modal-box { background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); width: 100%; max-width: 480px; animation: modal-in 0.2s ease; }
+  .modal-box-lg { background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; animation: modal-in 0.2s ease; }
+  .modal-box-xl { background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); width: 100%; max-width: 860px; max-height: 90vh; overflow-y: auto; animation: modal-in 0.2s ease; }
+  @keyframes modal-in { from { opacity: 0; transform: translateY(-12px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid #f1f5f9; }
+  .modal-header h3 { font-size: 16px; font-weight: 700; color: #0f172a; }
+  .modal-close { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; color: #94a3b8; transition: all 0.15s; background: none; border: none; }
+  .modal-close:hover { background: #f1f5f9; color: #475569; }
+  .modal-body { padding: 20px 22px; }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 22px; border-top: 1px solid #f1f5f9; background: #f8fafc; border-radius: 0 0 16px 16px; }
+  .page-btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; font-size: 13px; cursor: pointer; border: 1px solid #e2e8f0; color: #475569; background: #fff; transition: all 0.15s; }
+  .page-btn:hover:not(:disabled) { background: #f0fdf4; border-color: #86efac; color: #16a34a; }
+  .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .section-title { font-size: 18px; font-weight: 700; color: #0f172a; }
+  .section-sub { font-size: 13px; color: #64748b; margin-top: 2px; }
+  .tab-pill { padding: 5px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 500; cursor: pointer; border: 1.5px solid #e2e8f0; color: #64748b; background: #fff; transition: all 0.15s; }
+  .tab-pill:hover { border-color: #86efac; color: #16a34a; }
+  .tab-pill.active-all    { background: #1e293b; color: #fff; border-color: #1e293b; }
+  .tab-pill.active-warn   { background: #f59e0b; color: #fff; border-color: #f59e0b; }
+  .tab-pill.active-ok     { background: #16a34a; color: #fff; border-color: #16a34a; }
+  .tab-pill.active-danger { background: #ef4444; color: #fff; border-color: #ef4444; }
+  .tab-pill.active-blue   { background: #2563eb; color: #fff; border-color: #2563eb; }
+  .star-filled { color: #f59e0b; } .star-empty { color: #e2e8f0; }
+</style>
+
+</head>
+<body class="bg-gray-50 min-h-screen" x-data="app()" x-cloak>
+
+<script>
+const MOCK_DATA = {
+  currentUser: { username: 'admin', nick_name: '李管理员', roleName: '县级管理员' },
+
+  articles: [
+    { article_id: 1, title: '2026年生猪市场行情分析与展望', summary: '进入2026年，生猪市场供需格局发生变化，价格呈现季节性波动特征...', article_category: '1', source: '农业农村部', author: '张分析师', cover_image: '', read_count: 1580, is_top: '1', sort_order: 1, publish_status: '1', publish_time: '2026-02-01 09:00:00', create_time: '2026-01-30 14:00:00', create_by: 'admin' },
+    { article_id: 2, title: '非洲猪瘟疫苗研发最新进展', summary: '近期多个科研团队在非洲猪瘟疫苗研发方面取得重要突破...', article_category: '4', source: '中国农业科学院', author: '王研究员', cover_image: '', read_count: 2345, is_top: '0', sort_order: 2, publish_status: '1', publish_time: '2026-02-05 10:00:00', create_time: '2026-02-03 09:00:00', create_by: 'admin' },
+    { article_id: 3, title: '智慧养猪技术在蓬溪县的应用实践', summary: '蓬溪县积极推广智慧养猪技术，通过物联网、大数据实现精准管理...', article_category: '2', source: '蓬溪县农业农村局', author: '李工程师', cover_image: '', read_count: 876, is_top: '0', sort_order: 3, publish_status: '0', publish_time: null, create_time: '2026-02-10 11:00:00', create_by: 'staff01' },
+    { article_id: 4, title: '四川省生猪产业发展"十四五"规划解读', summary: '四川省发布生猪产业发展规划，明确到2025年出栏量目标...', article_category: '3', source: '四川省农业厅', author: '赵研究员', cover_image: '', read_count: 1234, is_top: '1', sort_order: 4, publish_status: '1', publish_time: '2026-02-15 08:00:00', create_time: '2026-02-13 15:00:00', create_by: 'admin' },
+    { article_id: 5, title: '春季猪瘟防控要点与注意事项', summary: '春季气温变化较大，是猪瘟等疾病的高发期，养殖户需重点关注...', article_category: '4', source: '蓬溪县兽防站', author: '陈兽医', cover_image: '', read_count: 567, is_top: '0', sort_order: 5, publish_status: '2', publish_time: '2026-02-20 09:00:00', create_time: '2026-02-18 14:00:00', create_by: 'staff01' },
+  ],
+
+  banners: [
+    { banner_id: 1, banner_title: '生猪知识讲堂正式上线', banner_image: '', link_url: '', link_type: '0', sort_order: 1, status: '0', create_time: '2026-01-01 09:00:00', create_by: 'admin' },
+    { banner_id: 2, banner_title: '最新非洲猪瘟防控指南发布', banner_image: '', link_url: '/article/2', link_type: '1', sort_order: 2, status: '0', create_time: '2026-01-15 10:00:00', create_by: 'admin' },
+    { banner_id: 3, banner_title: '2026年春季养猪技术培训开始报名', banner_image: '', link_url: '/training/1', link_type: '1', sort_order: 3, status: '0', create_time: '2026-02-01 09:00:00', create_by: 'staff01' },
+    { banner_id: 4, banner_title: '政策补贴申报通道已开放', banner_image: '', link_url: 'https://example.gov.cn/policy', link_type: '2', sort_order: 4, status: '1', create_time: '2026-02-10 14:00:00', create_by: 'admin' },
+  ],
+};
+
+function app() {
+  return {
+    activeMenu: 'article',
+
+    // ===== 行业动态管理 =====
+    articles: JSON.parse(JSON.stringify(MOCK_DATA.articles)),
+    articleFilter: { article_category: '', publish_status: '', keyword: '' },
+    articlePage: 1,
+    articlePageSize: 10,
+    articleModal: false,
+    articleModalMode: 'add',
+    editingArticle: null,
+    articleForm: { title: '', summary: '', article_category: '', source: '', author: '', cover_image: '', content: '', is_top: '0', sort_order: 0 },
+    articleFormErrors: {},
+    confirmModal: false,
+    confirmTitle: '',
+    confirmMsg: '',
+    confirmAction: null,
+
+    CATEGORY_MAP: { '1': '市场行情', '2': '技术前沿', '3': '产业分析', '4': '疫病防控' },
+    STATUS_MAP: { '0': '草稿', '1': '已发布', '2': '已下架' },
+
+    get filteredArticles() {
+      return this.articles.filter(a => {
+        if (this.articleFilter.article_category && a.article_category !== this.articleFilter.article_category) return false;
+        if (this.articleFilter.publish_status !== '' && a.publish_status !== this.articleFilter.publish_status) return false;
+        if (this.articleFilter.keyword && !a.title.includes(this.articleFilter.keyword)) return false;
+        return true;
+      });
+    },
+
+    get pagedArticles() {
+      const s = (this.articlePage-1)*this.articlePageSize;
+      return this.filteredArticles.slice(s, s+this.articlePageSize);
+    },
+
+    get articleTotalPages() { return Math.ceil(this.filteredArticles.length/this.articlePageSize)||1; },
+
+    statusClass(s) { return { '0': 'badge-gray', '1': 'badge-success', '2': 'badge-warning' }[s]||'badge-gray'; },
+
+    openArticleModal(mode, item=null) {
+      this.articleModalMode = mode;
+      this.articleFormErrors = {};
+      if (mode==='edit' && item) {
+        this.editingArticle = item;
+        this.articleForm = { title: item.title, summary: item.summary||'', article_category: item.article_category, source: item.source||'', author: item.author||'', cover_image: item.cover_image||'', content: item.content||'这里是文章正文内容（富文本）...', is_top: item.is_top, sort_order: item.sort_order };
+      } else {
+        this.editingArticle = null;
+        this.articleForm = { title: '', summary: '', article_category: '', source: '', author: '', cover_image: '', content: '', is_top: '0', sort_order: 0 };
+      }
+      this.articleModal = true;
+    },
+
+    validateArticleForm() {
+      this.articleFormErrors = {};
+      if (!this.articleForm.title.trim()) this.articleFormErrors.title = '文章标题不能为空';
+      if (!this.articleForm.article_category) this.articleFormErrors.article_category = '请选择文章分类';
+      if (!this.articleForm.content.trim()) this.articleFormErrors.content = '正文内容不能为空';
+      const so = parseInt(this.articleForm.sort_order);
+      if (isNaN(so)||so<0||so>999) this.articleFormErrors.sort_order = '排序序号须在0~999之间';
+      return Object.keys(this.articleFormErrors).length === 0;
+    },
+
+    submitArticleForm(publishNow=false) {
+      if (!this.validateArticleForm()) return;
+      if (this.articleModalMode === 'add') {
+        this.articles.push({ article_id: Date.now(), ...this.articleForm, read_count: 0, publish_status: publishNow ? '1' : '0', publish_time: publishNow ? new Date().toLocaleString('zh-CN') : null, create_time: new Date().toLocaleString('zh-CN'), create_by: MOCK_DATA.currentUser.username });
+        this.showToast(publishNow ? '发布成功' : '保存草稿成功');
+      } else {
+        const idx = this.articles.findIndex(a => a.article_id === this.editingArticle.article_id);
+        if (idx>-1) Object.assign(this.articles[idx], this.articleForm);
+        this.showToast('保存成功');
+      }
+      this.articleModal = false;
+    },
+
+    showConfirm(title, msg, action) { this.confirmTitle=title; this.confirmMsg=msg; this.confirmAction=action; this.confirmModal=true; },
+    doConfirm() { if(this.confirmAction) this.confirmAction(); this.confirmModal=false; },
+
+    changeArticleStatus(item, status) {
+      const labels = { '1': '发布', '2': '下架' };
+      const msgs = { '1': '确定发布该文章？发布后将在网站端展示。', '2': '确定下架该文章？下架后网站端将不再展示。' };
+      this.showConfirm(labels[status]+'文章', msgs[status], () => {
+        item.publish_status = status;
+        if (status==='1') item.publish_time = new Date().toLocaleString('zh-CN');
+        this.showToast('操作成功');
+      });
+    },
+
+    toggleTop(item) {
+      const isTop = item.is_top === '1';
+      if (!isTop && item.publish_status !== '1') { this.showToast('仅已发布文章可设置置顶', 'error'); return; }
+      item.is_top = isTop ? '0' : '1';
+      this.showToast(isTop ? '已取消置顶' : '已设置置顶');
+    },
+
+    deleteArticle(item) {
+      this.showConfirm('删除文章', `确定删除「${item.title}」？删除后列表不再展示。`, () => {
+        this.articles = this.articles.filter(a => a.article_id !== item.article_id);
+        this.showToast('删除成功');
+      });
+    },
+
+    // ===== Banner管理 =====
+    banners: JSON.parse(JSON.stringify(MOCK_DATA.banners)),
+    bannerModal: false,
+    bannerModalMode: 'add',
+    editingBanner: null,
+    bannerForm: { banner_title: '', banner_image: '', link_url: '', link_type: '0', sort_order: 0 },
+    bannerFormErrors: {},
+
+    LINK_TYPE_MAP: { '0': '无跳转', '1': '站内链接', '2': '外部链接' },
+
+    openBannerModal(mode, item=null) {
+      this.bannerModalMode = mode;
+      this.bannerFormErrors = {};
+      if (mode==='edit' && item) {
+        this.editingBanner = item;
+        this.bannerForm = { banner_title: item.banner_title, banner_image: item.banner_image||'', link_url: item.link_url||'', link_type: item.link_type, sort_order: item.sort_order };
+      } else {
+        this.editingBanner = null;
+        this.bannerForm = { banner_title: '', banner_image: '', link_url: '', link_type: '0', sort_order: 0 };
+      }
+      this.bannerModal = true;
+    },
+
+    validateBannerForm() {
+      this.bannerFormErrors = {};
+      if (!this.bannerForm.banner_title.trim()) this.bannerFormErrors.banner_title = 'Banner标题不能为空';
+      if (!this.bannerForm.banner_image) this.bannerFormErrors.banner_image = '请上传Banner图片';
+      const so = parseInt(this.bannerForm.sort_order);
+      if (isNaN(so)||so<0||so>999) this.bannerFormErrors.sort_order = '排序序号须在0~999之间';
+      return Object.keys(this.bannerFormErrors).length === 0;
+    },
+
+    submitBannerForm() {
+      if (!this.validateBannerForm()) return;
+      if (this.bannerModalMode === 'add') {
+        this.banners.push({ banner_id: Date.now(), ...this.bannerForm, status: '0', create_time: new Date().toLocaleString('zh-CN'), create_by: MOCK_DATA.currentUser.username });
+        this.banners.sort((a,b) => a.sort_order - b.sort_order);
+        this.showToast('新增成功');
+      } else {
+        const idx = this.banners.findIndex(b => b.banner_id === this.editingBanner.banner_id);
+        if (idx>-1) Object.assign(this.banners[idx], this.bannerForm);
+        this.banners.sort((a,b) => a.sort_order - b.sort_order);
+        this.showToast('修改成功');
+      }
+      this.bannerModal = false;
+    },
+
+    toggleBannerStatus(item) {
+      const isEnabled = item.status === '0';
+      const msg = isEnabled ? '确定停用该Banner？停用后网站端首页不展示。' : '确定启用该Banner？';
+      this.showConfirm(isEnabled ? '停用Banner' : '启用Banner', msg, () => {
+        item.status = isEnabled ? '1' : '0';
+        this.showToast(isEnabled ? '已停用' : '已启用');
+      });
+    },
+
+    deleteBanner(item) {
+      this.showConfirm('删除Banner', `确定删除「${item.banner_title}」？`, () => {
+        this.banners = this.banners.filter(b => b.banner_id !== item.banner_id);
+        this.showToast('删除成功');
+      });
+    },
+
+    // Toast
+    toast: { show: false, msg: '', type: 'success' },
+    showToast(msg, type='success') { this.toast={show:true,msg,type}; setTimeout(()=>this.toast.show=false, 2500); },
+  };
+}
+</script>
+
+<div class="flex h-screen overflow-hidden">
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="sidebar-brand-icon">
+          <i class="fas fa-newspaper text-white" style="font-size:15px"></i>
+        </div>
+        <div>
+          <div style="font-size:13.5px;font-weight:700;color:#fff;line-height:1.2">知识讲堂</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px">内容管理管理</div>
+        </div>
+      </div>
+    </div>
+    <nav style="flex:1;padding:12px 0;overflow-y:auto">
+      <div class="sidebar-group-label">内容管理</div>
+      <div class="sidebar-item" :class="activeMenu==='article' ? 'active' : ''" @click="activeMenu='article'">
+        <i class="fas fa-rss si-icon"></i> 行业动态
+      </div>
+      <div class="sidebar-item" :class="activeMenu==='banner' ? 'active' : ''" @click="activeMenu='banner'">
+        <i class="fas fa-images si-icon"></i> 轮播Banner
+      </div>
+      <div class="sidebar-group-label" style="margin-top:16px">系统</div>
+      <div class="sidebar-item" @click="window.open('../../index-生猪知识讲堂.html','_blank')" style="cursor:pointer">
+        <i class="fas fa-th-large si-icon"></i> 返回导航
+      </div>
+    </nav>
+    <div class="sidebar-user">
+      <div class="flex items-center gap-2">
+        <div class="sidebar-user-avatar">
+          <i class="fas fa-user" style="font-size:11px"></i>
+        </div>
+        <div>
+          <div style="font-size:12.5px;font-weight:600;color:#fff" x-text="MOCK_DATA.currentUser.nick_name"></div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.5)" x-text="MOCK_DATA.currentUser.roleName"></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 主内容 -->
+  <main class="flex-1 overflow-auto" style="background:#f0f4f8">
+
+    <!-- SECTION START: 行业动态管理 -->
+    <div id="feature-article" x-show="activeMenu==='article'" class="p-6">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-xl font-bold text-gray-800">行业动态管理</h1>
+          <p class="text-sm text-gray-500 mt-0.5">管理生猪行业动态文章，支持发布/下架/置顶</p>
+        </div>
+        <button class="btn-primary" @click="openArticleModal('add')">
+          <i class="fas fa-plus"></i> 新增文章
+        </button>
+      </div>
+
+      <!-- 筛选 -->
+      <div class="filter-bar">
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex items-center gap-2">
+            <label class="text-sm text-gray-500 whitespace-nowrap">文章分类</label>
+            <select class="form-select w-32" x-model="articleFilter.article_category">
+              <option value="">全部</option>
+              <option value="1">市场行情</option>
+              <option value="2">技术前沿</option>
+              <option value="3">产业分析</option>
+              <option value="4">疫病防控</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="text-sm text-gray-500 whitespace-nowrap">发布状态</label>
+            <select class="form-select w-28" x-model="articleFilter.publish_status">
+              <option value="">全部</option>
+              <option value="0">草稿</option>
+              <option value="1">已发布</option>
+              <option value="2">已下架</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="text-sm text-gray-500 whitespace-nowrap">标题搜索</label>
+            <input type="text" class="form-input w-48" x-model="articleFilter.keyword" placeholder="请输入标题关键词">
+          </div>
+          <button class="btn-primary" @click="articlePage=1"><i class="fas fa-search"></i> 查询</button>
+          <button class="btn-secondary" @click="articleFilter={article_category:'',publish_status:'',keyword:''}; articlePage=1">重置</button>
+        </div>
+      </div>
+
+      <div class="content-card">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="table-th">标题</th>
+              <th class="table-th">分类</th>
+              <th class="table-th">来源</th>
+              <th class="table-th">阅读数</th>
+              <th class="table-th">置顶</th>
+              <th class="table-th">排序</th>
+              <th class="table-th">状态</th>
+              <th class="table-th">发布时间</th>
+              <th class="table-th">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="item in pagedArticles" :key="item.article_id">
+              <tr>
+                <td class="table-td">
+                  <div class="font-medium text-gray-800 max-w-xs" x-text="item.title"></div>
+                  <div class="text-xs text-gray-400 mt-0.5 truncate max-w-xs" x-text="item.summary"></div>
+                </td>
+                <td class="table-td"><span class="badge badge-blue" x-text="CATEGORY_MAP[item.article_category]||item.article_category"></span></td>
+                <td class="table-td text-gray-500 text-xs" x-text="item.source||'-'"></td>
+                <td class="table-td" x-text="item.read_count"></td>
+                <td class="table-td">
+                  <span class="badge badge-warning" x-show="item.is_top==='1'">置顶</span>
+                  <span class="text-gray-300 text-xs" x-show="item.is_top==='0'">-</span>
+                </td>
+                <td class="table-td" x-text="item.sort_order"></td>
+                <td class="table-td"><span :class="statusClass(item.publish_status)" x-text="STATUS_MAP[item.publish_status]"></span></td>
+                <td class="table-td text-xs text-gray-400" x-text="item.publish_time ? item.publish_time.substring(0,10) : '-'"></td>
+                <td class="table-td">
+                  <div class="flex flex-wrap gap-1">
+                    <button class="act-btn act-edit" @click="openArticleModal('edit',item)">编辑</button>
+                    <button class="act-btn act-start" x-show="item.publish_status!=='1'" @click="changeArticleStatus(item,'1')">发布</button>
+                    <button class="act-btn act-stop" x-show="item.publish_status==='1'" @click="changeArticleStatus(item,'2')">下架</button>
+                    <button class="btn-sm" :class="item.is_top==='1' ? 'bg-gray-100 text-gray-600 hover:bg-gray-200' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'" @click="toggleTop(item)" x-text="item.is_top==='1' ? '取消置顶' : '置顶'"></button>
+                    <button class="act-btn act-delete" @click="deleteArticle(item)">删除</button>
+                  </div>
+                </td>
+              </tr>
+            </template>
+            <tr x-show="pagedArticles.length===0">
+              <td colspan="9" class="table-td text-center text-gray-400 py-12">暂无数据</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+          <div class="text-sm text-gray-500">共 <span class="font-medium" x-text="filteredArticles.length"></span> 条</div>
+          <div class="flex items-center gap-2">
+            <button class="page-btn" :disabled="articlePage===1" @click="articlePage--">上一页</button>
+            <span class="text-sm text-gray-600"><span x-text="articlePage"></span> / <span x-text="articleTotalPages"></span></span>
+            <button class="page-btn" :disabled="articlePage>=articleTotalPages" @click="articlePage++">下一页</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- SECTION END: 行业动态管理 -->
+
+    <!-- SECTION START: Banner管理 -->
+    <div id="feature-banner" x-show="activeMenu==='banner'" class="p-6">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-xl font-bold text-gray-800">轮播Banner管理</h1>
+          <p class="text-sm text-gray-500 mt-0.5">管理首页轮播图，启用状态的Banner在网站首页展示</p>
+        </div>
+        <button class="btn-primary" @click="openBannerModal('add')">
+          <i class="fas fa-plus"></i> 新增Banner
+        </button>
+      </div>
+
+      <div class="content-card">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="table-th">ID</th>
+              <th class="table-th">图片预览</th>
+              <th class="table-th">Banner标题</th>
+              <th class="table-th">链接类型</th>
+              <th class="table-th">链接地址</th>
+              <th class="table-th">排序</th>
+              <th class="table-th">状态</th>
+              <th class="table-th">创建时间</th>
+              <th class="table-th">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="item in banners" :key="item.banner_id">
+              <tr>
+                <td class="table-td text-gray-400 text-xs" x-text="item.banner_id"></td>
+                <td class="table-td">
+                  <div class="w-20 h-12 bg-gradient-to-r from-green-400 to-green-600 rounded flex items-center justify-center">
+                    <i class="fas fa-image text-white text-lg"></i>
+                  </div>
+                </td>
+                <td class="table-td font-medium" x-text="item.banner_title"></td>
+                <td class="table-td">
+                  <span class="badge badge-blue" x-text="LINK_TYPE_MAP[item.link_type]"></span>
+                </td>
+                <td class="table-td text-xs text-gray-400 max-w-xs truncate" x-text="item.link_url||'-'"></td>
+                <td class="table-td" x-text="item.sort_order"></td>
+                <td class="table-td">
+                  <span :class="item.status==='0' ? 'badge-success' : 'badge-gray'" x-text="item.status==='0' ? '启用' : '停用'"></span>
+                </td>
+                <td class="table-td text-xs text-gray-400" x-text="item.create_time.substring(0,10)"></td>
+                <td class="table-td">
+                  <div class="flex gap-1">
+                    <button class="act-btn act-edit" @click="openBannerModal('edit',item)">编辑</button>
+                    <button class="btn-sm" :class="item.status==='0' ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' : 'bg-green-100 text-green-700 hover:bg-green-200'" @click="toggleBannerStatus(item)" x-text="item.status==='0' ? '停用' : '启用'"></button>
+                    <button class="act-btn act-delete" @click="deleteBanner(item)">删除</button>
+                  </div>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Banner卡片预览 -->
+      <div class="mt-6">
+        <h2 class="text-sm font-semibold text-gray-600 mb-3">启用中的Banner预览（按排序显示）</h2>
+        <div class="grid grid-cols-3 gap-4">
+          <template x-for="item in banners.filter(b=>b.status==='0')" :key="item.banner_id">
+            <div class="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl p-4 text-white relative overflow-hidden">
+              <div class="absolute top-0 right-0 w-16 h-16 bg-white opacity-10 rounded-full -mr-4 -mt-4"></div>
+              <div class="text-xs opacity-75 mb-1">排序 <span x-text="item.sort_order"></span></div>
+              <div class="font-semibold text-sm mb-2" x-text="item.banner_title"></div>
+              <div class="text-xs opacity-75" x-text="LINK_TYPE_MAP[item.link_type]"></div>
+            </div>
+          </template>
+          <div class="border-2 border-dashed border-gray-200 rounded-xl p-4 flex items-center justify-center text-gray-400 text-sm" x-show="banners.filter(b=>b.status==='0').length===0">
+            暂无启用的Banner
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- SECTION END: Banner管理 -->
+
+  </main>
+</div>
+
+<!-- 行业动态新增/编辑弹窗 -->
+<div class="modal-overlay" x-show="articleModal" @click.self="articleModal=false">
+  <div class="modal-box-lg">
+    <div class="flex items-center justify-between p-5 border-b sticky top-0 bg-white z-10">
+      <h3 class="font-semibold text-gray-800" x-text="articleModalMode==='add' ? '新增文章' : '编辑文章'"></h3>
+      <button @click="articleModal=false" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="p-5 space-y-4">
+      <template x-if="articleModalMode==='edit' && editingArticle">
+        <div class="bg-gray-50 rounded-lg p-3 text-xs text-gray-500 grid grid-cols-3 gap-2">
+          <div>文章ID：<span x-text="editingArticle.article_id"></span></div>
+          <div>阅读次数：<span x-text="editingArticle.read_count"></span></div>
+          <div>发布时间：<span x-text="editingArticle.publish_time||'-'"></span></div>
+          <div>创建者：<span x-text="editingArticle.create_by"></span></div>
+          <div>创建时间：<span x-text="editingArticle.create_time"></span></div>
+        </div>
+      </template>
+      <div>
+        <label class="form-label">文章标题 <span class="text-red-500">*</span></label>
+        <input type="text" class="form-input" :class="articleFormErrors.title ? 'border-red-400' : ''" x-model="articleForm.title" placeholder="请输入文章标题" maxlength="200">
+        <p class="form-error" x-show="articleFormErrors.title" x-text="articleFormErrors.title"></p>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="form-label">文章分类 <span class="text-red-500">*</span></label>
+          <select class="form-select" :class="articleFormErrors.article_category ? 'border-red-400' : ''" x-model="articleForm.article_category">
+            <option value="">请选择分类</option>
+            <option value="1">市场行情</option>
+            <option value="2">技术前沿</option>
+            <option value="3">产业分析</option>
+            <option value="4">疫病防控</option>
+          </select>
+          <p class="form-error" x-show="articleFormErrors.article_category" x-text="articleFormErrors.article_category"></p>
+        </div>
+        <div>
+          <label class="form-label">排序序号 <span class="text-red-500">*</span></label>
+          <input type="number" class="form-input" x-model="articleForm.sort_order" min="0" max="999" placeholder="0">
+          <p class="form-error" x-show="articleFormErrors.sort_order" x-text="articleFormErrors.sort_order"></p>
+        </div>
+        <div>
+          <label class="form-label">来源</label>
+          <input type="text" class="form-input" x-model="articleForm.source" placeholder="文章来源（选填）" maxlength="100">
+        </div>
+        <div>
+          <label class="form-label">作者</label>
+          <input type="text" class="form-input" x-model="articleForm.author" placeholder="作者（选填）" maxlength="50">
+        </div>
+      </div>
+      <div>
+        <label class="form-label">文章摘要</label>
+        <textarea class="form-input" x-model="articleForm.summary" rows="2" placeholder="请输入文章摘要（选填）" maxlength="500"></textarea>
+      </div>
+      <div>
+        <label class="form-label">封面图片</label>
+        <div class="border-2 border-dashed border-gray-200 rounded-lg p-3 text-center cursor-pointer hover:border-green-400 transition-colors bg-gray-50" @click="articleForm.cover_image='mock://cover.jpg'; showToast('图片上传成功（模拟）')">
+          <i class="fas fa-cloud-upload-alt text-gray-300 text-xl mb-1"></i>
+          <p class="text-xs text-gray-400">点击上传封面图片（选填）</p>
+          <p class="text-xs text-green-500 mt-1" x-show="articleForm.cover_image">✓ 已上传（模拟）</p>
+        </div>
+      </div>
+      <div>
+        <label class="form-label">正文内容 <span class="text-red-500">*</span></label>
+        <div class="border border-gray-200 rounded-lg overflow-hidden">
+          <div class="bg-gray-50 border-b border-gray-200 px-3 py-2 flex gap-2">
+            <button class="text-xs text-gray-500 hover:text-gray-800 px-2 py-1 rounded hover:bg-gray-200 font-bold" @click="">B</button>
+            <button class="text-xs text-gray-500 hover:text-gray-800 px-2 py-1 rounded hover:bg-gray-200 italic" @click="">I</button>
+            <button class="text-xs text-gray-500 hover:text-gray-800 px-2 py-1 rounded hover:bg-gray-200" @click="">链接</button>
+            <button class="text-xs text-gray-500 hover:text-gray-800 px-2 py-1 rounded hover:bg-gray-200" @click="showToast('图片插入（模拟）')">图片</button>
+          </div>
+          <textarea class="w-full px-3 py-2 text-sm focus:outline-none" :class="articleFormErrors.content ? 'border border-red-400' : ''" x-model="articleForm.content" rows="6" placeholder="请输入正文内容（富文本编辑器模拟）"></textarea>
+        </div>
+        <p class="form-error" x-show="articleFormErrors.content" x-text="articleFormErrors.content"></p>
+      </div>
+      <div class="flex items-center gap-3">
+        <label class="form-label mb-0">是否置顶</label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" :checked="articleForm.is_top==='1'" @change="articleForm.is_top = $event.target.checked ? '1' : '0'" class="w-4 h-4 text-green-600">
+          <span class="text-sm text-gray-600">设置置顶</span>
+        </label>
+      </div>
+    </div>
+    <div class="flex justify-end gap-3 px-5 py-4 border-t bg-gray-50 rounded-b-xl sticky bottom-0">
+      <button class="btn-secondary" @click="articleModal=false">取消</button>
+      <template x-if="articleModalMode==='add'">
+        <div class="flex gap-2">
+          <button class="btn-secondary" @click="submitArticleForm(false)">保存草稿</button>
+          <button class="btn-primary" @click="submitArticleForm(true)"><i class="fas fa-paper-plane mr-1"></i>发布</button>
+        </div>
+      </template>
+      <template x-if="articleModalMode==='edit'">
+        <button class="btn-primary" @click="submitArticleForm(false)">保存</button>
+      </template>
+    </div>
+  </div>
+</div>
+
+<!-- Banner新增/编辑弹窗 -->
+<div class="modal-overlay" x-show="bannerModal" @click.self="bannerModal=false">
+  <div class="modal-box">
+    <div class="modal-header"><h3 x-text="bannerModalMode==='add' ? '新增Banner' : '编辑Banner'"></h3><button class="modal-close" @click="bannerModal=false"><i class="fas fa-times"></i></button></div>
+    <div class="p-5 space-y-4">
+      <template x-if="bannerModalMode==='edit' && editingBanner">
+        <div class="bg-gray-50 rounded-lg p-3 text-xs text-gray-500">
+          <span>BannerID：<span x-text="editingBanner.banner_id"></span></span>
+          <span class="ml-4">创建时间：<span x-text="editingBanner.create_time"></span></span>
+        </div>
+      </template>
+      <div>
+        <label class="form-label">Banner标题 <span class="text-red-500">*</span></label>
+        <input type="text" class="form-input" :class="bannerFormErrors.banner_title ? 'border-red-400' : ''" x-model="bannerForm.banner_title" placeholder="请输入Banner标题" maxlength="100">
+        <p class="form-error" x-show="bannerFormErrors.banner_title" x-text="bannerFormErrors.banner_title"></p>
+      </div>
+      <div>
+        <label class="form-label">Banner图片 <span class="text-red-500">*</span></label>
+        <div class="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-green-400 transition-colors" :class="bannerFormErrors.banner_image ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'" @click="bannerForm.banner_image='mock://banner.jpg'; showToast('图片上传成功（模拟）'); delete bannerFormErrors.banner_image">
+          <i class="fas fa-cloud-upload-alt text-gray-300 text-2xl mb-2"></i>
+          <p class="text-sm text-gray-400">点击上传Banner图片</p>
+          <p class="text-xs text-gray-400 mt-1">建议尺寸 1200×400，支持jpg/png，不超过2MB</p>
+          <p class="text-xs text-green-500 mt-1" x-show="bannerForm.banner_image">✓ 已上传（模拟）</p>
+        </div>
+        <p class="form-error" x-show="bannerFormErrors.banner_image" x-text="bannerFormErrors.banner_image"></p>
+      </div>
+      <div>
+        <label class="form-label">链接类型 <span class="text-red-500">*</span></label>
+        <select class="form-select" x-model="bannerForm.link_type">
+          <option value="0">无跳转</option>
+          <option value="1">站内链接</option>
+          <option value="2">外部链接</option>
+        </select>
+      </div>
+      <div x-show="bannerForm.link_type !== '0'">
+        <label class="form-label">链接地址</label>
+        <input type="text" class="form-input" x-model="bannerForm.link_url" :placeholder="bannerForm.link_type==='1' ? '请输入站内路径，如 /article/123' : '请输入完整URL，如 https://xxx.com'" maxlength="500">
+        <p class="text-xs text-gray-400 mt-1" x-show="bannerForm.link_type==='1'">站内链接示例：/article/1、/training/1</p>
+        <p class="text-xs text-gray-400 mt-1" x-show="bannerForm.link_type==='2'">外部链接需以 http:// 或 https:// 开头</p>
+      </div>
+      <div>
+        <label class="form-label">排序序号 <span class="text-red-500">*</span></label>
+        <input type="number" class="form-input" :class="bannerFormErrors.sort_order ? 'border-red-400' : ''" x-model="bannerForm.sort_order" min="0" max="999" placeholder="0">
+        <p class="form-error" x-show="bannerFormErrors.sort_order" x-text="bannerFormErrors.sort_order"></p>
+        <p class="text-xs text-gray-400 mt-1">数值越小越靠前，网站端最多展示5张启用中的Banner</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" @click="bannerModal=false">取消</button>
+      <button class="btn-primary" @click="submitBannerForm">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 二次确认弹窗 -->
+<div class="modal-overlay" x-show="confirmModal" @click.self="confirmModal=false">
+  <div style="background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.15);width:100%;max-width:400px;padding:28px;animation:modal-in 0.2s ease">
+    <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:20px">
+      <div style="width:44px;height:44px;background:#fef3c7;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <i class="fas fa-exclamation-triangle" style="color:#d97706;font-size:18px"></i>
+      </div>
+      <div>
+        <h3 style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:6px" x-text="confirmTitle"></h3>
+        <p style="font-size:13.5px;color:#64748b;line-height:1.5" x-text="confirmMsg"></p>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px">
+      <button class="btn-secondary" @click="confirmModal=false">取消</button>
+      <button class="btn-primary" @click="doConfirm">
+        <i class="fas fa-check" style="font-size:11px"></i> 确认操作
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast 提示 -->
+<div style="position:fixed;bottom:24px;right:24px;z-index:100;transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1)"
+  :style="toast.show ? 'opacity:1;transform:translateY(0)' : 'opacity:0;transform:translateY(16px);pointer-events:none'">
+  <div style="display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.12);font-size:13.5px;font-weight:600;color:#fff;min-width:200px"
+    :style="toast.type==='error' ? 'background:linear-gradient(135deg,#ef4444,#dc2626)' : 'background:linear-gradient(135deg,#16a34a,#15803d)'">
+    <div style="width:28px;height:28px;background:rgba(255,255,255,0.2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <i :class="toast.type==='error' ? 'fas fa-times' : 'fas fa-check'" style="font-size:12px"></i>
+    </div>
+    <span x-text="toast.msg"></span>
+  </div>
+</div>
+
+</body>
+</html>

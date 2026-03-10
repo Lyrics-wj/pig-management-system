@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2024年蓬溪县生猪数字化管理平台 - 养殖分析原型导航</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body { background: #f0f2f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 0; }
+    .header { background: linear-gradient(135deg, #001529 0%, #003366 100%); color: white; padding: 32px 40px; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 32px 40px; }
+    .card { background: white; border-radius: 10px; border: 1px solid #e8e8e8; margin-bottom: 20px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .card-header { background: #fafafa; border-bottom: 1px solid #e8e8e8; padding: 14px 20px; display: flex; align-items: center; gap: 10px; }
+    .card-title { font-size: 15px; font-weight: 600; color: #262626; }
+    .module-title { font-size: 13px; font-weight: 600; color: #8c8c8c; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .prototype-item { display: flex; align-items: center; padding: 14px 20px; border-bottom: 1px solid #f5f5f5; transition: background 0.15s; text-decoration: none; color: inherit; }
+    .prototype-item:last-child { border-bottom: none; }
+    .prototype-item:hover { background: #e6f4ff; }
+    .item-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-right: 14px; flex-shrink: 0; }
+    .item-info { flex: 1; }
+    .item-name { font-size: 14px; font-weight: 500; color: #262626; margin-bottom: 3px; }
+    .item-prd { font-size: 11px; color: #8c8c8c; font-family: monospace; }
+    .item-desc { font-size: 12px; color: #595959; margin-top: 3px; }
+    .item-meta { text-align: right; flex-shrink: 0; margin-left: 16px; }
+    .item-date { font-size: 11px; color: #8c8c8c; margin-bottom: 4px; }
+    .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+    .status-done { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; }
+    .status-wip { background: #fff7e6; color: #d46b08; border: 1px solid #ffd591; }
+    .status-todo { background: #fafafa; color: #8c8c8c; border: 1px solid #d9d9d9; }
+    .stats-bar { display: flex; gap: 24px; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.15); }
+    .stat-item { text-align: center; }
+    .stat-val { font-size: 28px; font-weight: 700; color: white; }
+    .stat-lbl { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+    .role-card { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 8px 14px; margin: 4px; font-size: 13px; color: rgba(255,255,255,0.9); }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 6px; }
+    .tag-county { background: #e6f4ff; color: #0958d9; }
+    .tag-town { background: #f6ffed; color: #389e0d; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div style="max-width:1100px;margin:0 auto;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
+        <div style="width:40px;height:40px;background:#1677ff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;">🐷</div>
+        <div>
+          <div style="font-size:20px;font-weight:700;">2024年蓬溪县生猪数字化管理平台</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:2px;">可交互 HTML 原型导航 · 养殖分析模块</div>
+        </div>
+      </div>
+      <div class="stats-bar">
+        <div class="stat-item"><div class="stat-val">1</div><div class="stat-lbl">原型文件</div></div>
+        <div class="stat-item"><div class="stat-val">1</div><div class="stat-lbl">已完成</div></div>
+        <div class="stat-item"><div class="stat-val">0</div><div class="stat-lbl">制作中</div></div>
+        <div class="stat-item"><div class="stat-val">10</div><div class="stat-lbl">分析卡片</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <!-- 角色说明 -->
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-header">
+        <i class="fa fa-users" style="color:#1677ff;"></i>
+        <span class="card-title">系统角色说明</span>
+      </div>
+      <div style="padding:16px 20px;display:flex;flex-wrap:wrap;gap:8px;">
+        <div class="role-card">
+          <i class="fa fa-user-tie" style="color:#faad14;"></i>
+          <div>
+            <div style="font-weight:500;">县级管理员</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.6);">county_admin · admin001/123456</div>
+          </div>
+          <span class="tag tag-county">全县数据 + 处理预警 + 导出</span>
+        </div>
+        <div class="role-card">
+          <i class="fa fa-user" style="color:#52c41a;"></i>
+          <div>
+            <div style="font-weight:500;">县级业务人员</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.6);">county_staff · staff001/123456</div>
+          </div>
+          <span class="tag tag-county">全县数据 + 处理预警 + 导出</span>
+        </div>
+        <div class="role-card">
+          <i class="fa fa-user" style="color:#1677ff;"></i>
+          <div>
+            <div style="font-weight:500;">乡镇政府业务人员</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.6);">town_gov_staff · town001/123456</div>
+          </div>
+          <span class="tag tag-town">本乡镇数据 · 仅查看</span>
+        </div>
+        <div class="role-card">
+          <i class="fa fa-user-md" style="color:#722ed1;"></i>
+          <div>
+            <div style="font-weight:500;">乡镇畜牧兽医站</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.6);">town_vet_station · vet001/123456</div>
+          </div>
+          <span class="tag tag-town">本乡镇数据 · 仅查看</span>
+        </div>
+      </div>
+      <div style="padding:0 20px 14px;font-size:12px;color:#8c8c8c;">
+        <i class="fa fa-info-circle" style="margin-right:4px;"></i>
+        在原型界面右上角「切换角色」按钮可切换角色，体验不同权限下的功能差异（菜单、按钮、乡镇筛选、导出按钮等）。
+      </div>
+    </div>
+
+    <!-- WEB监管端 - 决策分析 -->
+    <div class="card">
+      <div class="card-header">
+        <i class="fa fa-desktop" style="color:#1677ff;"></i>
+        <span class="card-title">WEB 监管端 · 决策分析</span>
+        <span style="margin-left:auto;font-size:12px;color:#8c8c8c;">对应PRD路径：doc_prd/WEB/监管端/决策分析/养殖分析/</span>
+      </div>
+      <a class="prototype-item" href="监管端/决策分析/养殖分析/WEB监管端-养殖分析.html" target="_blank">
+        <div class="item-icon" style="background:#e6f4ff;">
+          <i class="fa fa-chart-bar" style="color:#1677ff;"></i>
+        </div>
+        <div class="item-info">
+          <div class="item-name">养殖分析</div>
+          <div class="item-prd">WEB监管端-养殖分析.prd.md</div>
+          <div class="item-desc">
+            仪表盘式布局，含10个分析卡片：养殖结构概览（4指标）、养殖结构分布（饼图+表格）、生猪存栏出栏量趋势（双Y轴折线图）、
+            能繁母猪存栏占比（环形图）、PSY排行榜（横向柱图）、养殖规模排行榜、投入品成本排行、养殖企业淘汰率（折线趋势图）、
+            养殖预警事件统计（柱图+预警列表+处理弹窗）、规模猪场视频监控概况（统计卡片+饼图）。
+            支持全局筛选（时间/乡镇/企业类型）、多角色权限差异、预警处理、导出分析报告。
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">
+            <span style="background:#f0f5ff;color:#2f54eb;border:1px solid #adc6ff;border-radius:4px;font-size:11px;padding:1px 6px;">ECharts图表</span>
+            <span style="background:#f6ffed;color:#389e0d;border:1px solid #95de64;border-radius:4px;font-size:11px;padding:1px 6px;">10分析卡片</span>
+            <span style="background:#fff0f6;color:#c41d7f;border:1px solid #ffadd2;border-radius:4px;font-size:11px;padding:1px 6px;">预警处理</span>
+            <span style="background:#fff7e6;color:#d46b08;border:1px solid #ffd591;border-radius:4px;font-size:11px;padding:1px 6px;">多角色权限</span>
+            <span style="background:#f9f0ff;color:#531dab;border:1px solid #d3adf7;border-radius:4px;font-size:11px;padding:1px 6px;">导出报告</span>
+          </div>
+        </div>
+        <div class="item-meta">
+          <div class="item-date">2026-03-10</div>
+          <span class="status-badge status-done"><i class="fa fa-check-circle"></i> 已完成</span>
+        </div>
+      </a>
+    </div>
+
+    <!-- 功能清单 -->
+    <div class="card">
+      <div class="card-header">
+        <i class="fa fa-list-check" style="color:#52c41a;"></i>
+        <span class="card-title">原型功能覆盖清单</span>
+      </div>
+      <div style="padding:16px 20px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <div class="module-title" style="margin-bottom:10px;color:#1677ff;">分析卡片</div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              ${[
+                '卡片一：养殖结构概览（4个统计指标卡）',
+                '卡片二：养殖结构分布（饼图 + 数据表格）',
+                '卡片三：生猪存栏出栏量趋势（双Y轴折线图）',
+                '卡片四：能繁母猪存栏占比（环形图）',
+                '卡片五：PSY排行榜（横向柱图 + 排行表）',
+                '卡片六：养殖规模排行榜（横向柱图 + 排行表）',
+                '卡片七：投入品成本排行（排行表格）',
+                '卡片八：养殖企业淘汰率（折线趋势图）',
+                '卡片九：养殖预警事件统计（柱图 + 事件列表）',
+                '卡片十：视频监控概况（统计数字 + 饼图）',
+              ].map(item => `<div style="display:flex;align-items:center;gap:6px;font-size:13px;color:#262626;">
+                <i class="fa fa-check-circle" style="color:#52c41a;"></i>${item}
+              </div>`).join('')}
+            </div>
+          </div>
+          <div>
+            <div class="module-title" style="margin-bottom:10px;color:#1677ff;">交互功能</div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              ${[
+                '全局筛选联动（时间/乡镇/企业类型）',
+                '快捷时间切换（近一月/一季/半年/一年）',
+                '图表时间粒度切换（月/季/年）',
+                '排行榜默认Top10 / 查看全部展开',
+                '可折叠数据表格与明细列表',
+                '预警处理弹窗（含校验）',
+                '预警详情查看弹窗',
+                '多角色切换（4种角色权限差异）',
+                '导出分析报告（仅县级角色）',
+                '侧边栏折叠/展开',
+              ].map(item => `<div style="display:flex;align-items:center;gap:6px;font-size:13px;color:#262626;">
+                <i class="fa fa-check-circle" style="color:#52c41a;"></i>${item}
+              </div>`).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 制作统计 -->
+    <div style="text-align:center;padding:16px;font-size:12px;color:#8c8c8c;">
+      制作统计：共 1 个文件 · 已完成 1 个 · 制作中 0 个 · 待制作 0 个<br>
+      最后更新：2026-03-10 · 规范版本：v1.5
+    </div>
+  </div>
+</body>
+</html>

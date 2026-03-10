@@ -1,0 +1,1164 @@
+<!--
+  功能名称：养殖档案监管（列表查看与筛选、详情查看、审批操作、导出、县级管理操作）
+  对应PRD：doc_prd/WEB/监管端/智慧监管/养殖企业管理/WEB监管端-养殖档案监管.prd.md
+  所属端口：WEB监管端
+  所属模块：智慧监管 - 养殖企业管理 - 养殖档案监管
+  制作日期：2026-03-09
+  最后更新：2026-03-09
+  角色说明：县级管理员(county_admin)、县级业务人员(county_staff)、乡镇政府业务人员(town_gov_staff)、乡镇畜牧兽医站(town_vet_station)
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>养殖档案监管 - WEB监管端</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    /* SHARED STYLES */
+    [x-cloak] { display: none !important; }
+    body { font-size: 14px; background-color: #f0f2f5; color: #262626; }
+    .sidebar-item.active { background-color: #1677ff; color: #fff; }
+    .sidebar-item:hover:not(.active) { background-color: #e6f4ff; color: #1677ff; }
+    .btn-primary { background-color: #1677ff; color: #fff; border: 1px solid #1677ff; }
+    .btn-primary:hover { background-color: #0958d9; }
+    .btn-default { background-color: #fff; color: #262626; border: 1px solid #d9d9d9; }
+    .btn-default:hover { border-color: #1677ff; color: #1677ff; }
+    .btn-link { background: none; border: none; padding: 0 4px; cursor: pointer; font-size: 12px; }
+    .btn-link.primary { color: #1677ff; }
+    .btn-link.danger { color: #ff4d4f; }
+    .btn-link.success { color: #52c41a; }
+    .tag { display: inline-flex; align-items: center; padding: 1px 7px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+    .tag-gray { background-color: #f5f5f5; color: #8c8c8c; border: 1px solid #d9d9d9; }
+    .tag-blue { background-color: #e6f7ff; color: #1677ff; border: 1px solid #91d5ff; }
+    .tag-orange { background-color: #fff7e6; color: #fa8c16; border: 1px solid #ffd591; }
+    .tag-purple { background-color: #f9f0ff; color: #722ed1; border: 1px solid #d3adf7; }
+    .tag-green { background-color: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
+    .tag-red { background-color: #fff2f0; color: #ff4d4f; border: 1px solid #ffa39e; }
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 900px; }
+    th { background-color: #fafafa; color: #595959; font-weight: 600; text-align: left; padding: 9px 10px; border-bottom: 1px solid #e8e8e8; white-space: nowrap; font-size: 13px; }
+    td { padding: 9px 10px; border-bottom: 1px solid #f0f0f0; color: #262626; white-space: nowrap; font-size: 13px; }
+    tr:nth-child(even) td { background-color: #fafafa; }
+    tr:hover td { background-color: #e6f4ff; }
+    .sticky-col { position: sticky; right: 0; background-color: #fff; box-shadow: -2px 0 4px rgba(0,0,0,0.06); }
+    tr:nth-child(even) .sticky-col { background-color: #fafafa; }
+    tr:hover .sticky-col { background-color: #e6f4ff; }
+    .form-input { padding: 5px 9px; border: 1px solid #d9d9d9; border-radius: 4px; outline: none; font-size: 13px; color: #262626; }
+    .form-input:focus { border-color: #1677ff; box-shadow: 0 0 0 2px rgba(22,119,255,0.1); }
+    .form-label { font-size: 12px; font-weight: 500; color: #595959; margin-bottom: 3px; display: block; }
+    .required-star { color: #ff4d4f; margin-right: 2px; }
+    .error-msg { color: #ff4d4f; font-size: 12px; margin-top: 2px; }
+    .modal-overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.45); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .modal-box { background: #fff; border-radius: 8px; box-shadow: 0 6px 16px rgba(0,0,0,0.12); width: 100%; max-width: 760px; max-height: 88vh; display: flex; flex-direction: column; }
+    .modal-box-sm { max-width: 440px; }
+    .modal-header { padding: 14px 20px; border-bottom: 1px solid #e8e8e8; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+    .modal-body { padding: 16px 20px; overflow-y: auto; flex: 1; }
+    .modal-footer { padding: 10px 20px; border-top: 1px solid #e8e8e8; display: flex; justify-content: flex-end; gap: 8px; flex-shrink: 0; }
+    .archive-tab { padding: 7px 14px; cursor: pointer; color: #595959; font-size: 13px; border-bottom: 2px solid transparent; white-space: nowrap; }
+    .archive-tab.active { color: #fff; background-color: #1677ff; border-bottom-color: #1677ff; }
+    .archive-tab:hover:not(.active) { color: #1677ff; background-color: #f0f7ff; }
+    .tab-group-sep { padding: 7px 6px; color: #d9d9d9; font-size: 16px; align-self: center; flex-shrink: 0; }
+    .breadcrumb { font-size: 13px; color: #8c8c8c; }
+    .breadcrumb span { color: #262626; }
+    .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; padding: 8px 20px; border-radius: 6px; font-size: 13px; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .toast-success { background-color: #f6ffed; border: 1px solid #b7eb8f; color: #52c41a; }
+    .toast-error { background-color: #fff2f0; border: 1px solid #ffa39e; color: #ff4d4f; }
+    /* 审批步骤条 */
+    .approval-steps { display: flex; align-items: flex-start; gap: 0; width: 100%; }
+    .approval-step { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; }
+    .approval-step-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; position: relative; z-index: 1; }
+    .approval-step-icon.done { background-color: #52c41a; color: #fff; }
+    .approval-step-icon.active { background-color: #1677ff; color: #fff; }
+    .approval-step-icon.inactive { background-color: #e8e8e8; color: #8c8c8c; }
+    .approval-step-icon.rejected { background-color: #ff4d4f; color: #fff; }
+    .approval-step-line { position: absolute; top: 16px; left: 50%; right: -50%; height: 2px; background-color: #e8e8e8; z-index: 0; }
+    .approval-step-line.done { background-color: #52c41a; }
+    .approval-step-label { font-size: 11px; text-align: center; margin-top: 4px; color: #595959; line-height: 1.4; }
+    .approval-step-remark { font-size: 11px; color: #ff4d4f; text-align: center; margin-top: 2px; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .detail-field { margin-bottom: 8px; }
+    .detail-field label { font-size: 11px; color: #8c8c8c; display: block; }
+    .detail-field p { font-size: 13px; color: #262626; font-weight: 500; margin-top: 1px; }
+    .section-badge { display: inline-block; background-color: #e6f7ff; color: #1677ff; border: 1px solid #91d5ff; border-radius: 4px; padding: 1px 8px; font-size: 11px; margin-bottom: 8px; }
+  </style>
+</head>
+<body x-data="app()" x-cloak>
+
+<!-- Toast 提示 -->
+<div x-show="toast.show" class="toast" :class="toast.type === 'success' ? 'toast-success' : 'toast-error'" x-text="toast.msg" x-transition></div>
+
+<!-- 顶部导航栏 -->
+<header class="fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 z-50 flex items-center px-4 justify-between shadow-sm">
+  <div class="flex items-center gap-3">
+    <i class="fas fa-pig text-blue-500 text-xl"></i>
+    <span class="font-semibold text-gray-800 text-base">2024年蓬溪县生猪数字化管理平台</span>
+    <span class="text-gray-300">|</span>
+    <span class="text-sm text-gray-500">监管端</span>
+  </div>
+  <div class="flex items-center gap-3">
+    <select x-model="currentRole" @change="onRoleChange()" class="text-sm border border-gray-300 rounded px-2 py-1 text-gray-700 bg-white">
+      <template x-for="u in MOCK_DATA.users" :key="u.role">
+        <option :value="u.role" x-text="`${u.roleName}（${u.username}）`"></option>
+      </template>
+    </select>
+    <div class="flex items-center gap-2 text-sm text-gray-700">
+      <i class="fas fa-user-circle text-gray-400"></i>
+      <span x-text="getCurrentUser().name"></span>
+      <span class="text-xs text-gray-400" x-text="`[${getCurrentUser().roleName}]`"></span>
+    </div>
+    <button @click="showToast('已退出登录', 'success')" class="text-sm text-gray-500 hover:text-blue-500 transition-colors">
+      <i class="fas fa-sign-out-alt mr-1"></i>退出
+    </button>
+  </div>
+</header>
+
+<!-- 主体布局 -->
+<div class="flex" style="margin-top: 56px; height: calc(100vh - 56px);">
+
+  <!-- 侧边菜单 -->
+  <aside class="bg-white border-r border-gray-200 flex-shrink-0 overflow-y-auto" :style="sidebarCollapsed ? 'width:60px' : 'width:240px'">
+    <div class="py-2">
+      <div class="flex items-center justify-end px-2 mb-2">
+        <button @click="sidebarCollapsed=!sidebarCollapsed" class="text-gray-400 hover:text-blue-500 p-1">
+          <i :class="sidebarCollapsed ? 'fas fa-angle-right' : 'fas fa-angle-left'"></i>
+        </button>
+      </div>
+      <div x-show="!sidebarCollapsed" class="px-4 py-1 text-xs text-gray-400 font-medium mt-2">智慧监管</div>
+      <div class="sidebar-item px-4 py-2 cursor-pointer flex items-center gap-2 transition-colors" @click="window.location.href='WEB监管端-养殖企业信息管理.html'">
+        <i class="fas fa-building w-4 text-center"></i>
+        <span x-show="!sidebarCollapsed" class="text-sm">养殖企业信息管理</span>
+      </div>
+      <div class="sidebar-item active px-4 py-2 cursor-pointer flex items-center gap-2 transition-colors">
+        <i class="fas fa-folder-open w-4 text-center"></i>
+        <span x-show="!sidebarCollapsed" class="text-sm">养殖档案监管</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 主内容区 -->
+  <main class="flex-1 flex flex-col overflow-hidden">
+
+    <!-- SECTION START: 养殖档案监管 主页面 -->
+    <div id="feature-archive-main" class="flex flex-col h-full overflow-hidden">
+      <!-- 面包屑 -->
+      <div class="px-4 pt-3 pb-1 bg-white border-b border-gray-100 flex-shrink-0">
+        <div class="breadcrumb">智慧监管 / <span>养殖档案监管</span></div>
+      </div>
+
+      <!-- Tab 页签栏（18个档案分5组） -->
+      <div class="bg-white border-b border-gray-200 flex-shrink-0">
+        <div class="flex overflow-x-auto" style="scrollbar-width: thin;">
+          <template x-for="(group, gi) in MOCK_DATA.tabGroups" :key="gi">
+            <div class="flex items-stretch flex-shrink-0">
+              <template x-for="(tab, ti) in group.tabs" :key="tab.key">
+                <button class="archive-tab" :class="activeTab === tab.key ? 'active' : ''"
+                        @click="switchTab(tab.key)" x-text="tab.label"></button>
+              </template>
+              <div x-show="gi < MOCK_DATA.tabGroups.length - 1" class="tab-group-sep">|</div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- 筛选区 -->
+      <div class="bg-white px-4 py-3 border-b border-gray-100 flex-shrink-0">
+        <div class="flex flex-wrap gap-3 items-end">
+          <div>
+            <label class="form-label">企业名称</label>
+            <input type="text" x-model="filter.enterpriseName" class="form-input" style="width:160px" placeholder="模糊搜索">
+          </div>
+          <div x-show="isCountyRole()">
+            <label class="form-label">所属乡镇</label>
+            <select x-model="filter.town" class="form-input" style="width:120px">
+              <option value="">全部</option>
+              <template x-for="t in MOCK_DATA.towns" :key="t.value">
+                <option :value="t.value" x-text="t.label"></option>
+              </template>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">状态</label>
+            <select x-model="filter.status" class="form-input" style="width:110px">
+              <option value="">全部</option>
+              <template x-for="s in MOCK_DATA.statusOptions" :key="s.value">
+                <option :value="s.value" x-text="s.label"></option>
+              </template>
+            </select>
+          </div>
+          <!-- 各类别自有筛选条件 -->
+          <div x-show="getTabConfig(activeTab).extraFilter === 'date'">
+            <label class="form-label">记录日期</label>
+            <input type="date" x-model="filter.recordDate" class="form-input">
+          </div>
+          <div x-show="getTabConfig(activeTab).extraFilter === 'pigsty'">
+            <label class="form-label">圈舍名称</label>
+            <input type="text" x-model="filter.pigstyName" class="form-input" style="width:120px" placeholder="请输入">
+          </div>
+          <div class="flex gap-2">
+            <button @click="doSearch()" class="btn-primary px-3 py-1.5 rounded text-sm">
+              <i class="fas fa-search mr-1"></i>查询
+            </button>
+            <button @click="resetFilter()" class="btn-default px-3 py-1.5 rounded text-sm">
+              <i class="fas fa-redo mr-1"></i>重置
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 工具栏 -->
+      <div class="bg-white px-4 py-2 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
+        <div class="text-sm text-gray-500">
+          当前 Tab：<span class="text-blue-500 font-medium" x-text="getTabConfig(activeTab).label"></span>
+          &nbsp;共 <span class="text-blue-500 font-medium" x-text="filteredData.length"></span> 条
+        </div>
+        <div class="flex gap-2">
+          <button x-show="currentRole === 'county_admin'" @click="openAddModal()" class="btn-primary px-3 py-1.5 rounded text-sm">
+            <i class="fas fa-plus mr-1"></i>新增
+          </button>
+          <button @click="doExport()" class="btn-default px-3 py-1.5 rounded text-sm">
+            <i class="fas fa-download mr-1"></i>导出
+          </button>
+        </div>
+      </div>
+
+      <!-- 数据表格 -->
+      <div class="flex-1 overflow-hidden flex flex-col bg-white">
+        <div class="flex-1 overflow-auto">
+          <div class="table-container h-full">
+            <table>
+              <thead>
+                <tr>
+                  <th>序号</th>
+                  <th>企业名称</th>
+                  <th>所属乡镇</th>
+                  <!-- 动态列 -->
+                  <template x-for="col in getTabConfig(activeTab).columns" :key="col.key">
+                    <th x-text="col.label"></th>
+                  </template>
+                  <th>状态</th>
+                  <th class="sticky-col" style="min-width:200px;">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="(row, idx) in paginatedData" :key="row.id">
+                  <tr>
+                    <td x-text="(page-1)*pageSize + idx + 1"></td>
+                    <td x-text="row.enterpriseName" class="max-w-xs" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;" :title="row.enterpriseName"></td>
+                    <td x-text="row.town"></td>
+                    <template x-for="col in getTabConfig(activeTab).columns" :key="col.key">
+                      <td x-text="row[col.key] ?? '——'"></td>
+                    </template>
+                    <td>
+                      <span class="tag" :class="getStatusClass(row.status)" x-text="getStatusLabel(row.status)"></span>
+                    </td>
+                    <td class="sticky-col">
+                      <button @click="openDetail(row)" class="btn-link primary">查看</button>
+                      <!-- 核实操作：town_vet_station，status=1 -->
+                      <template x-if="currentRole === 'town_vet_station' && row.status === '1'">
+                        <span>
+                          <button @click="openApproval(row, 'verify', 'pass')" class="btn-link primary">核实通过</button>
+                          <button @click="openApproval(row, 'verify', 'reject')" class="btn-link danger">核实退回</button>
+                        </span>
+                      </template>
+                      <!-- 审核操作：town_gov_staff，status=2 -->
+                      <template x-if="currentRole === 'town_gov_staff' && row.status === '2'">
+                        <span>
+                          <button @click="openApproval(row, 'audit', 'pass')" class="btn-link primary">审核通过</button>
+                          <button @click="openApproval(row, 'audit', 'reject')" class="btn-link danger">审核退回</button>
+                        </span>
+                      </template>
+                      <!-- 终审操作：county_staff，status=3 -->
+                      <template x-if="currentRole === 'county_staff' && row.status === '3'">
+                        <span>
+                          <button @click="openApproval(row, 'final', 'pass')" class="btn-link primary">终审通过</button>
+                          <button @click="openApproval(row, 'final', 'reject')" class="btn-link danger">终审退回</button>
+                        </span>
+                      </template>
+                      <!-- 县级管理员：编辑+删除 -->
+                      <template x-if="currentRole === 'county_admin'">
+                        <span>
+                          <button @click="openEditModal(row)" class="btn-link primary">编辑</button>
+                          <button @click="confirmDelete(row)" class="btn-link danger">删除</button>
+                        </span>
+                      </template>
+                    </td>
+                  </tr>
+                </template>
+                <tr x-show="paginatedData.length === 0">
+                  <td :colspan="5 + getTabConfig(activeTab).columns.length" class="text-center py-12 text-gray-400">
+                    <i class="fas fa-inbox text-3xl mb-3 block"></i>暂无数据
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 分页 -->
+        <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between flex-shrink-0">
+          <div class="text-sm text-gray-500">共 <span x-text="filteredData.length"></span> 条，每页
+            <select x-model="pageSize" @change="page=1" class="border border-gray-300 rounded px-1 py-0.5 text-xs mx-1">
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>条
+          </div>
+          <div class="flex items-center gap-1">
+            <button @click="page=1" :disabled="page===1" class="btn-default px-2 py-0.5 rounded text-xs" :class="page===1 ? 'opacity-40 cursor-not-allowed' : ''">«</button>
+            <button @click="page--" :disabled="page===1" class="btn-default px-2 py-0.5 rounded text-xs" :class="page===1 ? 'opacity-40 cursor-not-allowed' : ''">‹</button>
+            <template x-for="p in pageRange" :key="p">
+              <button @click="page=p" class="px-2.5 py-0.5 rounded text-xs border" :class="page===p ? 'bg-blue-500 text-white border-blue-500' : 'btn-default'" x-text="p"></button>
+            </template>
+            <button @click="page++" :disabled="page>=totalPages" class="btn-default px-2 py-0.5 rounded text-xs" :class="page>=totalPages ? 'opacity-40 cursor-not-allowed' : ''">›</button>
+            <button @click="page=totalPages" :disabled="page>=totalPages" class="btn-default px-2 py-0.5 rounded text-xs" :class="page>=totalPages ? 'opacity-40 cursor-not-allowed' : ''">»</button>
+            <span class="text-xs text-gray-500 ml-2">第 <span x-text="page"></span> / <span x-text="totalPages"></span> 页</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- SECTION END: 养殖档案监管 主页面 -->
+
+  </main>
+</div>
+
+<!-- SECTION START: 档案详情弹窗 -->
+<div id="feature-detail-modal" x-show="detailModal.show" class="modal-overlay" @click.self="detailModal.show=false">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 class="text-base font-semibold" x-text="`${getTabConfig(activeTab).label} - 详情`"></h3>
+      <button @click="detailModal.show=false" class="text-gray-400 hover:text-gray-700"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" x-show="detailModal.row">
+
+      <!-- 审核进度步骤条 -->
+      <div class="bg-gray-50 rounded-lg p-4 mb-4">
+        <p class="text-xs font-semibold text-gray-500 mb-3">审核进度</p>
+        <div class="approval-steps">
+          <!-- 步骤1：企业填报 -->
+          <div class="approval-step">
+            <div class="approval-step-icon" :class="detailModal.row && detailModal.row.status !== '0' ? 'done' : 'inactive'">
+              <i x-show="detailModal.row && detailModal.row.status !== '0'" class="fas fa-check text-xs"></i>
+              <span x-show="!detailModal.row || detailModal.row.status === '0'" class="text-xs">1</span>
+            </div>
+            <div class="approval-step-line" :class="detailModal.row && detailModal.row.status !== '0' ? 'done' : ''"></div>
+            <p class="approval-step-label">企业填报</p>
+          </div>
+          <!-- 步骤2：乡镇畜牧兽医站核实 -->
+          <div class="approval-step">
+            <div class="approval-step-icon" :class="getVerifyClass(detailModal.row)">
+              <i x-show="['2','3','4'].includes(detailModal.row?.status)" class="fas fa-check text-xs"></i>
+              <i x-show="detailModal.row?.status === '5'" class="fas fa-times text-xs"></i>
+              <span x-show="!['2','3','4','5'].includes(detailModal.row?.status)" class="text-xs">2</span>
+            </div>
+            <div class="approval-step-line" :class="['2','3','4'].includes(detailModal.row?.status) ? 'done' : ''"></div>
+            <p class="approval-step-label">乡镇畜牧<br>兽医站核实</p>
+            <p x-show="detailModal.row?.status === '5'" class="approval-step-remark" x-text="detailModal.row?.verifyRemark"></p>
+          </div>
+          <!-- 步骤3：乡镇政府审核 -->
+          <div class="approval-step">
+            <div class="approval-step-icon" :class="getAuditClass(detailModal.row)">
+              <i x-show="['3','4'].includes(detailModal.row?.status)" class="fas fa-check text-xs"></i>
+              <i x-show="detailModal.row?.status === '6'" class="fas fa-times text-xs"></i>
+              <span x-show="!['3','4','6'].includes(detailModal.row?.status)" class="text-xs">3</span>
+            </div>
+            <div class="approval-step-line" :class="['3','4'].includes(detailModal.row?.status) ? 'done' : ''"></div>
+            <p class="approval-step-label">乡镇政府<br>审核</p>
+            <p x-show="detailModal.row?.status === '6'" class="approval-step-remark" x-text="detailModal.row?.auditRemark"></p>
+          </div>
+          <!-- 步骤4：县级终审 -->
+          <div class="approval-step">
+            <div class="approval-step-icon" :class="getFinalClass(detailModal.row)">
+              <i x-show="detailModal.row?.status === '4'" class="fas fa-check text-xs"></i>
+              <i x-show="detailModal.row?.status === '7'" class="fas fa-times text-xs"></i>
+              <span x-show="!['4','7'].includes(detailModal.row?.status)" class="text-xs">4</span>
+            </div>
+            <p class="approval-step-label">县级终审</p>
+            <p x-show="detailModal.row?.status === '7'" class="approval-step-remark" x-text="detailModal.row?.finalRemark"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 监管端额外信息 -->
+      <div class="bg-gray-50 rounded p-3 mb-4 grid grid-cols-2 gap-3">
+        <div class="detail-field"><label>企业名称</label><p x-text="detailModal.row?.enterpriseName || '——'"></p></div>
+        <div class="detail-field"><label>所属乡镇</label><p x-text="detailModal.row?.town || '——'"></p></div>
+      </div>
+
+      <!-- 业务字段区 -->
+      <div class="section-badge" x-text="getTabConfig(activeTab).label"></div>
+      <div class="grid grid-cols-2 gap-3">
+        <template x-for="col in getTabConfig(activeTab).columns" :key="col.key">
+          <div class="detail-field">
+            <label x-text="col.label"></label>
+            <p x-text="detailModal.row ? (detailModal.row[col.key] ?? '——') : '——'"></p>
+          </div>
+        </template>
+        <div class="detail-field">
+          <label>记录时间</label>
+          <p x-text="detailModal.row?.recordTime || '——'"></p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <!-- 详情弹窗底部审批操作按钮 -->
+      <template x-if="currentRole === 'town_vet_station' && detailModal.row?.status === '1'">
+        <div class="flex gap-2 mr-auto">
+          <button @click="openApprovalFromDetail('verify', 'pass')" class="btn-primary px-3 py-1.5 rounded text-sm">核实通过</button>
+          <button @click="openApprovalFromDetail('verify', 'reject')" class="px-3 py-1.5 rounded text-sm text-white bg-red-500 hover:bg-red-600 border border-red-500">核实退回</button>
+        </div>
+      </template>
+      <template x-if="currentRole === 'town_gov_staff' && detailModal.row?.status === '2'">
+        <div class="flex gap-2 mr-auto">
+          <button @click="openApprovalFromDetail('audit', 'pass')" class="btn-primary px-3 py-1.5 rounded text-sm">审核通过</button>
+          <button @click="openApprovalFromDetail('audit', 'reject')" class="px-3 py-1.5 rounded text-sm text-white bg-red-500 hover:bg-red-600 border border-red-500">审核退回</button>
+        </div>
+      </template>
+      <template x-if="currentRole === 'county_staff' && detailModal.row?.status === '3'">
+        <div class="flex gap-2 mr-auto">
+          <button @click="openApprovalFromDetail('final', 'pass')" class="btn-primary px-3 py-1.5 rounded text-sm">终审通过</button>
+          <button @click="openApprovalFromDetail('final', 'reject')" class="px-3 py-1.5 rounded text-sm text-white bg-red-500 hover:bg-red-600 border border-red-500">终审退回</button>
+        </div>
+      </template>
+      <button @click="detailModal.show=false" class="btn-default px-4 py-1.5 rounded text-sm">关闭</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 档案详情弹窗 -->
+
+<!-- SECTION START: 审批操作弹窗 -->
+<div id="feature-approval-modal" x-show="approvalModal.show" class="modal-overlay" @click.self="approvalModal.show=false">
+  <div class="modal-box modal-box-sm">
+    <div class="modal-header">
+      <h3 class="text-base font-semibold" x-text="approvalModal.title"></h3>
+      <button @click="approvalModal.show=false" class="text-gray-400 hover:text-gray-700"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="mb-1">
+        <label class="form-label" x-text="approvalModal.isReject ? '退回原因（必填）' : '审批意见（选填）'"></label>
+        <textarea x-model="approvalModal.remark" class="form-input w-full" rows="4"
+                  :placeholder="approvalModal.isReject ? '请输入退回原因（必填）' : '请输入审批意见（选填）'"
+                  maxlength="500"></textarea>
+        <p x-show="approvalModal.remarkError" class="error-msg" x-text="approvalModal.remarkError"></p>
+        <p class="text-xs text-gray-400 mt-1">最多500字符，已输入 <span x-text="(approvalModal.remark||'').length"></span> 字</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button @click="approvalModal.show=false" class="btn-default px-4 py-1.5 rounded text-sm">取消</button>
+      <button @click="doApproval()" class="px-4 py-1.5 rounded text-sm text-white"
+              :class="approvalModal.isReject ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'"
+              x-text="approvalModal.isReject ? '确认退回' : '确认通过'"></button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 审批操作弹窗 -->
+
+<!-- SECTION START: 删除确认弹窗 -->
+<div id="feature-delete-modal" x-show="deleteModal.show" class="modal-overlay" @click.self="deleteModal.show=false">
+  <div class="modal-box modal-box-sm">
+    <div class="modal-header">
+      <h3 class="text-base font-semibold text-red-600"><i class="fas fa-exclamation-triangle mr-2"></i>确认删除</h3>
+      <button @click="deleteModal.show=false" class="text-gray-400 hover:text-gray-700"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <p class="text-sm text-gray-700">确定要删除该记录吗？删除后不可恢复。</p>
+      <p class="text-sm text-gray-500 mt-2">企业：<strong x-text="deleteModal.row?.enterpriseName"></strong></p>
+      <p class="text-sm text-gray-500">记录时间：<strong x-text="deleteModal.row?.recordTime"></strong></p>
+    </div>
+    <div class="modal-footer">
+      <button @click="deleteModal.show=false" class="btn-default px-4 py-1.5 rounded text-sm">取消</button>
+      <button @click="doDelete()" class="px-4 py-1.5 rounded text-sm text-white bg-red-500 hover:bg-red-600">确定删除</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 删除确认弹窗 -->
+
+<!-- SECTION START: 新增/编辑弹窗（县级管理员） -->
+<div id="feature-add-modal" x-show="addModal.show" class="modal-overlay" @click.self="addModal.show=false">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 class="text-base font-semibold" x-text="`${addModal.mode==='add' ? '新增' : '编辑'} - ${getTabConfig(activeTab).label}`"></h3>
+      <button @click="addModal.show=false" class="text-gray-400 hover:text-gray-700"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="form-label"><span class="required-star">*</span>关联企业</label>
+          <select x-model="addForm.enterpriseId" class="form-input w-full" :disabled="addModal.mode==='edit'" :class="addErrors.enterprise ? 'border-red-400' : ''">
+            <option value="">请选择关联企业</option>
+            <template x-for="e in MOCK_DATA.enterprises" :key="e.id">
+              <option :value="e.id" x-text="`${e.name}（${e.town}）`"></option>
+            </template>
+          </select>
+          <p x-show="addErrors.enterprise" class="error-msg">请选择关联企业</p>
+        </div>
+        <div>
+          <label class="form-label">所属乡镇（自动回显）</label>
+          <input type="text" :value="getEnterpriseInfo(addForm.enterpriseId)?.town || ''" class="form-input w-full bg-gray-50" readonly>
+        </div>
+        <!-- 动态表单字段 -->
+        <template x-for="col in getTabConfig(activeTab).columns" :key="col.key">
+          <div>
+            <label class="form-label" x-text="col.label"></label>
+            <input type="text" x-model="addForm[col.key]" class="form-input w-full" :placeholder="`请输入${col.label}`">
+          </div>
+        </template>
+        <div>
+          <label class="form-label">记录时间</label>
+          <input type="date" x-model="addForm.recordDate" class="form-input w-full">
+        </div>
+      </div>
+      <div class="mt-3 text-xs text-blue-500 bg-blue-50 border border-blue-100 rounded p-2">
+        <i class="fas fa-info-circle mr-1"></i>县级管理员直接录入的记录，状态将自动设为"已入库"（跳过审批流程）。
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button @click="addModal.show=false" class="btn-default px-4 py-1.5 rounded text-sm">取消</button>
+      <button @click="doSaveRecord()" class="btn-primary px-4 py-1.5 rounded text-sm">
+        <i class="fas fa-save mr-1"></i>保存
+      </button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 新增/编辑弹窗 -->
+
+<script>
+const MOCK_DATA = {
+  users: [
+    { id: 1, username: 'county_admin01', password: '123456', role: 'county_admin', roleName: '县级管理员', name: '王建国', deptId: 0 },
+    { id: 2, username: 'county_staff01', password: '123456', role: 'county_staff', roleName: '县级业务人员', name: '李慧', deptId: 0 },
+    { id: 3, username: 'town_gov01', password: '123456', role: 'town_gov_staff', roleName: '乡镇政府业务人员', name: '张明', deptId: 10 },
+    { id: 4, username: 'town_vet01', password: '123456', role: 'town_vet_station', roleName: '乡镇畜牧兽医站', name: '刘芳', deptId: 10 }
+  ],
+  towns: [
+    { value: '1', label: '蓬溪镇' }, { value: '2', label: '大石镇' }, { value: '3', label: '明月镇' },
+    { value: '4', label: '红江镇' }, { value: '5', label: '天福镇' }, { value: '6', label: '罗戈乡' }
+  ],
+  statusOptions: [
+    { value: '0', label: '草稿' }, { value: '1', label: '待核实' }, { value: '2', label: '待审核' },
+    { value: '3', label: '待终审' }, { value: '4', label: '已入库' }, { value: '5', label: '核实退回' },
+    { value: '6', label: '审核退回' }, { value: '7', label: '终审退回' }
+  ],
+  tabGroups: [
+    {
+      label: '养殖管理', tabs: [
+        { key: 'breeding', label: '养殖信息' },
+        { key: 'breedingRecord', label: '繁育信息' },
+        { key: 'weaning', label: '断奶信息' },
+        { key: 'entry', label: '入栏信息' },
+        { key: 'transfer', label: '转栏信息' },
+        { key: 'outbound', label: '出栏信息' }
+      ]
+    },
+    {
+      label: '防疫免疫', tabs: [
+        { key: 'immune', label: '畜禽免疫记录' },
+        { key: 'disinfect', label: '消毒记录' },
+        { key: 'epidemicMonitor', label: '防疫监测记录' }
+      ]
+    },
+    {
+      label: '投入品管理', tabs: [
+        { key: 'vetDrugPurchase', label: '兽药购进记录' },
+        { key: 'vetDrugUse', label: '兽药使用记录' },
+        { key: 'feedPurchase', label: '饲料添加剂购进记录' },
+        { key: 'feedUse', label: '配合饲料使用记录' }
+      ]
+    },
+    {
+      label: '疾病与处理', tabs: [
+        { key: 'disease', label: '畜禽疾病诊疗记录' },
+        { key: 'deadAnimal', label: '病死畜禽无害化处理记录' },
+        { key: 'manure', label: '粪便及污物无害化处理记录' }
+      ]
+    },
+    {
+      label: '生产与销售', tabs: [
+        { key: 'production', label: '生产记录' },
+        { key: 'sales', label: '畜禽及其产品销售记录' }
+      ]
+    }
+  ],
+  tabConfigs: {
+    breeding: {
+      label: '养殖信息', extraFilter: 'pigsty',
+      columns: [
+        { key: 'pigstyName', label: '圈舍名称' }, { key: 'statDate', label: '统计日期' },
+        { key: 'totalStock', label: '存栏数量(头)' }, { key: 'boarCount', label: '公猪(头)' },
+        { key: 'sowCount', label: '母猪(头)' }, { key: 'pigletCount', label: '仔猪(头)' },
+        { key: 'fattCount', label: '育肥猪(头)' }, { key: 'avgWeight', label: '平均体重(kg)' }
+      ]
+    },
+    breedingRecord: {
+      label: '繁育信息', extraFilter: 'date',
+      columns: [
+        { key: 'sowEarNo', label: '母猪耳号' }, { key: 'boarEarNo', label: '公猪耳号' },
+        { key: 'matingMethod', label: '配种方式' }, { key: 'matingDate', label: '配种日期' },
+        { key: 'dueDate', label: '预产期' }, { key: 'birthDate', label: '分娩日期' },
+        { key: 'livePiglets', label: '活仔数(头)' }, { key: 'stillborns', label: '死胎数(头)' }
+      ]
+    },
+    weaning: {
+      label: '断奶信息', extraFilter: 'date',
+      columns: [
+        { key: 'sowEarNo', label: '母猪耳号' }, { key: 'weanDate', label: '断奶日期' },
+        { key: 'weanAge', label: '断奶日龄(天)' }, { key: 'weanCount', label: '断奶数量(头)' },
+        { key: 'weanAvgWeight', label: '断奶平均重(kg)' }, { key: 'targetPigsty', label: '转入圈舍' }
+      ]
+    },
+    entry: {
+      label: '入栏信息', extraFilter: 'date',
+      columns: [
+        { key: 'pigstyName', label: '圈舍名称' }, { key: 'entryDate', label: '入栏日期' },
+        { key: 'entryCount', label: '入栏数量(头)' }, { key: 'pigType', label: '猪只类型' },
+        { key: 'sourceType', label: '来源类型' }, { key: 'avgWeight', label: '平均体重(kg)' },
+        { key: 'quarantineNo', label: '检疫证号' }
+      ]
+    },
+    transfer: {
+      label: '转栏信息', extraFilter: 'date',
+      columns: [
+        { key: 'sourcePigsty', label: '源圈舍' }, { key: 'targetPigsty', label: '目标圈舍' },
+        { key: 'transferDate', label: '转栏日期' }, { key: 'transferCount', label: '转栏数量(头)' },
+        { key: 'transferReason', label: '转栏原因' }, { key: 'avgWeight', label: '平均体重(kg)' }
+      ]
+    },
+    outbound: {
+      label: '出栏信息', extraFilter: 'date',
+      columns: [
+        { key: 'pigstyName', label: '圈舍名称' }, { key: 'outDate', label: '出栏日期' },
+        { key: 'outCount', label: '出栏数量(头)' }, { key: 'totalWeight', label: '出栏总重(kg)' },
+        { key: 'avgWeight', label: '平均体重(kg)' }, { key: 'outPurpose', label: '出栏用途' },
+        { key: 'quarantineNo', label: '检疫证号' }
+      ]
+    },
+    immune: {
+      label: '畜禽免疫记录', extraFilter: 'date',
+      columns: [
+        { key: 'immuneDate', label: '免疫日期' }, { key: 'pigstyType', label: '圈舍类别' },
+        { key: 'immuneCount', label: '实免数(头/只)' }, { key: 'vaccineName', label: '疫苗名称' },
+        { key: 'manufacturer', label: '生产厂家' }, { key: 'batchNo', label: '疫苗批号' },
+        { key: 'immuneMethod', label: '免疫方法' }
+      ]
+    },
+    disinfect: {
+      label: '消毒记录', extraFilter: 'pigsty',
+      columns: [
+        { key: 'pigstyName', label: '圈舍名称' }, { key: 'disinfectDate', label: '消毒日期' },
+        { key: 'disinfectType', label: '消毒类型' }, { key: 'disinfectant', label: '消毒剂名称' },
+        { key: 'disinfectMethod', label: '消毒方式' }, { key: 'quantity', label: '使用数量' },
+        { key: 'unit', label: '计量单位' }, { key: 'operator', label: '消毒人员' }
+      ]
+    },
+    epidemicMonitor: {
+      label: '防疫监测记录', extraFilter: 'date',
+      columns: [
+        { key: 'monitorDate', label: '监测日期' }, { key: 'pigstyNo', label: '圈舍号' },
+        { key: 'sampleType', label: '采样类别' }, { key: 'monitorProject', label: '监测项目' },
+        { key: 'monitorUnit', label: '监测单位' }, { key: 'monitorResult', label: '监测结果' }
+      ]
+    },
+    vetDrugPurchase: {
+      label: '兽药购进记录', extraFilter: 'date',
+      columns: [
+        { key: 'purchaseDate', label: '购进日期' }, { key: 'drugName', label: '兽药通用名称' },
+        { key: 'manufacturer', label: '生产厂家' }, { key: 'spec', label: '包装规格' },
+        { key: 'quantity', label: '数量' }, { key: 'expireDate', label: '有效期至' }
+      ]
+    },
+    vetDrugUse: {
+      label: '兽药使用记录', extraFilter: 'date',
+      columns: [
+        { key: 'startDate', label: '用药开始日期' }, { key: 'endDate', label: '停止用药日期' },
+        { key: 'animalCount', label: '用药畜禽数量(头)' }, { key: 'useReason', label: '用药原因' },
+        { key: 'drugName', label: '兽药通用名称' }, { key: 'manufacturer', label: '生产厂家' }
+      ]
+    },
+    feedPurchase: {
+      label: '饲料添加剂购进记录', extraFilter: 'date',
+      columns: [
+        { key: 'purchaseDate', label: '购进日期' }, { key: 'productName', label: '产品名称' },
+        { key: 'productType', label: '产品类型' }, { key: 'manufacturer', label: '生产厂家' },
+        { key: 'quantity', label: '数量' }, { key: 'unit', label: '单位' },
+        { key: 'supplier', label: '供货单位名称与地址' }
+      ]
+    },
+    feedUse: {
+      label: '配合饲料使用记录', extraFilter: 'date',
+      columns: [
+        { key: 'purchaseDate', label: '使用日期' }, { key: 'productName', label: '产品名称' },
+        { key: 'productType', label: '产品类型' }, { key: 'manufacturer', label: '生产厂家' },
+        { key: 'quantity', label: '数量' }, { key: 'unit', label: '单位' }
+      ]
+    },
+    disease: {
+      label: '畜禽疾病诊疗记录', extraFilter: 'date',
+      columns: [
+        { key: 'treatDate', label: '诊疗日期' }, { key: 'pigstyType', label: '圈舍类别' },
+        { key: 'symptoms', label: '临床症状及病解情况' }, { key: 'treatResult', label: '诊疗结果' },
+        { key: 'treater', label: '诊疗人员' }
+      ]
+    },
+    deadAnimal: {
+      label: '病死畜禽无害化处理记录', extraFilter: 'date',
+      columns: [
+        { key: 'processDate', label: '处理日期' }, { key: 'pigstyType', label: '圈舍类别' },
+        { key: 'deadCount', label: '病死数量(头/只)' }, { key: 'deathReason', label: '死亡原因' },
+        { key: 'processMethod', label: '处理方法' }, { key: 'operator', label: '收集处理人员' }
+      ]
+    },
+    manure: {
+      label: '粪便及污物无害化处理记录', extraFilter: 'date',
+      columns: [
+        { key: 'processDate', label: '处理日期' }, { key: 'manureAmount', label: '粪便产生量(吨)' },
+        { key: 'sewageAmount', label: '污水产生量(吨)' }, { key: 'processMethod', label: '处理方式' },
+        { key: 'supervisor', label: '处理负责人' }
+      ]
+    },
+    production: {
+      label: '生产记录', extraFilter: 'date',
+      columns: [
+        { key: 'changeDate', label: '变动日期' }, { key: 'pigstyType', label: '圈舍类别' },
+        { key: 'changeCount', label: '变动情况(数量)' }, { key: 'stockCount', label: '存栏数' }
+      ]
+    },
+    sales: {
+      label: '畜禽及其产品销售记录', extraFilter: 'date',
+      columns: [
+        { key: 'saleDate', label: '销售日期' }, { key: 'breed', label: '品种' },
+        { key: 'quantity', label: '数量' }, { key: 'unit', label: '单位' },
+        { key: 'destination', label: '销往去向' }, { key: 'buyer', label: '购买人或单位及联系电话' }
+      ]
+    }
+  },
+  enterprises: [
+    { id: 1, name: '蓬溪县鑫源生猪养殖有限公司', town: '蓬溪镇', townCode: '1' },
+    { id: 2, name: '蓬溪县顺泰育肥猪场', town: '大石镇', townCode: '2' },
+    { id: 3, name: '明月镇宏达种猪繁育基地', town: '明月镇', townCode: '3' },
+    { id: 4, name: '红江镇兴农生猪养殖家庭农场', town: '红江镇', townCode: '4' },
+    { id: 5, name: '天福镇绿野生猪生态养殖场', town: '天福镇', townCode: '5' }
+  ],
+  // 通用档案数据生成
+  records: (function() {
+    const enterprises = [
+      { name: '蓬溪县鑫源生猪养殖有限公司', town: '蓬溪镇' },
+      { name: '蓬溪县顺泰育肥猪场', town: '大石镇' },
+      { name: '明月镇宏达种猪繁育基地', town: '明月镇' },
+      { name: '红江镇兴农生猪养殖家庭农场', town: '红江镇' },
+      { name: '天福镇绿野生猪生态养殖场', town: '天福镇' }
+    ];
+    const statuses = ['0','1','2','3','4','5','6','7'];
+    const remarks = {
+      '5': '数据不完整，圈舍编号与实际不符',
+      '6': '发现数据异常，需要重新核实',
+      '7': '数量统计有误，请重新填报'
+    };
+    const records = {};
+    const tabs = ['breeding','breedingRecord','weaning','entry','transfer','outbound','immune','disinfect',
+                  'epidemicMonitor','vetDrugPurchase','vetDrugUse','feedPurchase','feedUse','disease',
+                  'deadAnimal','manure','production','sales'];
+    tabs.forEach(tabKey => {
+      records[tabKey] = [];
+      for (let i = 0; i < 12; i++) {
+        const ent = enterprises[i % enterprises.length];
+        const status = statuses[i % statuses.length];
+        records[tabKey].push({
+          id: tabKey + '_' + (i+1),
+          enterpriseName: ent.name,
+          town: ent.town,
+          townCode: String((i % 5) + 1),
+          status: status,
+          recordTime: `2025-${String(Math.floor(i/12*12)+1).padStart(2,'0')}-${String((i*3%28)+1).padStart(2,'0')} ${String(8+i%10).padStart(2,'0')}:${String(i*7%60).padStart(2,'0')}:00`,
+          verifyRemark: status === '5' ? remarks['5'] : '',
+          auditRemark: status === '6' ? remarks['6'] : '',
+          finalRemark: status === '7' ? remarks['7'] : '',
+          // 养殖信息
+          pigstyName: `${['母猪舍','育肥舍A','育肥舍B','仔猪舍','种公猪舍'][i%5]}`,
+          statDate: `2025-${String((i%12)+1).padStart(2,'0')}-15`,
+          totalStock: 200 + i*30,
+          boarCount: 10 + i*2,
+          sowCount: 50 + i*5,
+          pigletCount: 60 + i*8,
+          fattCount: 80 + i*15,
+          avgWeight: (50 + i*3).toFixed(1),
+          // 繁育信息
+          sowEarNo: `M-${String(1001+i)}`,
+          boarEarNo: `B-${String(501+i)}`,
+          matingMethod: ['自然交配','人工授精'][i%2],
+          matingDate: `2025-${String((i%12)+1).padStart(2,'0')}-10`,
+          dueDate: `2025-${String((i%12)+4).padStart(2,'0')}-01`,
+          birthDate: `2025-${String((i%12)+4).padStart(2,'0')}-02`,
+          livePiglets: 10 + i%4,
+          stillborns: i%3,
+          // 断奶
+          weanDate: `2025-${String((i%12)+1).padStart(2,'0')}-25`,
+          weanAge: 21 + i%7,
+          weanCount: 8 + i%4,
+          weanAvgWeight: (6.5 + i*0.2).toFixed(1),
+          targetPigsty: `仔猪保育舍${i%3+1}`,
+          // 入栏
+          entryDate: `2025-${String((i%12)+1).padStart(2,'0')}-05`,
+          entryCount: 50 + i*10,
+          pigType: ['育肥猪','仔猪','种猪'][i%3],
+          sourceType: ['自繁','购入'][i%2],
+          avgWeight: (30 + i*2).toFixed(1),
+          quarantineNo: `QY-2025-${String(1000+i)}`,
+          // 转栏
+          sourcePigsty: `保育舍${i%3+1}`,
+          targetPigsty: `育肥舍${i%4+1}`,
+          transferDate: `2025-${String((i%12)+1).padStart(2,'0')}-15`,
+          transferCount: 30 + i*5,
+          transferReason: ['转群','分栏','调整密度'][i%3],
+          // 出栏
+          outDate: `2025-${String((i%12)+1).padStart(2,'0')}-20`,
+          outCount: 80 + i*15,
+          totalWeight: (8000 + i*1500),
+          outPurpose: ['销售','屠宰'][i%2],
+          // 免疫
+          immuneDate: `2025-${String((i%12)+1).padStart(2,'0')}-08`,
+          pigstyType: ['母猪舍','育肥舍','仔猪舍'][i%3],
+          immuneCount: 100 + i*20,
+          vaccineName: ['猪瘟疫苗','蓝耳疫苗','口蹄疫疫苗','伪狂犬疫苗'][i%4],
+          manufacturer: ['普莱柯生物','中牧集团','天康生物'][i%3],
+          batchNo: `BN-2025-${String(100+i)}`,
+          immuneMethod: ['颈部肌注','耳后根肌注'][i%2],
+          // 消毒
+          disinfectDate: `2025-${String((i%12)+1).padStart(2,'0')}-01`,
+          disinfectType: ['常规消毒','带猪消毒','空舍消毒'][i%3],
+          disinfectant: ['烧碱','百毒杀','消得净'][i%3],
+          disinfectMethod: ['喷雾消毒','浸泡消毒'][i%2],
+          quantity: (2 + i*0.5).toFixed(1),
+          unit: 'kg',
+          operator: ['张师傅','李工','王员工'][i%3],
+          // 防疫监测
+          monitorDate: `2025-${String((i%12)+1).padStart(2,'0')}-18`,
+          pigstyNo: `CH-${String(i+1).padStart(3,'0')}`,
+          sampleType: ['血清','拭子','粪便'][i%3],
+          monitorProject: ['猪瘟抗体','蓝耳抗体','口蹄疫抗体'][i%3],
+          monitorUnit: '蓬溪县动物疫病预防控制中心',
+          monitorResult: ['阳性（达标）','阴性（达标）'][i%2],
+          // 兽药购进
+          purchaseDate: `2025-${String((i%12)+1).padStart(2,'0')}-03`,
+          drugName: ['阿莫西林','硫酸新霉素','强力霉素','土霉素'][i%4],
+          spec: '500g/瓶',
+          expireDate: `2026-${String((i%12)+1).padStart(2,'0')}-01`,
+          // 兽药使用
+          startDate: `2025-${String((i%12)+1).padStart(2,'0')}-05`,
+          endDate: `2025-${String((i%12)+1).padStart(2,'0')}-12`,
+          animalCount: 50 + i*10,
+          useReason: ['预防保健','疾病治疗'][i%2],
+          // 饲料购进
+          productName: ['豆粕','玉米','预混料','浓缩料'][i%4],
+          productType: ['精饲料','粗饲料','配合饲料'][i%3],
+          supplier: `蓬溪县兴农饲料有限公司`,
+          // 疾病诊疗
+          treatDate: `2025-${String((i%12)+1).padStart(2,'0')}-12`,
+          symptoms: ['发热咳嗽','腹泻软便','皮肤发红','精神不振'][i%4],
+          treatResult: ['痊愈','好转','死亡'][i%3],
+          treater: ['李兽医','王兽医'][i%2],
+          // 病死处理
+          processDate: `2025-${String((i%12)+1).padStart(2,'0')}-14`,
+          deadCount: 1 + i%3,
+          deathReason: ['疾病','意外','淘汰'][i%3],
+          processMethod: ['无害化填埋','焚烧处理','委托处理'][i%3],
+          // 粪污处理
+          manureAmount: (5 + i*0.8).toFixed(1),
+          sewageAmount: (10 + i*1.5).toFixed(1),
+          processMethod: ['还田利用','沼气处理','委托处理'][i%3],
+          supervisor: ['环保主任','生产主管'][i%2],
+          // 生产记录
+          changeDate: `2025-${String((i%12)+1).padStart(2,'0')}-30`,
+          changeCount: `+${50+i*10}`,
+          stockCount: 500 + i*30,
+          // 销售记录
+          saleDate: `2025-${String((i%12)+1).padStart(2,'0')}-25`,
+          breed: ['长白猪','大白猪','土猪'][i%3],
+          destination: ['成都市温江区','遂宁市','重庆市'][i%3],
+          buyer: `${['张','李','王'][i%3]}老板 138${String(1000+i*9)}`
+        });
+      }
+    });
+    return records;
+  })()
+};
+
+function app() {
+  return {
+    currentRole: 'county_admin',
+    sidebarCollapsed: false,
+    toast: { show: false, msg: '', type: 'success' },
+
+    // Tab状态
+    activeTab: 'breeding',
+    filter: { enterpriseName: '', town: '', status: '', recordDate: '', pigstyName: '' },
+    searchedFilter: { enterpriseName: '', town: '', status: '', recordDate: '', pigstyName: '' },
+    page: 1,
+    pageSize: 10,
+
+    // 详情弹窗
+    detailModal: { show: false, row: null },
+
+    // 审批弹窗
+    approvalModal: { show: false, row: null, type: '', action: '', title: '', isReject: false, remark: '', remarkError: '', fromDetail: false },
+
+    // 删除弹窗
+    deleteModal: { show: false, row: null },
+
+    // 新增/编辑弹窗
+    addModal: { show: false, mode: 'add' },
+    addForm: {},
+    addErrors: {},
+
+    getCurrentUser() {
+      return MOCK_DATA.users.find(u => u.role === this.currentRole) || MOCK_DATA.users[0];
+    },
+
+    isCountyRole() {
+      return this.currentRole === 'county_admin' || this.currentRole === 'county_staff';
+    },
+
+    onRoleChange() {
+      this.showToast(`已切换为：${this.getCurrentUser().roleName}`, 'success');
+    },
+
+    switchTab(key) {
+      if (this.activeTab !== key) {
+        this.activeTab = key;
+        this.filter = { enterpriseName: '', town: '', status: '', recordDate: '', pigstyName: '' };
+        this.searchedFilter = { ...this.filter };
+        this.page = 1;
+      }
+    },
+
+    getTabConfig(key) {
+      return MOCK_DATA.tabConfigs[key] || { label: '', columns: [], extraFilter: null };
+    },
+
+    getEnterpriseInfo(id) {
+      return MOCK_DATA.enterprises.find(e => e.id === id);
+    },
+
+    get filteredData() {
+      let list = [...(MOCK_DATA.records[this.activeTab] || [])];
+      const f = this.searchedFilter;
+      if (!this.isCountyRole()) {
+        list = list.filter(r => r.townCode <= '2');
+      }
+      if (f.enterpriseName) list = list.filter(r => r.enterpriseName.includes(f.enterpriseName));
+      if (f.town) list = list.filter(r => r.townCode === f.town);
+      if (f.status) list = list.filter(r => r.status === f.status);
+      return list;
+    },
+
+    get paginatedData() {
+      const start = (this.page - 1) * Number(this.pageSize);
+      return this.filteredData.slice(start, start + Number(this.pageSize));
+    },
+
+    get totalPages() {
+      return Math.max(1, Math.ceil(this.filteredData.length / Number(this.pageSize)));
+    },
+
+    get pageRange() {
+      const total = this.totalPages;
+      const cur = this.page;
+      let start = Math.max(1, cur - 2);
+      let end = Math.min(total, cur + 2);
+      const pages = [];
+      for (let i = start; i <= end; i++) pages.push(i);
+      return pages;
+    },
+
+    doSearch() {
+      this.searchedFilter = { ...this.filter };
+      this.page = 1;
+    },
+
+    resetFilter() {
+      this.filter = { enterpriseName: '', town: '', status: '', recordDate: '', pigstyName: '' };
+      this.searchedFilter = { ...this.filter };
+      this.page = 1;
+    },
+
+    getStatusClass(status) {
+      const map = { '0':'tag-gray','1':'tag-blue','2':'tag-orange','3':'tag-purple','4':'tag-green','5':'tag-red','6':'tag-red','7':'tag-red' };
+      return map[status] || 'tag-gray';
+    },
+
+    getStatusLabel(status) {
+      const map = { '0':'草稿','1':'待核实','2':'待审核','3':'待终审','4':'已入库','5':'核实退回','6':'审核退回','7':'终审退回' };
+      return map[status] || status;
+    },
+
+    getVerifyClass(row) {
+      if (!row) return 'inactive';
+      if (['2','3','4'].includes(row.status)) return 'done';
+      if (row.status === '1') return 'active';
+      if (row.status === '5') return 'rejected';
+      return 'inactive';
+    },
+
+    getAuditClass(row) {
+      if (!row) return 'inactive';
+      if (['3','4'].includes(row.status)) return 'done';
+      if (row.status === '2') return 'active';
+      if (row.status === '6') return 'rejected';
+      return 'inactive';
+    },
+
+    getFinalClass(row) {
+      if (!row) return 'inactive';
+      if (row.status === '4') return 'done';
+      if (row.status === '3') return 'active';
+      if (row.status === '7') return 'rejected';
+      return 'inactive';
+    },
+
+    openDetail(row) {
+      this.detailModal.row = row;
+      this.detailModal.show = true;
+    },
+
+    openApproval(row, type, action) {
+      const typeLabels = { verify: '核实', audit: '审核', final: '终审' };
+      const isReject = action === 'reject';
+      this.approvalModal = {
+        show: true,
+        row,
+        type,
+        action,
+        title: `确认${typeLabels[type]}${isReject ? '退回' : '通过'}`,
+        isReject,
+        remark: '',
+        remarkError: '',
+        fromDetail: false
+      };
+    },
+
+    openApprovalFromDetail(type, action) {
+      const row = this.detailModal.row;
+      this.detailModal.show = false;
+      this.openApproval(row, type, action);
+      this.approvalModal.fromDetail = true;
+    },
+
+    doApproval() {
+      this.approvalModal.remarkError = '';
+      if (this.approvalModal.isReject && !this.approvalModal.remark.trim()) {
+        this.approvalModal.remarkError = '请填写退回原因';
+        return;
+      }
+      if (this.approvalModal.remark.length > 500) {
+        this.approvalModal.remarkError = this.approvalModal.isReject ? '退回原因不能超过500个字符' : '审批意见不能超过500个字符';
+        return;
+      }
+      const row = this.approvalModal.row;
+      const statusMap = {
+        verify_pass: '2', verify_reject: '5',
+        audit_pass: '3', audit_reject: '6',
+        final_pass: '4', final_reject: '7'
+      };
+      const key = `${this.approvalModal.type}_${this.approvalModal.action}`;
+      const newStatus = statusMap[key];
+      if (newStatus) {
+        const recordList = MOCK_DATA.records[this.activeTab];
+        const idx = recordList.findIndex(r => r.id === row.id);
+        if (idx !== -1) {
+          recordList[idx].status = newStatus;
+          if (this.approvalModal.type === 'verify' && this.approvalModal.isReject) {
+            recordList[idx].verifyRemark = this.approvalModal.remark;
+          } else if (this.approvalModal.type === 'audit' && this.approvalModal.isReject) {
+            recordList[idx].auditRemark = this.approvalModal.remark;
+          } else if (this.approvalModal.type === 'final' && this.approvalModal.isReject) {
+            recordList[idx].finalRemark = this.approvalModal.remark;
+          }
+        }
+      }
+      this.approvalModal.show = false;
+      this.showToast('操作成功！', 'success');
+    },
+
+    confirmDelete(row) {
+      this.deleteModal = { show: true, row };
+    },
+
+    doDelete() {
+      const idx = MOCK_DATA.records[this.activeTab].findIndex(r => r.id === this.deleteModal.row.id);
+      if (idx !== -1) {
+        MOCK_DATA.records[this.activeTab].splice(idx, 1);
+      }
+      this.deleteModal.show = false;
+      this.showToast('删除成功！', 'success');
+    },
+
+    openAddModal() {
+      this.addModal = { show: true, mode: 'add' };
+      this.addForm = { enterpriseId: '', recordDate: '' };
+      const cfg = this.getTabConfig(this.activeTab);
+      cfg.columns.forEach(col => { this.addForm[col.key] = ''; });
+      this.addErrors = {};
+    },
+
+    openEditModal(row) {
+      this.addModal = { show: true, mode: 'edit' };
+      this.addForm = { enterpriseId: '', recordDate: row.recordTime ? row.recordTime.split(' ')[0] : '' };
+      const cfg = this.getTabConfig(this.activeTab);
+      cfg.columns.forEach(col => { this.addForm[col.key] = row[col.key] ?? ''; });
+      this.addErrors = {};
+      this._editRow = row;
+    },
+
+    doSaveRecord() {
+      if (!this.addForm.enterpriseId && this.addModal.mode === 'add') {
+        this.addErrors = { enterprise: true };
+        return;
+      }
+      if (this.addModal.mode === 'add') {
+        const ent = this.getEnterpriseInfo(Number(this.addForm.enterpriseId));
+        const newRecord = {
+          id: this.activeTab + '_' + Date.now(),
+          enterpriseName: ent ? ent.name : '未知企业',
+          town: ent ? ent.town : '',
+          townCode: ent ? ent.townCode : '',
+          status: '4',
+          recordTime: new Date().toLocaleString('zh-CN', { hour12: false }).replace(/\//g, '-'),
+          verifyRemark: '', auditRemark: '', finalRemark: ''
+        };
+        const cfg = this.getTabConfig(this.activeTab);
+        cfg.columns.forEach(col => { newRecord[col.key] = this.addForm[col.key]; });
+        MOCK_DATA.records[this.activeTab].unshift(newRecord);
+        this.showToast('新增成功！记录已直接入库（跳过审批流程）', 'success');
+      } else {
+        if (this._editRow) {
+          const idx = MOCK_DATA.records[this.activeTab].findIndex(r => r.id === this._editRow.id);
+          if (idx !== -1) {
+            const cfg = this.getTabConfig(this.activeTab);
+            cfg.columns.forEach(col => { MOCK_DATA.records[this.activeTab][idx][col.key] = this.addForm[col.key]; });
+          }
+        }
+        this.showToast('保存成功！', 'success');
+      }
+      this.addModal.show = false;
+    },
+
+    doExport() {
+      if (this.filteredData.length === 0) {
+        this.showToast('当前无数据可导出', 'error');
+        return;
+      }
+      const tabLabel = this.getTabConfig(this.activeTab).label;
+      const now = new Date();
+      const ts = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}${String(now.getSeconds()).padStart(2,'0')}`;
+      this.showToast(`导出成功！文件名：${tabLabel}_监管导出_${ts}.xlsx，共 ${this.filteredData.length} 条`, 'success');
+    },
+
+    showToast(msg, type = 'success') {
+      this.toast = { show: true, msg, type };
+      setTimeout(() => { this.toast.show = false; }, 3000);
+    }
+  };
+}
+</script>
+</body>
+</html>

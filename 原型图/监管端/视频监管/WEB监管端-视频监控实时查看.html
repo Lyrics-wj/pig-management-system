@@ -1,0 +1,427 @@
+<!--
+  功能名称：视频监控实时查看
+  对应PRD：doc_prd/WEB/监管端/视频监管/WEB监管端-视频监控实时查看.prd.md
+  所属端口：WEB监管端
+  所属模块：视频监管
+  制作日期：2026-03-10
+  最后更新：2026-03-10
+  角色说明：县级管理员/县级业务人员看全县、乡镇看本乡镇、企业管理员看本企业
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>视频监控实时查看 - 蓬溪县生猪数字化管理平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    /* SHARED STYLES */
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; }
+    .sidebar-main { width: 240px; min-width: 240px; background: #001529; }
+    .menu-item { padding: 10px 20px; cursor: pointer; color: rgba(255,255,255,0.65); font-size: 14px; transition: all 0.2s; }
+    .menu-item:hover { background: rgba(255,255,255,0.1); color: white; }
+    .menu-item.active { background: #1677ff; color: white; }
+    .device-tree { width: 280px; min-width: 280px; background: white; border-right: 1px solid #e8e8e8; overflow-y: auto; }
+    .tree-node { padding: 6px 12px; cursor: pointer; font-size: 13px; border-radius: 4px; margin: 1px 4px; }
+    .tree-node:hover { background: #e6f4ff; }
+    .tree-node.selected { background: #bae0ff; color: #1677ff; }
+    .tree-children { padding-left: 16px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .dot-online { background: #52c41a; }
+    .dot-offline { background: transparent; border: 2px solid #bfbfbf; }
+    .dot-fault { background: #f5222d; }
+    .video-grid { display: grid; gap: 4px; height: 100%; }
+    .grid-1x1 { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+    .grid-2x2 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+    .grid-3x3 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; }
+    .grid-4x4 { grid-template-columns: 1fr 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr 1fr; }
+    .video-cell { background: #0a1628; border-radius: 4px; position: relative; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s; }
+    .video-cell.selected { border-color: #1677ff; }
+    .video-cell.empty { background: #1a2a3a; border: 2px dashed #2a3a4a; display: flex; align-items: center; justify-content: center; }
+    .video-cell:hover .video-controls { opacity: 1; }
+    .video-controls { position: absolute; top: 4px; right: 4px; display: flex; space-x: 4px; opacity: 0; transition: opacity 0.2s; background: rgba(0,0,0,0.6); border-radius: 4px; padding: 3px; }
+    .ctrl-btn { color: white; font-size: 12px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 3px; }
+    .ctrl-btn:hover { background: rgba(255,255,255,0.2); }
+    .video-label { position: absolute; bottom: 0; left: 0; right: 0; padding: 4px 8px; background: linear-gradient(transparent, rgba(0,0,0,0.7)); color: white; font-size: 11px; }
+    .online-dot { position: absolute; top: 6px; left: 6px; width: 8px; height: 8px; background: #52c41a; border-radius: 50%; border: 1.5px solid white; }
+    .rec-badge { position: absolute; top: 6px; left: 20px; background: #f5222d; color: white; font-size: 10px; padding: 1px 4px; border-radius: 2px; display: flex; align-items: center; }
+    .split-btn { padding: 5px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; border: 1px solid #d9d9d9; background: white; }
+    .split-btn.active { background: #1677ff; color: white; border-color: #1677ff; }
+    .context-menu { position: fixed; background: white; border-radius: 4px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); z-index: 9999; min-width: 140px; padding: 4px 0; }
+    .ctx-item { padding: 8px 16px; font-size: 13px; cursor: pointer; display: flex; align-items: center; }
+    .ctx-item:hover { background: #f5f5f5; }
+    .ctx-item i { width: 20px; color: #595959; }
+    .success-toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); background: #f6ffed; border: 1px solid #b7eb8f; color: #52c41a; padding: 10px 24px; border-radius: 6px; font-size: 14px; z-index: 9999; }
+    .highlight { background: #fffb8f; }
+  </style>
+</head>
+<body x-data="realtimeApp()" x-init="init()" @click="closeContextMenu()">
+
+<div class="flex h-screen overflow-hidden">
+
+  <!-- SECTION START: 侧边主菜单 -->
+  <aside class="sidebar-main flex flex-col flex-shrink-0">
+    <div class="p-4 border-b" style="border-color: rgba(255,255,255,0.08);">
+      <div class="flex items-center space-x-2">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: #1677ff;">
+          <i class="fas fa-video text-white text-sm"></i>
+        </div>
+        <div>
+          <div class="text-white font-bold text-sm">蓬溪县生猪数字化</div>
+          <div class="text-xs text-gray-400">管理平台 · 监管端</div>
+        </div>
+      </div>
+    </div>
+    <nav class="flex-1 py-3">
+      <div class="px-4 mb-2 text-xs text-gray-500">视频监管</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-视频监管驾驶舱.html'"><i class="fas fa-tachometer-alt mr-2"></i>视频监管驾驶舱</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-视频设备信息管理.html'"><i class="fas fa-camera mr-2"></i>视频设备信息管理</div>
+      <div class="menu-item active"><i class="fas fa-desktop mr-2"></i>视频监控实时查看</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-视频监控告警管理.html'"><i class="fas fa-bell mr-2"></i>视频监控告警管理</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-视频监控历史回放.html'"><i class="fas fa-history mr-2"></i>视频监控历史回放</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-云存储管理.html'"><i class="fas fa-cloud mr-2"></i>云存储管理</div>
+    </nav>
+    <div class="p-3 border-t" style="border-color: rgba(255,255,255,0.08);">
+      <select x-model="currentRole" @change="switchRole()" class="w-full text-sm px-2 py-1 rounded text-white" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
+        <option value="county_admin" style="background:#001529">县级管理员</option>
+        <option value="county_staff" style="background:#001529">县级业务人员</option>
+        <option value="town_gov_staff" style="background:#001529">乡镇政府业务人员</option>
+        <option value="ent_admin" style="background:#001529">企业管理员</option>
+      </select>
+    </div>
+  </aside>
+  <!-- SECTION END: 侧边主菜单 -->
+
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <!-- 顶部 -->
+    <header class="bg-white border-b px-6 flex items-center justify-between flex-shrink-0" style="height: 56px; border-color: #e8e8e8;">
+      <div>
+        <span class="text-gray-400 text-sm">视频监管</span>
+        <span class="text-gray-400 text-sm mx-2">/</span>
+        <span class="text-gray-700 text-sm font-medium">视频监控实时查看</span>
+      </div>
+      <div class="flex items-center space-x-3">
+        <div class="relative">
+          <i class="fas fa-bell text-gray-500 text-lg cursor-pointer"></i>
+          <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">3</span>
+        </div>
+        <div class="flex items-center space-x-2">
+          <div class="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-bold">张</div>
+          <span class="text-sm text-gray-600" x-text="currentRoleName"></span>
+          <i class="fas fa-sign-out-alt text-gray-400 cursor-pointer"></i>
+        </div>
+      </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden" style="background: #141e2d;">
+
+      <!-- SECTION START: 设备树 -->
+      <div class="device-tree flex-shrink-0" style="background: #1a2535; border-color: rgba(255,255,255,0.1);">
+        <!-- 搜索框 -->
+        <div class="p-3 border-b" style="border-color: rgba(255,255,255,0.1);">
+          <div class="relative">
+            <i class="fas fa-search absolute left-3 top-2.5 text-gray-400 text-sm"></i>
+            <input x-model="searchKey" @input="doSearch()" type="text" placeholder="搜索设备/企业" class="w-full pl-8 pr-3 py-2 rounded text-sm" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: white; outline: none;">
+          </div>
+        </div>
+        <!-- 树形内容 -->
+        <div class="p-2 overflow-y-auto" style="height: calc(100% - 56px);">
+          <template x-if="currentRole !== 'ent_admin'">
+            <div>
+              <template x-for="town in filteredTree" :key="town.id">
+                <div>
+                  <!-- 乡镇节点 -->
+                  <div class="tree-node flex items-center justify-between" @click="town.expanded = !town.expanded">
+                    <div class="flex items-center space-x-1">
+                      <i class="fas text-xs text-gray-400 w-3" :class="town.expanded ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                      <i class="fas fa-map-marker-alt text-xs text-blue-400"></i>
+                      <span class="text-sm font-medium" style="color: #c0d0e0;" x-text="town.name"></span>
+                    </div>
+                    <span class="text-xs text-gray-400" x-text="`(${town.onlineCount}/${town.totalCount})`"></span>
+                  </div>
+                  <!-- 企业节点 -->
+                  <div x-show="town.expanded" class="tree-children">
+                    <template x-for="ent in town.enterprises" :key="ent.id">
+                      <div>
+                        <div class="tree-node flex items-center justify-between" @click="ent.expanded = !ent.expanded">
+                          <div class="flex items-center space-x-1">
+                            <i class="fas text-xs text-gray-500 w-3" :class="ent.expanded ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                            <i class="fas fa-building text-xs text-yellow-500"></i>
+                            <span class="text-xs truncate" style="color: #a0b0c0; max-width: 140px;" :title="ent.name" x-text="ent.name"></span>
+                          </div>
+                          <span class="text-xs text-gray-500" x-text="`(${ent.onlineCount}/${ent.devices.length})`"></span>
+                        </div>
+                        <!-- 设备节点 -->
+                        <div x-show="ent.expanded" class="tree-children">
+                          <template x-for="dev in ent.devices" :key="dev.deviceId">
+                            <div class="tree-node flex items-center space-x-2" :class="selectedDevice && selectedDevice.deviceId === dev.deviceId ? 'selected' : ''" @dblclick="playInEmptyCell(dev)" :draggable="true" @dragstart="dragDevice = dev">
+                              <span class="status-dot flex-shrink-0" :class="dev.deviceStatus==='0'?'dot-online':dev.deviceStatus==='1'?'dot-offline':'dot-fault'"></span>
+                              <i class="fas fa-video text-xs" style="color: #8fa8c8;"></i>
+                              <span class="text-xs truncate" style="color: #c0d0e0;" x-text="dev.deviceName"></span>
+                            </div>
+                          </template>
+                        </div>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </template>
+          <!-- 企业端：直接显示设备列表 -->
+          <template x-if="currentRole === 'ent_admin'">
+            <div>
+              <template x-for="dev in entDevices" :key="dev.deviceId">
+                <div class="tree-node flex items-center space-x-2" :class="selectedDevice && selectedDevice.deviceId === dev.deviceId ? 'selected' : ''" @dblclick="playInEmptyCell(dev)">
+                  <span class="status-dot flex-shrink-0" :class="dev.deviceStatus==='0'?'dot-online':dev.deviceStatus==='1'?'dot-offline':'dot-fault'"></span>
+                  <i class="fas fa-video text-xs" style="color: #8fa8c8;"></i>
+                  <span class="text-xs" style="color: #c0d0e0;" x-text="dev.deviceName"></span>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+      </div>
+      <!-- SECTION END: 设备树 -->
+
+      <!-- SECTION START: 视频监控区域 -->
+      <div class="flex-1 flex flex-col overflow-hidden p-3">
+        <!-- 分屏按钮组 -->
+        <div class="flex items-center justify-between mb-3 flex-shrink-0">
+          <div class="flex items-center space-x-2">
+            <span class="text-gray-300 text-sm font-medium">分屏模式</span>
+            <button class="split-btn" :class="splitMode===1?'active':''" @click="setSplitMode(1)">⬜ 单画面</button>
+            <button class="split-btn" :class="splitMode===4?'active':''" @click="setSplitMode(4)">⊞ 四画面</button>
+            <button class="split-btn" :class="splitMode===9?'active':''" @click="setSplitMode(9)">⊟ 九画面</button>
+            <button class="split-btn" :class="splitMode===16?'active':''" @click="setSplitMode(16)">⊞ 十六画面</button>
+          </div>
+          <div class="text-xs text-gray-400">双击设备树摄像头播放 · 右键画面更多操作</div>
+        </div>
+        <!-- 视频网格 -->
+        <div class="flex-1 overflow-hidden" @dragover.prevent @drop="dropToCell($event)">
+          <div class="video-grid h-full" :class="splitMode===1?'grid-1x1':splitMode===4?'grid-2x2':splitMode===9?'grid-3x3':'grid-4x4'">
+            <template x-for="(cell, idx) in cells.slice(0, splitMode)" :key="idx">
+              <div class="video-cell" :class="[selectedCellIdx===idx?'selected':'', cell.device?'':'empty']"
+                @click="selectedCellIdx=idx"
+                @dblclick="cell.device && enterFullscreen(idx)"
+                @contextmenu.prevent="openContextMenu($event, idx)"
+                :data-idx="idx">
+                <!-- 空白状态 -->
+                <template x-if="!cell.device">
+                  <div class="flex flex-col items-center justify-center h-full" style="color: rgba(255,255,255,0.3);">
+                    <i class="fas fa-plus-circle text-3xl mb-2"></i>
+                    <span class="text-xs">请选择摄像头</span>
+                  </div>
+                </template>
+                <!-- 播放状态 -->
+                <template x-if="cell.device">
+                  <div class="relative w-full h-full">
+                    <!-- 模拟视频画面 -->
+                    <div class="w-full h-full flex items-center justify-center" :style="`background: linear-gradient(135deg, #0a1628 0%, ${cell.device.deviceStatus==='0' ? '#0d2040' : '#1a1a1a'} 100%);`">
+                      <template x-if="cell.device.deviceStatus==='0'">
+                        <i class="fas fa-video text-6xl" style="color: rgba(255,255,255,0.05);"></i>
+                      </template>
+                      <template x-if="cell.device.deviceStatus!=='0'">
+                        <div class="flex flex-col items-center">
+                          <i class="fas fa-video-slash text-3xl mb-2" style="color: rgba(255,255,255,0.3);"></i>
+                          <span class="text-sm" style="color: rgba(255,255,255,0.4);">设备离线</span>
+                        </div>
+                      </template>
+                    </div>
+                    <!-- 在线状态点 -->
+                    <div class="online-dot" x-show="cell.device.deviceStatus==='0'"></div>
+                    <!-- 录制标识 -->
+                    <div class="rec-badge" x-show="cell.recording">
+                      <span class="w-2 h-2 bg-white rounded-full mr-1 animate-pulse"></span>REC
+                    </div>
+                    <!-- 设备标签 -->
+                    <div class="video-label">
+                      <span x-text="cell.device.deviceName" class="text-xs"></span>
+                    </div>
+                    <!-- 操作按钮 -->
+                    <div class="video-controls">
+                      <div class="ctrl-btn" @click.stop="snapshot(idx)" title="截图"><i class="fas fa-camera"></i></div>
+                      <div class="ctrl-btn" :class="cell.recording?'text-red-400':''" @click.stop="toggleRecord(idx)" title="录制">
+                        <i :class="cell.recording ? 'fas fa-stop-circle' : 'fas fa-circle'"></i>
+                      </div>
+                      <div class="ctrl-btn" @click.stop="closeCell(idx)" title="关闭"><i class="fas fa-times"></i></div>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+      <!-- SECTION END: 视频监控区域 -->
+    </div>
+  </div>
+</div>
+
+<!-- 右键菜单 -->
+<div class="context-menu" x-show="ctxMenu.show" :style="`top: ${ctxMenu.y}px; left: ${ctxMenu.x}px`" @click.stop>
+  <div class="ctx-item" @click="enterFullscreen(ctxMenu.cellIdx); closeContextMenu()"><i class="fas fa-expand"></i>全屏</div>
+  <div class="ctx-item" @click="snapshot(ctxMenu.cellIdx); closeContextMenu()"><i class="fas fa-camera"></i>截图</div>
+  <div class="ctx-item" @click="toggleRecord(ctxMenu.cellIdx); closeContextMenu()">
+    <i class="fas" :class="cells[ctxMenu.cellIdx] && cells[ctxMenu.cellIdx].recording ? 'fa-stop-circle text-red-500' : 'fa-circle'"></i>
+    <span :class="cells[ctxMenu.cellIdx] && cells[ctxMenu.cellIdx].recording ? 'text-red-500' : ''" x-text="cells[ctxMenu.cellIdx] && cells[ctxMenu.cellIdx].recording ? '停止录制' : '录制'"></span>
+  </div>
+  <hr class="my-1 border-gray-200">
+  <div class="ctx-item text-red-500" @click="closeCell(ctxMenu.cellIdx); closeContextMenu()"><i class="fas fa-times text-red-500"></i>关闭</div>
+</div>
+
+<!-- 成功提示 -->
+<div class="success-toast" x-show="showToast" x-transition>
+  <i class="fas fa-check-circle mr-2"></i><span x-text="toastMsg"></span>
+</div>
+
+<script>
+const MOCK_DATA = {
+  deviceTree: [
+    { id: 't1', name: '蓬南镇', expanded: true, onlineCount: 4, totalCount: 5, enterprises: [
+      { id: 'e1', name: '蓬溪县鸿鹄畜牧有限公司', expanded: true, onlineCount: 3, devices: [
+        { deviceId: 1, deviceName: '大门入口', deviceStatus: '0' },
+        { deviceId: 2, deviceName: '猪舍A区', deviceStatus: '0' },
+        { deviceId: 3, deviceName: '饲料仓库', deviceStatus: '1' },
+      ]},
+      { id: 'e2', name: '蓬溪县天府农场', expanded: false, onlineCount: 1, devices: [
+        { deviceId: 4, deviceName: '围栏监控', deviceStatus: '0' },
+        { deviceId: 5, deviceName: '猪舍B区', deviceStatus: '1' },
+      ]},
+    ]},
+    { id: 't2', name: '天福镇', expanded: false, onlineCount: 3, totalCount: 4, enterprises: [
+      { id: 'e3', name: '蓬溪县金源牧业有限公司', expanded: false, onlineCount: 2, devices: [
+        { deviceId: 6, deviceName: '猪舍B区', deviceStatus: '0' },
+        { deviceId: 7, deviceName: '大门入口', deviceStatus: '1' },
+        { deviceId: 8, deviceName: '生产区', deviceStatus: '0' },
+      ]},
+      { id: 'e4', name: '蓬溪县裕丰猪场', expanded: false, onlineCount: 1, devices: [
+        { deviceId: 9, deviceName: '生产区入口', deviceStatus: '2' },
+      ]},
+    ]},
+    { id: 't3', name: '赤城镇', expanded: false, onlineCount: 2, totalCount: 3, enterprises: [
+      { id: 'e5', name: '蓬溪县华兴养殖基地', expanded: false, onlineCount: 2, devices: [
+        { deviceId: 10, deviceName: '仓库区', deviceStatus: '0' },
+        { deviceId: 11, deviceName: '东门', deviceStatus: '0' },
+        { deviceId: 12, deviceName: '猪舍C区', deviceStatus: '1' },
+      ]},
+    ]},
+  ],
+  entDevices: [
+    { deviceId: 1, deviceName: '大门入口', deviceStatus: '0' },
+    { deviceId: 2, deviceName: '猪舍A区', deviceStatus: '0' },
+    { deviceId: 3, deviceName: '饲料仓库', deviceStatus: '1' },
+  ]
+};
+
+function realtimeApp() {
+  return {
+    currentRole: 'county_admin',
+    currentRoleName: '县级管理员',
+    searchKey: '',
+    filteredTree: JSON.parse(JSON.stringify(MOCK_DATA.deviceTree)),
+    entDevices: MOCK_DATA.entDevices,
+    splitMode: 4,
+    cells: Array(16).fill(null).map(() => ({ device: null, recording: false })),
+    selectedCellIdx: 0,
+    selectedDevice: null,
+    dragDevice: null,
+    ctxMenu: { show: false, x: 0, y: 0, cellIdx: -1 },
+    showToast: false,
+    toastMsg: '',
+
+    init() {
+      // Pre-load first two cells with online cameras
+      this.cells[0].device = { deviceId: 1, deviceName: '大门入口', deviceStatus: '0' };
+      this.cells[1].device = { deviceId: 2, deviceName: '猪舍A区', deviceStatus: '0' };
+    },
+
+    switchRole() {
+      const map = { county_admin: '县级管理员', county_staff: '县级业务人员', town_gov_staff: '乡镇政府业务人员', ent_admin: '企业管理员' };
+      this.currentRoleName = map[this.currentRole];
+    },
+
+    doSearch() {
+      if (!this.searchKey) {
+        this.filteredTree = JSON.parse(JSON.stringify(MOCK_DATA.deviceTree));
+        return;
+      }
+      const key = this.searchKey.toLowerCase();
+      this.filteredTree = MOCK_DATA.deviceTree.map(town => {
+        const enterprises = town.enterprises.map(ent => {
+          const devices = ent.devices.filter(d => d.deviceName.toLowerCase().includes(key));
+          return { ...ent, devices, expanded: devices.length > 0 };
+        }).filter(e => e.devices.length > 0 || ent.name.toLowerCase().includes(key));
+        return { ...town, enterprises, expanded: enterprises.length > 0 };
+      }).filter(t => t.enterprises.length > 0 || t.name.toLowerCase().includes(key));
+    },
+
+    setSplitMode(mode) {
+      this.splitMode = mode;
+    },
+
+    playInEmptyCell(dev) {
+      this.selectedDevice = dev;
+      const emptyIdx = this.cells.slice(0, this.splitMode).findIndex(c => !c.device);
+      if (emptyIdx >= 0) {
+        this.cells[emptyIdx] = { device: { ...dev }, recording: false };
+      } else {
+        this.cells[this.selectedCellIdx] = { device: { ...dev }, recording: false };
+      }
+    },
+
+    dropToCell(e) {
+      if (!this.dragDevice) return;
+      const target = e.target.closest('[data-idx]');
+      if (!target) return;
+      const idx = parseInt(target.getAttribute('data-idx'));
+      if (!isNaN(idx) && idx < this.splitMode) {
+        this.cells[idx] = { device: { ...this.dragDevice }, recording: false };
+      }
+      this.dragDevice = null;
+    },
+
+    closeCell(idx) {
+      this.cells[idx] = { device: null, recording: false };
+    },
+
+    snapshot(idx) {
+      if (!this.cells[idx] || !this.cells[idx].device) return;
+      const dev = this.cells[idx].device;
+      this.showSuccessToast(`截图已保存：${dev.deviceName}_${new Date().toISOString().slice(0,10).replace(/-/g,'')}.jpg`);
+    },
+
+    toggleRecord(idx) {
+      if (!this.cells[idx] || !this.cells[idx].device) return;
+      const dev = this.cells[idx].device;
+      this.cells[idx].recording = !this.cells[idx].recording;
+      if (!this.cells[idx].recording) {
+        this.showSuccessToast(`录制已完成，文件：${dev.deviceName}_${new Date().toISOString().slice(0,10).replace(/-/g,'')}.mp4`);
+      }
+    },
+
+    enterFullscreen(idx) {
+      this.showSuccessToast('全屏查看功能（原型模拟，实际使用 Fullscreen API）');
+    },
+
+    openContextMenu(e, idx) {
+      if (!this.cells[idx] || !this.cells[idx].device) return;
+      this.ctxMenu = { show: true, x: e.clientX, y: e.clientY, cellIdx: idx };
+    },
+
+    closeContextMenu() {
+      this.ctxMenu.show = false;
+    },
+
+    showSuccessToast(msg) {
+      this.toastMsg = msg;
+      this.showToast = true;
+      setTimeout(() => { this.showToast = false; }, 2500);
+    }
+  };
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,533 @@
+<!--
+  功能名称：生猪知识讲堂后台管理-用户管理
+  对应PRD：doc_prd/WEB/生猪知识讲堂/后台管理/WEB-生猪知识讲堂后台管理-用户管理.prd.md
+  所属端口：生猪知识讲堂后台管理系统（监管端）
+  所属模块：知识讲堂用户管理（kc_user）
+  制作日期：2026-03-06
+  最后更新：2026-03-06
+  角色说明：县级管理员(county_admin)、县级业务人员(county_staff)、乡镇畜牧兽医站(town_vet_station)
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>用户管理 - 生猪知识讲堂后台</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  [x-cloak] { display: none !important; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f4f8; color: #1e293b; }
+  .sidebar { width: 220px; background: linear-gradient(180deg, #0f4c2a 0%, #1a6e3a 60%, #166534 100%); display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-brand { padding: 20px 16px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .sidebar-brand-icon { width: 36px; height: 36px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.25); }
+  .sidebar-group-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: rgba(255,255,255,0.4); text-transform: uppercase; padding: 12px 16px 4px; }
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 9px 16px; font-size: 13.5px; color: rgba(255,255,255,0.7); cursor: pointer; transition: all 0.15s ease; margin: 1px 8px; border-radius: 8px; }
+  .sidebar-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .sidebar-item.active { background: rgba(255,255,255,0.18); color: #fff; font-weight: 600; box-shadow: inset 3px 0 0 #86efac; }
+  .sidebar-item .si-icon { width: 16px; text-align: center; opacity: 0.85; }
+  .sidebar-user { padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.1); }
+  .sidebar-user-avatar { width: 30px; height: 30px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; }
+  .btn-primary { display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #16a34a, #15803d); color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 13.5px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; box-shadow: 0 1px 3px rgba(22,163,74,0.3); }
+  .btn-primary:hover { background: linear-gradient(135deg, #15803d, #166534); box-shadow: 0 4px 12px rgba(22,163,74,0.35); transform: translateY(-1px); }
+  .btn-secondary { display: inline-flex; align-items: center; gap: 6px; background: #fff; color: #475569; padding: 8px 14px; border-radius: 8px; font-size: 13.5px; font-weight: 500; cursor: pointer; border: 1px solid #cbd5e1; transition: all 0.15s; }
+  .btn-secondary:hover { background: #f8fafc; border-color: #94a3b8; }
+  .act-btn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid transparent; transition: all 0.15s; white-space: nowrap; }
+  .act-edit   { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; } .act-edit:hover   { background: #dbeafe; }
+  .act-stop   { background: #fffbeb; color: #d97706; border-color: #fde68a; } .act-stop:hover   { background: #fef3c7; }
+  .act-start  { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; } .act-start:hover  { background: #dcfce7; }
+  .act-delete { background: #fef2f2; color: #dc2626; border-color: #fecaca; } .act-delete:hover { background: #fee2e2; }
+  .act-publish{ background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; } .act-publish:hover{ background: #dcfce7; }
+  .act-down   { background: #fffbeb; color: #d97706; border-color: #fde68a; } .act-down:hover   { background: #fef3c7; }
+  .act-review { background: #faf5ff; color: #7c3aed; border-color: #ddd6fe; } .act-review:hover { background: #ede9fe; }
+  .act-pass   { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; } .act-pass:hover   { background: #dcfce7; }
+  .act-reject { background: #fef2f2; color: #dc2626; border-color: #fecaca; } .act-reject:hover { background: #fee2e2; }
+  .act-view   { background: #f0f9ff; color: #0284c7; border-color: #bae6fd; } .act-view:hover   { background: #e0f2fe; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-size: 11.5px; font-weight: 500; }
+  .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; display: inline-block; }
+  .badge-success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; } .badge-success::before { background: #22c55e; }
+  .badge-warning { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; } .badge-warning::before { background: #f59e0b; }
+  .badge-danger  { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; } .badge-danger::before  { background: #ef4444; }
+  .badge-gray    { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; } .badge-gray::before    { background: #94a3b8; }
+  .badge-blue    { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; } .badge-blue::before    { background: #3b82f6; }
+  .badge-purple  { background: #faf5ff; color: #7c3aed; border: 1px solid #ddd6fe; } .badge-purple::before  { background: #8b5cf6; }
+  .form-label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 5px; }
+  .form-input { width: 100%; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; font-size: 13.5px; color: #1e293b; background: #fff; transition: border-color 0.15s, box-shadow 0.15s; outline: none; }
+  .form-input:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.12); }
+  .form-select { width: 100%; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; font-size: 13.5px; background: #fff; outline: none; cursor: pointer; transition: border-color 0.15s; }
+  .form-select:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.12); }
+  .form-error { font-size: 11.5px; color: #ef4444; margin-top: 4px; }
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table thead tr { background: #f8fafc; border-bottom: 2px solid #e8edf2; }
+  .table-th { padding: 11px 14px; text-align: left; font-size: 11.5px; font-weight: 700; color: #64748b; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; }
+  .table-td { padding: 12px 14px; font-size: 13.5px; color: #374151; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+  .data-table tbody tr { transition: background 0.12s; }
+  .data-table tbody tr:hover { background: #f8fafc; }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+  .filter-bar { background: #fff; border-radius: 12px; padding: 14px 18px; border: 1px solid #e8edf2; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .filter-select { border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 6px 10px; font-size: 13px; outline: none; background: #fff; color: #374151; cursor: pointer; transition: border-color 0.15s; }
+  .filter-select:focus { border-color: #16a34a; }
+  .filter-input { border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 6px 10px; font-size: 13px; outline: none; color: #374151; transition: border-color 0.15s; }
+  .filter-input:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.1); }
+  .content-card { background: #fff; border-radius: 12px; border: 1px solid #e8edf2; box-shadow: 0 1px 3px rgba(0,0,0,0.04); overflow: hidden; }
+  .stat-card { background: #fff; border-radius: 12px; padding: 16px 20px; border: 1px solid #e8edf2; box-shadow: 0 1px 3px rgba(0,0,0,0.04); transition: transform 0.2s, box-shadow 0.2s; }
+  .stat-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.45); backdrop-filter: blur(3px); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .modal-box { background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); width: 100%; max-width: 480px; animation: modal-in 0.2s ease; }
+  .modal-box-lg { background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; animation: modal-in 0.2s ease; }
+  .modal-box-xl { background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); width: 100%; max-width: 860px; max-height: 90vh; overflow-y: auto; animation: modal-in 0.2s ease; }
+  @keyframes modal-in { from { opacity: 0; transform: translateY(-12px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid #f1f5f9; }
+  .modal-header h3 { font-size: 16px; font-weight: 700; color: #0f172a; }
+  .modal-close { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; color: #94a3b8; transition: all 0.15s; background: none; border: none; }
+  .modal-close:hover { background: #f1f5f9; color: #475569; }
+  .modal-body { padding: 20px 22px; }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 22px; border-top: 1px solid #f1f5f9; background: #f8fafc; border-radius: 0 0 16px 16px; }
+  .page-btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; font-size: 13px; cursor: pointer; border: 1px solid #e2e8f0; color: #475569; background: #fff; transition: all 0.15s; }
+  .page-btn:hover:not(:disabled) { background: #f0fdf4; border-color: #86efac; color: #16a34a; }
+  .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .section-title { font-size: 18px; font-weight: 700; color: #0f172a; }
+  .section-sub { font-size: 13px; color: #64748b; margin-top: 2px; }
+  .tab-pill { padding: 5px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 500; cursor: pointer; border: 1.5px solid #e2e8f0; color: #64748b; background: #fff; transition: all 0.15s; }
+  .tab-pill:hover { border-color: #86efac; color: #16a34a; }
+  .tab-pill.active-all    { background: #1e293b; color: #fff; border-color: #1e293b; }
+  .tab-pill.active-warn   { background: #f59e0b; color: #fff; border-color: #f59e0b; }
+  .tab-pill.active-ok     { background: #16a34a; color: #fff; border-color: #16a34a; }
+  .tab-pill.active-danger { background: #ef4444; color: #fff; border-color: #ef4444; }
+  .tab-pill.active-blue   { background: #2563eb; color: #fff; border-color: #2563eb; }
+  .star-filled { color: #f59e0b; } .star-empty { color: #e2e8f0; }
+</style>
+
+</head>
+<body class="bg-gray-50 min-h-screen" x-data="app()" x-cloak>
+
+<script>
+const MOCK_DATA = {
+  currentUser: { username: 'admin', nick_name: '李管理员', roleName: '县级管理员' },
+  users: [
+    { user_id: 1, user_name: 'user001', nick_name: '张大山', phone: '13812345678', sex: '0', region: '四川省遂宁市蓬溪县明月镇', profile: '从事生猪养殖10余年，有丰富的实践经验。', status: '0', avatar: '', login_ip: '192.168.1.100', login_date: '2026-03-05 09:30:00', del_flag: '0', create_time: '2025-06-01 09:00:00', create_by: 'system', update_time: '2026-03-05 09:30:00', update_by: '' },
+    { user_id: 2, user_name: 'user002', nick_name: '李二牛', phone: '13987654321', sex: '0', region: '四川省遂宁市蓬溪县天福镇', profile: '养猪新手，正在学习中。', status: '0', avatar: '', login_ip: '10.0.0.5', login_date: '2026-03-04 14:20:00', del_flag: '0', create_time: '2025-08-15 14:00:00', create_by: 'system', update_time: '2026-03-04 14:20:00', update_by: '' },
+    { user_id: 3, user_name: 'user003', nick_name: '王小明', phone: '15012345678', sex: '0', region: '四川省遂宁市蓬溪县吉祥镇', profile: '', status: '1', avatar: '', login_ip: '172.16.0.1', login_date: '2026-02-20 11:00:00', del_flag: '0', create_time: '2025-09-01 10:30:00', create_by: 'system', update_time: '2026-02-20 11:00:00', update_by: '' },
+    { user_id: 4, user_name: 'user004', nick_name: '赵五', phone: '13600001234', sex: '2', region: '四川省遂宁市蓬溪县鸣凤镇', profile: '', status: '0', avatar: '', login_ip: '192.168.2.50', login_date: '2026-03-01 08:00:00', del_flag: '0', create_time: '2025-10-10 15:00:00', create_by: 'system', update_time: '2026-03-01 08:00:00', update_by: '' },
+    { user_id: 5, user_name: 'user005', nick_name: '孙六', phone: '13700005678', sex: '1', region: '四川省遂宁市蓬溪县槐花镇', profile: '养猪专业合作社成员', status: '0', avatar: '', login_ip: '10.1.2.3', login_date: '2026-02-28 16:30:00', del_flag: '0', create_time: '2025-11-20 09:00:00', create_by: 'system', update_time: '2026-02-28 16:30:00', update_by: '' },
+    { user_id: 6, user_name: 'user006', nick_name: '钱七', phone: '13900007890', sex: '0', region: '四川省遂宁市蓬溪县群力乡', profile: '', status: '0', avatar: '', login_ip: '192.168.3.10', login_date: '2026-01-15 10:00:00', del_flag: '0', create_time: '2025-12-01 11:00:00', create_by: 'system', update_time: '2026-01-15 10:00:00', update_by: '' },
+  ],
+};
+
+function app() {
+  return {
+    users: JSON.parse(JSON.stringify(MOCK_DATA.users)),
+    filter: { nick_name: '', phone: '', status: '' },
+    page: 1, pageSize: 10,
+    selectedIds: [],
+
+    detailModal: false, detailUser: null,
+    confirmModal: false, confirmTitle: '', confirmMsg: '', confirmAction: null,
+
+    SEX_MAP: { '0': '男', '1': '女', '2': '未知' },
+
+    get filteredUsers() {
+      return this.users.filter(u => {
+        if (this.filter.nick_name && !u.nick_name.includes(this.filter.nick_name)) return false;
+        if (this.filter.phone && !u.phone.includes(this.filter.phone)) return false;
+        if (this.filter.status !== '' && u.status !== this.filter.status) return false;
+        return true;
+      });
+    },
+    get pagedUsers() { const s=(this.page-1)*this.pageSize; return this.filteredUsers.slice(s,s+this.pageSize); },
+    get totalPages() { return Math.ceil(this.filteredUsers.length/this.pageSize)||1; },
+
+    isSelected(id) { return this.selectedIds.includes(id); },
+    toggleSelect(id) {
+      const idx = this.selectedIds.indexOf(id);
+      if (idx>-1) this.selectedIds.splice(idx,1);
+      else this.selectedIds.push(id);
+    },
+    toggleSelectAll() {
+      const pageIds = this.pagedUsers.map(u=>u.user_id);
+      const allSelected = pageIds.every(id=>this.selectedIds.includes(id));
+      if (allSelected) this.selectedIds = this.selectedIds.filter(id=>!pageIds.includes(id));
+      else { pageIds.forEach(id=>{ if(!this.selectedIds.includes(id)) this.selectedIds.push(id); }); }
+    },
+    get allPageSelected() {
+      const pageIds = this.pagedUsers.map(u=>u.user_id);
+      return pageIds.length>0 && pageIds.every(id=>this.selectedIds.includes(id));
+    },
+
+    showConfirm(title, msg, action) { this.confirmTitle=title; this.confirmMsg=msg; this.confirmAction=action; this.confirmModal=true; },
+    doConfirm() { if(this.confirmAction) this.confirmAction(); this.confirmModal=false; },
+
+    openDetail(user) { this.detailUser = user; this.detailModal = true; },
+
+    toggleStatus(user) {
+      const isNormal = user.status === '0';
+      const msgs = { stop: `确定停用该用户？停用后用户将无法登录知识讲堂网站。`, start: `确定启用该用户？` };
+      this.showConfirm(isNormal?'停用用户':'启用用户', isNormal?msgs.stop:msgs.start, () => {
+        user.status = isNormal ? '1' : '0';
+        this.showToast(isNormal?'已停用':'已启用');
+      });
+    },
+
+    resetPwd(user) {
+      this.showConfirm('重置密码', `确定将「${user.nick_name}」的密码重置为 123456？用户需使用新密码登录。`, () => {
+        this.showToast('密码已重置为 123456');
+      });
+    },
+
+    deleteUser(user) {
+      this.showConfirm('删除用户', `确定删除「${user.nick_name}」？删除后用户将无法登录，数据可恢复。`, () => {
+        this.users = this.users.filter(u=>u.user_id!==user.user_id);
+        this.selectedIds = this.selectedIds.filter(id=>id!==user.user_id);
+        this.showToast('删除成功');
+      });
+    },
+
+    batchDelete() {
+      if (this.selectedIds.length === 0) return;
+      this.showConfirm('批量删除', `确定删除选中的 ${this.selectedIds.length} 个用户？删除后用户将无法登录，数据可恢复。`, () => {
+        this.users = this.users.filter(u=>!this.selectedIds.includes(u.user_id));
+        this.selectedIds = [];
+        this.showToast('批量删除成功');
+      });
+    },
+
+    toast: { show: false, msg: '', type: 'success' },
+    showToast(msg, type='success') { this.toast={show:true,msg,type}; setTimeout(()=>this.toast.show=false, 2500); },
+  };
+}
+</script>
+
+<div class="flex h-screen overflow-hidden">
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="flex items-center gap-3">
+        <div class="sidebar-brand-icon">
+          <i class="fas fa-users text-white" style="font-size:15px"></i>
+        </div>
+        <div>
+          <div style="font-size:13.5px;font-weight:700;color:#fff;line-height:1.2">知识讲堂</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px">用户管理</div>
+        </div>
+      </div>
+    </div>
+    <nav style="flex:1;padding:12px 0;overflow-y:auto">
+      <div class="sidebar-group-label">用户管理</div>
+      <div class="sidebar-item active">
+        <i class="fas fa-user-friends si-icon"></i> 用户列表
+      </div>
+      <div class="sidebar-group-label" style="margin-top:16px">系统</div>
+      <div class="sidebar-item" @click="window.open('../../index-生猪知识讲堂.html','_blank')" style="cursor:pointer">
+        <i class="fas fa-th-large si-icon"></i> 返回导航
+      </div>
+    </nav>
+    <div class="sidebar-user">
+      <div class="flex items-center gap-2">
+        <div class="sidebar-user-avatar">
+          <i class="fas fa-user" style="font-size:11px"></i>
+        </div>
+        <div>
+          <div style="font-size:12.5px;font-weight:600;color:#fff" x-text="MOCK_DATA.currentUser.nick_name"></div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.5)" x-text="MOCK_DATA.currentUser.roleName"></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 主内容 -->
+  <main class="flex-1 overflow-auto" style="background:#f0f4f8">
+  <div style="padding:24px">
+    <!-- 页面标题 -->
+    <div class="section-header">
+      <div>
+        <div class="section-title">知识讲堂用户管理</div>
+        <div class="section-sub">管理知识讲堂网站独立注册用户（kc_user），与平台系统用户完全隔离</div>
+      </div>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
+      <div class="stat-card">
+        <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px">
+          <i class="fas fa-users" style="color:#3b82f6;margin-right:5px"></i>总用户数
+        </div>
+        <div style="font-size:28px;font-weight:700;color:#0f172a" x-text="users.length"></div>
+      </div>
+      <div class="stat-card">
+        <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px">
+          <i class="fas fa-check-circle" style="color:#22c55e;margin-right:5px"></i>正常用户
+        </div>
+        <div style="font-size:28px;font-weight:700;color:#16a34a" x-text="users.filter(u=>u.status==='0').length"></div>
+      </div>
+      <div class="stat-card">
+        <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px">
+          <i class="fas fa-ban" style="color:#ef4444;margin-right:5px"></i>已停用
+        </div>
+        <div style="font-size:28px;font-weight:700;color:#ef4444" x-text="users.filter(u=>u.status==='1').length"></div>
+      </div>
+      <div class="stat-card">
+        <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px">
+          <i class="fas fa-check-square" style="color:#8b5cf6;margin-right:5px"></i>已选中
+        </div>
+        <div style="font-size:28px;font-weight:700;color:#8b5cf6" x-text="selectedIds.length"></div>
+      </div>
+    </div>
+
+    <!-- 提示条 -->
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:flex-start;gap:10px">
+      <i class="fas fa-info-circle" style="color:#2563eb;margin-top:1px;flex-shrink:0"></i>
+      <div style="font-size:13px;color:#1d4ed8;line-height:1.5">
+        <strong>说明：</strong>本页面管理的是知识讲堂网站独立注册用户（kc_user），与平台系统用户（sys_user）完全隔离。不提供新增用户功能（用户自行在网站注册），不提供编辑用户信息功能（由用户在个人中心修改）。
+      </div>
+    </div>
+
+    <!-- 筛选区 -->
+    <div class="filter-bar">
+      <div style="display:flex;align-items:center;gap:6px">
+        <label style="font-size:13px;color:#64748b;font-weight:500;white-space:nowrap">昵称</label>
+        <input type="text" class="filter-input" style="width:130px" x-model="filter.nick_name" placeholder="请输入昵称...">
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <label style="font-size:13px;color:#64748b;font-weight:500;white-space:nowrap">手机号</label>
+        <input type="text" class="filter-input" style="width:150px" x-model="filter.phone" placeholder="请输入手机号...">
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <label style="font-size:13px;color:#64748b;font-weight:500;white-space:nowrap">状态</label>
+        <select class="filter-select" style="width:100px" x-model="filter.status">
+          <option value="">全部</option>
+          <option value="0">正常</option>
+          <option value="1">停用</option>
+        </select>
+      </div>
+      <button class="btn-primary" style="padding:7px 16px" @click="page=1">
+        <i class="fas fa-search" style="font-size:11px"></i> 查询
+      </button>
+      <button class="btn-secondary" style="padding:7px 14px" @click="filter={nick_name:'',phone:'',status:''}; page=1">重置</button>
+    </div>
+
+    <!-- 操作栏 -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="act-btn act-delete" :disabled="selectedIds.length===0"
+          :style="selectedIds.length===0 ? 'opacity:0.4;cursor:not-allowed' : ''"
+          @click="batchDelete()">
+          <i class="fas fa-trash" style="font-size:10px"></i> 批量删除
+          <span style="margin-left:4px;background:rgba(220,38,38,0.15);border-radius:10px;padding:1px 6px;font-size:11px" x-show="selectedIds.length>0" x-text="selectedIds.length + ' 条'"></span>
+        </button>
+      </div>
+      <div style="font-size:13px;color:#64748b">
+        共 <span style="font-weight:700;color:#0f172a" x-text="filteredUsers.length"></span> 条记录
+      </div>
+    </div>
+
+    <!-- 表格 -->
+    <div class="content-card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th class="table-th" style="width:44px">
+              <input type="checkbox" :checked="allPageSelected" @change="toggleSelectAll()" style="width:15px;height:15px;cursor:pointer">
+            </th>
+            <th class="table-th">用户信息</th>
+            <th class="table-th">手机号</th>
+            <th class="table-th" style="width:70px">性别</th>
+            <th class="table-th" style="width:90px">账号状态</th>
+            <th class="table-th" style="width:110px">最后登录</th>
+            <th class="table-th" style="width:100px">注册时间</th>
+            <th class="table-th" style="width:180px">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <template x-for="user in pagedUsers" :key="user.user_id">
+            <tr :style="isSelected(user.user_id) ? 'background:#f0fdf4' : ''">
+              <td class="table-td">
+                <input type="checkbox" :checked="isSelected(user.user_id)" @change="toggleSelect(user.user_id)" style="width:15px;height:15px;cursor:pointer">
+              </td>
+              <td class="table-td">
+                <div style="display:flex;align-items:center;gap:10px">
+                  <div style="width:36px;height:36px;background:linear-gradient(135deg,#dbeafe,#bfdbfe);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#2563eb;flex-shrink:0" x-text="user.nick_name[0]"></div>
+                  <div>
+                    <div style="font-weight:600;color:#0f172a;font-size:13.5px" x-text="user.nick_name"></div>
+                    <div style="font-size:11.5px;color:#94a3b8;font-family:monospace" x-text="user.user_name"></div>
+                  </div>
+                </div>
+              </td>
+              <td class="table-td" style="font-family:monospace;color:#475569;font-size:13px" x-text="user.phone"></td>
+              <td class="table-td" style="color:#64748b;font-size:13px" x-text="SEX_MAP[user.sex]||'未知'"></td>
+              <td class="table-td">
+                <span class="badge" :class="user.status==='0'?'badge-success':'badge-danger'" x-text="user.status==='0'?'正常':'停用'"></span>
+              </td>
+              <td class="table-td" style="color:#94a3b8;font-size:12px" x-text="user.login_date ? user.login_date.substring(0,10) : '-'"></td>
+              <td class="table-td" style="color:#94a3b8;font-size:12px" x-text="user.create_time.substring(0,10)"></td>
+              <td class="table-td">
+                <div style="display:flex;align-items:center;gap:5px">
+                  <button class="act-btn act-view" @click="openDetail(user)">
+                    <i class="fas fa-eye" style="font-size:10px"></i> 详情
+                  </button>
+                  <button class="act-btn" :class="user.status==='0'?'act-stop':'act-start'" @click="toggleStatus(user)" x-text="user.status==='0'?'停用':'启用'"></button>
+                  <button class="act-btn act-edit" @click="resetPwd(user)">
+                    <i class="fas fa-key" style="font-size:10px"></i> 重置
+                  </button>
+                  <button class="act-btn act-delete" @click="deleteUser(user)">
+                    <i class="fas fa-trash" style="font-size:10px"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </template>
+          <tr x-show="pagedUsers.length===0">
+            <td colspan="8" class="table-td" style="text-align:center;color:#94a3b8;padding:48px 0">
+              <i class="fas fa-inbox" style="font-size:32px;display:block;margin-bottom:8px;opacity:0.4"></i>
+              暂无匹配的用户数据
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid #f1f5f9">
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#64748b">
+          每页
+          <select class="filter-select" style="width:70px;padding:4px 8px" x-model="pageSize" @change="page=1">
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+          </select>
+          条
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button class="page-btn" :disabled="page===1" @click="page--">
+            <i class="fas fa-chevron-left" style="font-size:11px"></i>
+          </button>
+          <span style="font-size:13px;color:#475569;padding:0 4px">
+            第 <span style="font-weight:700;color:#0f172a" x-text="page"></span> 页 / 共 <span x-text="totalPages"></span> 页
+          </span>
+          <button class="page-btn" :disabled="page>=totalPages" @click="page++">
+            <i class="fas fa-chevron-right" style="font-size:11px"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  </main>
+</div>
+
+<!-- 用户详情弹窗 -->
+<div class="modal-overlay" x-show="detailModal" @click.self="detailModal=false">
+  <div class="modal-box">
+    <div class="modal-header"><h3>用户详情</h3><button class="modal-close" @click="detailModal=false"><i class="fas fa-times"></i></button></div>
+    <div class="p-5" x-show="detailUser">
+      <!-- 基本信息 -->
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-2xl font-bold text-green-600" x-text="detailUser&&detailUser.nick_name[0]"></div>
+        <div class="flex-1">
+          <div class="text-lg font-bold text-gray-800" x-text="detailUser&&detailUser.nick_name"></div>
+          <div class="text-sm text-gray-500 font-mono mt-0.5" x-text="detailUser&&detailUser.user_name"></div>
+          <div class="flex items-center gap-2 mt-1.5">
+            <span :class="detailUser&&detailUser.status==='0'?'badge-success':'badge-danger'" x-text="detailUser&&(detailUser.status==='0'?'账号正常':'已停用')"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-t pt-4">
+        <h4 class="text-xs font-semibold text-gray-400 uppercase mb-3">基本信息</h4>
+        <dl class="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
+          <div>
+            <dt class="text-gray-400">用户ID</dt>
+            <dd class="font-medium text-gray-700" x-text="detailUser&&detailUser.user_id"></dd>
+          </div>
+          <div>
+            <dt class="text-gray-400">手机号</dt>
+            <dd class="font-medium text-gray-700" x-text="detailUser&&detailUser.phone"></dd>
+          </div>
+          <div>
+            <dt class="text-gray-400">性别</dt>
+            <dd class="font-medium text-gray-700" x-text="detailUser&&SEX_MAP[detailUser.sex]"></dd>
+          </div>
+          <div>
+            <dt class="text-gray-400">所在地区</dt>
+            <dd class="font-medium text-gray-700" x-text="(detailUser&&detailUser.region)||'-'"></dd>
+          </div>
+          <div class="col-span-2">
+            <dt class="text-gray-400">个人简介</dt>
+            <dd class="font-medium text-gray-700" x-text="(detailUser&&detailUser.profile)||'-'"></dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="border-t pt-4 mt-4">
+        <h4 class="text-xs font-semibold text-gray-400 uppercase mb-3">账号信息</h4>
+        <dl class="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
+          <div>
+            <dt class="text-gray-400">账号状态</dt>
+            <dd class="font-medium" :class="detailUser&&detailUser.status==='0'?'text-green-600':'text-red-500'" x-text="detailUser&&(detailUser.status==='0'?'正常':'停用')"></dd>
+          </div>
+          <div>
+            <dt class="text-gray-400">最后登录IP</dt>
+            <dd class="font-medium text-gray-700" x-text="(detailUser&&detailUser.login_ip)||'-'"></dd>
+          </div>
+          <div class="col-span-2">
+            <dt class="text-gray-400">最后登录时间</dt>
+            <dd class="font-medium text-gray-700" x-text="(detailUser&&detailUser.login_date)||'-'"></dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="border-t pt-4 mt-4">
+        <h4 class="text-xs font-semibold text-gray-400 uppercase mb-3">审计信息</h4>
+        <dl class="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
+          <div>
+            <dt class="text-gray-400">注册时间</dt>
+            <dd class="font-medium text-gray-700" x-text="detailUser&&detailUser.create_time"></dd>
+          </div>
+          <div>
+            <dt class="text-gray-400">最近更新时间</dt>
+            <dd class="font-medium text-gray-700" x-text="detailUser&&detailUser.update_time"></dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" @click="detailModal=false">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 二次确认弹窗 -->
+<div class="modal-overlay" x-show="confirmModal" @click.self="confirmModal=false">
+  <div style="background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.15);width:100%;max-width:400px;padding:28px;animation:modal-in 0.2s ease">
+    <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:20px">
+      <div style="width:44px;height:44px;background:#fef3c7;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <i class="fas fa-exclamation-triangle" style="color:#d97706;font-size:18px"></i>
+      </div>
+      <div>
+        <h3 style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:6px" x-text="confirmTitle"></h3>
+        <p style="font-size:13.5px;color:#64748b;line-height:1.5" x-text="confirmMsg"></p>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px">
+      <button class="btn-secondary" @click="confirmModal=false">取消</button>
+      <button class="btn-primary" @click="doConfirm">
+        <i class="fas fa-check" style="font-size:11px"></i> 确认操作
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast 提示 -->
+<div style="position:fixed;bottom:24px;right:24px;z-index:100;transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1)"
+  :style="toast.show ? 'opacity:1;transform:translateY(0)' : 'opacity:0;transform:translateY(16px);pointer-events:none'">
+  <div style="display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.12);font-size:13.5px;font-weight:600;color:#fff;min-width:200px"
+    :style="toast.type==='error' ? 'background:linear-gradient(135deg,#ef4444,#dc2626)' : 'background:linear-gradient(135deg,#16a34a,#15803d)'">
+    <div style="width:28px;height:28px;background:rgba(255,255,255,0.2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <i :class="toast.type==='error' ? 'fas fa-times' : 'fas fa-check'" style="font-size:12px"></i>
+    </div>
+    <span x-text="toast.msg"></span>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,501 @@
+<!--
+  功能名称：档案分类检索
+  对应PRD：doc_prd/WEB/监管端/智慧监管/电子档案管理/WEB监管端-档案分类检索.prd.md
+  所属端口：WEB监管端
+  所属模块：智慧监管 - 电子档案管理
+  制作日期：2026-03-09
+  最后更新：2026-03-09
+  角色说明：县级管理员(county_admin)、县级业务人员(county_staff)、乡镇政府业务人员(town_gov_staff)、乡镇畜牧兽医站(town_vet_station)
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>档案分类检索 - WEB监管端</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    /* SHARED STYLES */
+    [x-cloak] { display: none !important; }
+    body { font-size: 14px; background-color: #f0f2f5; color: #262626; }
+    .sidebar-item.active { background-color: #1677ff; color: #fff; }
+    .sidebar-item:hover:not(.active) { background-color: #e6f4ff; color: #1677ff; }
+    .btn-primary { background-color: #1677ff; color: #fff; border: 1px solid #1677ff; }
+    .btn-primary:hover { background-color: #0958d9; }
+    .btn-default { background-color: #fff; color: #262626; border: 1px solid #d9d9d9; }
+    .btn-default:hover { border-color: #1677ff; color: #1677ff; }
+    .btn-link { background: none; border: none; padding: 0 4px; cursor: pointer; font-size: 13px; }
+    .btn-link.primary { color: #1677ff; }
+    .tag { display: inline-flex; align-items: center; padding: 1px 7px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+    .tag-blue { background-color: #e6f7ff; color: #1890ff; border: 1px solid #91d5ff; }
+    .tag-green { background-color: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
+    .tag-orange { background-color: #fff7e6; color: #fa8c16; border: 1px solid #ffd591; }
+    .tag-red { background-color: #fff2f0; color: #ff4d4f; border: 1px solid #ffa39e; }
+    .tag-purple { background-color: #f9f0ff; color: #722ed1; border: 1px solid #d3adf7; }
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background-color: #fafafa; color: #595959; font-weight: 600; text-align: left; padding: 9px 12px; border-bottom: 1px solid #e8e8e8; white-space: nowrap; font-size: 13px; }
+    td { padding: 9px 12px; border-bottom: 1px solid #f0f0f0; color: #262626; font-size: 13px; }
+    tr:nth-child(even) td { background-color: #fafafa; }
+    tr:hover td { background-color: #e6f4ff; }
+    .sticky-col { position: sticky; right: 0; background-color: #fff; box-shadow: -2px 0 4px rgba(0,0,0,0.06); white-space: nowrap; }
+    tr:nth-child(even) .sticky-col { background-color: #fafafa; }
+    tr:hover .sticky-col { background-color: #e6f4ff; }
+    .form-input { padding: 5px 9px; border: 1px solid #d9d9d9; border-radius: 4px; outline: none; font-size: 13px; color: #262626; }
+    .form-input:focus { border-color: #1677ff; box-shadow: 0 0 0 2px rgba(22,119,255,0.1); }
+    .form-label { font-size: 12px; font-weight: 500; color: #595959; margin-bottom: 3px; display: block; }
+    .modal-overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.45); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .modal-box { background: #fff; border-radius: 8px; box-shadow: 0 6px 16px rgba(0,0,0,0.12); width: 100%; max-width: 680px; max-height: 88vh; display: flex; flex-direction: column; }
+    .modal-header { padding: 14px 20px; border-bottom: 1px solid #e8e8e8; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+    .modal-body { padding: 16px 20px; overflow-y: auto; flex: 1; }
+    .modal-footer { padding: 10px 20px; border-top: 1px solid #e8e8e8; display: flex; justify-content: flex-end; gap: 8px; flex-shrink: 0; }
+    .breadcrumb { font-size: 13px; color: #8c8c8c; }
+    .breadcrumb span { color: #262626; }
+    .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; padding: 8px 20px; border-radius: 6px; font-size: 13px; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .toast-success { background-color: #f6ffed; border: 1px solid #b7eb8f; color: #52c41a; }
+    .toast-error { background-color: #fff2f0; border: 1px solid #ffa39e; color: #ff4d4f; }
+    .toast-info { background-color: #e6f7ff; border: 1px solid #91d5ff; color: #1677ff; }
+    /* Category multiselect dropdown */
+    .cat-multiselect-wrap { position: relative; }
+    .cat-multiselect-btn { padding: 5px 9px; border: 1px solid #d9d9d9; border-radius: 4px; background: #fff; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 200px; }
+    .cat-multiselect-btn:focus-within { border-color: #1677ff; box-shadow: 0 0 0 2px rgba(22,119,255,0.1); }
+    .cat-dropdown-panel { position: absolute; top: 100%; left: 0; z-index: 200; background: #fff; border: 1px solid #d9d9d9; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-width: 260px; max-height: 320px; overflow-y: auto; margin-top: 2px; }
+    .cat-group-header { padding: 6px 12px 3px; font-size: 11px; color: #8c8c8c; font-weight: 600; background: #fafafa; border-bottom: 1px solid #f0f0f0; }
+    .cat-option { display: flex; align-items: center; gap: 8px; padding: 6px 12px; cursor: pointer; font-size: 13px; }
+    .cat-option:hover { background: #f0f7ff; }
+    .content-area { display: flex; flex-direction: column; height: 100%; }
+    .list-area { flex: 1; overflow-y: auto; }
+    .pagination-area { flex-shrink: 0; padding: 10px 16px; background: #fff; border-top: 1px solid #e8e8e8; display: flex; align-items: center; justify-content: space-between; }
+    .summary-ellipsis { max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; }
+    .detail-field label { font-size: 11px; color: #8c8c8c; display: block; }
+    .detail-field p { font-size: 13px; color: #262626; font-weight: 500; margin-top: 1px; }
+  </style>
+</head>
+<body x-data="app()" x-cloak>
+
+<!-- Toast -->
+<div x-show="toast.show" class="toast" :class="{'toast-success':toast.type==='success','toast-error':toast.type==='error','toast-info':toast.type==='info'}" x-text="toast.msg" x-transition></div>
+
+<!-- 顶部导航栏 -->
+<header class="fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 z-50 flex items-center px-4 justify-between shadow-sm">
+  <div class="flex items-center gap-3">
+    <i class="fas fa-pig text-blue-500 text-xl"></i>
+    <span class="font-semibold text-gray-800 text-base">2024年蓬溪县生猪数字化管理平台</span>
+    <span class="text-gray-300">|</span>
+    <span class="text-sm text-gray-500">监管端</span>
+  </div>
+  <div class="flex items-center gap-3">
+    <select x-model="currentRole" @change="onRoleChange()" class="text-sm border border-gray-300 rounded px-2 py-1 text-gray-700 bg-white">
+      <template x-for="u in MOCK_DATA.users" :key="u.role">
+        <option :value="u.role" x-text="`${u.roleName}（${u.username}）`"></option>
+      </template>
+    </select>
+    <div class="flex items-center gap-2 text-sm text-gray-700">
+      <i class="fas fa-user-circle text-gray-400"></i>
+      <span x-text="currentUser().name"></span>
+      <span class="text-xs text-gray-400" x-text="`[${currentUser().roleName}]`"></span>
+    </div>
+    <button @click="showToast('已退出登录','success')" class="text-sm text-gray-500 hover:text-blue-500 transition-colors">
+      <i class="fas fa-sign-out-alt mr-1"></i>退出
+    </button>
+  </div>
+</header>
+
+<!-- 主体布局 -->
+<div class="flex" style="margin-top:56px; height:calc(100vh - 56px);">
+
+  <!-- 侧边菜单 -->
+  <aside class="bg-white border-r border-gray-200 flex-shrink-0 overflow-y-auto" style="width:220px;">
+    <div class="py-2">
+      <div class="px-4 py-1 text-xs text-gray-400 font-medium mt-2 uppercase tracking-wide">智慧监管</div>
+      <div class="sidebar-item px-4 py-2 cursor-pointer flex items-center gap-2 transition-colors text-sm" @click="window.location.href='../养殖企业管理/WEB监管端-养殖企业信息管理.html'">
+        <i class="fas fa-industry w-4 text-center text-gray-400"></i><span>养殖企业信息管理</span>
+      </div>
+      <div class="sidebar-item px-4 py-2 cursor-pointer flex items-center gap-2 transition-colors text-sm" @click="window.location.href='../养殖企业管理/WEB监管端-养殖档案监管.html'">
+        <i class="fas fa-folder-open w-4 text-center text-gray-400"></i><span>养殖档案监管</span>
+      </div>
+      <div class="px-4 py-1 text-xs text-gray-400 font-medium mt-3 uppercase tracking-wide border-t border-gray-100 pt-2">电子档案管理</div>
+      <div class="sidebar-item px-4 py-2 cursor-pointer flex items-center gap-2 transition-colors text-sm" @click="window.location.href='WEB监管端-档案台账总览.html'">
+        <i class="fas fa-table w-4 text-center text-gray-400"></i><span>档案台账总览</span>
+      </div>
+      <div class="sidebar-item active px-4 py-2 cursor-pointer flex items-center gap-2 transition-colors text-sm">
+        <i class="fas fa-search w-4 text-center"></i><span>档案分类检索</span>
+      </div>
+      <div class="sidebar-item px-4 py-2 cursor-pointer flex items-center gap-2 transition-colors text-sm" @click="window.location.href='WEB监管端-档案统计分析.html'">
+        <i class="fas fa-chart-bar w-4 text-center text-gray-400"></i><span>档案统计分析</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 主内容区 -->
+  <main class="flex-1 flex flex-col overflow-hidden">
+    <div class="content-area">
+
+      <!-- 面包屑 -->
+      <div class="px-5 pt-3 pb-2 bg-white border-b border-gray-100 flex-shrink-0">
+        <div class="breadcrumb mb-1">智慧监管 / 电子档案管理 / <span>档案分类检索</span></div>
+        <h1 class="text-base font-semibold text-gray-800">档案分类检索</h1>
+      </div>
+
+      <!-- SECTION START: 检索区域 -->
+      <div id="feature-search" class="bg-white border-b border-gray-100 flex-shrink-0 px-5 py-4">
+
+        <!-- 主搜索框 -->
+        <div class="flex items-center gap-3 mb-3">
+          <div class="relative flex-1" style="max-width:60%;">
+            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-base"></i>
+            <input type="text" x-model="keyword" maxlength="200"
+                   @keydown.enter="doSearch()"
+                   placeholder="输入关键字搜索档案记录（企业名称、疫苗名称、药品名称、处理方法...）"
+                   class="w-full pl-10 pr-4 py-2.5 border-2 border-gray-200 rounded-lg text-sm outline-none focus:border-blue-400 transition-colors"
+                   style="font-size:13px;">
+          </div>
+          <button @click="doSearch()" class="btn-primary px-5 py-2.5 rounded-lg text-sm font-medium">
+            <i class="fas fa-search mr-1.5"></i>搜索
+          </button>
+        </div>
+
+        <!-- 高级检索切换 -->
+        <button @click="advancedOpen = !advancedOpen" class="text-blue-500 text-sm flex items-center gap-1.5 hover:text-blue-600">
+          <span>高级检索</span>
+          <i :class="advancedOpen ? 'fas fa-chevron-up' : 'fas fa-chevron-down'" class="text-xs"></i>
+        </button>
+
+        <!-- SECTION START: 高级检索条件 -->
+        <div id="feature-advanced" x-show="advancedOpen" x-transition class="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div class="grid grid-cols-3 gap-4 mb-3">
+            <!-- 档案类别多选 -->
+            <div>
+              <label class="form-label">档案类别</label>
+              <div class="cat-multiselect-wrap" @click.outside="catDropOpen=false">
+                <div class="cat-multiselect-btn" @click="catDropOpen=!catDropOpen">
+                  <span class="text-gray-700 truncate" x-text="catDisplayText()"></span>
+                  <i class="fas fa-caret-down text-gray-400 text-xs flex-shrink-0"></i>
+                </div>
+                <div class="cat-dropdown-panel" x-show="catDropOpen" x-transition>
+                  <div class="flex gap-2 p-2 border-b border-gray-100">
+                    <button @click.stop="selectAllCats()" class="btn-default text-xs px-2 py-1 rounded">全选</button>
+                    <button @click.stop="clearCats()" class="btn-default text-xs px-2 py-1 rounded">清空</button>
+                  </div>
+                  <template x-for="(group, gi) in catGroups" :key="gi">
+                    <div>
+                      <div class="cat-group-header" x-text="group.label"></div>
+                      <template x-for="cat in group.cats" :key="cat.key">
+                        <div class="cat-option" @click.stop="toggleCat(cat.key)">
+                          <input type="checkbox" :checked="selectedCats.includes(cat.key)" @change="toggleCat(cat.key)" class="cursor-pointer">
+                          <span x-text="cat.label" class="text-sm"></span>
+                        </div>
+                      </template>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </div>
+            <!-- 企业名称 -->
+            <div>
+              <label class="form-label">企业名称</label>
+              <input type="text" x-model="adv.entName" class="form-input w-full" placeholder="模糊搜索" maxlength="100">
+            </div>
+            <!-- 所属乡镇（县级可见） -->
+            <div x-show="isCounty()">
+              <label class="form-label">所属乡镇</label>
+              <select x-model="adv.town" class="form-input w-full">
+                <option value="">全部</option>
+                <template x-for="t in MOCK_DATA.towns" :key="t"><option :value="t" x-text="t"></option></template>
+              </select>
+            </div>
+            <!-- 时间范围 -->
+            <div class="col-span-2">
+              <label class="form-label">时间范围（创建时间）</label>
+              <div class="flex items-center gap-2">
+                <input type="date" x-model="adv.startTime" class="form-input">
+                <span class="text-gray-400 text-xs">至</span>
+                <input type="date" x-model="adv.endTime" class="form-input">
+              </div>
+            </div>
+            <!-- 填报人 -->
+            <div>
+              <label class="form-label">填报人</label>
+              <input type="text" x-model="adv.reporter" class="form-input w-full" placeholder="模糊搜索" maxlength="50">
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button @click="doSearch()" class="btn-primary px-3 py-1.5 rounded text-sm"><i class="fas fa-search mr-1"></i>查询</button>
+            <button @click="resetSearch()" class="btn-default px-3 py-1.5 rounded text-sm"><i class="fas fa-redo mr-1"></i>重置</button>
+          </div>
+        </div>
+        <!-- SECTION END: 高级检索条件 -->
+      </div>
+      <!-- SECTION END: 检索区域 -->
+
+      <!-- 引导提示（未搜索时） -->
+      <div x-show="!searched" class="flex-1 flex flex-col items-center justify-center text-gray-400">
+        <i class="fas fa-search text-5xl mb-4 text-gray-200"></i>
+        <p class="text-gray-500 text-base mb-1">请输入关键字或设置筛选条件开始检索</p>
+        <p class="text-sm text-gray-400">支持跨档案类别、跨企业的全局检索，仅检索已入库数据</p>
+      </div>
+
+      <!-- 结果区（搜索后） -->
+      <template x-if="searched">
+        <div class="flex-1 flex flex-col overflow-hidden">
+
+          <!-- SECTION START: 统计条 -->
+          <div id="feature-stats" class="bg-white px-5 py-2.5 border-b border-gray-100 flex-shrink-0 flex items-center justify-between">
+            <div class="text-sm text-gray-600">
+              共 <span class="text-blue-600 font-bold text-base" x-text="results.length"></span> 条记录，涉及
+              <span class="text-blue-600 font-bold text-base" x-text="catCount"></span> 个档案类别、
+              <span class="text-blue-600 font-bold text-base" x-text="entCount"></span> 家企业
+            </div>
+            <button @click="doExport()" class="btn-default px-3 py-1.5 rounded text-sm">
+              <i class="fas fa-download mr-1"></i>导出
+            </button>
+          </div>
+          <!-- SECTION END: 统计条 -->
+
+          <!-- SECTION START: 检索结果列表 -->
+          <div id="feature-list" class="list-area bg-white">
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:50px;">序号</th>
+                    <th style="min-width:110px;">档案类别</th>
+                    <th style="min-width:160px;">企业名称</th>
+                    <th>所属乡镇</th>
+                    <th style="min-width:260px;">关键摘要</th>
+                    <th>填报人</th>
+                    <th style="min-width:150px;">创建时间</th>
+                    <th class="sticky-col" style="text-align:center;min-width:80px;">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template x-if="paged.length === 0">
+                    <tr><td colspan="8" class="text-center py-16 text-gray-400">
+                      <i class="fas fa-search text-3xl block mb-2 text-gray-200"></i>暂无匹配的档案记录
+                    </td></tr>
+                  </template>
+                  <template x-for="(r, ri) in paged" :key="r.id">
+                    <tr>
+                      <td x-text="(currentPage-1)*pageSize + ri + 1"></td>
+                      <td><span class="tag" :class="getCatTagClass(r.catKey)" x-text="r.category"></span></td>
+                      <td class="font-medium" x-text="r.enterprise"></td>
+                      <td x-text="r.town"></td>
+                      <td>
+                        <span class="summary-ellipsis" :title="r.summary" x-text="r.summary"></span>
+                      </td>
+                      <td x-text="r.createBy"></td>
+                      <td class="text-gray-500" x-text="r.createTime"></td>
+                      <td class="sticky-col text-center">
+                        <button class="btn-link primary" @click="openDetail(r)">查看详情</button>
+                      </td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <!-- SECTION END: 检索结果列表 -->
+
+          <!-- 分页 -->
+          <div class="pagination-area">
+            <span class="text-sm text-gray-500">共 <span x-text="results.length" class="text-blue-500 font-medium"></span> 条</span>
+            <div class="flex items-center gap-1">
+              <button @click="changePage(currentPage-1)" :disabled="currentPage<=1" class="px-2 py-1 text-sm border border-gray-300 rounded hover:border-blue-400 disabled:opacity-40 bg-white">
+                <i class="fas fa-chevron-left text-xs"></i>
+              </button>
+              <template x-for="p in totalPages" :key="p">
+                <button @click="changePage(p)" :class="p===currentPage ? 'bg-blue-500 text-white border-blue-500' : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'"
+                        class="w-8 h-8 text-sm border rounded">
+                  <span x-text="p"></span>
+                </button>
+              </template>
+              <button @click="changePage(currentPage+1)" :disabled="currentPage>=totalPages" class="px-2 py-1 text-sm border border-gray-300 rounded hover:border-blue-400 disabled:opacity-40 bg-white">
+                <i class="fas fa-chevron-right text-xs"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </template>
+
+    </div>
+  </main>
+</div>
+
+<!-- SECTION START: 档案详情弹窗 -->
+<div x-show="detailModal.show" class="modal-overlay" @click.self="detailModal.show=false">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div>
+        <h3 class="font-semibold text-gray-800" x-text="'档案详情 — ' + (detailModal.record?.category || '')"></h3>
+      </div>
+      <button @click="detailModal.show=false" class="text-gray-400 hover:text-gray-600 text-lg leading-none">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
+        <span class="tag" :class="getCatTagClass(detailModal.record?.catKey)" x-text="detailModal.record?.category" style="font-size:13px;padding:3px 10px;"></span>
+        <span class="text-gray-600 text-sm" x-text="detailModal.record?.enterprise"></span>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="detail-field"><label>档案类别</label><p x-text="detailModal.record?.category || '—'"></p></div>
+        <div class="detail-field"><label>企业名称</label><p x-text="detailModal.record?.enterprise || '—'"></p></div>
+        <div class="detail-field"><label>所属乡镇</label><p x-text="detailModal.record?.town || '—'"></p></div>
+        <div class="detail-field"><label>填报人</label><p x-text="detailModal.record?.createBy || '—'"></p></div>
+        <div class="detail-field"><label>创建时间</label><p x-text="detailModal.record?.createTime || '—'"></p></div>
+        <div class="detail-field col-span-2"><label>关键摘要</label><p x-text="detailModal.record?.summary || '—'"></p></div>
+      </div>
+      <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-700">
+        <i class="fas fa-info-circle mr-1"></i>实际系统中此处展示完整的档案字段详情（复用养殖档案监管详情弹窗，仅展示字段，不含审批操作）
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button @click="detailModal.show=false" class="btn-default px-4 py-1.5 rounded text-sm">关闭</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 档案详情弹窗 -->
+
+<script>
+function app() {
+  return {
+    MOCK_DATA: {
+      users: [
+        { role: 'county_admin', roleName: '县级管理员', name: '张管理', username: 'county_admin', dataScope: 1 },
+        { role: 'county_staff', roleName: '县级业务人员', name: '李业务', username: 'county_staff', dataScope: 1 },
+        { role: 'town_gov_staff', roleName: '乡镇政府业务人员', name: '王乡镇', username: 'town_gov', town: '蓬南镇', dataScope: 4 },
+        { role: 'town_vet_station', roleName: '乡镇畜牧兽医站', name: '陈兽医', username: 'town_vet', town: '蓬南镇', dataScope: 4 }
+      ],
+      towns: ['蓬南镇','大石镇','吉星镇','板桥乡','新会镇','明月镇','任隆镇','宝梵镇'],
+      searchResults: [
+        { id:1, category:'畜禽免疫记录', catKey:'immune-records', enterprise:'蓬南鑫源养殖场', town:'蓬南镇', summary:'猪口蹄疫O型灭活疫苗 | 实免 320 头/只 | 2026-02-15', createBy:'张伟', createTime:'2026-02-15 09:30:00' },
+        { id:2, category:'养殖信息', catKey:'breeding-info', enterprise:'新会现代养殖有限公司', town:'新会镇', summary:'1号猪舍 | 存栏数量 850 头 | 2026-03-01', createBy:'刘雨晴', createTime:'2026-03-01 08:15:00' },
+        { id:3, category:'兽药使用记录', catKey:'vet-drug-use-records', enterprise:'大石家和农场', town:'大石镇', summary:'阿莫西林克拉维酸钾 | 用药原因 肺炎 | 2026-02-20', createBy:'王建国', createTime:'2026-02-20 14:00:00' },
+        { id:4, category:'消毒记录', catKey:'disinfect-records', enterprise:'吉星绿源养猪合作社', town:'吉星镇', summary:'复合碘溶液 | 喷雾消毒 | 2026-02-28', createBy:'张红梅', createTime:'2026-02-28 10:00:00' },
+        { id:5, category:'出栏信息', catKey:'outbound-records', enterprise:'宝梵金猪养殖园', town:'宝梵镇', summary:'2号猪舍 | 出栏数量 150 头 | 2026-03-05', createBy:'周培培', createTime:'2026-03-05 07:30:00' },
+        { id:6, category:'饲料添加剂购进记录', catKey:'feed-purchase-records', enterprise:'蓬南鑫源养殖场', town:'蓬南镇', summary:'育肥猪全价配合饲料 | 数量 5000 袋 | 2026-02-18', createBy:'李明', createTime:'2026-02-18 15:20:00' },
+        { id:7, category:'病死畜禽无害化处理记录', catKey:'dead-animal-records', enterprise:'新会现代养殖有限公司', town:'新会镇', summary:'热应激 | 生物降解 | 2026-02-10', createBy:'刘雨晴', createTime:'2026-02-10 11:00:00' },
+        { id:8, category:'繁育信息', catKey:'breeding-records', enterprise:'宝梵金猪养殖园', town:'宝梵镇', summary:'PG0234 | 人工授精 | 2026-01-15', createBy:'周培培', createTime:'2026-01-15 09:00:00' },
+        { id:9, category:'防疫监测记录', catKey:'epidemic-monitor-records', enterprise:'吉星绿源养猪合作社', town:'吉星镇', summary:'猪蓝耳病抗体检测 | 合格 | 2026-02-05', createBy:'张红梅', createTime:'2026-02-05 14:30:00' },
+        { id:10, category:'畜禽及其产品销售记录', catKey:'sales-records', enterprise:'大石家和农场', town:'大石镇', summary:'长白×大白 | 数量 80 头 | 2026-03-02', createBy:'王建国', createTime:'2026-03-02 08:00:00' },
+        { id:11, category:'兽药购进记录', catKey:'vet-drug-purchase-records', enterprise:'明月兴旺家庭农场', town:'明月镇', summary:'替米考星预混剂 | 生产厂家 四川华神 | 2026-02-22', createBy:'赵大强', createTime:'2026-02-22 10:30:00' },
+        { id:12, category:'粪便及污物无害化处理记录', catKey:'manure-harmless-records', enterprise:'蓬南鑫源养殖场', town:'蓬南镇', summary:'好氧堆肥 | 粪便产生量 12.5 吨 | 2026-02-25', createBy:'李明', createTime:'2026-02-25 16:00:00' },
+        { id:13, category:'入栏信息', catKey:'entry-records', enterprise:'宝梵金猪养殖园', town:'宝梵镇', summary:'3号猪舍 | 入栏数量 200 头 | 2026-01-10', createBy:'周培培', createTime:'2026-01-10 07:45:00' },
+        { id:14, category:'生产记录', catKey:'production-records', enterprise:'新会现代养殖有限公司', town:'新会镇', summary:'育肥舍 | 转出 50 头 | 2026-03-03', createBy:'刘雨晴', createTime:'2026-03-03 09:20:00' },
+        { id:15, category:'断奶信息', catKey:'weaning-records', enterprise:'吉星绿源养猪合作社', town:'吉星镇', summary:'PG0189 | 断奶数量 12 头 | 2026-02-08', createBy:'张红梅', createTime:'2026-02-08 10:15:00' },
+        { id:16, category:'畜禽疾病诊疗记录', catKey:'disease-records', enterprise:'大石家和农场', town:'大石镇', summary:'精神沉郁、食欲下降 | 痊愈 | 2026-01-28', createBy:'王建国', createTime:'2026-01-28 15:00:00' },
+        { id:17, category:'转栏信息', catKey:'transfer-records', enterprise:'蓬南鑫源养殖场', town:'蓬南镇', summary:'1号猪舍→2号猪舍 | 转栏数量 45 头 | 2026-02-12', createBy:'张伟', createTime:'2026-02-12 11:30:00' },
+        { id:18, category:'配合饲料使用记录', catKey:'feed-records', enterprise:'宝梵金猪养殖园', town:'宝梵镇', summary:'妊娠母猪饲料 | 数量 200 袋 | 2026-03-01', createBy:'周培培', createTime:'2026-03-01 08:30:00' }
+      ]
+    },
+    catGroups: [
+      { label:'养殖管理', cats:[ {key:'breeding-info',label:'养殖信息'},{key:'breeding-records',label:'繁育信息'},{key:'weaning-records',label:'断奶信息'},{key:'entry-records',label:'入栏信息'},{key:'transfer-records',label:'转栏信息'},{key:'outbound-records',label:'出栏信息'} ] },
+      { label:'防疫免疫', cats:[ {key:'immune-records',label:'畜禽免疫记录'},{key:'disinfect-records',label:'消毒记录'},{key:'epidemic-monitor-records',label:'防疫监测记录'} ] },
+      { label:'投入品管理', cats:[ {key:'vet-drug-purchase-records',label:'兽药购进记录'},{key:'vet-drug-use-records',label:'兽药使用记录'},{key:'feed-purchase-records',label:'饲料添加剂购进记录'},{key:'feed-records',label:'配合饲料使用记录'} ] },
+      { label:'疾病与处理', cats:[ {key:'disease-records',label:'畜禽疾病诊疗记录'},{key:'dead-animal-records',label:'病死畜禽无害化处理记录'},{key:'manure-harmless-records',label:'粪便及污物无害化处理记录'} ] },
+      { label:'生产与销售', cats:[ {key:'production-records',label:'生产记录'},{key:'sales-records',label:'畜禽及其产品销售记录'} ] }
+    ],
+    catTagMap: {
+      'breeding-info':'tag-blue','breeding-records':'tag-blue','weaning-records':'tag-blue','entry-records':'tag-blue','transfer-records':'tag-blue','outbound-records':'tag-blue',
+      'immune-records':'tag-green','disinfect-records':'tag-green','epidemic-monitor-records':'tag-green',
+      'vet-drug-purchase-records':'tag-orange','vet-drug-use-records':'tag-orange','feed-purchase-records':'tag-orange','feed-records':'tag-orange',
+      'disease-records':'tag-red','dead-animal-records':'tag-red','manure-harmless-records':'tag-red',
+      'production-records':'tag-purple','sales-records':'tag-purple'
+    },
+    currentRole: 'county_admin',
+    keyword: '',
+    advancedOpen: false,
+    catDropOpen: false,
+    selectedCats: [],
+    adv: { entName: '', town: '', startTime: '', endTime: '', reporter: '' },
+    searched: false,
+    results: [],
+    currentPage: 1,
+    pageSize: 10,
+    detailModal: { show: false, record: null },
+    toast: { show: false, msg: '', type: 'info' },
+
+    get paged() { return this.results.slice((this.currentPage-1)*this.pageSize, this.currentPage*this.pageSize); },
+    get totalPages() { return Math.max(1, Math.ceil(this.results.length / this.pageSize)); },
+    get catCount() { return new Set(this.results.map(r => r.catKey)).size; },
+    get entCount() { return new Set(this.results.map(r => r.enterprise)).size; },
+
+    currentUser() { return this.MOCK_DATA.users.find(u => u.role === this.currentRole) || this.MOCK_DATA.users[0]; },
+    isCounty() { return ['county_admin','county_staff'].includes(this.currentRole); },
+
+    onRoleChange() { this.showToast('已切换至：' + this.currentUser().roleName, 'info'); },
+
+    catDisplayText() {
+      const total = this.catGroups.flatMap(g => g.cats).length;
+      if (this.selectedCats.length === total) return '全部（18个类别）';
+      if (this.selectedCats.length === 0) return '请选择档案类别';
+      return `已选 ${this.selectedCats.length} 个类别`;
+    },
+
+    toggleCat(key) {
+      const idx = this.selectedCats.indexOf(key);
+      if (idx >= 0) this.selectedCats.splice(idx, 1);
+      else this.selectedCats.push(key);
+    },
+
+    selectAllCats() { this.selectedCats = this.catGroups.flatMap(g => g.cats.map(c => c.key)); },
+    clearCats() { this.selectedCats = []; },
+
+    getCatTagClass(key) { return this.catTagMap[key] || 'tag-blue'; },
+
+    doSearch() {
+      // Validate
+      if (!this.keyword.trim() && !this.adv.entName && !this.adv.town && !this.adv.startTime && !this.adv.reporter && this.selectedCats.length === 18) {
+        if (!this.advancedOpen || (!this.adv.entName && !this.adv.town && !this.adv.startTime && !this.adv.reporter)) {
+          if (!this.keyword.trim()) { this.showToast('请输入关键字或设置筛选条件', 'error'); return; }
+        }
+      }
+      if (this.adv.startTime && this.adv.endTime && this.adv.startTime > this.adv.endTime) {
+        this.showToast('开始时间不能晚于结束时间', 'error'); return;
+      }
+      const u = this.currentUser();
+      const kw = this.keyword.trim().toLowerCase();
+      const activeCats = this.selectedCats.length > 0 ? this.selectedCats : this.catGroups.flatMap(g => g.cats.map(c => c.key));
+      this.results = this.MOCK_DATA.searchResults.filter(r => {
+        if (!this.isCounty() && r.town !== u.town) return false;
+        if (!activeCats.includes(r.catKey)) return false;
+        if (kw && !r.enterprise.toLowerCase().includes(kw) && !r.summary.toLowerCase().includes(kw)) return false;
+        if (this.adv.entName && !r.enterprise.includes(this.adv.entName)) return false;
+        if (this.adv.town && r.town !== this.adv.town) return false;
+        if (this.adv.reporter && !r.createBy.includes(this.adv.reporter)) return false;
+        return true;
+      });
+      this.searched = true;
+      this.currentPage = 1;
+    },
+
+    resetSearch() {
+      this.keyword = '';
+      this.adv = { entName: '', town: '', startTime: '', endTime: '', reporter: '' };
+      this.selectAllCats();
+      this.searched = false;
+      this.results = [];
+    },
+
+    openDetail(r) { this.detailModal = { show: true, record: r }; },
+
+    doExport() {
+      if (this.results.length === 0) { this.showToast('当前无检索结果可导出', 'error'); return; }
+      const now = new Date();
+      const ts = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}${String(now.getSeconds()).padStart(2,'0')}`;
+      this.showToast(`导出成功：档案检索结果_${ts}.xlsx`, 'success');
+    },
+
+    changePage(p) { if (p >= 1 && p <= this.totalPages) this.currentPage = p; },
+
+    showToast(msg, type = 'info') {
+      this.toast = { show: true, msg, type };
+      setTimeout(() => { this.toast.show = false; }, 3000);
+    },
+
+    init() { this.selectAllCats(); }
+  };
+}
+</script>
+</body>
+</html>

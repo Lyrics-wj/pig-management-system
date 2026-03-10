@@ -1,0 +1,1761 @@
+<!--
+  功能名称：大屏配置
+  对应PRD：doc_prd/WEB/监管端/产业驾驶舱/大屏配置/WEB监管端-大屏配置.prd.md
+  所属端口：WEB监管端
+  所属模块：产业驾驶舱 / 大屏配置
+  制作日期：2026-03-10
+  最后更新：2026-03-10
+  角色说明：超级管理员（super_admin）、县级管理员（county_admin）、县级业务人员（county_staff）
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>大屏配置 - 2024年蓬溪县生猪数字化管理平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    /* SHARED STYLES */
+    :root {
+      --primary: #1677ff;
+      --bg: #f0f2f5;
+      --card-bg: #ffffff;
+      --border: #e8e8e8;
+      --text-main: #262626;
+      --text-sub: #595959;
+      --text-hint: #8c8c8c;
+      --success: #52c41a;
+      --warning: #faad14;
+      --error: #ff4d4f;
+      --disabled: #bfbfbf;
+    }
+    body { font-size: 14px; color: var(--text-main); background: var(--bg); }
+    .sidebar { width: 240px; flex-shrink: 0; }
+    .tag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+    .tag-gray   { background: #f5f5f5; color: #595959; border: 1px solid #d9d9d9; }
+    .tag-green  { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; }
+    .tag-orange { background: #fff7e6; color: #d46b08; border: 1px solid #ffd591; }
+    .tag-blue   { background: #e6f4ff; color: #0958d9; border: 1px solid #91caff; }
+    .btn-primary { background: var(--primary); color: #fff; border: none; padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; transition: opacity 0.2s; }
+    .btn-primary:hover { opacity: 0.85; }
+    .btn-default { background: #fff; color: var(--text-main); border: 1px solid var(--border); padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
+    .btn-default:hover { background: #f5f5f5; }
+    .btn-danger  { background: var(--error); color: #fff; border: none; padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-link    { background: none; border: none; color: var(--primary); cursor: pointer; font-size: 13px; padding: 2px 4px; }
+    .btn-link:hover { text-decoration: underline; }
+    .btn-link-danger { background: none; border: none; color: var(--error); cursor: pointer; font-size: 13px; padding: 2px 4px; }
+
+    /* 模态弹窗 */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+    .modal-box { background: #fff; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.18); min-width: 480px; max-width: 90vw; max-height: 88vh; overflow-y: auto; }
+    .modal-header { padding: 16px 24px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 16px; }
+    .modal-body   { padding: 20px 24px; }
+    .modal-footer { padding: 12px 24px 16px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+
+    /* 表单 */
+    .form-row { display: flex; margin-bottom: 18px; align-items: flex-start; }
+    .form-label { width: 100px; text-align: right; padding-top: 6px; padding-right: 12px; flex-shrink: 0; color: var(--text-main); }
+    .form-label.required::before { content: '*'; color: var(--error); margin-right: 4px; }
+    .form-control { flex: 1; }
+    .form-input { width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; font-size: 14px; outline: none; transition: border-color 0.2s; box-sizing: border-box; }
+    .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(22,119,255,0.1); }
+    .form-select { width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; font-size: 14px; outline: none; background: #fff; }
+    .form-error { color: var(--error); font-size: 12px; margin-top: 4px; }
+    .form-hint  { color: var(--text-hint); font-size: 12px; margin-top: 4px; }
+
+    /* 项目卡片 */
+    .project-card { background: #fff; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
+    .project-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+    .project-cover { width: 100%; height: 160px; object-fit: cover; background: linear-gradient(135deg, #0d1b2a 0%, #1a3a5c 100%); display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: 700; color: rgba(255,255,255,0.4); position: relative; }
+    .project-cover-letter { font-size: 52px; font-weight: 700; color: rgba(255,255,255,0.35); user-select: none; }
+    .project-card-body { padding: 12px; }
+    .project-name { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 6px; }
+    .project-meta { display: flex; align-items: center; justify-content: space-between; }
+    .project-time { font-size: 12px; color: var(--text-hint); }
+
+    /* 更多菜单 */
+    .dropdown-menu { position: absolute; background: #fff; border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); z-index: 100; min-width: 120px; padding: 4px 0; }
+    .dropdown-item { padding: 8px 16px; cursor: pointer; white-space: nowrap; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+    .dropdown-item:hover { background: #f5f5f5; }
+    .dropdown-item.danger { color: var(--error); }
+
+    /* 顶部导航 */
+    .topbar { height: 60px; background: #001529; color: #fff; display: flex; align-items: center; padding: 0 20px; position: fixed; top: 0; left: 0; right: 0; z-index: 200; }
+    .sidebar-nav { position: fixed; top: 60px; left: 0; bottom: 0; width: 240px; background: #001529; overflow-y: auto; z-index: 100; }
+    .sidebar-menu-item { padding: 12px 20px; color: rgba(255,255,255,0.65); cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 14px; transition: all 0.2s; }
+    .sidebar-menu-item:hover, .sidebar-menu-item.active { background: rgba(22,119,255,0.15); color: #fff; }
+    .sidebar-menu-item.active { background: var(--primary); color: #fff; }
+    .sidebar-submenu { padding-left: 16px; }
+    .sidebar-group-title { padding: 16px 20px 6px; color: rgba(255,255,255,0.45); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* 内容区 */
+    .content-wrap { margin-left: 240px; margin-top: 60px; padding: 20px; min-height: calc(100vh - 60px); }
+
+    /* 画布编辑器 */
+    .editor-layout { position: fixed; inset: 0; background: #1a1a1a; display: flex; flex-direction: column; z-index: 500; }
+    .editor-topbar { height: 50px; background: #141414; border-bottom: 1px solid #333; display: flex; align-items: center; padding: 0 16px; gap: 16px; color: #fff; flex-shrink: 0; }
+    .editor-main { flex: 1; display: flex; overflow: hidden; }
+    .editor-left { width: 260px; background: #1f1f1f; border-right: 1px solid #333; display: flex; flex-direction: column; flex-shrink: 0; }
+    .editor-canvas-area { flex: 1; overflow: auto; display: flex; align-items: center; justify-content: center; position: relative; }
+    .editor-right { width: 300px; background: #1f1f1f; border-left: 1px solid #333; display: flex; flex-direction: column; flex-shrink: 0; }
+    .editor-statusbar { height: 30px; background: #141414; border-top: 1px solid #333; display: flex; align-items: center; padding: 0 16px; gap: 24px; color: rgba(255,255,255,0.5); font-size: 12px; flex-shrink: 0; }
+    .editor-tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: rgba(255,255,255,0.5); border-bottom: 2px solid transparent; white-space: nowrap; }
+    .editor-tab.active { color: #fff; border-bottom-color: var(--primary); }
+    .canvas-mock { background: #0d1b2a; position: relative; }
+    .component-group-title { padding: 8px 12px 4px; color: rgba(255,255,255,0.4); font-size: 11px; text-transform: uppercase; }
+    .component-item { display: flex; align-items: center; gap: 8px; padding: 7px 12px; color: rgba(255,255,255,0.7); cursor: grab; border-radius: 4px; margin: 0 8px; font-size: 12px; }
+    .component-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .component-item-icon { width: 28px; height: 28px; background: rgba(22,119,255,0.2); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+    .panel-section-title { padding: 10px 12px 6px; color: rgba(255,255,255,0.5); font-size: 11px; border-bottom: 1px solid #333; }
+    .prop-row { display: flex; align-items: center; padding: 6px 12px; gap: 8px; color: rgba(255,255,255,0.7); font-size: 12px; }
+    .prop-label { width: 72px; flex-shrink: 0; color: rgba(255,255,255,0.45); }
+    .prop-input { flex: 1; background: #2a2a2a; border: 1px solid #444; border-radius: 4px; color: #fff; padding: 3px 8px; font-size: 12px; outline: none; }
+    .prop-input:focus { border-color: var(--primary); }
+
+    /* 资源管理 */
+    .resource-card { width: 160px; background: #fff; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; position: relative; }
+    .resource-thumb { width: 160px; height: 120px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .resource-info { padding: 8px; }
+    .resource-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; gap: 12px; }
+    .resource-card:hover .resource-overlay { display: flex; }
+    .resource-overlay-btn { color: #fff; background: rgba(255,255,255,0.15); border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 12px; }
+
+    /* 数据源列表 */
+    .ds-item { display: flex; align-items: center; padding: 8px 12px; border-bottom: 1px solid #2a2a2a; gap: 8px; }
+    .ds-item:hover { background: rgba(255,255,255,0.05); }
+
+    /* 图层列表 */
+    .layer-item { display: flex; align-items: center; padding: 6px 12px; border-bottom: 1px solid #2a2a2a; gap: 8px; cursor: pointer; }
+    .layer-item:hover { background: rgba(255,255,255,0.05); }
+    .layer-item.selected { background: rgba(22,119,255,0.15); }
+
+    /* Toast 提示 */
+    .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.75); color: #fff; padding: 8px 20px; border-radius: 6px; z-index: 9999; font-size: 14px; pointer-events: none; transition: opacity 0.3s; }
+    .toast.success { background: rgba(82,196,26,0.9); }
+    .toast.error   { background: rgba(255,77,79,0.9); }
+
+    /* 面包屑 */
+    .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-hint); margin-bottom: 12px; }
+    .breadcrumb .sep { color: #ccc; }
+
+    /* 页面导航Tab */
+    .page-tabs { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 20px; }
+    .page-tab { padding: 10px 20px; cursor: pointer; font-size: 14px; color: var(--text-sub); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
+    .page-tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 500; }
+    .page-tab:hover { color: var(--primary); }
+
+    /* 空状态 */
+    .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; color: var(--text-hint); }
+    .empty-state i { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+
+    /* 数据表格 */
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th { background: #fafafa; border-bottom: 2px solid var(--border); padding: 10px 12px; text-align: left; font-weight: 500; white-space: nowrap; }
+    .data-table td { border-bottom: 1px solid var(--border); padding: 10px 12px; vertical-align: middle; }
+    .data-table tr:nth-child(even) td { background: #fafafa; }
+    .data-table tr:hover td { background: #e6f4ff; }
+
+    /* 骨架屏 */
+    .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+    /* 开关 */
+    .toggle { position: relative; width: 38px; height: 20px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; inset: 0; background: #ccc; border-radius: 20px; transition: 0.3s; cursor: pointer; }
+    .toggle-slider::before { content: ''; position: absolute; width: 16px; height: 16px; left: 2px; top: 2px; background: #fff; border-radius: 50%; transition: 0.3s; }
+    .toggle input:checked + .toggle-slider { background: var(--primary); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+    /* 颜色选择器 */
+    .color-preview { width: 28px; height: 28px; border-radius: 4px; border: 2px solid var(--border); cursor: pointer; display: inline-block; vertical-align: middle; }
+  </style>
+</head>
+<body x-data="app()" x-init="init()">
+
+<!-- ======== 顶部导航 ======== -->
+<nav class="topbar">
+  <div class="flex items-center gap-3 flex-1">
+    <i class="fas fa-piggy-bank text-blue-400 text-xl"></i>
+    <span class="font-bold text-base">蓬溪县生猪数字化管理平台</span>
+  </div>
+  <div class="flex items-center gap-4 text-sm">
+    <span class="text-gray-400">当前角色：</span>
+    <select x-model="currentRole" @change="onRoleChange()" class="bg-gray-800 text-white border border-gray-600 rounded px-2 py-1 text-xs">
+      <template x-for="u in MOCK_DATA.users" :key="u.username">
+        <option :value="u.role" x-text="u.roleName + ' (' + u.username + ')'"></option>
+      </template>
+    </select>
+    <span class="text-gray-300" x-text="currentUser.realName || currentUser.username"></span>
+    <button class="text-gray-400 hover:text-white text-xs" @click="logout()"><i class="fas fa-sign-out-alt mr-1"></i>退出</button>
+  </div>
+</nav>
+
+<!-- ======== 侧边菜单 ======== -->
+<aside class="sidebar-nav">
+  <div class="sidebar-group-title">产业驾驶舱</div>
+  <div class="sidebar-menu-item" @click="currentPage='overview'">
+    <i class="fas fa-chart-bar w-4"></i> 产业总览
+  </div>
+  <div class="sidebar-submenu">
+    <div class="sidebar-menu-item" :class="{active: currentPage==='screen-config' || currentPage==='resource-manage'}" @click="currentPage='screen-config'">
+      <i class="fas fa-desktop w-4"></i> 大屏配置
+    </div>
+  </div>
+  <template x-if="currentRole !== 'county_staff'">
+    <div></div>
+  </template>
+  <div class="sidebar-group-title">决策分析</div>
+  <div class="sidebar-menu-item"><i class="fas fa-chart-line w-4"></i> 养殖分析</div>
+  <div class="sidebar-menu-item"><i class="fas fa-store w-4"></i> 市场贸易分析</div>
+  <div class="sidebar-menu-item"><i class="fas fa-microscope w-4"></i> 检验检疫分析</div>
+  <div class="sidebar-group-title">智慧监管</div>
+  <div class="sidebar-menu-item"><i class="fas fa-video w-4"></i> 视频监管</div>
+  <div class="sidebar-menu-item"><i class="fas fa-archive w-4"></i> 电子档案管理</div>
+</aside>
+
+<!-- ======== 主内容区 ======== -->
+<main class="content-wrap">
+
+  <!-- SECTION START: 无权限提示 -->
+  <div x-show="currentRole === 'county_staff'" id="feature-no-permission" class="bg-white rounded-lg p-10 text-center">
+    <i class="fas fa-lock text-4xl text-gray-300 mb-4 block"></i>
+    <p class="text-gray-500">您暂无大屏配置管理权限。</p>
+    <p class="text-gray-400 text-sm mt-2">如需访问，请联系管理员分配 <code>admin:screen:config</code> 权限。</p>
+  </div>
+  <!-- SECTION END: 无权限提示 -->
+
+  <!-- SECTION START: 大屏配置主体 -->
+  <div x-show="currentRole !== 'county_staff'" id="feature-screen-config">
+
+    <!-- 面包屑 -->
+    <div class="breadcrumb">
+      <span>产业驾驶舱</span><span class="sep">/</span>
+      <span x-show="currentPage==='screen-config' || currentPage==='resource-manage'" class="text-gray-900 font-medium">大屏配置</span>
+    </div>
+
+    <!-- 页面Tab导航 -->
+    <div class="page-tabs">
+      <div class="page-tab" :class="{active: currentPage==='screen-config'}" @click="currentPage='screen-config'">项目管理</div>
+      <div class="page-tab" :class="{active: currentPage==='resource-manage'}" @click="currentPage='resource-manage'">资源管理</div>
+    </div>
+
+    <!-- ====== 项目管理页 ====== -->
+    <!-- SECTION START: 项目列表 -->
+    <div x-show="currentPage==='screen-config'" id="feature-project-list">
+      <!-- 工具栏 -->
+      <div class="flex items-center justify-between mb-5">
+        <div class="flex items-center gap-3">
+          <div class="relative">
+            <input type="text" x-model="searchQuery" @input="filterProjects()" placeholder="搜索项目名称..." class="form-input pl-9" style="width:260px">
+            <i class="fas fa-search absolute left-3 top-2.5 text-gray-400 text-sm"></i>
+          </div>
+        </div>
+        <button class="btn-primary" @click="openCreateModal()">
+          <i class="fas fa-plus"></i> 新建项目
+        </button>
+      </div>
+
+      <!-- 骨架屏（加载中） -->
+      <div x-show="isLoading" class="grid grid-cols-4 gap-5">
+        <template x-for="i in [1,2,3,4]" :key="i">
+          <div class="bg-white rounded-lg overflow-hidden border border-gray-200">
+            <div class="skeleton h-40 w-full"></div>
+            <div class="p-3">
+              <div class="skeleton h-4 w-3/4 mb-2"></div>
+              <div class="skeleton h-3 w-1/2"></div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- 项目卡片网格 -->
+      <div x-show="!isLoading && filteredProjects.length > 0" class="grid grid-cols-4 gap-5">
+        <template x-for="(proj, idx) in filteredProjects" :key="proj.project_id">
+          <div class="project-card relative" @click.stop>
+            <!-- 封面 -->
+            <div class="project-cover" :style="proj.bg_color ? 'background:' + proj.bg_color : ''">
+              <template x-if="proj.cover_url">
+                <img :src="proj.cover_url" class="w-full h-full object-cover">
+              </template>
+              <template x-if="!proj.cover_url">
+                <span class="project-cover-letter" x-text="proj.project_name.charAt(0)"></span>
+              </template>
+              <!-- 状态标签 -->
+              <div class="absolute top-2 left-2">
+                <span class="tag" :class="statusTagClass(proj.status)" x-text="statusLabel(proj.status)"></span>
+              </div>
+            </div>
+            <!-- 卡片内容 -->
+            <div class="project-card-body">
+              <div class="project-name" x-text="proj.project_name" :title="proj.project_name"></div>
+              <div class="project-meta">
+                <span class="project-time" x-text="proj.update_time"></span>
+                <div class="relative">
+                  <button class="btn-default px-2 py-1 text-xs" @click.stop="toggleMenu(proj.project_id)">
+                    <i class="fas fa-ellipsis-h"></i>
+                  </button>
+                  <div class="dropdown-menu" x-show="openMenuId === proj.project_id" @click.outside="openMenuId = null" style="right:0; top:32px;">
+                    <div class="dropdown-item" @click.stop="openEditor(proj)"><i class="fas fa-edit text-blue-500"></i> 编辑</div>
+                    <div class="dropdown-item" @click.stop="previewProject(proj)"><i class="fas fa-eye text-gray-500"></i> 预览</div>
+                    <template x-if="proj.status === '0' || proj.status === '2'">
+                      <div class="dropdown-item" @click.stop="openPublishModal(proj)"><i class="fas fa-rocket text-green-500"></i> 发布</div>
+                    </template>
+                    <template x-if="proj.status === '1'">
+                      <div class="dropdown-item" @click.stop="unpublishProject(proj)"><i class="fas fa-ban text-orange-500"></i> 取消发布</div>
+                    </template>
+                    <div class="dropdown-item" @click.stop="cloneProject(proj)"><i class="fas fa-copy text-purple-500"></i> 克隆</div>
+                    <div class="dropdown-item" @click.stop="openSettingsModal(proj)"><i class="fas fa-cog text-gray-500"></i> 设置</div>
+                    <div class="dropdown-item danger" @click.stop="deleteProject(proj)"><i class="fas fa-trash"></i> 删除</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- 空状态 -->
+      <div x-show="!isLoading && filteredProjects.length === 0" class="empty-state">
+        <i class="fas fa-desktop"></i>
+        <p class="text-base font-medium mb-2">暂无大屏项目</p>
+        <p class="text-sm mb-4" x-show="searchQuery">未找到匹配的项目，请尝试其他关键词</p>
+        <p class="text-sm mb-4" x-show="!searchQuery">点击「新建项目」开始创建您的第一个大屏</p>
+        <button class="btn-primary" @click="openCreateModal()" x-show="!searchQuery"><i class="fas fa-plus"></i> 新建项目</button>
+      </div>
+    </div>
+    <!-- SECTION END: 项目列表 -->
+
+    <!-- ====== 资源管理页 ====== -->
+    <!-- SECTION START: 资源管理 -->
+    <div x-show="currentPage==='resource-manage'" id="feature-resource-manage">
+      <div class="flex gap-5">
+        <!-- 左侧分类树 -->
+        <div class="bg-white rounded-lg border border-gray-200 p-4" style="width:180px; flex-shrink:0;">
+          <p class="text-xs text-gray-400 mb-3 font-medium">资源分类</p>
+          <template x-for="cat in MOCK_DATA.resourceCategories" :key="cat.value">
+            <div class="flex items-center gap-2 px-3 py-2 rounded cursor-pointer text-sm" :class="activeCategory===cat.value ? 'bg-blue-50 text-blue-600 font-medium' : 'hover:bg-gray-50 text-gray-700'" @click="activeCategory=cat.value; filterResources()">
+              <i :class="cat.icon"></i>
+              <span x-text="cat.label"></span>
+            </div>
+          </template>
+        </div>
+        <!-- 右侧资源列表 -->
+        <div class="flex-1">
+          <div class="flex items-center justify-between mb-4">
+            <div class="relative">
+              <input type="text" x-model="resourceSearch" @input="filterResources()" placeholder="搜索文件名..." class="form-input pl-9" style="width:240px">
+              <i class="fas fa-search absolute left-3 top-2.5 text-gray-400 text-sm"></i>
+            </div>
+            <button class="btn-primary" @click="openUploadModal()"><i class="fas fa-upload"></i> 上传资源</button>
+          </div>
+          <div class="flex flex-wrap gap-4">
+            <template x-for="res in filteredResources" :key="res.resource_id">
+              <div class="resource-card">
+                <div class="resource-thumb">
+                  <template x-if="res.file_type === 'svg'">
+                    <div class="flex items-center justify-center w-full h-full bg-gray-100">
+                      <i class="fas fa-vector-square text-4xl text-gray-400"></i>
+                    </div>
+                  </template>
+                  <template x-if="res.file_type !== 'svg'">
+                    <img :src="res.thumb_url" class="w-full h-full object-cover" onerror="this.src=''; this.parentElement.innerHTML='<div class=\'flex items-center justify-center w-full h-full bg-gray-100\'><i class=\'fas fa-image text-4xl text-gray-300\'></i></div>'">
+                  </template>
+                </div>
+                <div class="resource-overlay">
+                  <button class="resource-overlay-btn" @click.stop="previewResource(res)"><i class="fas fa-eye"></i></button>
+                  <button class="resource-overlay-btn" @click.stop="copyResourceUrl(res)"><i class="fas fa-link"></i></button>
+                  <button class="resource-overlay-btn" style="background:rgba(255,77,79,0.5)" @click.stop="deleteResource(res)"><i class="fas fa-trash"></i></button>
+                </div>
+                <div class="resource-info">
+                  <p class="text-xs font-medium truncate" :title="res.file_name" x-text="res.file_name"></p>
+                  <p class="text-xs text-gray-400 mt-0.5" x-text="formatFileSize(res.file_size) + ' · ' + res.create_time.substring(0,10)"></p>
+                </div>
+              </div>
+            </template>
+            <!-- 资源为空 -->
+            <div x-show="filteredResources.length===0" class="w-full empty-state">
+              <i class="fas fa-folder-open"></i>
+              <p>暂无资源，点击「上传资源」添加</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- SECTION END: 资源管理 -->
+
+  </div>
+  <!-- SECTION END: 大屏配置主体 -->
+</main>
+
+<!-- ====================================================== -->
+<!-- ============= 画布编辑器（全屏覆盖）================= -->
+<!-- ====================================================== -->
+<!-- SECTION START: 画布编辑器 -->
+<div x-show="showEditor" id="feature-canvas-editor" class="editor-layout" @keydown.ctrl.s.prevent="saveCanvas()" @keydown.ctrl.z.prevent="undoAction()" @keydown.delete="deleteSelectedComponent()">
+  <!-- 顶部工具栏 -->
+  <div class="editor-topbar">
+    <button class="btn-default text-sm bg-transparent border-gray-600 text-gray-300 hover:bg-gray-700" @click="exitEditor()">
+      <i class="fas fa-arrow-left mr-1"></i> 返回
+    </button>
+    <div class="flex-1 flex items-center justify-center">
+      <input type="text" x-model="editingProject.project_name" class="bg-transparent border-b border-gray-600 text-white text-center font-semibold outline-none text-sm px-2 hover:border-gray-400 focus:border-blue-400" style="min-width:120px">
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="btn-default text-xs bg-transparent border-gray-600 text-gray-300 hover:bg-gray-700" @click="undoAction()" title="撤销 Ctrl+Z">
+        <i class="fas fa-undo"></i>
+      </button>
+      <button class="btn-default text-xs bg-transparent border-gray-600 text-gray-300 hover:bg-gray-700" @click="redoAction()" title="重做 Ctrl+Shift+Z">
+        <i class="fas fa-redo"></i>
+      </button>
+      <button class="btn-default text-xs bg-transparent border-gray-600 text-gray-300 hover:bg-gray-700" @click="previewProject(editingProject)">
+        <i class="fas fa-eye mr-1"></i> 预览
+      </button>
+      <button class="btn-default text-xs bg-transparent border-gray-600 text-gray-300 hover:bg-gray-700" @click="saveCanvas()">
+        <i class="fas fa-save mr-1"></i> 保存
+      </button>
+      <button class="btn-primary text-xs" @click="openPublishModal(editingProject)">
+        <i class="fas fa-rocket mr-1"></i> 发布
+      </button>
+    </div>
+  </div>
+
+  <!-- 编辑器主体 -->
+  <div class="editor-main">
+    <!-- 左侧面板 -->
+    <div class="editor-left">
+      <div class="flex border-b border-gray-800">
+        <div class="editor-tab" :class="{active: editorLeftTab==='components'}" @click="editorLeftTab='components'">组件库</div>
+        <div class="editor-tab" :class="{active: editorLeftTab==='layers'}" @click="editorLeftTab='layers'">图层</div>
+        <div class="editor-tab" :class="{active: editorLeftTab==='datasource'}" @click="editorLeftTab='datasource'">数据源</div>
+      </div>
+      <div class="flex-1 overflow-y-auto">
+        <!-- 组件库 -->
+        <div x-show="editorLeftTab==='components'">
+          <template x-for="group in MOCK_DATA.componentGroups" :key="group.category">
+            <div>
+              <div class="component-group-title" x-text="group.label"></div>
+              <template x-for="comp in group.items" :key="comp.type">
+                <div class="component-item" draggable="true" @dragend="dropComponent(comp)" @dblclick="addComponentToCenter(comp)" :title="'双击或拖拽添加'">
+                  <div class="component-item-icon"><i :class="comp.icon"></i></div>
+                  <span x-text="comp.name"></span>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+
+        <!-- 图层列表 -->
+        <div x-show="editorLeftTab==='layers'">
+          <template x-if="canvasComponents.length===0">
+            <div class="text-center text-gray-500 text-xs py-8">画布暂无组件</div>
+          </template>
+          <template x-for="(comp, idx) in [...canvasComponents].reverse()" :key="comp.component_id">
+            <div class="layer-item" :class="{selected: selectedComponentId===comp.component_id}" @click="selectedComponentId=comp.component_id">
+              <div class="w-6 h-6 bg-blue-900 rounded text-xs flex items-center justify-center text-blue-300 flex-shrink-0">
+                <i :class="getComponentIcon(comp.component_type)" class="text-xs"></i>
+              </div>
+              <span class="text-xs text-gray-300 flex-1 truncate" x-text="comp.component_name"></span>
+              <button class="text-gray-500 hover:text-yellow-400" @click.stop="toggleComponentVisible(comp)" :title="comp.is_visible==='0'?'隐藏':'显示'">
+                <i :class="comp.is_visible==='0' ? 'fas fa-eye' : 'fas fa-eye-slash'" class="text-xs"></i>
+              </button>
+              <button class="text-gray-500 hover:text-blue-400" @click.stop="toggleComponentLock(comp)" :title="comp.is_locked==='0'?'锁定':'解锁'">
+                <i :class="comp.is_locked==='0' ? 'fas fa-lock-open' : 'fas fa-lock'" class="text-xs"></i>
+              </button>
+            </div>
+          </template>
+        </div>
+
+        <!-- 数据源 -->
+        <div x-show="editorLeftTab==='datasource'">
+          <template x-if="projectDatasources.length===0">
+            <div class="text-center text-gray-500 text-xs py-6">暂无数据源</div>
+          </template>
+          <template x-for="ds in projectDatasources" :key="ds.datasource_id">
+            <div class="ds-item">
+              <span class="tag text-xs" :class="ds.ds_type==='sql'?'tag-blue':'bg-green-900 text-green-300 border-green-700'" x-text="ds.ds_type==='sql'?'SQL':'接口'"></span>
+              <span class="text-gray-300 text-xs flex-1 truncate" x-text="ds.ds_name"></span>
+              <span class="text-gray-500 text-xs" x-text="ds.refresh_interval + 's'"></span>
+              <button class="text-gray-500 hover:text-blue-400 ml-1" @click.stop="openDatasourceModal(ds)"><i class="fas fa-edit text-xs"></i></button>
+              <button class="text-gray-500 hover:text-green-400 ml-1" @click.stop="testDatasource(ds)"><i class="fas fa-play text-xs"></i></button>
+              <button class="text-gray-500 hover:text-red-400 ml-1" @click.stop="deleteDatasource(ds)"><i class="fas fa-trash text-xs"></i></button>
+            </div>
+          </template>
+          <div class="p-3">
+            <button class="w-full btn-default text-xs text-gray-400 border-gray-600 justify-center" @click="openDatasourceModal(null)">
+              <i class="fas fa-plus mr-1"></i> 新建数据源
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 画布编辑区域 -->
+    <div class="editor-canvas-area" @click.self="selectedComponentId=null">
+      <!-- 空画布提示 -->
+      <template x-if="canvasComponents.length===0">
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+          <div class="border-2 border-dashed border-gray-600 rounded-lg px-10 py-6 text-center text-gray-600 text-sm">
+            <i class="fas fa-hand-pointer text-2xl block mb-2 opacity-40"></i>
+            从左侧组件库拖拽组件到此处
+          </div>
+        </div>
+      </template>
+
+      <div class="canvas-mock relative" :style="`width:${canvasScale*editingProject.canvas_width}px; height:${canvasScale*editingProject.canvas_height}px; background:${editingProject.bg_color||'#0d1b2a'};`">
+        <!-- 网格线（SVG） -->
+        <svg x-show="showGrid" class="absolute inset-0 w-full h-full pointer-events-none" style="opacity:0.06;">
+          <defs>
+            <pattern id="grid" :width="20*canvasScale" :height="20*canvasScale" patternUnits="userSpaceOnUse">
+              <path :d="`M ${20*canvasScale} 0 L 0 0 0 ${20*canvasScale}`" fill="none" stroke="white" stroke-width="0.5"/>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#grid)"/>
+        </svg>
+
+        <!-- 组件实例 -->
+        <template x-for="comp in canvasComponents" :key="comp.component_id">
+          <div
+            class="absolute select-none"
+            :style="`left:${comp.pos_x*canvasScale}px; top:${comp.pos_y*canvasScale}px; width:${comp.width*canvasScale}px; height:${comp.height*canvasScale}px; opacity:${comp.opacity/100}; z-index:${comp.z_index}; display:${comp.is_visible==='1'?'none':'block'};`"
+            :class="{'outline outline-2 outline-blue-400': selectedComponentId===comp.component_id}"
+            @click.stop="selectedComponentId=comp.component_id"
+            @mousedown="startDrag($event, comp)"
+          >
+            <div class="w-full h-full flex items-center justify-center text-xs rounded overflow-hidden" :style="getComponentStyle(comp)">
+              <span class="text-center opacity-60 px-2" style="line-height:1.3">
+                <i :class="getComponentIcon(comp.component_type)" class="block text-lg mb-1"></i>
+                <span x-text="comp.component_name" class="block" style="font-size:10px"></span>
+              </span>
+            </div>
+            <!-- 选中浮动工具条 -->
+            <template x-if="selectedComponentId===comp.component_id">
+              <div class="absolute -top-8 right-0 flex gap-1 bg-gray-900 rounded px-1 py-0.5 z-10">
+                <button class="text-gray-300 hover:text-yellow-300 px-1 text-xs" @click.stop="toggleComponentLock(comp)" title="锁定"><i :class="comp.is_locked==='0'?'fas fa-lock-open':'fas fa-lock'"></i></button>
+                <button class="text-gray-300 hover:text-blue-300 px-1 text-xs" @click.stop="duplicateComponent(comp)" title="复制"><i class="fas fa-copy"></i></button>
+                <button class="text-gray-300 hover:text-red-400 px-1 text-xs" @click.stop="deleteSelectedComponent()" title="删除"><i class="fas fa-trash"></i></button>
+              </div>
+            </template>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- 右侧属性面板 -->
+    <div class="editor-right">
+      <div class="flex border-b border-gray-800">
+        <div class="editor-tab" :class="{active: editorRightTab==='basic'}" @click="editorRightTab='basic'">基础属性</div>
+        <div class="editor-tab" :class="{active: editorRightTab==='data'}" @click="editorRightTab='data'">数据源</div>
+        <div class="editor-tab" :class="{active: editorRightTab==='style'}" @click="editorRightTab='style'">样式</div>
+      </div>
+      <div class="flex-1 overflow-y-auto text-gray-300 text-sm">
+        <!-- 未选中组件时：画布属性 -->
+        <template x-if="!selectedComponent()">
+          <div>
+            <div class="panel-section-title">画布全局设置</div>
+            <div class="prop-row"><span class="prop-label">背景颜色</span>
+              <input type="color" x-model="editingProject.bg_color" class="prop-input p-0.5 h-7" style="width:48px">
+              <span class="text-xs ml-2 text-gray-500" x-text="editingProject.bg_color"></span>
+            </div>
+            <div class="prop-row"><span class="prop-label">画布宽度</span>
+              <input type="number" x-model.number="editingProject.canvas_width" class="prop-input" min="800" max="7680">
+              <span class="text-xs ml-1 text-gray-500">px</span>
+            </div>
+            <div class="prop-row"><span class="prop-label">画布高度</span>
+              <input type="number" x-model.number="editingProject.canvas_height" class="prop-input" min="600" max="4320">
+              <span class="text-xs ml-1 text-gray-500">px</span>
+            </div>
+            <div class="prop-row items-center">
+              <span class="prop-label">显示网格</span>
+              <label class="toggle ml-2"><input type="checkbox" x-model="showGrid"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="p-3 mt-2">
+              <p class="text-xs text-gray-500 mb-2">缩放比例</p>
+              <input type="range" x-model.number="canvasScalePercent" @input="canvasScale=canvasScalePercent/100" min="20" max="200" step="10" class="w-full">
+              <p class="text-xs text-gray-500 text-center mt-1" x-text="canvasScalePercent + '%'"></p>
+            </div>
+          </div>
+        </template>
+
+        <!-- 已选中组件 -->
+        <template x-if="selectedComponent()">
+          <div>
+            <!-- 基础属性 -->
+            <div x-show="editorRightTab==='basic'">
+              <div class="panel-section-title">基础属性</div>
+              <div class="prop-row"><span class="prop-label">组件名称</span>
+                <input type="text" x-model="selectedComponent().component_name" class="prop-input" maxlength="30">
+              </div>
+              <div class="prop-row"><span class="prop-label">X 坐标</span>
+                <input type="number" x-model.number="selectedComponent().pos_x" class="prop-input" min="0">
+                <span class="text-xs ml-1 text-gray-500">px</span>
+              </div>
+              <div class="prop-row"><span class="prop-label">Y 坐标</span>
+                <input type="number" x-model.number="selectedComponent().pos_y" class="prop-input" min="0">
+                <span class="text-xs ml-1 text-gray-500">px</span>
+              </div>
+              <div class="prop-row"><span class="prop-label">宽度</span>
+                <input type="number" x-model.number="selectedComponent().width" class="prop-input" min="60">
+                <span class="text-xs ml-1 text-gray-500">px</span>
+              </div>
+              <div class="prop-row"><span class="prop-label">高度</span>
+                <input type="number" x-model.number="selectedComponent().height" class="prop-input" min="40">
+                <span class="text-xs ml-1 text-gray-500">px</span>
+              </div>
+              <div class="prop-row"><span class="prop-label">旋转角度</span>
+                <input type="number" x-model.number="selectedComponent().rotation" class="prop-input" min="0" max="360">
+                <span class="text-xs ml-1 text-gray-500">°</span>
+              </div>
+              <div class="prop-row"><span class="prop-label">透明度</span>
+                <input type="range" x-model.number="selectedComponent().opacity" min="0" max="100" class="flex-1">
+                <span class="text-xs ml-2 text-gray-400 w-6" x-text="selectedComponent().opacity + '%'"></span>
+              </div>
+              <div class="panel-section-title mt-2">图层操作</div>
+              <div class="flex flex-wrap gap-2 p-3">
+                <button class="btn-default text-xs bg-transparent border-gray-600 text-gray-400" @click="layerAction('top')">置顶</button>
+                <button class="btn-default text-xs bg-transparent border-gray-600 text-gray-400" @click="layerAction('bottom')">置底</button>
+                <button class="btn-default text-xs bg-transparent border-gray-600 text-gray-400" @click="layerAction('up')">上移</button>
+                <button class="btn-default text-xs bg-transparent border-gray-600 text-gray-400" @click="layerAction('down')">下移</button>
+              </div>
+            </div>
+
+            <!-- 数据源绑定 -->
+            <div x-show="editorRightTab==='data'">
+              <div class="panel-section-title">数据源绑定</div>
+              <div class="prop-row flex-col items-start gap-2">
+                <span class="prop-label w-auto">绑定数据源</span>
+                <select x-model="selectedComponent().datasource_id" class="prop-input w-full">
+                  <option value="">无（使用示例数据）</option>
+                  <template x-for="ds in projectDatasources" :key="ds.datasource_id">
+                    <option :value="ds.datasource_id" x-text="ds.ds_name"></option>
+                  </template>
+                </select>
+              </div>
+              <div class="prop-row flex-col items-start gap-2">
+                <span class="prop-label w-auto">刷新频率</span>
+                <select x-model="selectedComponent().refresh_interval" class="prop-input w-full">
+                  <option value="">跟随数据源</option>
+                  <option value="5">5 秒</option>
+                  <option value="10">10 秒</option>
+                  <option value="30">30 秒</option>
+                  <option value="60">1 分钟</option>
+                  <option value="300">5 分钟</option>
+                  <option value="600">10 分钟</option>
+                  <option value="1800">30 分钟</option>
+                  <option value="0">不刷新</option>
+                </select>
+              </div>
+              <div class="p-3 mt-2">
+                <p class="text-xs text-gray-500 mb-2">数据预览（前10行）</p>
+                <div class="bg-gray-900 rounded p-2 text-xs text-gray-400 font-mono overflow-x-auto" style="max-height:160px; overflow-y:auto;">
+                  <template x-if="selectedComponent().datasource_id">
+                    <span>[ 已绑定数据源，运行时加载数据 ]</span>
+                  </template>
+                  <template x-if="!selectedComponent().datasource_id">
+                    <span>[ 使用组件内置示例数据 ]</span>
+                  </template>
+                </div>
+              </div>
+            </div>
+
+            <!-- 样式配置 -->
+            <div x-show="editorRightTab==='style'">
+              <div class="panel-section-title">样式配置</div>
+              <div class="prop-row"><span class="prop-label">标题文本</span>
+                <input type="text" :placeholder="selectedComponent().component_name" class="prop-input" maxlength="50">
+              </div>
+              <div class="prop-row"><span class="prop-label">配色方案</span>
+                <select class="prop-input">
+                  <option>深蓝科技</option>
+                  <option>蓝绿清新</option>
+                  <option>暖色系</option>
+                  <option>冷色系</option>
+                  <option>渐变系</option>
+                  <option>单色系</option>
+                </select>
+              </div>
+              <div class="prop-row items-center"><span class="prop-label">背景透明</span>
+                <label class="toggle ml-2"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+              </div>
+              <div class="prop-row"><span class="prop-label">边框样式</span>
+                <select class="prop-input">
+                  <option>无边框</option>
+                  <option>实线</option>
+                  <option>虚线</option>
+                  <option>科技感边框</option>
+                </select>
+              </div>
+              <div class="prop-row items-center"><span class="prop-label">动画效果</span>
+                <label class="toggle ml-2"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+              </div>
+              <div class="prop-row items-center"><span class="prop-label">显示图例</span>
+                <label class="toggle ml-2"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+  </div>
+
+  <!-- 状态栏 -->
+  <div class="editor-statusbar">
+    <span>缩放：<span x-text="canvasScalePercent + '%'"></span></span>
+    <span>画布：<span x-text="editingProject.canvas_width + ' × ' + editingProject.canvas_height"></span> px</span>
+    <span>组件：<span x-text="canvasComponents.length"></span> 个</span>
+    <span x-show="lastSaveTime" class="ml-auto" x-text="'自动保存于 ' + lastSaveTime"></span>
+  </div>
+</div>
+<!-- SECTION END: 画布编辑器 -->
+
+
+<!-- ====================================================== -->
+<!-- =================== 各弹窗 ========================== -->
+<!-- ====================================================== -->
+
+<!-- SECTION START: 新建/编辑项目弹窗 -->
+<div x-show="showCreateModal" class="modal-overlay" @click.self="showCreateModal=false" id="feature-create-project">
+  <div class="modal-box" style="width:520px">
+    <div class="modal-header">
+      <span x-text="editingProject.project_id ? '编辑项目' : '新建项目'"></span>
+      <button @click="showCreateModal=false" class="text-gray-400 hover:text-gray-700"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label class="form-label required">项目名称</label>
+        <div class="form-control">
+          <input type="text" x-model="createForm.project_name" class="form-input" maxlength="50" placeholder="请输入项目名称">
+          <p class="form-error" x-show="createErrors.project_name" x-text="createErrors.project_name"></p>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">分辨率预设</label>
+        <div class="form-control">
+          <select class="form-select" @change="applyPreset($event.target.value)">
+            <option value="">自定义</option>
+            <option value="1920x1080">1920×1080（Full HD）</option>
+            <option value="2560x1440">2560×1440（2K）</option>
+            <option value="3840x2160">3840×2160（4K）</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label required">画布宽度</label>
+        <div class="form-control">
+          <div class="flex items-center gap-2">
+            <input type="number" x-model.number="createForm.canvas_width" class="form-input" min="800" max="7680" placeholder="1920">
+            <span class="text-gray-500 text-sm flex-shrink-0">px</span>
+          </div>
+          <p class="form-error" x-show="createErrors.canvas_width" x-text="createErrors.canvas_width"></p>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label required">画布高度</label>
+        <div class="form-control">
+          <div class="flex items-center gap-2">
+            <input type="number" x-model.number="createForm.canvas_height" class="form-input" min="600" max="4320" placeholder="1080">
+            <span class="text-gray-500 text-sm flex-shrink-0">px</span>
+          </div>
+          <p class="form-error" x-show="createErrors.canvas_height" x-text="createErrors.canvas_height"></p>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">背景颜色</label>
+        <div class="form-control flex items-center gap-3">
+          <input type="color" x-model="createForm.bg_color" class="w-10 h-8 rounded border border-gray-300 cursor-pointer p-0.5">
+          <input type="text" x-model="createForm.bg_color" class="form-input" style="width:120px" placeholder="#0d1b2a">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-default" @click="showCreateModal=false">取消</button>
+      <button class="btn-primary" @click="submitCreate()">
+        <span x-text="editingProject.project_id ? '保存' : '创建并进入编辑器'"></span>
+      </button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 新建/编辑项目弹窗 -->
+
+<!-- SECTION START: 发布弹窗 -->
+<div x-show="showPublishModal" class="modal-overlay" @click.self="showPublishModal=false" id="feature-publish-modal">
+  <div class="modal-box" style="width:480px">
+    <div class="modal-header">
+      <span>发布看板</span>
+      <button @click="showPublishModal=false" class="text-gray-400 hover:text-gray-700"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="bg-blue-50 border border-blue-200 rounded p-3 mb-4 text-sm text-blue-700">
+        <i class="fas fa-info-circle mr-1"></i> 发布后将生成访问链接，被授权角色即可通过链接查看该看板。
+      </div>
+      <div class="form-row">
+        <label class="form-label">看板链接</label>
+        <div class="form-control">
+          <div class="bg-gray-50 border border-gray-200 rounded p-2 text-sm text-gray-600 font-mono break-all">
+            /screen/view/<span class="text-blue-600">a3f9k2m8p1q7r5s6</span>
+          </div>
+          <p class="form-hint">发布后该链接将生效，可复制分发给被授权用户</p>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">链接有效期</label>
+        <div class="form-control">
+          <div class="flex items-center gap-3">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" x-model="publishForm.expireType" value="forever"> <span class="text-sm">永不过期</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" x-model="publishForm.expireType" value="custom"> <span class="text-sm">指定时间</span>
+            </label>
+          </div>
+          <input x-show="publishForm.expireType==='custom'" type="datetime-local" x-model="publishForm.expire_time" class="form-input mt-2">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-default" @click="showPublishModal=false">取消</button>
+      <button class="btn-primary" @click="confirmPublish()"><i class="fas fa-rocket mr-1"></i> 确认发布</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 发布弹窗 -->
+
+<!-- SECTION START: 项目设置弹窗 -->
+<div x-show="showSettingsModal" class="modal-overlay" @click.self="showSettingsModal=false" id="feature-settings-modal">
+  <div class="modal-box" style="width:560px">
+    <div class="modal-header">
+      <span>项目设置 - <span x-text="settingsProject.project_name"></span></span>
+      <button @click="showSettingsModal=false" class="text-gray-400 hover:text-gray-700"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body p-0">
+      <!-- 设置Tab -->
+      <div class="flex border-b border-gray-200 px-6">
+        <div class="page-tab" :class="{active: settingsTab==='basic'}" @click="settingsTab='basic'">基本信息</div>
+        <div class="page-tab" :class="{active: settingsTab==='roles'}" @click="settingsTab='roles'">权限分配</div>
+        <div class="page-tab" :class="{active: settingsTab==='link'}" @click="settingsTab='link'">链接管理</div>
+      </div>
+      <div class="p-6">
+        <!-- 基本信息 -->
+        <div x-show="settingsTab==='basic'">
+          <div class="form-row">
+            <label class="form-label required">项目名称</label>
+            <div class="form-control">
+              <input type="text" x-model="settingsProject.project_name" class="form-input" maxlength="50">
+            </div>
+          </div>
+          <div class="form-row">
+            <label class="form-label required">画布宽度</label>
+            <div class="form-control">
+              <div class="flex gap-2 items-center">
+                <input type="number" x-model.number="settingsProject.canvas_width" class="form-input" min="800" max="7680">
+                <span class="text-gray-400 text-sm flex-shrink-0">px</span>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <label class="form-label required">画布高度</label>
+            <div class="form-control">
+              <div class="flex gap-2 items-center">
+                <input type="number" x-model.number="settingsProject.canvas_height" class="form-input" min="600" max="4320">
+                <span class="text-gray-400 text-sm flex-shrink-0">px</span>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <label class="form-label">背景颜色</label>
+            <div class="form-control flex items-center gap-3">
+              <input type="color" x-model="settingsProject.bg_color" class="w-10 h-8 rounded border border-gray-300 cursor-pointer p-0.5">
+              <input type="text" x-model="settingsProject.bg_color" class="form-input" style="width:120px">
+            </div>
+          </div>
+        </div>
+        <!-- 权限分配 -->
+        <div x-show="settingsTab==='roles'">
+          <p class="text-sm text-gray-500 mb-4">勾选可查看该看板的角色（默认仅创建者和超级管理员可查看）</p>
+          <div class="space-y-2">
+            <template x-for="role in MOCK_DATA.systemRoles" :key="role.role_id">
+              <label class="flex items-center gap-3 p-3 bg-gray-50 rounded cursor-pointer hover:bg-gray-100">
+                <input type="checkbox" :value="role.role_id" x-model="settingsProject.assignedRoles" class="w-4 h-4">
+                <div>
+                  <p class="text-sm font-medium text-gray-800" x-text="role.role_name"></p>
+                  <p class="text-xs text-gray-500" x-text="role.role_key"></p>
+                </div>
+              </label>
+            </template>
+          </div>
+        </div>
+        <!-- 链接管理 -->
+        <div x-show="settingsTab==='link'">
+          <template x-if="settingsProject.status !== '1'">
+            <div class="text-center text-gray-400 py-8">
+              <i class="fas fa-lock text-3xl mb-3 block opacity-30"></i>
+              <p class="text-sm">项目尚未发布，请先发布项目后再管理链接</p>
+            </div>
+          </template>
+          <template x-if="settingsProject.status === '1'">
+            <div>
+              <div class="form-row">
+                <label class="form-label">看板链接</label>
+                <div class="form-control">
+                  <div class="flex gap-2">
+                    <div class="bg-gray-50 border border-gray-200 rounded p-2 text-sm text-gray-600 font-mono flex-1 break-all" x-text="'/screen/view/' + (settingsProject.project_token || 'a3f9k2m8p1q7r5s6')"></div>
+                    <button class="btn-default text-xs flex-shrink-0" @click="copyLink()"><i class="fas fa-copy mr-1"></i>复制</button>
+                  </div>
+                </div>
+              </div>
+              <div class="form-row">
+                <label class="form-label">链接有效期</label>
+                <div class="form-control">
+                  <input type="datetime-local" x-model="settingsProject.expire_time" class="form-input">
+                  <p class="form-hint">留空表示永不过期</p>
+                </div>
+              </div>
+              <div class="form-row">
+                <label class="form-label">重新生成</label>
+                <div class="form-control">
+                  <button class="btn-default text-sm" @click="regenerateToken()">
+                    <i class="fas fa-sync mr-1"></i> 重新生成链接（旧链接立即失效）
+                  </button>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-default" @click="showSettingsModal=false">取消</button>
+      <button class="btn-primary" @click="saveSettings()">保存</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 项目设置弹窗 -->
+
+<!-- SECTION START: 数据源弹窗 -->
+<div x-show="showDatasourceModal" class="modal-overlay" @click.self="showDatasourceModal=false" id="feature-datasource-modal">
+  <div class="modal-box" style="width:580px">
+    <div class="modal-header">
+      <span x-text="datasourceForm.datasource_id ? '编辑数据源' : '新建数据源'"></span>
+      <button @click="showDatasourceModal=false" class="text-gray-400 hover:text-gray-700"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label class="form-label required">数据源名称</label>
+        <div class="form-control">
+          <input type="text" x-model="datasourceForm.ds_name" class="form-input" maxlength="50" placeholder="请输入数据源名称">
+          <p class="form-error" x-show="dsErrors.ds_name" x-text="dsErrors.ds_name"></p>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label required">数据源类型</label>
+        <div class="form-control">
+          <select x-model="datasourceForm.ds_type" class="form-select">
+            <option value="sql">SQL 查询</option>
+            <option value="api">系统接口</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- SQL类型 -->
+      <template x-if="datasourceForm.ds_type==='sql'">
+        <div>
+          <div class="form-row items-start">
+            <label class="form-label required">SQL语句</label>
+            <div class="form-control">
+              <textarea x-model="datasourceForm.sql_content" class="form-input font-mono text-sm" rows="6" placeholder="SELECT ... FROM ... WHERE ..." style="resize:vertical; min-height:120px; max-height:300px;"></textarea>
+              <p class="form-hint">仅支持 SELECT 语句，禁止 INSERT/UPDATE/DELETE 等修改操作</p>
+              <p class="form-error" x-show="dsErrors.sql_content" x-text="dsErrors.sql_content"></p>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- API类型 -->
+      <template x-if="datasourceForm.ds_type==='api'">
+        <div>
+          <div class="form-row">
+            <label class="form-label required">接口地址</label>
+            <div class="form-control">
+              <input type="text" x-model="datasourceForm.api_url" class="form-input font-mono" placeholder="/admin/analysis/breeding/overview">
+              <p class="form-hint">相对路径，以 / 开头，系统自动添加域名和认证头</p>
+              <p class="form-error" x-show="dsErrors.api_url" x-text="dsErrors.api_url"></p>
+            </div>
+          </div>
+          <div class="form-row">
+            <label class="form-label required">请求方式</label>
+            <div class="form-control">
+              <select x-model="datasourceForm.api_method" class="form-select" style="width:100px">
+                <option value="GET">GET</option>
+                <option value="POST">POST</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <label class="form-label">请求参数</label>
+            <div class="form-control">
+              <textarea x-model="datasourceForm.api_params" class="form-input font-mono text-sm" rows="3" placeholder='{"key": "value"}'></textarea>
+              <p class="form-hint">JSON 格式</p>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <div class="form-row">
+        <label class="form-label required">刷新频率</label>
+        <div class="form-control">
+          <div class="flex items-center gap-2">
+            <input type="number" x-model.number="datasourceForm.refresh_interval" class="form-input" min="5" max="86400" style="width:120px">
+            <span class="text-gray-500 text-sm">秒（最小 5 秒，最大 86400 秒）</span>
+          </div>
+          <p class="form-error" x-show="dsErrors.refresh_interval" x-text="dsErrors.refresh_interval"></p>
+        </div>
+      </div>
+
+      <!-- 测试结果 -->
+      <div x-show="dsTestResult" class="mt-2 bg-gray-50 rounded border border-gray-200 p-3">
+        <p class="text-sm font-medium mb-2" :class="dsTestResult.success ? 'text-green-600' : 'text-red-600'">
+          <i :class="dsTestResult.success ? 'fas fa-check-circle' : 'fas fa-times-circle'" class="mr-1"></i>
+          <span x-text="dsTestResult.message"></span>
+        </p>
+        <template x-if="dsTestResult.success && dsTestResult.rows">
+          <div class="overflow-x-auto">
+            <table class="data-table text-xs">
+              <thead>
+                <tr>
+                  <template x-for="col in dsTestResult.columns" :key="col">
+                    <th x-text="col"></th>
+                  </template>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="(row, idx) in dsTestResult.rows" :key="idx">
+                  <tr>
+                    <template x-for="col in dsTestResult.columns" :key="col">
+                      <td x-text="row[col]"></td>
+                    </template>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </template>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-default" @click="testDatasourceForm()" :class="dsTestLoading ? 'opacity-50 cursor-wait' : ''">
+        <i class="fas fa-play mr-1"></i> <span x-text="dsTestLoading ? '测试中...' : '测试连接'"></span>
+      </button>
+      <div class="flex-1"></div>
+      <button class="btn-default" @click="showDatasourceModal=false">取消</button>
+      <button class="btn-primary" @click="saveDatasource()">保存</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 数据源弹窗 -->
+
+<!-- SECTION START: 上传资源弹窗 -->
+<div x-show="showUploadModal" class="modal-overlay" @click.self="showUploadModal=false" id="feature-upload-modal">
+  <div class="modal-box" style="width:500px">
+    <div class="modal-header">
+      <span>上传资源</span>
+      <button @click="showUploadModal=false" class="text-gray-400 hover:text-gray-700"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label class="form-label required">资源分类</label>
+        <div class="form-control">
+          <select x-model="uploadForm.category" class="form-select">
+            <option value="icon">2D图标（png/svg，≤500KB）</option>
+            <option value="decoration">修饰条（png/svg/gif，≤2MB）</option>
+            <option value="background">背景图（jpg/png/webp，≤10MB）</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">上传文件</label>
+        <div class="form-control">
+          <div
+            class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer transition-colors"
+            :class="uploadDragging ? 'border-blue-400 bg-blue-50' : 'hover:border-gray-400'"
+            @dragover.prevent="uploadDragging=true"
+            @dragleave="uploadDragging=false"
+            @drop.prevent="handleFileDrop($event)"
+            @click="$refs.fileInput.click()"
+          >
+            <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 block mb-2"></i>
+            <p class="text-gray-500 text-sm">拖拽文件到此处或点击选择文件</p>
+            <p class="text-gray-400 text-xs mt-1">单次最多 20 个文件</p>
+            <input type="file" x-ref="fileInput" multiple accept="image/*,.svg,.gif" class="hidden" @change="handleFileSelect($event)">
+          </div>
+        </div>
+      </div>
+      <!-- 待上传文件列表 -->
+      <template x-if="uploadFiles.length > 0">
+        <div class="mt-3">
+          <p class="text-sm text-gray-600 mb-2">待上传文件（<span x-text="uploadFiles.length"></span>个）</p>
+          <div class="max-h-40 overflow-y-auto space-y-2">
+            <template x-for="(f, idx) in uploadFiles" :key="idx">
+              <div class="flex items-center gap-3 bg-gray-50 rounded p-2">
+                <i class="fas fa-file-image text-blue-400"></i>
+                <span class="text-sm flex-1 truncate" x-text="f.name"></span>
+                <span class="text-xs text-gray-400" x-text="formatFileSize(f.size)"></span>
+                <div class="w-20 bg-gray-200 rounded-full h-1.5">
+                  <div class="bg-blue-400 h-1.5 rounded-full transition-all" :style="'width:' + (f.progress||0) + '%'" :class="f.error ? 'bg-red-400' : (f.progress===100 ? 'bg-green-400' : 'bg-blue-400')"></div>
+                </div>
+                <button class="text-gray-400 hover:text-red-400" @click="removeUploadFile(idx)"><i class="fas fa-times text-xs"></i></button>
+              </div>
+            </template>
+          </div>
+        </div>
+      </template>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-default" @click="showUploadModal=false">取消</button>
+      <button class="btn-primary" @click="startUpload()" :disabled="uploadFiles.length===0">
+        <i class="fas fa-upload mr-1"></i> 开始上传
+      </button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 上传资源弹窗 -->
+
+<!-- Toast 提示 -->
+<div x-show="toastMsg" x-transition class="toast" :class="toastType" x-text="toastMsg"></div>
+
+<!-- 二次确认弹窗 -->
+<div x-show="confirmModal.show" class="modal-overlay" id="feature-confirm-modal">
+  <div class="modal-box" style="width:400px">
+    <div class="modal-header">
+      <span x-text="confirmModal.title"></span>
+      <button @click="confirmModal.show=false" class="text-gray-400 hover:text-gray-700"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <p class="text-gray-700" x-text="confirmModal.message"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-default" @click="confirmModal.show=false; confirmModal.onCancel && confirmModal.onCancel()">取消</button>
+      <button class="btn-danger" @click="confirmModal.onConfirm && confirmModal.onConfirm(); confirmModal.show=false">确认</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function app() {
+  return {
+    // ===== MOCK DATA =====
+    MOCK_DATA: {
+      users: [
+        { id: 1, username: 'super', password: '123456', role: 'super_admin', roleName: '超级管理员', realName: '张建国' },
+        { id: 2, username: 'county_admin', password: '123456', role: 'county_admin', roleName: '县级管理员', realName: '李文华' },
+        { id: 3, username: 'county_staff', password: '123456', role: 'county_staff', roleName: '县级业务人员', realName: '王小燕' },
+      ],
+      projects: [
+        { project_id: 1, project_name: '蓬溪县生猪产业数字看板', canvas_width: 1920, canvas_height: 1080, bg_color: '#0d1b2a', bg_image_url: null, cover_url: null, project_token: 'a3f9k2m8p1q7r5s6t4u2v9', status: '1', expire_time: '2026-12-31 23:59:59', del_flag: '0', create_by: 'super', create_time: '2026-01-10 10:00:00', update_time: '2026-03-08 16:42:33', remark: '', assignedRoles: [2, 3] },
+        { project_id: 2, project_name: '生猪存栏出栏趋势分析大屏', canvas_width: 1920, canvas_height: 1080, bg_color: '#061020', bg_image_url: null, cover_url: null, project_token: null, status: '0', expire_time: null, del_flag: '0', create_by: 'county_admin', create_time: '2026-02-15 09:30:00', update_time: '2026-03-05 11:20:15', remark: '', assignedRoles: [] },
+        { project_id: 3, project_name: '检验检疫与无害化处理看板', canvas_width: 1920, canvas_height: 1080, bg_color: '#0a1628', bg_image_url: null, cover_url: null, project_token: 'b7c2d4e6f8g0h1i3', status: '2', expire_time: '2026-02-28 23:59:59', del_flag: '0', create_by: 'county_admin', create_time: '2026-01-20 14:00:00', update_time: '2026-02-28 18:00:00', remark: '', assignedRoles: [3] },
+        { project_id: 4, project_name: '市场贸易价格监测大屏', canvas_width: 2560, canvas_height: 1440, bg_color: '#0d1b2a', bg_image_url: null, cover_url: null, project_token: null, status: '0', expire_time: null, del_flag: '0', create_by: 'super', create_time: '2026-03-01 08:00:00', update_time: '2026-03-09 14:55:22', remark: '', assignedRoles: [] },
+        { project_id: 5, project_name: '视频监控设备状态大屏', canvas_width: 1920, canvas_height: 1080, bg_color: '#111827', bg_image_url: null, cover_url: null, project_token: 'c5e7g9i1k3m5o7q9', status: '1', expire_time: null, del_flag: '0', create_by: 'super', create_time: '2026-02-20 10:15:00', update_time: '2026-03-07 09:33:44', remark: '', assignedRoles: [2, 3] },
+        { project_id: 6, project_name: '乡镇养殖企业分布全览', canvas_width: 3840, canvas_height: 2160, bg_color: '#0c1526', bg_image_url: null, cover_url: null, project_token: null, status: '0', expire_time: null, del_flag: '0', create_by: 'county_admin', create_time: '2026-03-05 16:00:00', update_time: '2026-03-10 10:20:18', remark: '', assignedRoles: [] },
+        { project_id: 7, project_name: '防疫免疫监测综合看板', canvas_width: 1920, canvas_height: 1080, bg_color: '#0a1628', bg_image_url: null, cover_url: null, project_token: 'd2f4h6j8l0n2p4r6', status: '1', expire_time: '2027-06-30 23:59:59', del_flag: '0', create_by: 'super', create_time: '2026-02-10 11:00:00', update_time: '2026-03-06 15:00:00', remark: '', assignedRoles: [2, 3] },
+        { project_id: 8, project_name: '生猪产业综合效益分析', canvas_width: 1920, canvas_height: 1080, bg_color: '#0d1b2a', bg_image_url: null, cover_url: null, project_token: null, status: '0', expire_time: null, del_flag: '0', create_by: 'county_admin', create_time: '2026-03-08 09:00:00', update_time: '2026-03-09 17:30:00', remark: '', assignedRoles: [] },
+      ],
+      datasources: {
+        1: [
+          { datasource_id: 101, project_id: 1, ds_name: '养殖总览数据', ds_type: 'api', api_url: '/admin/analysis/breeding/overview', api_method: 'GET', api_params: '{}', sql_content: null, refresh_interval: 300, del_flag: '0', create_time: '2026-01-10 10:30:00' },
+          { datasource_id: 102, project_id: 1, ds_name: '存栏出栏趋势', ds_type: 'api', api_url: '/admin/analysis/breeding/stock-trend', api_method: 'GET', api_params: '{}', sql_content: null, refresh_interval: 600, del_flag: '0', create_time: '2026-01-10 10:35:00' },
+          { datasource_id: 103, project_id: 1, ds_name: '乡镇养殖分布SQL', ds_type: 'sql', sql_content: 'SELECT t.town_name, COUNT(e.enterprise_id) as enterprise_count, SUM(e.current_stock) as total_stock FROM sys_town t LEFT JOIN enterprise_info e ON t.town_id = e.town_id GROUP BY t.town_id ORDER BY total_stock DESC', api_url: null, api_method: null, api_params: null, refresh_interval: 1800, del_flag: '0', create_time: '2026-01-15 14:00:00' },
+          { datasource_id: 104, project_id: 1, ds_name: '市场价格数据', ds_type: 'api', api_url: '/admin/analysis/market/today', api_method: 'GET', api_params: '{}', sql_content: null, refresh_interval: 60, del_flag: '0', create_time: '2026-02-01 09:00:00' },
+        ],
+        2: [],
+        3: [],
+        4: [],
+        5: [],
+        6: [],
+        7: [],
+        8: [],
+      },
+      resources: [
+        { resource_id: 1, file_name: 'pig-icon-1.png', file_url: '/uploads/icons/pig-icon-1.png', thumb_url: 'https://via.placeholder.com/160x120/e8f4ff/1677ff?text=🐷', file_size: 12450, file_type: 'png', category: 'icon', del_flag: '0', create_time: '2026-01-15 09:00:00' },
+        { resource_id: 2, file_name: 'enterprise-icon.svg', file_url: '/uploads/icons/enterprise-icon.svg', thumb_url: null, file_size: 3200, file_type: 'svg', category: 'icon', del_flag: '0', create_time: '2026-01-16 10:00:00' },
+        { resource_id: 3, file_name: 'stats-icon.png', file_url: '/uploads/icons/stats-icon.png', thumb_url: 'https://via.placeholder.com/160x120/f0fff4/52c41a?text=📊', file_size: 8900, file_type: 'png', category: 'icon', del_flag: '0', create_time: '2026-01-17 11:00:00' },
+        { resource_id: 4, file_name: 'decoration-bar-blue.png', file_url: '/uploads/decorations/deco-bar-blue.png', thumb_url: 'https://via.placeholder.com/160x120/001529/1890ff?text=══', file_size: 24500, file_type: 'png', category: 'decoration', del_flag: '0', create_time: '2026-01-20 14:00:00' },
+        { resource_id: 5, file_name: 'title-bar-tech.svg', file_url: '/uploads/decorations/title-bar-tech.svg', thumb_url: null, file_size: 5600, file_type: 'svg', category: 'decoration', del_flag: '0', create_time: '2026-01-21 09:00:00' },
+        { resource_id: 6, file_name: 'decoration-corner.gif', file_url: '/uploads/decorations/corner.gif', thumb_url: 'https://via.placeholder.com/160x120/0d1b2a/00d4ff?text=GIF', file_size: 180000, file_type: 'gif', category: 'decoration', del_flag: '0', create_time: '2026-01-22 15:00:00' },
+        { resource_id: 7, file_name: 'bg-tech-blue.jpg', file_url: '/uploads/backgrounds/bg-tech-blue.jpg', thumb_url: 'https://via.placeholder.com/160x120/0d1b2a/1677ff?text=背景', file_size: 1200000, file_type: 'jpg', category: 'background', del_flag: '0', create_time: '2026-01-25 10:00:00' },
+        { resource_id: 8, file_name: 'bg-circuit.webp', file_url: '/uploads/backgrounds/bg-circuit.webp', thumb_url: 'https://via.placeholder.com/160x120/061020/52c41a?text=科技', file_size: 800000, file_type: 'webp', category: 'background', del_flag: '0', create_time: '2026-02-01 09:00:00' },
+        { resource_id: 9, file_name: 'bg-pig-farm.jpg', file_url: '/uploads/backgrounds/bg-pig-farm.jpg', thumb_url: 'https://via.placeholder.com/160x120/1a3a1a/52c41a?text=养殖场', file_size: 2100000, file_type: 'jpg', category: 'background', del_flag: '0', create_time: '2026-02-05 11:00:00' },
+      ],
+      componentGroups: [
+        { category: 'chart', label: '图表', items: [
+          { type: 'chart_bar', name: '柱状图', icon: 'fas fa-chart-bar', defaultWidth: 400, defaultHeight: 300 },
+          { type: 'chart_line', name: '折线图', icon: 'fas fa-chart-line', defaultWidth: 400, defaultHeight: 300 },
+          { type: 'chart_pie', name: '饼图/环形图', icon: 'fas fa-chart-pie', defaultWidth: 300, defaultHeight: 300 },
+          { type: 'chart_scatter', name: '散点图', icon: 'fas fa-braille', defaultWidth: 400, defaultHeight: 300 },
+          { type: 'chart_gauge', name: '仪表盘', icon: 'fas fa-tachometer-alt', defaultWidth: 300, defaultHeight: 300 },
+          { type: 'chart_radar', name: '雷达图', icon: 'fas fa-bullseye', defaultWidth: 300, defaultHeight: 300 },
+          { type: 'chart_liquid', name: '水球图', icon: 'fas fa-tint', defaultWidth: 200, defaultHeight: 200 },
+        ]},
+        { category: 'table', label: '表格', items: [
+          { type: 'table_scroll', name: '滚动表格', icon: 'fas fa-table', defaultWidth: 500, defaultHeight: 300 },
+          { type: 'table_ranking', name: '排行榜', icon: 'fas fa-list-ol', defaultWidth: 400, defaultHeight: 300 },
+        ]},
+        { category: 'text', label: '文本', items: [
+          { type: 'text_static', name: '静态文本', icon: 'fas fa-font', defaultWidth: 200, defaultHeight: 60 },
+          { type: 'text_number', name: '数值翻牌器', icon: 'fas fa-sort-numeric-up', defaultWidth: 200, defaultHeight: 80 },
+          { type: 'text_scroll', name: '滚动文字', icon: 'fas fa-text-width', defaultWidth: 400, defaultHeight: 40 },
+          { type: 'text_clock', name: '实时时钟', icon: 'fas fa-clock', defaultWidth: 250, defaultHeight: 50 },
+        ]},
+        { category: 'media', label: '媒体', items: [
+          { type: 'media_image', name: '静态图片', icon: 'fas fa-image', defaultWidth: 300, defaultHeight: 200 },
+          { type: 'media_carousel', name: '轮播图', icon: 'fas fa-images', defaultWidth: 400, defaultHeight: 300 },
+          { type: 'media_video', name: '视频播放', icon: 'fas fa-video', defaultWidth: 480, defaultHeight: 270 },
+        ]},
+        { category: 'decor', label: '装饰', items: [
+          { type: 'decor_border', name: '边框装饰', icon: 'fas fa-border-style', defaultWidth: 400, defaultHeight: 300 },
+          { type: 'decor_title', name: '标题栏装饰', icon: 'fas fa-heading', defaultWidth: 300, defaultHeight: 60 },
+          { type: 'decor_divider', name: '分隔线', icon: 'fas fa-minus', defaultWidth: 400, defaultHeight: 20 },
+          { type: 'decor_line', name: '装饰线条', icon: 'fas fa-wave-square', defaultWidth: 300, defaultHeight: 10 },
+        ]},
+        { category: 'map', label: '地图', items: [
+          { type: 'map_region', name: '区域地图', icon: 'fas fa-map', defaultWidth: 600, defaultHeight: 500 },
+        ]},
+      ],
+      resourceCategories: [
+        { value: 'icon', label: '2D图标', icon: 'fas fa-icons' },
+        { value: 'decoration', label: '修饰条', icon: 'fas fa-magic' },
+        { value: 'background', label: '背景图', icon: 'fas fa-image' },
+      ],
+      systemRoles: [
+        { role_id: 1, role_name: '超级管理员', role_key: 'super_admin' },
+        { role_id: 2, role_name: '县级管理员', role_key: 'county_admin' },
+        { role_id: 3, role_name: '县级业务人员', role_key: 'county_staff' },
+        { role_id: 4, role_name: '乡镇管理员', role_key: 'town_admin' },
+        { role_id: 5, role_name: '乡镇业务人员', role_key: 'town_staff' },
+      ],
+    },
+
+    // ===== 状态变量 =====
+    currentRole: 'super_admin',
+    currentUser: {},
+    currentPage: 'screen-config',
+    searchQuery: '',
+    filteredProjects: [],
+    isLoading: true,
+    openMenuId: null,
+
+    // 编辑器
+    showEditor: false,
+    editingProject: { project_id: null, project_name: '', canvas_width: 1920, canvas_height: 1080, bg_color: '#0d1b2a', status: '0' },
+    editorLeftTab: 'components',
+    editorRightTab: 'basic',
+    canvasComponents: [],
+    selectedComponentId: null,
+    canvasScale: 0.5,
+    canvasScalePercent: 50,
+    showGrid: true,
+    lastSaveTime: '',
+    nextComponentId: 1000,
+    projectDatasources: [],
+
+    // 新建/编辑弹窗
+    showCreateModal: false,
+    createForm: { project_name: '', canvas_width: 1920, canvas_height: 1080, bg_color: '#0d1b2a' },
+    createErrors: {},
+
+    // 发布弹窗
+    showPublishModal: false,
+    publishForm: { expireType: 'forever', expire_time: '' },
+    publishingProject: null,
+
+    // 项目设置弹窗
+    showSettingsModal: false,
+    settingsTab: 'basic',
+    settingsProject: {},
+
+    // 数据源弹窗
+    showDatasourceModal: false,
+    datasourceForm: { ds_name: '', ds_type: 'sql', sql_content: '', api_url: '', api_method: 'GET', api_params: '', refresh_interval: 300 },
+    dsErrors: {},
+    dsTestResult: null,
+    dsTestLoading: false,
+
+    // 资源管理
+    activeCategory: 'icon',
+    resourceSearch: '',
+    filteredResources: [],
+    showUploadModal: false,
+    uploadForm: { category: 'icon' },
+    uploadFiles: [],
+    uploadDragging: false,
+
+    // 确认弹窗
+    confirmModal: { show: false, title: '', message: '', onConfirm: null, onCancel: null },
+
+    // Toast
+    toastMsg: '',
+    toastType: '',
+
+    // ===== 初始化 =====
+    init() {
+      this.onRoleChange();
+      setTimeout(() => {
+        this.isLoading = false;
+        this.filteredProjects = [...this.MOCK_DATA.projects];
+      }, 800);
+      this.filteredResources = this.MOCK_DATA.resources.filter(r => r.category === 'icon');
+      // 自动保存定时器
+      setInterval(() => {
+        if (this.showEditor && this.canvasComponents.length > 0) {
+          const now = new Date();
+          this.lastSaveTime = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
+        }
+      }, 120000);
+    },
+
+    onRoleChange() {
+      this.currentUser = this.MOCK_DATA.users.find(u => u.role === this.currentRole) || {};
+    },
+
+    logout() {
+      this.showToast('已退出登录，请重新登录', 'success');
+    },
+
+    // ===== 项目操作 =====
+    filterProjects() {
+      const q = this.searchQuery.trim().toLowerCase();
+      this.filteredProjects = q
+        ? this.MOCK_DATA.projects.filter(p => p.project_name.toLowerCase().includes(q))
+        : [...this.MOCK_DATA.projects];
+    },
+
+    statusLabel(status) {
+      return { '0': '草稿', '1': '已发布', '2': '已过期' }[status] || '未知';
+    },
+    statusTagClass(status) {
+      return { '0': 'tag-gray', '1': 'tag-green', '2': 'tag-orange' }[status] || 'tag-gray';
+    },
+
+    toggleMenu(id) {
+      this.openMenuId = this.openMenuId === id ? null : id;
+    },
+
+    openCreateModal() {
+      this.createForm = { project_name: '', canvas_width: 1920, canvas_height: 1080, bg_color: '#0d1b2a' };
+      this.createErrors = {};
+      this.editingProject = { project_id: null };
+      this.showCreateModal = true;
+      this.openMenuId = null;
+    },
+
+    applyPreset(val) {
+      if (!val) return;
+      const [w, h] = val.split('x').map(Number);
+      this.createForm.canvas_width = w;
+      this.createForm.canvas_height = h;
+    },
+
+    validateCreate() {
+      const errors = {};
+      if (!this.createForm.project_name.trim()) errors.project_name = '项目名称不能为空';
+      else if (this.createForm.project_name.length > 50) errors.project_name = '项目名称不能超过 50 个字符';
+      else if (this.MOCK_DATA.projects.find(p => p.project_name === this.createForm.project_name && p.project_id !== (this.editingProject?.project_id))) errors.project_name = '项目名称已存在';
+      if (!this.createForm.canvas_width || this.createForm.canvas_width < 800 || this.createForm.canvas_width > 7680) errors.canvas_width = '画布宽度必须在 800~7680 之间';
+      if (!this.createForm.canvas_height || this.createForm.canvas_height < 600 || this.createForm.canvas_height > 4320) errors.canvas_height = '画布高度必须在 600~4320 之间';
+      this.createErrors = errors;
+      return Object.keys(errors).length === 0;
+    },
+
+    submitCreate() {
+      if (!this.validateCreate()) return;
+      const newId = Math.max(...this.MOCK_DATA.projects.map(p => p.project_id)) + 1;
+      const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+      const newProj = { project_id: newId, ...this.createForm, cover_url: null, bg_image_url: null, project_token: null, status: '0', expire_time: null, del_flag: '0', create_by: this.currentUser.username, create_time: now, update_time: now, remark: '', assignedRoles: [] };
+      this.MOCK_DATA.projects.unshift(newProj);
+      this.MOCK_DATA.datasources[newId] = [];
+      this.filterProjects();
+      this.showCreateModal = false;
+      this.showToast('项目创建成功，正在进入编辑器...', 'success');
+      setTimeout(() => this.openEditor(newProj), 800);
+    },
+
+    openEditor(proj) {
+      this.editingProject = JSON.parse(JSON.stringify(proj));
+      this.projectDatasources = this.MOCK_DATA.datasources[proj.project_id] || [];
+      this.canvasComponents = this.getInitialComponents(proj.project_id);
+      this.selectedComponentId = null;
+      this.editorLeftTab = 'components';
+      this.editorRightTab = 'basic';
+      this.canvasScale = 0.5;
+      this.canvasScalePercent = 50;
+      this.showEditor = true;
+      this.openMenuId = null;
+      document.body.style.overflow = 'hidden';
+    },
+
+    getInitialComponents(projectId) {
+      if (projectId === 1) {
+        return [
+          { component_id: 1, project_id: 1, component_type: 'decor_title', component_name: '蓬溪县生猪产业数字看板', pos_x: 0, pos_y: 0, width: 1920, height: 80, rotation: 0, opacity: 100, z_index: 0, is_locked: '0', is_visible: '0', datasource_id: null, refresh_interval: null },
+          { component_id: 2, project_id: 1, component_type: 'text_number', component_name: '存栏总量', pos_x: 40, pos_y: 100, width: 200, height: 100, rotation: 0, opacity: 100, z_index: 1, is_locked: '0', is_visible: '0', datasource_id: 101, refresh_interval: null },
+          { component_id: 3, project_id: 1, component_type: 'text_number', component_name: '出栏总量', pos_x: 260, pos_y: 100, width: 200, height: 100, rotation: 0, opacity: 100, z_index: 1, is_locked: '0', is_visible: '0', datasource_id: 101, refresh_interval: null },
+          { component_id: 4, project_id: 1, component_type: 'chart_bar', component_name: '存栏出栏趋势', pos_x: 40, pos_y: 220, width: 600, height: 360, rotation: 0, opacity: 100, z_index: 1, is_locked: '0', is_visible: '0', datasource_id: 102, refresh_interval: null },
+          { component_id: 5, project_id: 1, component_type: 'map_region', component_name: '蓬溪县养殖地图', pos_x: 660, pos_y: 100, width: 600, height: 480, rotation: 0, opacity: 100, z_index: 1, is_locked: '0', is_visible: '0', datasource_id: 103, refresh_interval: null },
+          { component_id: 6, project_id: 1, component_type: 'chart_pie', component_name: '企业类型分布', pos_x: 1280, pos_y: 100, width: 300, height: 300, rotation: 0, opacity: 100, z_index: 1, is_locked: '0', is_visible: '0', datasource_id: 101, refresh_interval: null },
+          { component_id: 7, project_id: 1, component_type: 'chart_line', component_name: '市场价格走势', pos_x: 1280, pos_y: 420, width: 600, height: 300, rotation: 0, opacity: 100, z_index: 1, is_locked: '0', is_visible: '0', datasource_id: 104, refresh_interval: null },
+          { component_id: 8, project_id: 1, component_type: 'table_ranking', component_name: '乡镇存栏排行', pos_x: 40, pos_y: 600, width: 600, height: 300, rotation: 0, opacity: 100, z_index: 1, is_locked: '0', is_visible: '0', datasource_id: 103, refresh_interval: null },
+        ];
+      }
+      return [];
+    },
+
+    exitEditor() {
+      this.showConfirm('提示', '有未保存的修改，是否保存？', () => {
+        this.saveCanvas();
+        this.showEditor = false;
+        document.body.style.overflow = '';
+      }, () => {
+        this.showEditor = false;
+        document.body.style.overflow = '';
+      });
+    },
+
+    previewProject(proj) {
+      this.openMenuId = null;
+      this.showToast('正在新窗口打开预览...', 'success');
+    },
+
+    openPublishModal(proj) {
+      this.publishingProject = proj;
+      this.publishForm = { expireType: 'forever', expire_time: '' };
+      this.showPublishModal = true;
+      this.openMenuId = null;
+    },
+
+    confirmPublish() {
+      const proj = this.MOCK_DATA.projects.find(p => p.project_id === this.publishingProject.project_id);
+      if (proj) {
+        proj.status = '1';
+        proj.project_token = proj.project_token || Math.random().toString(36).substring(2, 34);
+        if (this.publishForm.expireType === 'custom') proj.expire_time = this.publishForm.expire_time;
+        else proj.expire_time = null;
+        proj.update_time = new Date().toISOString().replace('T', ' ').substring(0, 19);
+      }
+      this.filterProjects();
+      this.showPublishModal = false;
+      this.showToast('发布成功！看板链接已生成', 'success');
+    },
+
+    unpublishProject(proj) {
+      this.openMenuId = null;
+      this.showConfirm('取消发布', `取消发布后，已分发的看板链接将立即失效，确认操作？`, () => {
+        const p = this.MOCK_DATA.projects.find(x => x.project_id === proj.project_id);
+        if (p) { p.status = '0'; p.update_time = new Date().toISOString().replace('T', ' ').substring(0, 19); }
+        this.filterProjects();
+        this.showToast('已取消发布', 'success');
+      });
+    },
+
+    cloneProject(proj) {
+      this.openMenuId = null;
+      this.showConfirm('克隆项目', `确认克隆项目「${proj.project_name}」？`, () => {
+        const newId = Math.max(...this.MOCK_DATA.projects.map(p => p.project_id)) + 1;
+        const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+        const clone = { ...JSON.parse(JSON.stringify(proj)), project_id: newId, project_name: proj.project_name + '_副本', status: '0', project_token: null, expire_time: null, create_time: now, update_time: now, assignedRoles: [] };
+        this.MOCK_DATA.projects.unshift(clone);
+        this.MOCK_DATA.datasources[newId] = [];
+        this.filterProjects();
+        this.showToast(`克隆成功，新项目「${clone.project_name}」已添加至列表首位`, 'success');
+      });
+    },
+
+    openSettingsModal(proj) {
+      this.settingsProject = JSON.parse(JSON.stringify(proj));
+      this.settingsProject.assignedRoles = this.settingsProject.assignedRoles || [];
+      this.settingsTab = 'basic';
+      this.showSettingsModal = true;
+      this.openMenuId = null;
+    },
+
+    saveSettings() {
+      const proj = this.MOCK_DATA.projects.find(p => p.project_id === this.settingsProject.project_id);
+      if (proj) {
+        Object.assign(proj, this.settingsProject);
+        proj.update_time = new Date().toISOString().replace('T', ' ').substring(0, 19);
+      }
+      this.filterProjects();
+      this.showSettingsModal = false;
+      this.showToast('设置保存成功', 'success');
+    },
+
+    deleteProject(proj) {
+      this.openMenuId = null;
+      this.showConfirm('删除项目', `确认删除项目「${proj.project_name}」？删除后不可恢复。`, () => {
+        const idx = this.MOCK_DATA.projects.findIndex(p => p.project_id === proj.project_id);
+        if (idx !== -1) this.MOCK_DATA.projects.splice(idx, 1);
+        this.filterProjects();
+        this.showToast(`已删除项目「${proj.project_name}」`, 'success');
+      });
+    },
+
+    copyLink() {
+      this.showToast('链接已复制到剪贴板', 'success');
+    },
+
+    regenerateToken() {
+      this.showConfirm('重新生成链接', '重新生成后旧链接立即失效，确认操作？', () => {
+        this.settingsProject.project_token = Math.random().toString(36).substring(2, 34);
+        this.showToast('链接已重新生成', 'success');
+      });
+    },
+
+    // ===== 画布编辑器操作 =====
+    selectedComponent() {
+      return this.canvasComponents.find(c => c.component_id === this.selectedComponentId) || null;
+    },
+
+    addComponentToCenter(compDef) {
+      const newComp = {
+        component_id: this.nextComponentId++,
+        project_id: this.editingProject.project_id,
+        component_type: compDef.type,
+        component_name: compDef.name,
+        pos_x: Math.floor((this.editingProject.canvas_width - compDef.defaultWidth) / 2),
+        pos_y: Math.floor((this.editingProject.canvas_height - compDef.defaultHeight) / 2),
+        width: compDef.defaultWidth,
+        height: compDef.defaultHeight,
+        rotation: 0, opacity: 100, z_index: this.canvasComponents.length,
+        is_locked: '0', is_visible: '0', datasource_id: null, refresh_interval: null,
+      };
+      this.canvasComponents.push(newComp);
+      this.selectedComponentId = newComp.component_id;
+      this.showToast(`已添加「${compDef.name}」`, 'success');
+    },
+
+    dropComponent(compDef) {
+      this.addComponentToCenter(compDef);
+    },
+
+    deleteSelectedComponent() {
+      if (!this.selectedComponentId) return;
+      const idx = this.canvasComponents.findIndex(c => c.component_id === this.selectedComponentId);
+      if (idx !== -1) { this.canvasComponents.splice(idx, 1); this.selectedComponentId = null; }
+    },
+
+    duplicateComponent(comp) {
+      const clone = { ...JSON.parse(JSON.stringify(comp)), component_id: this.nextComponentId++, pos_x: comp.pos_x + 20, pos_y: comp.pos_y + 20 };
+      this.canvasComponents.push(clone);
+      this.selectedComponentId = clone.component_id;
+    },
+
+    toggleComponentVisible(comp) { comp.is_visible = comp.is_visible === '0' ? '1' : '0'; },
+    toggleComponentLock(comp) { comp.is_locked = comp.is_locked === '0' ? '1' : '0'; },
+
+    layerAction(action) {
+      const comp = this.selectedComponent();
+      if (!comp) return;
+      const maxZ = Math.max(...this.canvasComponents.map(c => c.z_index));
+      const minZ = Math.min(...this.canvasComponents.map(c => c.z_index));
+      if (action === 'top') comp.z_index = maxZ + 1;
+      else if (action === 'bottom') comp.z_index = minZ - 1;
+      else if (action === 'up') comp.z_index += 1;
+      else if (action === 'down') comp.z_index -= 1;
+    },
+
+    startDrag(e, comp) {
+      if (comp.is_locked === '1') return;
+      const startX = e.clientX, startY = e.clientY;
+      const origX = comp.pos_x, origY = comp.pos_y;
+      const move = (ev) => {
+        comp.pos_x = Math.max(0, origX + Math.round((ev.clientX - startX) / this.canvasScale));
+        comp.pos_y = Math.max(0, origY + Math.round((ev.clientY - startY) / this.canvasScale));
+      };
+      const up = () => { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); };
+      document.addEventListener('mousemove', move);
+      document.addEventListener('mouseup', up);
+    },
+
+    saveCanvas() {
+      const now = new Date();
+      this.lastSaveTime = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
+      this.showToast('保存成功', 'success');
+    },
+
+    undoAction() { this.showToast('已撤销上一步操作', ''); },
+    redoAction() { this.showToast('已重做上一步操作', ''); },
+
+    getComponentIcon(type) {
+      const map = { chart_bar: 'fas fa-chart-bar', chart_line: 'fas fa-chart-line', chart_pie: 'fas fa-chart-pie', chart_scatter: 'fas fa-braille', chart_gauge: 'fas fa-tachometer-alt', chart_radar: 'fas fa-bullseye', chart_liquid: 'fas fa-tint', table_scroll: 'fas fa-table', table_ranking: 'fas fa-list-ol', text_static: 'fas fa-font', text_number: 'fas fa-sort-numeric-up', text_scroll: 'fas fa-text-width', text_clock: 'fas fa-clock', media_image: 'fas fa-image', media_carousel: 'fas fa-images', media_video: 'fas fa-video', decor_border: 'fas fa-border-style', decor_title: 'fas fa-heading', decor_divider: 'fas fa-minus', decor_line: 'fas fa-wave-square', map_region: 'fas fa-map' };
+      return map[type] || 'fas fa-cube';
+    },
+
+    getComponentStyle(comp) {
+      const colorMap = { chart: 'background:rgba(22,119,255,0.15); border:1px solid rgba(22,119,255,0.4); color:#4fc3f7;', table: 'background:rgba(82,196,26,0.12); border:1px solid rgba(82,196,26,0.35); color:#81c784;', text: 'background:rgba(250,173,20,0.12); border:1px solid rgba(250,173,20,0.35); color:#ffca28;', media: 'background:rgba(114,46,209,0.15); border:1px solid rgba(114,46,209,0.4); color:#ce93d8;', decor: 'background:rgba(0,212,255,0.1); border:1px solid rgba(0,212,255,0.3); color:#00d4ff;', map: 'background:rgba(83,189,154,0.15); border:1px solid rgba(83,189,154,0.4); color:#53bd9a;' };
+      const prefix = comp.component_type.split('_')[0];
+      return colorMap[prefix] || 'background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.15); color:#fff;';
+    },
+
+    // ===== 数据源操作 =====
+    openDatasourceModal(ds) {
+      this.dsTestResult = null;
+      this.dsErrors = {};
+      if (ds) {
+        this.datasourceForm = JSON.parse(JSON.stringify(ds));
+      } else {
+        this.datasourceForm = { datasource_id: null, ds_name: '', ds_type: 'sql', sql_content: '', api_url: '', api_method: 'GET', api_params: '{}', refresh_interval: 300 };
+      }
+      this.showDatasourceModal = true;
+    },
+
+    validateDatasource() {
+      const e = {};
+      if (!this.datasourceForm.ds_name.trim()) e.ds_name = '数据源名称不能为空';
+      if (this.datasourceForm.ds_type === 'sql') {
+        const sql = this.datasourceForm.sql_content.trim().toUpperCase();
+        if (!sql) e.sql_content = 'SQL语句不能为空';
+        else if (!sql.startsWith('SELECT')) e.sql_content = 'SQL语句必须以 SELECT 开头';
+        else if (/INSERT|UPDATE|DELETE|DROP|ALTER|CREATE|TRUNCATE|EXEC|EXECUTE|GRANT|REVOKE/.test(sql)) e.sql_content = '禁止使用数据修改或管理型SQL关键字';
+        else if (this.datasourceForm.sql_content.includes(';')) e.sql_content = 'SQL语句中不允许包含分号';
+      }
+      if (this.datasourceForm.ds_type === 'api') {
+        if (!this.datasourceForm.api_url.trim()) e.api_url = '接口地址不能为空';
+        else if (!this.datasourceForm.api_url.startsWith('/')) e.api_url = '接口地址必须以 / 开头';
+      }
+      if (!this.datasourceForm.refresh_interval || this.datasourceForm.refresh_interval < 5 || this.datasourceForm.refresh_interval > 86400) e.refresh_interval = '刷新频率必须在 5~86400 秒之间';
+      this.dsErrors = e;
+      return Object.keys(e).length === 0;
+    },
+
+    testDatasourceForm() {
+      if (!this.validateDatasource()) return;
+      this.dsTestLoading = true;
+      this.dsTestResult = null;
+      setTimeout(() => {
+        this.dsTestLoading = false;
+        this.dsTestResult = {
+          success: true,
+          message: '查询成功，耗时 87ms，共返回 12 行',
+          columns: ['乡镇', '企业数', '存栏量', '出栏量'],
+          rows: [
+            { '乡镇': '蓬溪镇', '企业数': 28, '存栏量': 45600, '出栏量': 12300 },
+            { '乡镇': '明月镇', '企业数': 22, '存栏量': 38200, '出栏量': 9800 },
+            { '乡镇': '赤城镇', '企业数': 18, '存栏量': 31500, '出栏量': 8500 },
+            { '乡镇': '大石镇', '企业数': 15, '存栏量': 28700, '出栏量': 7200 },
+            { '乡镇': '天福镇', '企业数': 12, '存栏量': 22400, '出栏量': 5600 },
+          ],
+        };
+      }, 1200);
+    },
+
+    testDatasource(ds) {
+      this.openDatasourceModal(ds);
+      setTimeout(() => this.testDatasourceForm(), 300);
+    },
+
+    saveDatasource() {
+      if (!this.validateDatasource()) return;
+      if (this.datasourceForm.datasource_id) {
+        const idx = this.projectDatasources.findIndex(d => d.datasource_id === this.datasourceForm.datasource_id);
+        if (idx !== -1) this.projectDatasources.splice(idx, 1, { ...this.datasourceForm });
+      } else {
+        const newId = Date.now();
+        this.projectDatasources.push({ ...this.datasourceForm, datasource_id: newId, project_id: this.editingProject.project_id, del_flag: '0', create_time: new Date().toISOString().replace('T', ' ').substring(0, 19) });
+        this.MOCK_DATA.datasources[this.editingProject.project_id] = this.projectDatasources;
+      }
+      this.showDatasourceModal = false;
+      this.showToast('数据源保存成功', 'success');
+    },
+
+    deleteDatasource(ds) {
+      const usedBy = this.canvasComponents.filter(c => c.datasource_id === ds.datasource_id).length;
+      const msg = usedBy > 0 ? `该数据源正在被 ${usedBy} 个组件使用，删除后对应组件将失去数据绑定，确认删除？` : `确认删除数据源「${ds.ds_name}」？`;
+      this.showConfirm('删除数据源', msg, () => {
+        const idx = this.projectDatasources.findIndex(d => d.datasource_id === ds.datasource_id);
+        if (idx !== -1) this.projectDatasources.splice(idx, 1);
+        this.showToast('已删除数据源', 'success');
+      });
+    },
+
+    // ===== 资源管理 =====
+    filterResources() {
+      const q = this.resourceSearch.trim().toLowerCase();
+      this.filteredResources = this.MOCK_DATA.resources.filter(r => r.category === this.activeCategory && r.del_flag === '0' && (!q || r.file_name.toLowerCase().includes(q)));
+    },
+
+    openUploadModal() {
+      this.uploadForm = { category: this.activeCategory };
+      this.uploadFiles = [];
+      this.showUploadModal = true;
+    },
+
+    handleFileSelect(e) {
+      const files = Array.from(e.target.files).slice(0, 20);
+      this.uploadFiles = files.map(f => ({ name: f.name, size: f.size, file: f, progress: 0, error: null }));
+    },
+
+    handleFileDrop(e) {
+      this.uploadDragging = false;
+      const files = Array.from(e.dataTransfer.files).slice(0, 20);
+      this.uploadFiles = files.map(f => ({ name: f.name, size: f.size, file: f, progress: 0, error: null }));
+    },
+
+    removeUploadFile(idx) { this.uploadFiles.splice(idx, 1); },
+
+    startUpload() {
+      if (this.uploadFiles.length === 0) return;
+      this.uploadFiles.forEach((f, idx) => {
+        let progress = 0;
+        const timer = setInterval(() => {
+          progress += Math.random() * 30 + 10;
+          if (progress >= 100) {
+            f.progress = 100;
+            clearInterval(timer);
+            if (idx === this.uploadFiles.length - 1) {
+              setTimeout(() => {
+                this.uploadFiles.forEach(file => {
+                  this.MOCK_DATA.resources.push({ resource_id: Date.now() + Math.random(), file_name: file.name, file_url: '/uploads/' + file.name, thumb_url: null, file_size: file.size, file_type: file.name.split('.').pop().toLowerCase(), category: this.uploadForm.category, del_flag: '0', create_time: new Date().toISOString().replace('T', ' ').substring(0, 10) });
+                });
+                this.filterResources();
+                this.showUploadModal = false;
+                this.showToast(`上传完成，共 ${this.uploadFiles.length} 个文件`, 'success');
+              }, 500);
+            }
+          } else { f.progress = Math.min(progress, 99); }
+        }, 150);
+      });
+    },
+
+    previewResource(res) { this.showToast('预览：' + res.file_name, ''); },
+
+    copyResourceUrl(res) { this.showToast('已复制路径：' + res.file_url, 'success'); },
+
+    deleteResource(res) {
+      this.showConfirm('删除资源', `确认删除资源「${res.file_name}」？`, () => {
+        res.del_flag = '2';
+        this.filterResources();
+        this.showToast('已删除资源', 'success');
+      });
+    },
+
+    formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+    },
+
+    // ===== 工具函数 =====
+    showToast(msg, type = '') {
+      this.toastMsg = msg;
+      this.toastType = type;
+      setTimeout(() => { this.toastMsg = ''; this.toastType = ''; }, 2500);
+    },
+
+    showConfirm(title, message, onConfirm, onCancel = null) {
+      this.confirmModal = { show: true, title, message, onConfirm, onCancel };
+    },
+  };
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,344 @@
+<!--
+  功能名称：养殖信息管理 - 模块入口
+  制作日期：2026-03-09
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>养殖信息管理 - 原型图导航</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f2f5; min-height: 100vh; }
+    .card { background: white; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); transition: all 0.2s; border: 1px solid #f0f0f0; }
+    .card:hover { box-shadow: 0 4px 12px rgba(22,119,255,0.15); border-color: #91caff; transform: translateY(-2px); }
+    .tag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; }
+    .tag-blue { background: #e6f4ff; color: #1677ff; }
+    .tag-green { background: #f6ffed; color: #52c41a; }
+    .tag-orange { background: #fff7e6; color: #fa8c16; }
+  </style>
+</head>
+<body>
+  <div class="max-w-6xl mx-auto px-6 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex items-center gap-3 mb-2">
+        <a href="index.html" class="text-blue-500 hover:text-blue-600 text-sm"><i class="fas fa-home"></i> 原型图首页</a>
+        <span class="text-gray-300">/</span>
+        <span class="text-gray-500 text-sm">企业端</span>
+        <span class="text-gray-300">/</span>
+        <span class="text-gray-500 text-sm">企业信息管理</span>
+        <span class="text-gray-300">/</span>
+        <span class="text-gray-700 text-sm font-medium">养殖信息管理</span>
+      </div>
+      <h1 class="text-2xl font-bold text-gray-800">养殖信息管理 - 原型图导航</h1>
+      <p class="text-gray-500 text-sm mt-2">共 18 个模块 · 全部采用4级审批流（企业→乡镇畜牧兽医站→乡镇政府→县级终审）· 支持6种角色切换</p>
+    </div>
+
+    <!-- Info Banner -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+      <div class="flex items-start gap-3">
+        <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
+        <div class="text-sm text-blue-700">
+          <div class="font-semibold mb-1">共同特性说明</div>
+          <ul class="space-y-1 text-blue-600">
+            <li>• <strong>角色切换</strong>：页面右上角可切换6种角色（企业管理员/填报员、乡镇畜牧兽医站、乡镇政府业务人员、县级管理员/业务人员）</li>
+            <li>• <strong>审批流</strong>：企业提交→乡镇畜牧兽医站核实→乡镇政府审核→县级终审入库，退回行红色高亮显示</li>
+            <li>• <strong>权限控制</strong>：企业角色仅看本企业数据；县级管理员可直接录入/编辑/删除（留痕）</li>
+            <li>• <strong>导出</strong>：支持导出Excel（模拟）</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Module Grid -->
+    <div class="grid grid-cols-3 gap-4">
+
+      <!-- 1. 养殖信息 -->
+      <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-养殖信息.html" class="card p-5 block no-underline">
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-500">
+            <i class="fas fa-chart-bar"></i>
+          </div>
+          <span class="tag tag-blue">基础数据</span>
+        </div>
+        <h3 class="font-semibold text-gray-800 mb-1">养殖信息管理</h3>
+        <p class="text-xs text-gray-400 mb-3">圈舍维度养殖统计，包含存栏数量、各类猪只数量、平均体重</p>
+        <div class="flex flex-wrap gap-1">
+          <span class="tag tag-green">存栏统计</span>
+          <span class="tag tag-orange">照片附件</span>
+        </div>
+      </a>
+
+      <!-- 2. 生产记录 -->
+      <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-生产记录.html" class="card p-5 block no-underline">
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center text-green-500">
+            <i class="fas fa-baby"></i>
+          </div>
+          <span class="tag tag-blue">生产管理</span>
+        </div>
+        <h3 class="font-semibold text-gray-800 mb-1">生产记录管理</h3>
+        <p class="text-xs text-gray-400 mb-3">记录仔猪出生数据，包含公母出生数、死胎数，自动计算产仔总数</p>
+        <div class="flex flex-wrap gap-1">
+          <span class="tag tag-green">产仔总数自动计算</span>
+        </div>
+      </a>
+
+      <!-- 3. 繁育信息 -->
+      <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-繁育信息.html" class="card p-5 block no-underline">
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center text-purple-500">
+            <i class="fas fa-dna"></i>
+          </div>
+          <span class="tag tag-blue">繁殖管理</span>
+        </div>
+        <h3 class="font-semibold text-gray-800 mb-1">繁育信息管理</h3>
+        <p class="text-xs text-gray-400 mb-3">母猪配种、分娩、断奶全流程，预计分娩日期自动计算（配种日期+114天）</p>
+        <div class="flex flex-wrap gap-1">
+          <span class="tag tag-green">预计分娩自动计算</span>
+          <span class="tag tag-orange">产仔数校验</span>
+        </div>
+      </a>
+
+      <!-- 4. 猪只入栏 -->
+      <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-猪只入栏信息.html" class="card p-5 block no-underline">
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-10 h-10 rounded-lg bg-cyan-50 flex items-center justify-center text-cyan-500">
+            <i class="fas fa-arrow-right-to-bracket"></i>
+          </div>
+          <span class="tag tag-blue">进场管理</span>
+        </div>
+        <h3 class="font-semibold text-gray-800 mb-1">猪只入栏信息管理</h3>
+        <p class="text-xs text-gray-400 mb-3">猪只进场记录，支持自繁/外购/赠与等来源，外购时供应商信息必填</p>
+        <div class="flex flex-wrap gap-1">
+          <span class="tag tag-orange">外购供应商必填</span>
+        </div>
+      </a>
+
+      <!-- 5. 猪只转栏 -->
+      <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-猪只转栏信息.html" class="card p-5 block no-underline">
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center text-green-500">
+            <i class="fas fa-shuffle"></i>
+          </div>
+          <span class="tag tag-blue">转群管理</span>
+        </div>
+        <h3 class="font-semibold text-gray-800 mb-1">猪只转栏信息管理</h3>
+        <p class="text-xs text-gray-400 mb-3">圈舍间猪只转移，源圈舍存栏量自动回显，目标圈舍即时校验不重复，转栏数量≤存栏上限</p>
+        <div class="flex flex-wrap gap-1">
+          <span class="tag tag-orange">存栏量上限校验</span>
+          <span class="tag tag-orange">同圈舍即时校验</span>
+        </div>
+      </a>
+
+      <!-- 6. 猪只出栏 -->
+      <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-猪只出栏信息.html" class="card p-5 block no-underline">
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center text-orange-500">
+            <i class="fas fa-arrow-right-from-bracket"></i>
+          </div>
+          <span class="tag tag-blue">出场管理</span>
+        </div>
+        <h3 class="font-semibold text-gray-800 mb-1">猪只出栏信息管理</h3>
+        <p class="text-xs text-gray-400 mb-3">出栏销售/转群记录，出栏数量不得超过圈舍当前存栏量</p>
+        <div class="flex flex-wrap gap-1">
+          <span class="tag tag-orange">存栏量上限校验</span>
+        </div>
+      </a>
+
+      <!-- 6. 猪只断奶 -->
+      <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-猪只断奶信息.html" class="card p-5 block no-underline">
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-10 h-10 rounded-lg bg-pink-50 flex items-center justify-center text-pink-500">
+            <i class="fas fa-heart"></i>
+          </div>
+          <span class="tag tag-blue">繁殖管理</span>
+        </div>
+        <h3 class="font-semibold text-gray-800 mb-1">猪只断奶信息管理</h3>
+        <p class="text-xs text-gray-400 mb-3">仔猪断奶记录，断奶日龄自动计算，异常日龄（&lt;21或&gt;28天）备注必填</p>
+        <div class="flex flex-wrap gap-1">
+          <span class="tag tag-green">日龄自动计算</span>
+          <span class="tag tag-orange">异常日龄警示</span>
+        </div>
+      </a>
+
+      <!-- 7. 兽药购进 -->
+      <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-兽药购进记录.html" class="card p-5 block no-underline">
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center text-red-500">
+            <i class="fas fa-pills"></i>
+          </div>
+          <span class="tag tag-blue">兽药管理</span>
+        </div>
+        <h3 class="font-semibold text-gray-800 mb-1">兽药购进记录填报</h3>
+        <p class="text-xs text-gray-400 mb-3">兽药采购记录，支持化药/中药/生物制品分类，金额自动计算</p>
+        <div class="flex flex-wrap gap-1">
+          <span class="tag tag-green">金额自动计算</span>
+        </div>
+      </a>
+
+      <!-- 8. 兽药使用 -->
+      <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-兽药使用记录.html" class="card p-5 block no-underline">
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center text-red-400">
+            <i class="fas fa-syringe"></i>
+          </div>
+          <span class="tag tag-blue">兽药管理</span>
+        </div>
+        <h3 class="font-semibold text-gray-800 mb-1">兽药使用记录填报</h3>
+        <p class="text-xs text-gray-400 mb-3">圈舍用药记录，含停药日期、用药目的，字段含ⓘ使用提示</p>
+        <div class="flex flex-wrap gap-1">
+          <span class="tag tag-orange">停药期提示</span>
+        </div>
+      </a>
+
+      <!-- 9. 疾病诊疗 -->
+      <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-畜禽疾病诊疗记录.html" class="card p-5 block no-underline">
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-10 h-10 rounded-lg bg-yellow-50 flex items-center justify-center text-yellow-500">
+            <i class="fas fa-stethoscope"></i>
+          </div>
+          <span class="tag tag-blue">疫病管理</span>
+        </div>
+        <h3 class="font-semibold text-gray-800 mb-1">畜禽疾病诊疗记录管理</h3>
+        <p class="text-xs text-gray-400 mb-3">疾病发病、诊断、治疗全流程记录，含死亡数量和诊疗措施</p>
+        <div class="flex flex-wrap gap-1">
+          <span class="tag tag-orange">死亡量≤发病量</span>
+        </div>
+      </a>
+
+      <!-- 10. 免疫记录 -->
+      <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-畜禽免疫记录.html" class="card p-5 block no-underline">
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-400">
+            <i class="fas fa-shield-halved"></i>
+          </div>
+          <span class="tag tag-blue">防疫管理</span>
+        </div>
+        <h3 class="font-semibold text-gray-800 mb-1">畜禽免疫记录管理</h3>
+        <p class="text-xs text-gray-400 mb-3">疫苗接种记录，含批准文号、免疫剂量、下次免疫日期</p>
+        <div class="flex flex-wrap gap-1">
+          <span class="tag tag-green">多种免疫方式</span>
+        </div>
+      </a>
+
+      <!-- 11. 防疫监测 -->
+      <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-防疫监测记录.html" class="card p-5 block no-underline">
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-500">
+            <i class="fas fa-microscope"></i>
+          </div>
+          <span class="tag tag-blue">防疫管理</span>
+        </div>
+        <h3 class="font-semibold text-gray-800 mb-1">防疫监测记录填报</h3>
+        <p class="text-xs text-gray-400 mb-3">抗体检测、病原监测记录，阳性率自动计算，含检测结论</p>
+        <div class="flex flex-wrap gap-1">
+          <span class="tag tag-green">阳性率自动计算</span>
+        </div>
+      </a>
+
+      <!-- 12. 消毒记录 -->
+      <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-消毒记录.html" class="card p-5 block no-underline">
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center text-teal-500">
+            <i class="fas fa-spray-can-sparkles"></i>
+          </div>
+          <span class="tag tag-blue">环境卫生</span>
+        </div>
+        <h3 class="font-semibold text-gray-800 mb-1">消毒记录管理</h3>
+        <p class="text-xs text-gray-400 mb-3">场所消毒记录，含消毒方式、药品、浓度、消毒面积</p>
+        <div class="flex flex-wrap gap-1">
+          <span class="tag tag-green">多种消毒方式</span>
+        </div>
+      </a>
+
+      <!-- 13. 病死处理 -->
+      <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-病死畜禽无害化处理记录.html" class="card p-5 block no-underline">
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center text-gray-500">
+            <i class="fas fa-recycle"></i>
+          </div>
+          <span class="tag tag-blue">无害化处理</span>
+        </div>
+        <h3 class="font-semibold text-gray-800 mb-1">病死畜禽无害化处理记录</h3>
+        <p class="text-xs text-gray-400 mb-3">病死猪无害化处理记录，含处理方式、证明编号，疾病死亡需填疾病名称</p>
+        <div class="flex flex-wrap gap-1">
+          <span class="tag tag-orange">动态疾病字段</span>
+          <span class="tag tag-orange">数量联动校验</span>
+        </div>
+      </a>
+
+      <!-- 14. 粪污处理 -->
+      <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-粪便及污物无害化处理记录.html" class="card p-5 block no-underline">
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-10 h-10 rounded-lg bg-lime-50 flex items-center justify-center text-lime-600">
+            <i class="fas fa-leaf"></i>
+          </div>
+          <span class="tag tag-blue">环保管理</span>
+        </div>
+        <h3 class="font-semibold text-gray-800 mb-1">粪便及污物无害化处理记录</h3>
+        <p class="text-xs text-gray-400 mb-3">粪污处理记录，含沼气/堆肥/还田等处理方式，环保达标情况</p>
+        <div class="flex flex-wrap gap-1">
+          <span class="tag tag-green">环保达标跟踪</span>
+        </div>
+      </a>
+
+      <!-- 15. 配合饲料使用 -->
+      <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-配合饲料使用记录.html" class="card p-5 block no-underline">
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center text-amber-500">
+            <i class="fas fa-wheat-awn"></i>
+          </div>
+          <span class="tag tag-blue">饲料管理</span>
+        </div>
+        <h3 class="font-semibold text-gray-800 mb-1">配合饲料使用记录填报</h3>
+        <p class="text-xs text-gray-400 mb-3">配合饲料圈舍使用记录，批准文号按产品类型动态显示/必填</p>
+        <div class="flex flex-wrap gap-1">
+          <span class="tag tag-orange">批准文号动态必填</span>
+        </div>
+      </a>
+
+      <!-- 16. 饲料购进 -->
+      <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-饲料和饲料添加剂购进记录.html" class="card p-5 block no-underline">
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600">
+            <i class="fas fa-bags-shopping"></i>
+          </div>
+          <span class="tag tag-blue">饲料管理</span>
+        </div>
+        <h3 class="font-semibold text-gray-800 mb-1">饲料和饲料添加剂购进记录</h3>
+        <p class="text-xs text-gray-400 mb-3">饲料采购记录，批准文号动态显示，购进金额自动计算</p>
+        <div class="flex flex-wrap gap-1">
+          <span class="tag tag-green">金额自动计算</span>
+          <span class="tag tag-orange">批准文号动态必填</span>
+        </div>
+      </a>
+
+      <!-- 17. 畜禽产品销售 -->
+      <a href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-畜禽及其产品销售记录.html" class="card p-5 block no-underline">
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-500">
+            <i class="fas fa-store"></i>
+          </div>
+          <span class="tag tag-blue">销售管理</span>
+        </div>
+        <h3 class="font-semibold text-gray-800 mb-1">畜禽及其产品销售记录</h3>
+        <p class="text-xs text-gray-400 mb-3">活猪/猪肉/种猪等销售记录，含检疫证明，销售金额自动计算</p>
+        <div class="flex flex-wrap gap-1">
+          <span class="tag tag-green">金额自动计算</span>
+          <span class="tag tag-blue">检疫证明</span>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="mt-8 text-center text-xs text-gray-400">
+      2024年蓬溪县生猪数字化管理平台 · 企业端 · 养殖信息管理模块 · 共18个功能页面 · 制作日期：2026-03-09
+    </div>
+  </div>
+</body>
+</html>

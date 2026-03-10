@@ -1,0 +1,518 @@
+<!--
+  功能名称：视频监控历史回放
+  对应PRD：doc_prd/WEB/监管端/视频监管/WEB监管端-视频监控历史回放.prd.md
+  所属端口：WEB监管端
+  所属模块：视频监管
+  制作日期：2026-03-10
+  最后更新：2026-03-10
+  角色说明：county_admin/county_staff可下载片段；乡镇和企业角色仅查看
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>视频监控历史回放 - 蓬溪县生猪数字化管理平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    /* SHARED STYLES */
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; }
+    .sidebar-main { width: 240px; min-width: 240px; background: #001529; }
+    .menu-item { padding: 10px 20px; cursor: pointer; color: rgba(255,255,255,0.65); font-size: 14px; transition: all 0.2s; }
+    .menu-item:hover { background: rgba(255,255,255,0.1); color: white; }
+    .menu-item.active { background: #1677ff; color: white; }
+    .device-tree { width: 260px; min-width: 260px; background: #1a2535; border-right: 1px solid rgba(255,255,255,0.1); overflow-y: auto; }
+    .tree-node { padding: 6px 12px; cursor: pointer; font-size: 13px; border-radius: 4px; margin: 1px 4px; }
+    .tree-node:hover { background: rgba(255,255,255,0.1); }
+    .tree-node.selected { background: rgba(22,119,255,0.3); }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+    .dot-online { background: #52c41a; }
+    .dot-offline { background: transparent; border: 2px solid #bfbfbf; }
+    .dot-fault { background: #f5222d; }
+    /* 时间轴 */
+    .timeline-wrap { position: relative; height: 56px; background: #0a1628; border-radius: 4px; overflow: hidden; cursor: pointer; user-select: none; }
+    .timeline-bar { position: absolute; top: 10px; left: 0; right: 0; height: 20px; background: #1a2a3a; }
+    .timeline-segment { position: absolute; top: 0; height: 100%; background: #1890ff; border-radius: 2px; }
+    .timeline-alarm { position: absolute; top: -8px; transform: translateX(-50%); color: #f5222d; font-size: 12px; cursor: pointer; }
+    .timeline-pointer { position: absolute; top: 0; bottom: 0; width: 2px; background: #f5222d; pointer-events: none; }
+    .timeline-time { position: absolute; bottom: 4px; left: 0; right: 0; display: flex; justify-content: space-between; padding: 0 4px; font-size: 10px; color: #6b8aaa; }
+    /* 播放控制 */
+    .player-ctrl { background: rgba(0,0,0,0.8); padding: 8px 12px; display: flex; align-items: center; border-radius: 4px; }
+    .ctrl-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; border-radius: 4px; }
+    .ctrl-btn:hover { background: rgba(255,255,255,0.15); }
+    .speed-btn { padding: 4px 8px; border-radius: 3px; font-size: 12px; cursor: pointer; color: rgba(255,255,255,0.7); }
+    .speed-btn.active { background: #1677ff; color: white; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+    .modal { background: white; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+    .form-label { font-size: 14px; color: #262626; font-weight: 500; }
+    .required::before { content: '*'; color: #ff4d4f; margin-right: 4px; }
+    .form-input { border: 1px solid #d9d9d9; border-radius: 4px; padding: 6px 10px; width: 100%; font-size: 14px; outline: none; }
+    .form-input:focus { border-color: #1677ff; }
+    .error-msg { color: #ff4d4f; font-size: 12px; margin-top: 2px; }
+    .btn-primary { background: #1677ff; color: white; border: none; border-radius: 4px; padding: 6px 16px; font-size: 14px; cursor: pointer; }
+    .btn-default { background: white; color: #262626; border: 1px solid #d9d9d9; border-radius: 4px; padding: 6px 16px; font-size: 14px; cursor: pointer; }
+    .success-toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); background: #f6ffed; border: 1px solid #b7eb8f; color: #52c41a; padding: 10px 24px; border-radius: 6px; font-size: 14px; z-index: 9999; }
+    .info-toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); background: #fff7e6; border: 1px solid #ffd591; color: #fa8c16; padding: 10px 24px; border-radius: 6px; font-size: 14px; z-index: 9999; }
+  </style>
+</head>
+<body x-data="playbackApp()" x-init="init()">
+
+<div class="flex h-screen overflow-hidden">
+
+  <!-- SECTION START: 侧边主菜单 -->
+  <aside class="sidebar-main flex flex-col flex-shrink-0">
+    <div class="p-4 border-b" style="border-color: rgba(255,255,255,0.08);">
+      <div class="flex items-center space-x-2">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: #1677ff;">
+          <i class="fas fa-video text-white text-sm"></i>
+        </div>
+        <div>
+          <div class="text-white font-bold text-sm">蓬溪县生猪数字化</div>
+          <div class="text-xs text-gray-400">管理平台 · 监管端</div>
+        </div>
+      </div>
+    </div>
+    <nav class="flex-1 py-3">
+      <div class="px-4 mb-2 text-xs text-gray-500">视频监管</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-视频监管驾驶舱.html'"><i class="fas fa-tachometer-alt mr-2"></i>视频监管驾驶舱</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-视频设备信息管理.html'"><i class="fas fa-camera mr-2"></i>视频设备信息管理</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-视频监控实时查看.html'"><i class="fas fa-desktop mr-2"></i>视频监控实时查看</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-视频监控告警管理.html'"><i class="fas fa-bell mr-2"></i>视频监控告警管理</div>
+      <div class="menu-item active"><i class="fas fa-history mr-2"></i>视频监控历史回放</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-云存储管理.html'"><i class="fas fa-cloud mr-2"></i>云存储管理</div>
+    </nav>
+    <div class="p-3 border-t" style="border-color: rgba(255,255,255,0.08);">
+      <select x-model="currentRole" @change="switchRole()" class="w-full text-sm px-2 py-1 rounded text-white" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
+        <option value="county_admin" style="background:#001529">县级管理员</option>
+        <option value="county_staff" style="background:#001529">县级业务人员</option>
+        <option value="town_gov_staff" style="background:#001529">乡镇政府业务人员</option>
+        <option value="ent_admin" style="background:#001529">企业管理员</option>
+      </select>
+    </div>
+  </aside>
+  <!-- SECTION END: 侧边主菜单 -->
+
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <!-- 顶部 -->
+    <header class="bg-white border-b px-6 flex items-center justify-between flex-shrink-0" style="height: 56px; border-color: #e8e8e8;">
+      <div>
+        <span class="text-gray-400 text-sm">视频监管</span>
+        <span class="text-gray-400 text-sm mx-2">/</span>
+        <span class="text-gray-700 text-sm font-medium">视频监控历史回放</span>
+      </div>
+      <div class="flex items-center space-x-3">
+        <div class="relative">
+          <i class="fas fa-bell text-gray-500 text-lg cursor-pointer"></i>
+          <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">3</span>
+        </div>
+        <div class="flex items-center space-x-2">
+          <div class="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-bold">张</div>
+          <span class="text-sm text-gray-600" x-text="currentRoleName"></span>
+          <i class="fas fa-sign-out-alt text-gray-400 cursor-pointer"></i>
+        </div>
+      </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden" style="background: #141e2d;">
+
+      <!-- SECTION START: 设备树 -->
+      <div class="device-tree flex-shrink-0">
+        <div class="p-3 border-b" style="border-color: rgba(255,255,255,0.1);">
+          <div class="relative">
+            <i class="fas fa-search absolute left-3 top-2.5 text-gray-400 text-sm"></i>
+            <input x-model="searchKey" type="text" placeholder="搜索设备/企业" class="w-full pl-8 pr-3 py-2 rounded text-sm" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: white; outline: none;">
+          </div>
+        </div>
+        <div class="p-2 overflow-y-auto" style="height: calc(100% - 56px);">
+          <template x-for="town in deviceTree" :key="town.id">
+            <div>
+              <div class="tree-node flex items-center justify-between" @click="town.expanded = !town.expanded">
+                <div class="flex items-center space-x-1">
+                  <i class="fas text-xs text-gray-400 w-3" :class="town.expanded ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                  <i class="fas fa-map-marker-alt text-xs text-blue-400"></i>
+                  <span class="text-sm font-medium" style="color: #c0d0e0;" x-text="town.name"></span>
+                </div>
+              </div>
+              <div x-show="town.expanded" style="padding-left: 16px;">
+                <template x-for="ent in town.enterprises" :key="ent.id">
+                  <div>
+                    <div class="tree-node flex items-center justify-between" @click="ent.expanded = !ent.expanded">
+                      <div class="flex items-center space-x-1">
+                        <i class="fas text-xs text-gray-500 w-3" :class="ent.expanded ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                        <i class="fas fa-building text-xs text-yellow-500"></i>
+                        <span class="text-xs truncate" style="color: #a0b0c0; max-width: 130px;" x-text="ent.name"></span>
+                      </div>
+                    </div>
+                    <div x-show="ent.expanded" style="padding-left: 16px;">
+                      <template x-for="dev in ent.devices" :key="dev.deviceId">
+                        <div class="tree-node flex items-center space-x-2" :class="selectedDevice && selectedDevice.deviceId === dev.deviceId ? 'selected' : ''" @click="selectDevice(dev)">
+                          <span class="status-dot" :class="dev.deviceStatus==='0'?'dot-online':dev.deviceStatus==='1'?'dot-offline':'dot-fault'"></span>
+                          <i class="fas fa-video text-xs" style="color: #8fa8c8;"></i>
+                          <span class="text-xs" style="color: #c0d0e0;" x-text="dev.deviceName"></span>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+      <!-- SECTION END: 设备树 -->
+
+      <!-- SECTION START: 回放区域 -->
+      <div class="flex-1 flex flex-col overflow-hidden p-4">
+
+        <!-- 未选择设备提示 -->
+        <template x-if="!selectedDevice">
+          <div class="flex-1 flex items-center justify-center">
+            <div class="text-center" style="color: rgba(255,255,255,0.3);">
+              <i class="fas fa-history text-6xl mb-4"></i>
+              <p class="text-lg">请在左侧设备树中选择摄像头</p>
+              <p class="text-sm mt-2">单击选中设备后即可查看历史录像</p>
+            </div>
+          </div>
+        </template>
+
+        <!-- 已选择设备 -->
+        <template x-if="selectedDevice">
+          <div class="flex flex-col h-full space-y-3">
+            <!-- 日期选择 -->
+            <div class="flex items-center space-x-3 flex-shrink-0">
+              <span class="text-white text-sm font-medium" x-text="selectedDevice.deviceName"></span>
+              <div class="flex items-center space-x-2 ml-auto">
+                <button @click="prevDay()" :disabled="!canPrevDay" class="w-7 h-7 rounded flex items-center justify-center text-sm" :class="canPrevDay ? 'bg-blue-600 text-white cursor-pointer hover:bg-blue-700' : 'bg-gray-600 text-gray-400'">&#8592;</button>
+                <input x-model="selectedDate" type="date" :max="today" :min="minDate" @change="loadTimeline()" class="text-sm px-3 py-1 rounded" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; outline: none;">
+                <button @click="nextDay()" :disabled="!canNextDay" class="w-7 h-7 rounded flex items-center justify-center text-sm" :class="canNextDay ? 'bg-blue-600 text-white cursor-pointer hover:bg-blue-700' : 'bg-gray-600 text-gray-400'">&#8594;</button>
+              </div>
+            </div>
+
+            <!-- 视频播放器 -->
+            <div class="flex-1 flex flex-col min-h-0">
+              <div class="flex-1 relative min-h-0" style="background: #0a1628; border-radius: 6px; overflow: hidden;">
+                <div class="w-full h-full flex items-center justify-center">
+                  <div x-show="!playing" class="text-center" style="color: rgba(255,255,255,0.2);">
+                    <i class="fas fa-play-circle text-6xl mb-3"></i>
+                    <p class="text-sm">点击时间轴有录像区域开始回放</p>
+                  </div>
+                  <div x-show="playing" class="w-full h-full flex items-center justify-center">
+                    <i class="fas fa-video text-8xl" style="color: rgba(255,255,255,0.04);"></i>
+                  </div>
+                </div>
+                <!-- 录制标识 REC -->
+                <div x-show="playing" class="absolute top-4 left-4 flex items-center space-x-1" style="background: rgba(0,0,0,0.6); padding: 3px 8px; border-radius: 4px;">
+                  <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                  <span class="text-white text-xs">REC</span>
+                  <span class="text-gray-300 text-xs ml-2" x-text="currentTimeDisplay">00:00:00</span>
+                </div>
+                <!-- 设备名 -->
+                <div x-show="playing" class="absolute bottom-0 left-0 right-0 px-4 py-2" style="background: linear-gradient(transparent, rgba(0,0,0,0.6));">
+                  <span class="text-white text-sm" x-text="selectedDevice.deviceName"></span>
+                </div>
+              </div>
+
+              <!-- 播放控制条 -->
+              <div class="player-ctrl flex-shrink-0 mt-2 flex items-center space-x-3">
+                <!-- 播放/暂停 -->
+                <div class="ctrl-btn" @click="togglePlay()">
+                  <i class="fas" :class="playing ? 'fa-pause' : 'fa-play'" style="font-size: 18px;"></i>
+                </div>
+                <!-- 倍速 -->
+                <div class="flex items-center space-x-1">
+                  <template x-for="speed in speeds" :key="speed.val">
+                    <button class="speed-btn" :class="currentSpeed===speed.val?'active':''" @click="setSpeed(speed.val)" x-text="speed.label"></button>
+                  </template>
+                </div>
+                <!-- 逐帧操作 -->
+                <div class="ctrl-btn" title="逐帧后退"><i class="fas fa-step-backward"></i></div>
+                <div class="ctrl-btn" title="逐帧前进"><i class="fas fa-step-forward"></i></div>
+                <!-- 截图 -->
+                <div class="ctrl-btn" @click="snapshot()" title="截图"><i class="fas fa-camera"></i></div>
+                <!-- 片段下载（仅县级角色） -->
+                <template x-if="canDownload">
+                  <div class="ctrl-btn" @click="showDownloadModal=true" title="片段下载"><i class="fas fa-download"></i></div>
+                </template>
+                <span class="text-xs ml-auto" style="color: rgba(255,255,255,0.4);">当前倍速: <span x-text="currentSpeed + 'x'" class="text-white"></span></span>
+              </div>
+            </div>
+
+            <!-- 时间轴 -->
+            <div class="flex-shrink-0">
+              <div class="timeline-wrap" @click="seekTimeline($event)" @wheel.prevent="zoomTimeline($event)">
+                <div class="timeline-bar">
+                  <!-- 录像时段 -->
+                  <template x-for="seg in timelineSegments" :key="seg.start">
+                    <div class="timeline-segment" :style="`left: ${seg.startPct}%; width: ${seg.widthPct}%;`"></div>
+                  </template>
+                  <!-- 播放指针 -->
+                  <div class="timeline-pointer" x-show="playing" :style="`left: ${pointerPct}%;`">
+                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 text-xs text-red-400 whitespace-nowrap" x-text="currentTimeDisplay" style="font-size: 9px;"></div>
+                  </div>
+                </div>
+                <!-- 告警标记 -->
+                <template x-for="alarm in timelineAlarms" :key="alarm.time">
+                  <div class="timeline-alarm" :style="`left: ${alarm.pct}%;`" :title="`告警: ${alarm.time} 人员入侵`" @click.stop>▼</div>
+                </template>
+                <!-- 时间刻度 -->
+                <div class="timeline-time">
+                  <span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span>
+                  <span>12</span><span>14</span><span>16</span><span>18</span><span>20</span><span>22</span><span>24</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between mt-1">
+                <div class="flex items-center space-x-3 text-xs" style="color: rgba(255,255,255,0.5);">
+                  <span><span class="inline-block w-3 h-2 rounded-sm mr-1" style="background:#1890ff;"></span>有录像</span>
+                  <span><span class="inline-block w-3 h-2 rounded-sm mr-1" style="background:#1a2a3a;"></span>无录像</span>
+                  <span class="text-red-400">▼ 告警时刻</span>
+                </div>
+                <span class="text-xs" style="color: rgba(255,255,255,0.4);">滚轮缩放时间轴</span>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+      <!-- SECTION END: 回放区域 -->
+    </div>
+  </div>
+</div>
+
+<!-- SECTION START: 片段下载弹窗 -->
+<div class="modal-overlay" x-show="showDownloadModal" x-transition @click.self="showDownloadModal=false">
+  <div class="modal" style="width: 450px;">
+    <div class="flex items-center justify-between px-6 py-4 border-b">
+      <h3 class="font-semibold text-gray-800">下载视频片段</h3>
+      <i class="fas fa-times cursor-pointer text-gray-400" @click="showDownloadModal=false"></i>
+    </div>
+    <div class="px-6 py-4 space-y-4">
+      <div>
+        <label class="form-label block mb-1"><span class="required"></span>开始时间</label>
+        <input x-model="downloadForm.startTime" type="time" step="1" class="form-input" :class="downloadErrors.startTime?'border-red-400':''">
+        <p class="error-msg" x-show="downloadErrors.startTime" x-text="downloadErrors.startTime"></p>
+      </div>
+      <div>
+        <label class="form-label block mb-1"><span class="required"></span>结束时间</label>
+        <input x-model="downloadForm.endTime" type="time" step="1" class="form-input" :class="downloadErrors.endTime?'border-red-400':''">
+        <p class="error-msg" x-show="downloadErrors.endTime" x-text="downloadErrors.endTime"></p>
+      </div>
+      <p class="text-xs text-gray-400">单次下载时间段不超过2小时，须在有录像的时段范围内</p>
+    </div>
+    <div class="flex justify-end space-x-3 px-6 py-4 border-t bg-gray-50">
+      <button @click="showDownloadModal=false" class="btn-default">取消</button>
+      <button @click="submitDownload()" class="btn-primary"><i class="fas fa-download mr-1"></i>下载</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 片段下载弹窗 -->
+
+<div class="success-toast" x-show="showToast" x-transition><i class="fas fa-check-circle mr-2"></i><span x-text="toastMsg"></span></div>
+<div class="info-toast" x-show="showInfoToast" x-transition><i class="fas fa-info-circle mr-2"></i><span x-text="infoMsg"></span></div>
+
+<script>
+const MOCK_DATA = {
+  deviceTree: [
+    { id: 't1', name: '蓬南镇', expanded: true, enterprises: [
+      { id: 'e1', name: '鸿鹄畜牧有限公司', expanded: true, devices: [
+        { deviceId: 1, deviceName: '大门入口', deviceStatus: '0' },
+        { deviceId: 2, deviceName: '猪舍A区', deviceStatus: '0' },
+        { deviceId: 3, deviceName: '饲料仓库', deviceStatus: '1' },
+      ]}
+    ]},
+    { id: 't2', name: '天福镇', expanded: false, enterprises: [
+      { id: 'e3', name: '金源牧业有限公司', expanded: false, devices: [
+        { deviceId: 6, deviceName: '猪舍B区', deviceStatus: '0' },
+        { deviceId: 7, deviceName: '大门入口', deviceStatus: '1' },
+      ]}
+    ]},
+    { id: 't3', name: '赤城镇', expanded: false, enterprises: [
+      { id: 'e5', name: '华兴养殖基地', expanded: false, devices: [
+        { deviceId: 10, deviceName: '仓库区', deviceStatus: '0' },
+        { deviceId: 11, deviceName: '东门', deviceStatus: '0' },
+      ]}
+    ]},
+  ],
+  timelineData: {
+    segments: [
+      { start: '00:00:00', end: '01:30:00' },
+      { start: '06:00:00', end: '23:59:59' },
+    ],
+    alarms: [
+      { time: '14:32:18', type: '1' },
+      { time: '11:58:05', type: '1' },
+    ]
+  }
+};
+
+function playbackApp() {
+  return {
+    currentRole: 'county_admin',
+    currentRoleName: '县级管理员',
+    searchKey: '',
+    deviceTree: JSON.parse(JSON.stringify(MOCK_DATA.deviceTree)),
+    selectedDevice: null,
+    selectedDate: '2026-03-10',
+    today: '2026-03-10',
+    minDate: '2026-02-08',
+    playing: false,
+    currentSpeed: 1,
+    speeds: [{ val: 0.5, label: '0.5x' }, { val: 1, label: '1x' }, { val: 2, label: '2x' }, { val: 4, label: '4x' }, { val: 8, label: '8x' }, { val: 16, label: '16x' }],
+    timelineSegments: [],
+    timelineAlarms: [],
+    pointerPct: 0,
+    currentTimeDisplay: '00:00:00',
+    playTimer: null,
+    playSeconds: 0,
+    showDownloadModal: false,
+    downloadForm: { startTime: '14:00:00', endTime: '14:30:00' },
+    downloadErrors: {},
+    showToast: false,
+    toastMsg: '',
+    showInfoToast: false,
+    infoMsg: '',
+
+    get canDownload() { return this.currentRole === 'county_admin' || this.currentRole === 'county_staff'; },
+    get canPrevDay() { return this.selectedDate > this.minDate; },
+    get canNextDay() { return this.selectedDate < this.today; },
+
+    init() {},
+
+    switchRole() {
+      const map = { county_admin: '县级管理员', county_staff: '县级业务人员', town_gov_staff: '乡镇政府业务人员', ent_admin: '企业管理员' };
+      this.currentRoleName = map[this.currentRole];
+    },
+
+    selectDevice(dev) {
+      this.selectedDevice = dev;
+      this.loadTimeline();
+    },
+
+    loadTimeline() {
+      // 模拟时间轴数据
+      const segs = MOCK_DATA.timelineData.segments;
+      this.timelineSegments = segs.map(s => {
+        const startSec = this.timeToSec(s.start);
+        const endSec = this.timeToSec(s.end);
+        return { start: s.start, end: s.end, startPct: startSec / 864, widthPct: (endSec - startSec) / 864 };
+      });
+      this.timelineAlarms = MOCK_DATA.timelineData.alarms.map(a => ({
+        time: a.time, pct: this.timeToSec(a.time) / 864
+      }));
+    },
+
+    timeToSec(timeStr) {
+      const [h, m, s] = timeStr.split(':').map(Number);
+      return h * 3600 + m * 60 + (s || 0);
+    },
+
+    secToTime(sec) {
+      const h = Math.floor(sec / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = sec % 60;
+      return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    },
+
+    seekTimeline(e) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const pct = (e.clientX - rect.left) / rect.width;
+      const clickSec = Math.floor(pct * 86400);
+
+      // Check if in a recorded segment
+      const inSegment = this.timelineSegments.some(seg => {
+        const startSec = this.timeToSec(seg.start);
+        const endSec = this.timeToSec(seg.end);
+        return clickSec >= startSec && clickSec <= endSec;
+      });
+
+      if (!inSegment) {
+        this.showInfo('该时段无录像');
+        return;
+      }
+
+      this.playSeconds = clickSec;
+      this.pointerPct = pct * 100;
+      this.currentTimeDisplay = this.secToTime(clickSec);
+      this.startPlay();
+    },
+
+    zoomTimeline(e) {
+      // Simulate zoom
+    },
+
+    startPlay() {
+      this.playing = true;
+      if (this.playTimer) clearInterval(this.playTimer);
+      this.playTimer = setInterval(() => {
+        if (!this.playing) return;
+        this.playSeconds += this.currentSpeed;
+        if (this.playSeconds >= 86400) { this.playing = false; clearInterval(this.playTimer); return; }
+        this.pointerPct = (this.playSeconds / 86400) * 100;
+        this.currentTimeDisplay = this.secToTime(this.playSeconds);
+      }, 1000);
+    },
+
+    togglePlay() {
+      if (!this.playing && this.playSeconds === 0) {
+        this.playSeconds = this.timeToSec('06:00:00');
+        this.startPlay();
+      } else {
+        this.playing = !this.playing;
+        if (this.playing) this.startPlay();
+        else clearInterval(this.playTimer);
+      }
+    },
+
+    setSpeed(speed) {
+      this.currentSpeed = speed;
+    },
+
+    snapshot() {
+      if (!this.selectedDevice) return;
+      this.showSuccessToast(`截图已保存：${this.selectedDevice.deviceName}_回放_${this.selectedDate.replace(/-/g,'')}_${this.currentTimeDisplay.replace(/:/g,'')}.jpg`);
+    },
+
+    prevDay() {
+      if (!this.canPrevDay) return;
+      const d = new Date(this.selectedDate);
+      d.setDate(d.getDate() - 1);
+      this.selectedDate = d.toISOString().slice(0, 10);
+      this.loadTimeline();
+    },
+
+    nextDay() {
+      if (!this.canNextDay) return;
+      const d = new Date(this.selectedDate);
+      d.setDate(d.getDate() + 1);
+      this.selectedDate = d.toISOString().slice(0, 10);
+      this.loadTimeline();
+    },
+
+    submitDownload() {
+      this.downloadErrors = {};
+      if (!this.downloadForm.startTime) { this.downloadErrors.startTime = '请选择开始时间'; return; }
+      if (!this.downloadForm.endTime) { this.downloadErrors.endTime = '请选择结束时间'; return; }
+      const startSec = this.timeToSec(this.downloadForm.startTime);
+      const endSec = this.timeToSec(this.downloadForm.endTime);
+      if (endSec <= startSec) { this.downloadErrors.endTime = '结束时间须晚于开始时间'; return; }
+      if (endSec - startSec > 7200) { this.downloadErrors.endTime = '单次下载时间段不能超过2小时'; return; }
+      this.showDownloadModal = false;
+      this.showSuccessToast(`正在生成视频文件：${this.selectedDevice.deviceName}_${this.selectedDate.replace(/-/g,'')}_${this.downloadForm.startTime.replace(/:/g,'')}_${this.downloadForm.endTime.replace(/:/g,'')}.mp4`);
+    },
+
+    showSuccessToast(msg) {
+      this.toastMsg = msg;
+      this.showToast = true;
+      setTimeout(() => { this.showToast = false; }, 3000);
+    },
+
+    showInfo(msg) {
+      this.infoMsg = msg;
+      this.showInfoToast = true;
+      setTimeout(() => { this.showInfoToast = false; }, 2000);
+    }
+  };
+}
+</script>
+</body>
+</html>

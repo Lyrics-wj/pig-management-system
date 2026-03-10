@@ -1,0 +1,629 @@
+<!--
+  功能名称：视频监管驾驶舱
+  对应PRD：doc_prd/WEB/监管端/视频监管/WEB监管端-视频监管驾驶舱.prd.md
+  所属端口：WEB监管端
+  所属模块：视频监管
+  制作日期：2026-03-10
+  最后更新：2026-03-10
+  角色说明：县级管理员(county_admin)、县级业务人员(county_staff)、乡镇政府业务人员(town_gov_staff)、乡镇畜牧兽医站(town_vet_station)
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>视频监管驾驶舱 - 蓬溪县生猪数字化管理平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    /* SHARED STYLES */
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    .sidebar { width: 240px; min-width: 240px; }
+    .main-content { flex: 1; overflow: hidden; }
+    .card { background: #1e3a5f; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); }
+    .stat-card { background: rgba(255,255,255,0.08); border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); transition: all 0.3s; cursor: pointer; }
+    .stat-card:hover { background: rgba(255,255,255,0.15); transform: translateY(-2px); }
+    .pulse-red { animation: pulse-red 1.5s infinite; }
+    @keyframes pulse-red { 0%, 100% { box-shadow: 0 0 0 0 rgba(245,34,45,0.4); } 50% { box-shadow: 0 0 0 8px rgba(245,34,45,0); } }
+    .alarm-dot { width: 8px; height: 8px; background: #f5222d; border-radius: 50%; animation: blink 1.5s infinite; display: inline-block; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .scroll-list { overflow: hidden; }
+    .alarm-scroll { animation: scroll-up 20s linear infinite; }
+    .alarm-scroll:hover { animation-play-state: paused; }
+    @keyframes scroll-up { 0% { transform: translateY(0); } 100% { transform: translateY(-50%); } }
+    .quick-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; transition: all 0.3s; cursor: pointer; }
+    .quick-btn:hover { background: rgba(255,255,255,0.2); transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+    .video-window { background: #0a1628; border-radius: 4px; position: relative; overflow: hidden; cursor: pointer; aspect-ratio: 16/9; }
+    .video-window:hover .video-overlay { opacity: 1; }
+    .video-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; color: white; font-size: 14px; }
+    .menu-item { padding: 10px 16px; cursor: pointer; transition: background 0.2s; color: #8fa8c8; font-size: 14px; border-radius: 4px; margin: 2px 8px; }
+    .menu-item:hover { background: rgba(255,255,255,0.1); color: white; }
+    .menu-item.active { background: #1677ff; color: white; }
+    .countdown-ring { transform: rotate(-90deg); }
+    ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
+  </style>
+</head>
+<body class="bg-gray-100" x-data="cockpitApp()" x-init="init()">
+
+<!-- 整体布局 -->
+<div class="flex h-screen overflow-hidden" style="background: #0f1c2e;">
+
+  <!-- SECTION START: 侧边菜单 -->
+  <aside class="sidebar flex flex-col" style="background: #0d1926; border-right: 1px solid rgba(255,255,255,0.08);">
+    <!-- Logo -->
+    <div class="p-4 border-b" style="border-color: rgba(255,255,255,0.08);">
+      <div class="flex items-center space-x-2">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: #1677ff;">
+          <i class="fas fa-video text-white text-sm"></i>
+        </div>
+        <div>
+          <div class="text-white font-bold text-sm leading-tight">蓬溪县生猪数字化</div>
+          <div class="text-xs" style="color: #8fa8c8;">管理平台 · 监管端</div>
+        </div>
+      </div>
+    </div>
+    <!-- 菜单 -->
+    <nav class="flex-1 py-3 overflow-y-auto">
+      <div class="px-3 mb-2 text-xs font-semibold" style="color: #4a6278;">视频监管</div>
+      <div class="menu-item active"><i class="fas fa-tachometer-alt mr-2"></i>视频监管驾驶舱</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-视频设备信息管理.html'"><i class="fas fa-camera mr-2"></i>视频设备信息管理</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-视频监控实时查看.html'"><i class="fas fa-desktop mr-2"></i>视频监控实时查看</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-视频监控告警管理.html'"><i class="fas fa-bell mr-2"></i>视频监控告警管理</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-视频监控历史回放.html'"><i class="fas fa-history mr-2"></i>视频监控历史回放</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-云存储管理.html'"><i class="fas fa-cloud mr-2"></i>云存储管理</div>
+    </nav>
+    <!-- 角色切换 -->
+    <div class="p-3 border-t" style="border-color: rgba(255,255,255,0.08);">
+      <select x-model="currentRole" @change="switchRole()" class="w-full text-sm px-2 py-1 rounded" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white;">
+        <option value="county_admin" style="background: #1a2a3a;">县级管理员</option>
+        <option value="county_staff" style="background: #1a2a3a;">县级业务人员</option>
+        <option value="town_gov_staff" style="background: #1a2a3a;">乡镇政府业务人员</option>
+        <option value="town_vet_station" style="background: #1a2a3a;">乡镇畜牧兽医站</option>
+      </select>
+    </div>
+  </aside>
+  <!-- SECTION END: 侧边菜单 -->
+
+  <!-- 主内容 -->
+  <div class="main-content flex flex-col overflow-hidden">
+
+    <!-- SECTION START: 顶部导航栏 -->
+    <header class="flex items-center justify-between px-5 py-3 flex-shrink-0" style="background: #0d1926; border-bottom: 1px solid rgba(255,255,255,0.08); height: 56px;">
+      <div class="flex items-center space-x-3">
+        <h1 class="text-white font-bold text-lg">视频监管驾驶舱</h1>
+        <span class="text-xs px-2 py-0.5 rounded" style="background: rgba(22,119,255,0.2); color: #69b1ff;" x-text="currentRoleName"></span>
+      </div>
+      <div class="flex items-center space-x-4">
+        <!-- 倒计时 -->
+        <div class="flex items-center space-x-2 text-sm" style="color: #8fa8c8;">
+          <i class="fas fa-sync-alt text-xs" :class="{'animate-spin': refreshing}"></i>
+          <span>自动刷新: <span x-text="countdown" class="text-white font-mono">60</span>s</span>
+          <button @click="manualRefresh()" class="px-3 py-1 text-xs rounded" style="background: rgba(22,119,255,0.2); color: #69b1ff; border: 1px solid rgba(22,119,255,0.3);">手动刷新</button>
+        </div>
+        <!-- 铃铛 -->
+        <div class="relative">
+          <i class="fas fa-bell text-lg cursor-pointer" style="color: #8fa8c8;"></i>
+          <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">3</span>
+        </div>
+        <!-- 用户 -->
+        <div class="flex items-center space-x-2">
+          <div class="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold" style="background: #1677ff; color: white;">张</div>
+          <span class="text-sm" style="color: #8fa8c8;">张监管员</span>
+          <i class="fas fa-sign-out-alt text-sm cursor-pointer" style="color: #8fa8c8;"></i>
+        </div>
+      </div>
+    </header>
+    <!-- SECTION END: 顶部导航栏 -->
+
+    <!-- 驾驶舱内容区 -->
+    <div class="flex-1 overflow-y-auto p-4" style="background: #1b2a4a;">
+
+      <!-- SECTION START: 核心指标卡片区 -->
+      <div class="grid grid-cols-4 gap-4 mb-4">
+        <!-- 设备总数 -->
+        <div class="stat-card p-4" onclick="window.location.href='WEB监管端-视频设备信息管理.html'">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-sm" style="color: #8fa8c8;">设备总数</span>
+            <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: rgba(22,119,255,0.2);">
+              <i class="fas fa-camera text-blue-400"></i>
+            </div>
+          </div>
+          <div class="text-4xl font-bold text-white mb-1" x-text="stats.deviceTotal">140</div>
+          <div class="text-xs" style="color: #8fa8c8;"><i class="fas fa-circle text-xs text-blue-400 mr-1"></i>台摄像设备</div>
+        </div>
+        <!-- 在线设备 -->
+        <div class="stat-card p-4" onclick="window.location.href='WEB监管端-视频设备信息管理.html'">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-sm" style="color: #8fa8c8;">在线设备</span>
+            <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: rgba(82,196,26,0.2);">
+              <i class="fas fa-signal text-green-400"></i>
+            </div>
+          </div>
+          <div class="text-4xl font-bold text-green-400 mb-1" x-text="stats.deviceOnline">128</div>
+          <div class="text-xs" style="color: #8fa8c8;">在线率 <span class="text-green-400 font-semibold" x-text="stats.onlineRate + '%'">91.4%</span></div>
+        </div>
+        <!-- 今日告警 -->
+        <div class="stat-card p-4" onclick="window.location.href='WEB监管端-视频监控告警管理.html'">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-sm" style="color: #8fa8c8;">今日告警</span>
+            <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: rgba(250,173,20,0.2);">
+              <i class="fas fa-bell text-yellow-400"></i>
+            </div>
+          </div>
+          <div class="text-4xl font-bold text-yellow-400 mb-1" x-text="stats.alarmToday">5</div>
+          <div class="text-xs" style="color: #8fa8c8;"><i class="fas fa-calendar-day mr-1"></i>今日触发次数</div>
+        </div>
+        <!-- 未处理告警 -->
+        <div class="stat-card p-4" :class="{'pulse-red': stats.alarmUnhandled > 0}" onclick="window.location.href='WEB监管端-视频监控告警管理.html'" :style="stats.alarmUnhandled > 0 ? 'border-left: 3px solid #f5222d;' : ''">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-sm" style="color: #8fa8c8;">未处理告警</span>
+            <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: rgba(245,34,45,0.2);">
+              <i class="fas fa-exclamation-triangle text-red-400"></i>
+            </div>
+          </div>
+          <div class="text-4xl font-bold mb-1" :class="stats.alarmUnhandled > 0 ? 'text-red-400' : 'text-green-400'" x-text="stats.alarmUnhandled">3</div>
+          <div class="text-xs" style="color: #8fa8c8;"><i class="fas fa-circle mr-1 text-red-400"></i>待处理条数</div>
+        </div>
+      </div>
+      <!-- SECTION END: 核心指标卡片区 -->
+
+      <!-- 第二行：设备状态图 + 乡镇分布图 -->
+      <div class="grid grid-cols-5 gap-4 mb-4">
+        <!-- SECTION START: 设备状态分布图 -->
+        <div class="card col-span-2 p-4" style="background: #1e3a5f;">
+          <h3 class="text-white font-semibold mb-3 text-sm"><i class="fas fa-chart-pie mr-2 text-blue-400"></i>设备状态分布</h3>
+          <div class="relative" style="height: 200px;">
+            <canvas id="deviceStatusChart"></canvas>
+          </div>
+          <div class="flex justify-center space-x-4 mt-2">
+            <div class="flex items-center text-xs" style="color: #8fa8c8;"><span class="w-3 h-3 rounded-full mr-1" style="background:#52c41a; display:inline-block;"></span>在线 128台</div>
+            <div class="flex items-center text-xs" style="color: #8fa8c8;"><span class="w-3 h-3 rounded-full mr-1" style="background:#bfbfbf; display:inline-block;"></span>离线 9台</div>
+            <div class="flex items-center text-xs" style="color: #8fa8c8;"><span class="w-3 h-3 rounded-full mr-1" style="background:#f5222d; display:inline-block;"></span>故障 3台</div>
+          </div>
+        </div>
+        <!-- SECTION END: 设备状态分布图 -->
+
+        <!-- SECTION START: 乡镇设备分布图 -->
+        <div class="card col-span-3 p-4" style="background: #1e3a5f;">
+          <h3 class="text-white font-semibold mb-3 text-sm"><i class="fas fa-map-marker-alt mr-2 text-blue-400"></i>乡镇设备分布</h3>
+          <div style="height: 220px;">
+            <canvas id="townDistChart"></canvas>
+          </div>
+        </div>
+        <!-- SECTION END: 乡镇设备分布图 -->
+      </div>
+
+      <!-- 第三行：实时告警 + 告警趋势 -->
+      <div class="grid grid-cols-5 gap-4 mb-4">
+        <!-- SECTION START: 实时告警动态 -->
+        <div class="card col-span-2 p-4" style="background: #1e3a5f;">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-white font-semibold text-sm"><i class="fas fa-exclamation-circle mr-2 text-red-400"></i>实时告警动态</h3>
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background: rgba(245,34,45,0.2); color: #ff7875;">未处理 3条</span>
+          </div>
+          <div class="scroll-list" style="height: 200px; overflow: hidden;">
+            <div class="alarm-scroll" style="cursor: pointer;">
+              <template x-for="(item, idx) in [...alarmList, ...alarmList]" :key="idx">
+                <div class="flex items-center space-x-2 py-2 border-b hover:bg-white hover:bg-opacity-5 px-2 rounded" style="border-color: rgba(255,255,255,0.06);" @click="window.location.href='WEB监管端-视频监控告警管理.html'">
+                  <span class="alarm-dot flex-shrink-0"></span>
+                  <span class="text-xs font-mono" style="color: #ff7875;" x-text="item.time"></span>
+                  <span class="text-xs text-white truncate" x-text="item.device"></span>
+                  <span class="text-xs px-1 py-0.5 rounded flex-shrink-0" style="background: rgba(245,34,45,0.3); color: #ff7875;">人员入侵</span>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+        <!-- SECTION END: 实时告警动态 -->
+
+        <!-- SECTION START: 告警趋势图 -->
+        <div class="card col-span-3 p-4" style="background: #1e3a5f;">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-white font-semibold text-sm"><i class="fas fa-chart-line mr-2 text-orange-400"></i>告警趋势</h3>
+            <div class="flex space-x-1">
+              <button @click="trendDays=7; updateTrendChart()" :class="trendDays===7 ? 'bg-blue-600 text-white' : ''" class="text-xs px-3 py-1 rounded" style="border: 1px solid rgba(255,255,255,0.2); color: #8fa8c8;">近7天</button>
+              <button @click="trendDays=30; updateTrendChart()" :class="trendDays===30 ? 'bg-blue-600 text-white' : ''" class="text-xs px-3 py-1 rounded" style="border: 1px solid rgba(255,255,255,0.2); color: #8fa8c8;">近30天</button>
+            </div>
+          </div>
+          <div style="height: 210px;">
+            <canvas id="alarmTrendChart"></canvas>
+          </div>
+        </div>
+        <!-- SECTION END: 告警趋势图 -->
+      </div>
+
+      <!-- 第四行：实时监控轮播 + 存储状态 -->
+      <div class="grid grid-cols-5 gap-4 mb-4">
+        <!-- SECTION START: 实时监控轮播 -->
+        <div class="card col-span-3 p-4" style="background: #1e3a5f;">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-white font-semibold text-sm"><i class="fas fa-play-circle mr-2 text-blue-400"></i>实时监控轮播</h3>
+            <button @click="toggleCarousel()" class="text-xs px-3 py-1 rounded flex items-center space-x-1" style="background: rgba(255,255,255,0.1); color: #8fa8c8; border: 1px solid rgba(255,255,255,0.2);">
+              <i :class="carouselPlaying ? 'fas fa-pause' : 'fas fa-play'" class="text-xs"></i>
+              <span x-text="carouselPlaying ? '暂停轮播' : '继续轮播'"></span>
+            </button>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <template x-for="(cam, idx) in currentCameras" :key="idx">
+              <div class="video-window" @click="window.location.href='WEB监管端-视频监控实时查看.html'" style="border: 1px solid rgba(255,255,255,0.1);">
+                <!-- 模拟视频画面 -->
+                <div class="w-full h-full flex items-center justify-center" style="background: linear-gradient(135deg, #0a1628 0%, #1a2a4a 100%);">
+                  <template x-if="cam.online">
+                    <div class="relative w-full h-full flex items-center justify-center">
+                      <i class="fas fa-video text-4xl" style="color: rgba(255,255,255,0.1);"></i>
+                      <div class="absolute bottom-0 left-0 right-0 px-2 py-1" style="background: linear-gradient(transparent, rgba(0,0,0,0.7));">
+                        <span class="text-white text-xs" x-text="cam.name"></span>
+                      </div>
+                      <div class="absolute top-2 right-2 w-2 h-2 rounded-full bg-green-400" style="border: 1.5px solid white;"></div>
+                    </div>
+                  </template>
+                  <template x-if="!cam.online">
+                    <div class="flex flex-col items-center justify-center space-y-1">
+                      <i class="fas fa-video-slash text-2xl" style="color: rgba(255,255,255,0.3);"></i>
+                      <span class="text-xs" style="color: rgba(255,255,255,0.4);">设备离线</span>
+                    </div>
+                  </template>
+                </div>
+                <div class="video-overlay">
+                  <div class="text-center">
+                    <i class="fas fa-expand text-xl mb-1"></i><br>
+                    <span class="text-xs">点击查看大画面</span>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+        <!-- SECTION END: 实时监控轮播 -->
+
+        <!-- SECTION START: 存储状态面板 -->
+        <div class="card col-span-2 p-4 cursor-pointer hover:bg-opacity-80" style="background: #1e3a5f;" onclick="window.location.href='WEB监管端-云存储管理.html'">
+          <h3 class="text-white font-semibold mb-3 text-sm"><i class="fas fa-database mr-2 text-blue-400"></i>存储状态</h3>
+          <!-- 半环形仪表盘 -->
+          <div class="flex justify-center mb-3">
+            <div class="relative" style="width: 160px; height: 90px; overflow: hidden;">
+              <canvas id="gaugeChart" width="160" height="90"></canvas>
+              <div class="absolute inset-0 flex flex-col items-center justify-end pb-1">
+                <span class="text-2xl font-bold text-orange-400">87.5%</span>
+                <span class="text-xs" style="color: #8fa8c8;">使用率</span>
+              </div>
+            </div>
+          </div>
+          <!-- 存储数据 -->
+          <div class="space-y-2">
+            <div class="flex justify-between text-sm">
+              <span style="color: #8fa8c8;">总容量</span>
+              <span class="text-white font-semibold">50.00 TB</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span style="color: #8fa8c8;">已用容量</span>
+              <span class="text-orange-400 font-semibold">43.75 TB</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span style="color: #8fa8c8;">剩余容量</span>
+              <span class="text-white font-semibold">6.25 TB</span>
+            </div>
+          </div>
+          <!-- 告警提示 -->
+          <div class="mt-3 p-2 rounded text-xs text-center animate-pulse" style="background: rgba(245,34,45,0.2); color: #ff7875; border: 1px solid rgba(245,34,45,0.3);">
+            <i class="fas fa-exclamation-triangle mr-1"></i>存储空间不足，请及时清理或扩容
+          </div>
+        </div>
+        <!-- SECTION END: 存储状态面板 -->
+      </div>
+
+      <!-- SECTION START: 快捷入口区 -->
+      <div class="grid grid-cols-5 gap-3">
+        <div class="quick-btn p-4 text-center" onclick="window.location.href='WEB监管端-视频设备信息管理.html'">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2" style="background: rgba(22,119,255,0.3);">
+            <i class="fas fa-camera text-blue-400 text-lg"></i>
+          </div>
+          <div class="text-white text-sm font-medium">设备管理</div>
+          <div class="text-xs mt-1" style="color: #8fa8c8;">查看和管理摄像设备</div>
+        </div>
+        <div class="quick-btn p-4 text-center" onclick="window.location.href='WEB监管端-视频监控实时查看.html'">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2" style="background: rgba(82,196,26,0.3);">
+            <i class="fas fa-desktop text-green-400 text-lg"></i>
+          </div>
+          <div class="text-white text-sm font-medium">实时监控</div>
+          <div class="text-xs mt-1" style="color: #8fa8c8;">多画面实时查看</div>
+        </div>
+        <div class="quick-btn p-4 text-center" onclick="window.location.href='WEB监管端-视频监控告警管理.html'">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2" style="background: rgba(245,34,45,0.3);">
+            <i class="fas fa-bell text-red-400 text-lg"></i>
+          </div>
+          <div class="text-white text-sm font-medium">告警管理</div>
+          <div class="text-xs mt-1" style="color: #8fa8c8;">处理告警记录</div>
+        </div>
+        <div class="quick-btn p-4 text-center" onclick="window.location.href='WEB监管端-视频监控历史回放.html'">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2" style="background: rgba(250,173,20,0.3);">
+            <i class="fas fa-history text-yellow-400 text-lg"></i>
+          </div>
+          <div class="text-white text-sm font-medium">历史回放</div>
+          <div class="text-xs mt-1" style="color: #8fa8c8;">查询历史录像</div>
+        </div>
+        <div class="quick-btn p-4 text-center" onclick="window.location.href='WEB监管端-云存储管理.html'">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2" style="background: rgba(114,46,209,0.3);">
+            <i class="fas fa-cloud text-purple-400 text-lg"></i>
+          </div>
+          <div class="text-white text-sm font-medium">云存储</div>
+          <div class="text-xs mt-1" style="color: #8fa8c8;">存储策略管理</div>
+        </div>
+      </div>
+      <!-- SECTION END: 快捷入口区 -->
+
+    </div>
+  </div>
+</div>
+
+<script>
+const MOCK_DATA = {
+  users: [
+    { role: 'county_admin', roleName: '县级管理员', name: '张监管员', scope: 'all' },
+    { role: 'county_staff', roleName: '县级业务人员', name: '李业务', scope: 'all' },
+    { role: 'town_gov_staff', roleName: '乡镇政府业务人员', name: '王乡镇', scope: 'town' },
+    { role: 'town_vet_station', roleName: '乡镇畜牧兽医站', name: '赵兽医', scope: 'town' },
+  ],
+  stats: {
+    deviceTotal: 140, deviceOnline: 128, deviceOffline: 9, deviceFault: 3,
+    onlineRate: 91.4, alarmToday: 5, alarmUnhandled: 3,
+    storageTotalTB: 50.00, storageUsedTB: 43.75, storageUsageRate: 87.5
+  },
+  alarms: [
+    { time: '14:32:18', device: '鸿鹄养殖场-大门入口', unit: '蓬溪县鸿鹄畜牧有限公司' },
+    { time: '13:15:42', device: '金源牧业-猪舍B区', unit: '蓬溪县金源牧业有限公司' },
+    { time: '11:58:05', device: '天府农场-围栏监控', unit: '蓬溪县天府农场' },
+    { time: '10:22:33', device: '裕丰猪场-生产区入口', unit: '蓬溪县裕丰猪场' },
+    { time: '09:47:11', device: '绿源牧业-东门', unit: '蓬溪县绿源牧业有限公司' },
+    { time: '08:30:55', device: '华兴养殖-仓库区', unit: '蓬溪县华兴养殖基地' },
+  ],
+  cameras: [
+    { name: '鸿鹄养殖场-大门入口', online: true },
+    { name: '金源牧业-猪舍A区', online: true },
+    { name: '天府农场-围栏监控', online: true },
+    { name: '裕丰猪场-生产区', online: false },
+    { name: '绿源牧业-东门', online: true },
+    { name: '华兴养殖-仓库区', online: true },
+    { name: '明珠猪场-南门', online: true },
+    { name: '顺达牧业-A栋', online: true },
+  ],
+  townDistribution: [
+    { town: '蓬南镇', total: 28, online: 26, offline: 1, fault: 1 },
+    { town: '天福镇', total: 22, online: 20, offline: 2, fault: 0 },
+    { town: '赤城镇', total: 18, online: 16, offline: 1, fault: 1 },
+    { town: '新会镇', total: 16, online: 14, offline: 2, fault: 0 },
+    { town: '荷叶镇', total: 15, online: 14, offline: 1, fault: 0 },
+    { town: '金桥乡', total: 13, online: 12, offline: 1, fault: 0 },
+    { town: '宝梵镇', total: 12, online: 11, offline: 0, fault: 1 },
+    { town: '蓬溪镇', total: 10, online: 10, offline: 0, fault: 0 },
+    { town: '明月镇', total: 6, online: 5, offline: 1, fault: 0 },
+  ],
+  alarmTrend7: [
+    { date: '03-04', count: 2 }, { date: '03-05', count: 4 }, { date: '03-06', count: 1 },
+    { date: '03-07', count: 6 }, { date: '03-08', count: 3 }, { date: '03-09', count: 5 }, { date: '03-10', count: 5 }
+  ],
+  alarmTrend30: [
+    { date: '02-09', count: 3 }, { date: '02-10', count: 1 }, { date: '02-11', count: 2 }, { date: '02-12', count: 5 },
+    { date: '02-13', count: 2 }, { date: '02-14', count: 4 }, { date: '02-15', count: 3 }, { date: '02-16', count: 1 },
+    { date: '02-17', count: 6 }, { date: '02-18', count: 2 }, { date: '02-19', count: 0 }, { date: '02-20', count: 3 },
+    { date: '02-21', count: 4 }, { date: '02-22', count: 2 }, { date: '02-23', count: 1 }, { date: '02-24', count: 5 },
+    { date: '02-25', count: 3 }, { date: '02-26', count: 0 }, { date: '02-27', count: 2 }, { date: '02-28', count: 4 },
+    { date: '03-01', count: 1 }, { date: '03-02', count: 3 }, { date: '03-03', count: 2 }, { date: '03-04', count: 2 },
+    { date: '03-05', count: 4 }, { date: '03-06', count: 1 }, { date: '03-07', count: 6 }, { date: '03-08', count: 3 },
+    { date: '03-09', count: 5 }, { date: '03-10', count: 5 }
+  ]
+};
+
+function cockpitApp() {
+  return {
+    currentRole: 'county_admin',
+    currentRoleName: '县级管理员',
+    stats: MOCK_DATA.stats,
+    alarmList: MOCK_DATA.alarms,
+    currentCameras: MOCK_DATA.cameras.slice(0, 4),
+    carouselPlaying: true,
+    carouselOffset: 0,
+    trendDays: 7,
+    countdown: 60,
+    refreshing: false,
+    carouselTimer: null,
+    countdownTimer: null,
+    trendChart: null,
+
+    init() {
+      this.$nextTick(() => {
+        this.initDeviceStatusChart();
+        this.initTownDistChart();
+        this.initAlarmTrendChart();
+        this.drawGauge();
+        this.startCountdown();
+        this.startCarousel();
+      });
+    },
+
+    switchRole() {
+      const user = MOCK_DATA.users.find(u => u.role === this.currentRole);
+      this.currentRoleName = user.roleName;
+    },
+
+    startCountdown() {
+      this.countdownTimer = setInterval(() => {
+        this.countdown--;
+        if (this.countdown <= 0) {
+          this.manualRefresh();
+          this.countdown = 60;
+        }
+      }, 1000);
+    },
+
+    manualRefresh() {
+      this.refreshing = true;
+      setTimeout(() => { this.refreshing = false; }, 1000);
+    },
+
+    toggleCarousel() {
+      this.carouselPlaying = !this.carouselPlaying;
+      if (this.carouselPlaying) {
+        this.startCarousel();
+      } else {
+        clearInterval(this.carouselTimer);
+      }
+    },
+
+    startCarousel() {
+      this.carouselTimer = setInterval(() => {
+        if (!this.carouselPlaying) return;
+        this.carouselOffset = (this.carouselOffset + 4) % MOCK_DATA.cameras.length;
+        const cams = [];
+        for (let i = 0; i < 4; i++) {
+          cams.push(MOCK_DATA.cameras[(this.carouselOffset + i) % MOCK_DATA.cameras.length]);
+        }
+        this.currentCameras = cams;
+      }, 30000);
+    },
+
+    initDeviceStatusChart() {
+      const ctx = document.getElementById('deviceStatusChart');
+      if (!ctx) return;
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['在线', '离线', '故障'],
+          datasets: [{
+            data: [128, 9, 3],
+            backgroundColor: ['#52c41a', '#bfbfbf', '#f5222d'],
+            borderWidth: 0,
+            hoverOffset: 6
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          cutout: '65%',
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => ` ${ctx.label}: ${ctx.raw}台 (${((ctx.raw/140)*100).toFixed(1)}%)`
+              }
+            }
+          }
+        },
+        plugins: [{
+          id: 'center',
+          afterDraw(chart) {
+            const { ctx, chartArea: { left, right, top, bottom } } = chart;
+            const cx = (left + right) / 2, cy = (top + bottom) / 2;
+            ctx.save();
+            ctx.font = 'bold 24px sans-serif';
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.fillText('140', cx, cy - 4);
+            ctx.font = '11px sans-serif';
+            ctx.fillStyle = '#8fa8c8';
+            ctx.fillText('台', cx, cy + 16);
+            ctx.restore();
+          }
+        }]
+      });
+    },
+
+    initTownDistChart() {
+      const ctx = document.getElementById('townDistChart');
+      if (!ctx) return;
+      const data = MOCK_DATA.townDistribution;
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: data.map(d => d.town),
+          datasets: [
+            { label: '在线', data: data.map(d => d.online), backgroundColor: '#52c41a', stack: 'total' },
+            { label: '离线', data: data.map(d => d.offline), backgroundColor: '#bfbfbf', stack: 'total' },
+            { label: '故障', data: data.map(d => d.fault), backgroundColor: '#f5222d', stack: 'total' }
+          ]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: '#8fa8c8', font: { size: 11 } }, position: 'bottom' } },
+          scales: {
+            x: { stacked: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8fa8c8', font: { size: 10 } } },
+            y: { stacked: true, grid: { display: false }, ticks: { color: '#8fa8c8', font: { size: 11 } } }
+          }
+        }
+      });
+    },
+
+    initAlarmTrendChart() {
+      const ctx = document.getElementById('alarmTrendChart');
+      if (!ctx) return;
+      const data = MOCK_DATA.alarmTrend7;
+      this.trendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.map(d => d.date),
+          datasets: [{
+            label: '告警数量',
+            data: data.map(d => d.count),
+            borderColor: '#fa8c16',
+            backgroundColor: 'rgba(250,140,22,0.15)',
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#fa8c16',
+            pointRadius: 4
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8fa8c8', font: { size: 11 } } },
+            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8fa8c8', font: { size: 11 } }, beginAtZero: true }
+          }
+        }
+      });
+    },
+
+    updateTrendChart() {
+      if (!this.trendChart) return;
+      const data = this.trendDays === 7 ? MOCK_DATA.alarmTrend7 : MOCK_DATA.alarmTrend30;
+      this.trendChart.data.labels = data.map(d => d.date);
+      this.trendChart.data.datasets[0].data = data.map(d => d.count);
+      this.trendChart.update();
+    },
+
+    drawGauge() {
+      const canvas = document.getElementById('gaugeChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const cx = 80, cy = 80, r = 65, lineW = 14;
+      ctx.clearRect(0, 0, 160, 90);
+      // Background arc
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, Math.PI, 0);
+      ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+      ctx.lineWidth = lineW;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+      // Value arc (87.5%)
+      const pct = 87.5 / 100;
+      const startAngle = Math.PI;
+      const endAngle = Math.PI + pct * Math.PI;
+      const gradient = ctx.createLinearGradient(cx - r, 0, cx + r, 0);
+      gradient.addColorStop(0, '#52c41a');
+      gradient.addColorStop(0.7, '#fa8c16');
+      gradient.addColorStop(0.85, '#f5222d');
+      gradient.addColorStop(1, '#f5222d');
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, startAngle, endAngle);
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = lineW;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    }
+  };
+}
+</script>
+</body>
+</html>

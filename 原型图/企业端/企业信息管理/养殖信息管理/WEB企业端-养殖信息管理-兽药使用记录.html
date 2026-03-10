@@ -1,0 +1,919 @@
+<!--
+  功能名称：兽药使用记录填报
+  对应PRD：doc_prd/WEB/企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-兽药使用记录.prd.md
+  所属端口：WEB企业端
+  所属模块：企业信息管理 - 养殖信息管理
+  制作日期：2026-03-09
+  最后更新：2026-03-09
+  角色说明：ent_admin/ent_reporter（企业）、town_vet_station（核实）、town_gov_staff（审核）、county_staff（终审）、county_admin（全权）
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>兽药使用记录填报 - 2024年蓬溪县生猪数字化管理平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    [x-cloak] { display: none !important; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; font-size: 14px; color: #262626; background: #f0f2f5; }
+    .sidebar { width: 240px; min-width: 240px; }
+    .main-content { flex: 1; min-width: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    .content-area { flex: 1; overflow-y: auto; padding: 16px; }
+    .table-wrapper { overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { padding: 10px 12px; text-align: left; white-space: nowrap; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+    thead th { background: #fafafa; font-weight: 600; color: #595959; }
+    tbody tr:hover { background: #fafafa; }
+    .op-col { position: sticky; right: 0; background: white; }
+    thead .op-col { background: #fafafa; }
+    .status-badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 500; }
+    .status-0 { background: #f5f5f5; color: #999; }
+    .status-1 { background: #e6f7ff; color: #1890ff; }
+    .status-2 { background: #fff7e6; color: #fa8c16; }
+    .status-3 { background: #f9f0ff; color: #722ed1; }
+    .status-4 { background: #f6ffed; color: #52c41a; }
+    .status-5,.status-6,.status-7 { background: #fff1f0; color: #f5222d; }
+    .btn-primary { background: #1677ff; color: white; border: none; padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 4px; }
+    .btn-primary:hover { background: #4096ff; }
+    .btn-default { background: white; color: #262626; border: 1px solid #d9d9d9; padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 4px; }
+    .btn-default:hover { border-color: #1677ff; color: #1677ff; }
+    .btn-danger { background: #ff4d4f; color: white; border: none; padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    .btn-link { background: none; border: none; color: #1677ff; cursor: pointer; font-size: 12px; padding: 2px 4px; }
+    .btn-link-danger { background: none; border: none; color: #ff4d4f; cursor: pointer; font-size: 12px; padding: 2px 4px; }
+    .form-label { display: block; margin-bottom: 4px; font-size: 13px; color: #595959; }
+    .required { color: #ff4d4f; margin-right: 2px; }
+    .form-input { width: 100%; padding: 6px 10px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 13px; color: #262626; outline: none; box-sizing: border-box; }
+    .form-input:focus { border-color: #1677ff; }
+    .form-error { color: #ff4d4f; font-size: 12px; margin-top: 2px; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+    .modal-box { background: white; border-radius: 6px; box-shadow: 0 6px 16px rgba(0,0,0,0.15); max-height: 90vh; display: flex; flex-direction: column; }
+    .modal-header { padding: 14px 20px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 15px; }
+    .modal-body { overflow-y: auto; padding: 20px; flex: 1; }
+    .modal-footer { padding: 12px 20px; border-top: 1px solid #f0f0f0; display: flex; gap: 8px; justify-content: flex-end; }
+    .pagination { display: flex; align-items: center; gap: 4px; }
+    .page-btn { min-width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #d9d9d9; border-radius: 4px; cursor: pointer; font-size: 12px; background: white; }
+    .page-btn.active { background: #1677ff; color: white; border-color: #1677ff; }
+    .toast { position: fixed; top: 70px; right: 24px; z-index: 9999; padding: 10px 16px; border-radius: 6px; font-size: 13px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .toast-success { background: #f6ffed; border: 1px solid #b7eb8f; color: #52c41a; }
+    .toast-error { background: #fff1f0; border: 1px solid #ffa39e; color: #f5222d; }
+    .reject-row { background: #fff5f5 !important; }
+    .step-bar { display: flex; align-items: flex-start; }
+    .step-item { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; }
+    .step-item:not(:last-child)::after { content: ''; position: absolute; top: 14px; left: 50%; width: 100%; height: 2px; background: #e8e8e8; z-index: 0; }
+    .step-item.done::after { background: #1677ff; }
+    .step-circle { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; z-index: 1; position: relative; background: #e8e8e8; color: #8c8c8c; }
+    .step-item.done .step-circle { background: #1677ff; color: white; }
+    .step-item.current .step-circle { background: #1677ff; color: white; border: 3px solid #91caff; }
+    .step-item.failed .step-circle { background: #ff4d4f; color: white; }
+    .step-label { margin-top: 6px; font-size: 11px; color: #8c8c8c; text-align: center; line-height: 1.3; }
+    .step-item.done .step-label { color: #1677ff; }
+    .step-item.failed .step-label { color: #ff4d4f; }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; }
+    .detail-item { display: flex; gap: 8px; }
+    .detail-label { color: #8c8c8c; white-space: nowrap; min-width: 100px; text-align: right; }
+    .detail-value { color: #262626; flex: 1; word-break: break-all; }
+    .filter-bar { background: white; border-radius: 4px; padding: 14px 16px; margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+    .filter-item { display: flex; flex-direction: column; gap: 4px; }
+    .filter-label { font-size: 12px; color: #8c8c8c; }
+    select.form-input { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%238c8c8c'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; padding-right: 28px; }
+  </style>
+</head>
+<body>
+<div x-data="app()" x-cloak class="flex h-screen overflow-hidden">
+
+  <!-- SECTION START: 顶部导航栏 -->
+  <div class="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4" style="height:60px;background:#1677ff;">
+    <div class="flex items-center gap-3">
+      <i class="fa-solid fa-pig text-white text-xl"></i>
+      <span class="text-white font-semibold text-base">2024年蓬溪县生猪数字化管理平台</span>
+      <span class="text-blue-200 text-sm">· 企业端</span>
+    </div>
+    <div class="flex items-center gap-4">
+      <!-- 角色切换器 -->
+      <div class="flex items-center gap-2">
+        <span class="text-blue-100 text-xs">当前角色：</span>
+        <select x-model="currentRole" @change="onRoleChange()" class="text-xs border-0 rounded px-2 py-1" style="background:rgba(255,255,255,0.15);color:white;">
+          <option value="ent_admin" style="color:#262626;">企业管理员</option>
+          <option value="ent_reporter" style="color:#262626;">企业填报员</option>
+          <option value="town_vet_station" style="color:#262626;">乡镇畜牧兽医站</option>
+          <option value="town_gov_staff" style="color:#262626;">乡镇政府审核员</option>
+          <option value="county_staff" style="color:#262626;">县级终审员</option>
+          <option value="county_admin" style="color:#262626;">县级管理员</option>
+        </select>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-full bg-blue-300 flex items-center justify-center text-white text-xs font-bold">
+          <span x-text="currentUser.name.slice(0,1)"></span>
+        </div>
+        <span class="text-white text-sm" x-text="currentUser.name"></span>
+      </div>
+      <button class="text-blue-100 hover:text-white text-xs flex items-center gap-1">
+        <i class="fa-solid fa-right-from-bracket"></i> 退出
+      </button>
+    </div>
+  </div>
+  <!-- SECTION END: 顶部导航栏 -->
+
+  <!-- 左侧菜单 -->
+  <div class="sidebar bg-white border-r border-gray-200 flex-shrink-0 overflow-y-auto" style="margin-top:60px;">
+    <div class="py-3">
+      <div class="px-4 py-2 text-xs text-gray-400 font-semibold uppercase tracking-wider">企业信息管理</div>
+      <div class="menu-group">
+        <div class="px-4 py-2.5 flex items-center gap-2.5 text-sm text-gray-600 hover:bg-blue-50 cursor-pointer rounded mx-2">
+          <i class="fa-solid fa-building w-4 text-center text-gray-400"></i> 企业基本信息
+        </div>
+        <div class="px-4 py-2 text-xs text-gray-400 font-medium pl-6">养殖信息管理</div>
+        <div class="px-4 py-2.5 flex items-center gap-2.5 text-sm text-gray-600 hover:bg-blue-50 cursor-pointer rounded mx-2 pl-8">
+          <i class="fa-solid fa-notes-medical w-4 text-center text-gray-400"></i> 养殖信息
+        </div>
+        <div class="px-4 py-2.5 flex items-center gap-2.5 text-sm font-medium rounded mx-2 pl-8" style="background:#e6f4ff;color:#1677ff;">
+          <i class="fa-solid fa-syringe w-4 text-center" style="color:#1677ff;"></i> 兽药使用记录
+        </div>
+        <div class="px-4 py-2.5 flex items-center gap-2.5 text-sm text-gray-600 hover:bg-blue-50 cursor-pointer rounded mx-2 pl-8">
+          <i class="fa-solid fa-virus w-4 text-center text-gray-400"></i> 疾病诊疗记录
+        </div>
+        <div class="px-4 py-2.5 flex items-center gap-2.5 text-sm text-gray-600 hover:bg-blue-50 cursor-pointer rounded mx-2 pl-8">
+          <i class="fa-solid fa-shield-virus w-4 text-center text-gray-400"></i> 免疫记录
+        </div>
+        <div class="px-4 py-2.5 flex items-center gap-2.5 text-sm text-gray-600 hover:bg-blue-50 cursor-pointer rounded mx-2 pl-8">
+          <i class="fa-solid fa-flask w-4 text-center text-gray-400"></i> 检测记录
+        </div>
+        <div class="px-4 py-2.5 flex items-center gap-2.5 text-sm text-gray-600 hover:bg-blue-50 cursor-pointer rounded mx-2 pl-8">
+          <i class="fa-solid fa-trash-can w-4 text-center text-gray-400"></i> 无害化处理记录
+        </div>
+      </div>
+      <div class="px-4 py-2 text-xs text-gray-400 font-semibold uppercase tracking-wider mt-2">项目信息管理</div>
+      <div class="px-4 py-2.5 flex items-center gap-2.5 text-sm text-gray-600 hover:bg-blue-50 cursor-pointer rounded mx-2">
+        <i class="fa-solid fa-file-contract w-4 text-center text-gray-400"></i> 项目申报
+      </div>
+      <div class="px-4 py-2 text-xs text-gray-400 font-semibold uppercase tracking-wider mt-2">政策资讯</div>
+      <div class="px-4 py-2.5 flex items-center gap-2.5 text-sm text-gray-600 hover:bg-blue-50 cursor-pointer rounded mx-2">
+        <i class="fa-solid fa-newspaper w-4 text-center text-gray-400"></i> 政策信息查看
+      </div>
+    </div>
+  </div>
+
+  <!-- 主内容区 -->
+  <div class="main-content" style="margin-top:60px;">
+    <!-- 面包屑 -->
+    <div class="px-4 py-2.5 bg-white border-b border-gray-100 flex items-center gap-1.5 text-sm">
+      <span class="text-gray-400">企业信息管理</span>
+      <i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+      <span class="text-gray-400">养殖信息管理</span>
+      <i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+      <span style="color:#1677ff;">兽药使用记录</span>
+    </div>
+
+    <div class="content-area">
+      <!-- SECTION START: 筛选区 -->
+      <section id="feature-filter">
+        <div class="filter-bar">
+          <div class="filter-item" x-show="!isEntRole()">
+            <span class="filter-label">企业名称</span>
+            <input type="text" x-model="filters.entName" placeholder="请输入企业名称" class="form-input" style="width:160px;">
+          </div>
+          <div class="filter-item" x-show="!isEntRole()">
+            <span class="filter-label">行政区划</span>
+            <select x-model="filters.region" class="form-input" style="width:140px;">
+              <option value="">全部</option>
+              <option>蓬南镇</option>
+              <option>常乐镇</option>
+              <option>吉祥镇</option>
+              <option>明月镇</option>
+              <option>天福镇</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <span class="filter-label">药品名称</span>
+            <input type="text" x-model="filters.drugName" placeholder="请输入药品名称" class="form-input" style="width:160px;">
+          </div>
+          <div class="filter-item">
+            <span class="filter-label">使用目的</span>
+            <select x-model="filters.purpose" class="form-input" style="width:120px;">
+              <option value="">全部</option>
+              <option>治疗</option>
+              <option>预防</option>
+              <option>保健</option>
+              <option>其他</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <span class="filter-label">状态</span>
+            <select x-model="filters.status" class="form-input" style="width:120px;">
+              <option value="">全部</option>
+              <option value="0">草稿</option>
+              <option value="1">待核实</option>
+              <option value="2">待审核</option>
+              <option value="3">待终审</option>
+              <option value="4">已入库</option>
+              <option value="5">核实退回</option>
+              <option value="6">审核退回</option>
+              <option value="7">终审退回</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <span class="filter-label">使用日期</span>
+            <input type="date" x-model="filters.dateStart" class="form-input" style="width:140px;">
+          </div>
+          <div class="filter-item">
+            <span class="filter-label" style="visibility:hidden;">至</span>
+            <input type="date" x-model="filters.dateEnd" class="form-input" style="width:140px;">
+          </div>
+          <div class="filter-item">
+            <span class="filter-label" style="visibility:hidden;">操作</span>
+            <div class="flex gap-2">
+              <button @click="doSearch()" class="btn-primary"><i class="fa-solid fa-magnifying-glass"></i> 查询</button>
+              <button @click="resetFilters()" class="btn-default"><i class="fa-solid fa-rotate"></i> 重置</button>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- SECTION END: 筛选区 -->
+
+      <!-- 工具栏 -->
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <h2 class="text-base font-semibold text-gray-800">兽药使用记录</h2>
+          <span class="text-xs text-gray-400">共 <span x-text="filteredList.length"></span> 条</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button x-show="canAdd()" @click="openAddModal()" class="btn-primary">
+            <i class="fa-solid fa-plus"></i> 新增记录
+          </button>
+          <button class="btn-default" @click="showToast('导出成功，文件已生成', 'success')">
+            <i class="fa-solid fa-download"></i> 导出
+          </button>
+        </div>
+      </div>
+
+      <!-- SECTION START: 数据列表 -->
+      <section id="feature-list">
+        <div class="bg-white rounded border border-gray-100" style="display:flex;flex-direction:column;">
+          <div class="table-wrapper" style="flex:1;overflow-y:auto;max-height:calc(100vh - 320px);">
+            <table>
+              <thead>
+                <tr>
+                  <th x-show="!isEntRole()">企业名称</th>
+                  <th x-show="!isEntRole()">行政区划</th>
+                  <th>圈舍名称</th>
+                  <th>使用日期</th>
+                  <th>药品名称</th>
+                  <th>使用数量</th>
+                  <th>计量单位</th>
+                  <th>使用目的</th>
+                  <th>用药动物数量</th>
+                  <th>兽医姓名</th>
+                  <th>停药日期</th>
+                  <th>状态</th>
+                  <th>填报人</th>
+                  <th>创建时间</th>
+                  <th class="op-col">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="row in pagedList" :key="row.id">
+                  <tr :class="[5,6,7].includes(row.status) ? 'reject-row' : ''">
+                    <td x-show="!isEntRole()" x-text="row.entName"></td>
+                    <td x-show="!isEntRole()" x-text="row.region"></td>
+                    <td x-text="row.pen"></td>
+                    <td x-text="row.useDate"></td>
+                    <td x-text="row.drugName"></td>
+                    <td x-text="row.qty"></td>
+                    <td x-text="row.unit"></td>
+                    <td x-text="row.purpose"></td>
+                    <td x-text="row.animalQty"></td>
+                    <td x-text="row.vetName"></td>
+                    <td x-text="row.withdrawDate || '——'"></td>
+                    <td>
+                      <span class="status-badge" :class="'status-'+row.status" x-text="statusLabel(row.status)"></span>
+                    </td>
+                    <td x-text="row.reporter"></td>
+                    <td x-text="row.createdAt"></td>
+                    <td class="op-col">
+                      <div class="flex items-center gap-1">
+                        <button class="btn-link" @click="openDetail(row)">查看</button>
+                        <template x-if="canEdit(row)">
+                          <button class="btn-link" @click="openEditModal(row)">编辑</button>
+                        </template>
+                        <template x-if="canSubmit(row)">
+                          <button class="btn-link" @click="submitRecord(row)">提交</button>
+                        </template>
+                        <template x-if="canWithdraw(row)">
+                          <button class="btn-link" @click="withdrawRecord(row)">撤回</button>
+                        </template>
+                        <template x-if="canVerify(row)">
+                          <button class="btn-link" @click="openApproveModal(row, 'verify')">核实</button>
+                        </template>
+                        <template x-if="canAudit(row)">
+                          <button class="btn-link" @click="openApproveModal(row, 'audit')">审核</button>
+                        </template>
+                        <template x-if="canFinalAudit(row)">
+                          <button class="btn-link" @click="openApproveModal(row, 'final')">终审</button>
+                        </template>
+                        <template x-if="canDirectStore(row)">
+                          <button class="btn-link" @click="directStore(row)">直接入库</button>
+                        </template>
+                        <template x-if="canDelete(row)">
+                          <button class="btn-link-danger" @click="deleteRecord(row)">删除</button>
+                        </template>
+                      </div>
+                    </td>
+                  </tr>
+                </template>
+                <tr x-show="filteredList.length === 0">
+                  <td colspan="15" class="text-center py-8 text-gray-400">暂无数据</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <!-- 分页器 -->
+          <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-white">
+            <span class="text-xs text-gray-400">共 <span x-text="filteredList.length"></span> 条记录</span>
+            <div class="pagination">
+              <button class="page-btn" @click="prevPage()" :disabled="currentPage===1">
+                <i class="fa-solid fa-chevron-left text-xs"></i>
+              </button>
+              <template x-for="p in totalPages" :key="p">
+                <button class="page-btn" :class="p===currentPage?'active':''" @click="currentPage=p" x-text="p"></button>
+              </template>
+              <button class="page-btn" @click="nextPage()" :disabled="currentPage===totalPages">
+                <i class="fa-solid fa-chevron-right text-xs"></i>
+              </button>
+              <span class="text-xs text-gray-400 ml-2">每页 <span x-text="pageSize"></span> 条</span>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- SECTION END: 数据列表 -->
+    </div>
+  </div>
+
+  <!-- SECTION START: 新增/编辑弹窗 -->
+  <div id="feature-add-modal" class="modal-overlay" x-show="showFormModal" @click.self="showFormModal=false">
+    <div class="modal-box" style="width:680px;">
+      <div class="modal-header">
+        <span x-text="formMode==='add'?'新增兽药使用记录':'编辑兽药使用记录'"></span>
+        <button @click="showFormModal=false" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="grid grid-cols-2 gap-x-6 gap-y-4">
+          <div>
+            <label class="form-label"><span class="required">*</span>圈舍</label>
+            <select x-model="form.pen" class="form-input">
+              <option value="">请选择圈舍</option>
+              <template x-for="p in MOCK_DATA.pens" :key="p"><option x-text="p"></option></template>
+            </select>
+            <div class="form-error" x-show="formErrors.pen" x-text="formErrors.pen"></div>
+          </div>
+          <div>
+            <label class="form-label">
+              <span class="required">*</span>使用日期
+            </label>
+            <input type="date" x-model="form.useDate" :max="today" class="form-input">
+            <div class="form-error" x-show="formErrors.useDate" x-text="formErrors.useDate"></div>
+          </div>
+          <div>
+            <label class="form-label">
+              <span class="required">*</span>药品名称
+              <span title="请填写兽药通用名称" style="color:#8c8c8c;cursor:help;margin-left:4px;">ⓘ</span>
+            </label>
+            <input type="text" x-model="form.drugName" maxlength="100" placeholder="请填写兽药通用名称" class="form-input">
+            <div class="form-error" x-show="formErrors.drugName" x-text="formErrors.drugName"></div>
+          </div>
+          <div>
+            <label class="form-label">规格型号</label>
+            <input type="text" x-model="form.spec" placeholder="请输入规格型号" class="form-input">
+          </div>
+          <div>
+            <label class="form-label">批准文号</label>
+            <input type="text" x-model="form.approvalNo" placeholder="请输入批准文号" class="form-input">
+          </div>
+          <div>
+            <label class="form-label"><span class="required">*</span>使用数量</label>
+            <input type="number" x-model="form.qty" min="0.01" step="0.01" placeholder="请输入使用数量" class="form-input">
+            <div class="form-error" x-show="formErrors.qty" x-text="formErrors.qty"></div>
+          </div>
+          <div>
+            <label class="form-label"><span class="required">*</span>计量单位</label>
+            <select x-model="form.unit" class="form-input">
+              <option value="">请选择</option>
+              <option>瓶</option><option>盒</option><option>袋</option><option>支</option>
+              <option>克</option><option>毫升</option><option>其他</option>
+            </select>
+            <div class="form-error" x-show="formErrors.unit" x-text="formErrors.unit"></div>
+          </div>
+          <div>
+            <label class="form-label"><span class="required">*</span>使用目的</label>
+            <select x-model="form.purpose" class="form-input">
+              <option value="">请选择</option>
+              <option>治疗</option><option>预防</option><option>保健</option><option>其他</option>
+            </select>
+            <div class="form-error" x-show="formErrors.purpose" x-text="formErrors.purpose"></div>
+          </div>
+          <div>
+            <label class="form-label"><span class="required">*</span>用药动物数量</label>
+            <input type="number" x-model="form.animalQty" min="1" max="9999" placeholder="1-9999" class="form-input">
+            <div class="form-error" x-show="formErrors.animalQty" x-text="formErrors.animalQty"></div>
+          </div>
+          <div>
+            <label class="form-label">用药动物类别</label>
+            <select x-model="form.animalType" class="form-input">
+              <option value="">请选择</option>
+              <option>公猪</option><option>母猪</option><option>仔猪</option><option>育肥猪</option><option>全群</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">诊断结果</label>
+            <input type="text" x-model="form.diagnosis" placeholder="请输入诊断结果" class="form-input">
+          </div>
+          <div>
+            <label class="form-label"><span class="required">*</span>兽医姓名</label>
+            <input type="text" x-model="form.vetName" placeholder="请输入兽医姓名" class="form-input">
+            <div class="form-error" x-show="formErrors.vetName" x-text="formErrors.vetName"></div>
+          </div>
+          <div>
+            <label class="form-label">
+              停药日期
+              <span title="停药期应符合兽药使用规定" style="color:#8c8c8c;cursor:help;margin-left:4px;">ⓘ</span>
+            </label>
+            <input type="date" x-model="form.withdrawDate" :min="form.useDate" class="form-input">
+            <div class="form-error" x-show="formErrors.withdrawDate" x-text="formErrors.withdrawDate"></div>
+          </div>
+          <div class="col-span-2">
+            <label class="form-label">备注</label>
+            <textarea x-model="form.remark" rows="3" placeholder="请输入备注信息" class="form-input"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button @click="showFormModal=false" class="btn-default">取消</button>
+        <button @click="saveForm()" class="btn-primary">
+          <i class="fa-solid fa-floppy-disk"></i> 保存
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- SECTION END: 新增/编辑弹窗 -->
+
+  <!-- SECTION START: 详情弹窗 -->
+  <div id="feature-detail" class="modal-overlay" x-show="showDetailModal" @click.self="showDetailModal=false">
+    <div class="modal-box" style="width:720px;">
+      <div class="modal-header">
+        <span>兽药使用记录详情</span>
+        <button @click="showDetailModal=false" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="modal-body" x-show="detailRow">
+        <!-- 审批进度条 -->
+        <div class="mb-6 px-2">
+          <div class="text-sm font-medium text-gray-700 mb-3">审批进度</div>
+          <div class="step-bar" x-data>
+            <template x-for="(step, idx) in getSteps(detailRow)" :key="idx">
+              <div class="step-item" :class="step.state">
+                <div class="step-circle">
+                  <i :class="step.state==='done'?'fa-solid fa-check':(step.state==='failed'?'fa-solid fa-xmark':'fa-solid fa-circle-dot')" class="text-xs"></i>
+                </div>
+                <div class="step-label" x-text="step.label"></div>
+                <div class="step-label" style="font-size:10px;" x-text="step.sub || ''"></div>
+              </div>
+            </template>
+          </div>
+        </div>
+        <div class="border-t border-gray-100 pt-4">
+          <div class="text-sm font-medium text-gray-700 mb-3">基本信息</div>
+          <div class="detail-grid">
+            <div class="detail-item" x-show="!isEntRole()">
+              <span class="detail-label">企业名称：</span>
+              <span class="detail-value" x-text="detailRow?.entName||'——'"></span>
+            </div>
+            <div class="detail-item" x-show="!isEntRole()">
+              <span class="detail-label">行政区划：</span>
+              <span class="detail-value" x-text="detailRow?.region||'——'"></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">圈舍名称：</span>
+              <span class="detail-value" x-text="detailRow?.pen||'——'"></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">使用日期：</span>
+              <span class="detail-value" x-text="detailRow?.useDate||'——'"></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">药品名称：</span>
+              <span class="detail-value" x-text="detailRow?.drugName||'——'"></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">规格型号：</span>
+              <span class="detail-value" x-text="detailRow?.spec||'——'"></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">批准文号：</span>
+              <span class="detail-value" x-text="detailRow?.approvalNo||'——'"></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">使用数量：</span>
+              <span class="detail-value" x-text="(detailRow?.qty||'——') + ' ' + (detailRow?.unit||'')"></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">使用目的：</span>
+              <span class="detail-value" x-text="detailRow?.purpose||'——'"></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">用药动物数量：</span>
+              <span class="detail-value" x-text="detailRow?.animalQty||'——'"></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">用药动物类别：</span>
+              <span class="detail-value" x-text="detailRow?.animalType||'——'"></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">诊断结果：</span>
+              <span class="detail-value" x-text="detailRow?.diagnosis||'——'"></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">兽医姓名：</span>
+              <span class="detail-value" x-text="detailRow?.vetName||'——'"></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">停药日期：</span>
+              <span class="detail-value" x-text="detailRow?.withdrawDate||'——'"></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">填报人：</span>
+              <span class="detail-value" x-text="detailRow?.reporter||'——'"></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">创建时间：</span>
+              <span class="detail-value" x-text="detailRow?.createdAt||'——'"></span>
+            </div>
+            <div class="detail-item col-span-2">
+              <span class="detail-label">备注：</span>
+              <span class="detail-value" x-text="detailRow?.remark||'——'"></span>
+            </div>
+          </div>
+        </div>
+        <!-- 退回意见 -->
+        <div x-show="detailRow && [5,6,7].includes(detailRow.status)" class="mt-4 p-3 rounded" style="background:#fff1f0;border:1px solid #ffa39e;">
+          <div class="text-sm font-medium" style="color:#f5222d;"><i class="fa-solid fa-circle-exclamation mr-1"></i>退回意见</div>
+          <div class="text-sm mt-1" style="color:#595959;" x-text="detailRow?.rejectReason||'——'"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button @click="showDetailModal=false" class="btn-default">关闭</button>
+        <template x-if="detailRow && canEdit(detailRow)">
+          <button @click="showDetailModal=false;openEditModal(detailRow)" class="btn-primary">编辑</button>
+        </template>
+      </div>
+    </div>
+  </div>
+  <!-- SECTION END: 详情弹窗 -->
+
+  <!-- SECTION START: 审批弹窗 -->
+  <div id="feature-approve-modal" class="modal-overlay" x-show="showApproveModal" @click.self="showApproveModal=false">
+    <div class="modal-box" style="width:480px;">
+      <div class="modal-header">
+        <span x-text="approveTitle"></span>
+        <button @click="showApproveModal=false" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-4 p-3 rounded bg-gray-50">
+          <div class="text-sm"><span class="text-gray-400">药品名称：</span><span x-text="approveRow?.drugName"></span></div>
+          <div class="text-sm mt-1"><span class="text-gray-400">企业：</span><span x-text="approveRow?.entName"></span></div>
+          <div class="text-sm mt-1"><span class="text-gray-400">使用日期：</span><span x-text="approveRow?.useDate"></span></div>
+        </div>
+        <div class="mb-4">
+          <label class="form-label">审批意见</label>
+          <textarea x-model="approveOpinion" rows="3" placeholder="请输入审批意见（可选）" class="form-input"></textarea>
+        </div>
+        <div x-show="showRejectReason">
+          <label class="form-label"><span class="required">*</span>退回原因</label>
+          <textarea x-model="rejectReason" rows="3" placeholder="请输入退回原因" class="form-input"></textarea>
+          <div class="form-error" x-show="approveErrors.rejectReason" x-text="approveErrors.rejectReason"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button @click="showApproveModal=false" class="btn-default">取消</button>
+        <button @click="showRejectReason=!showRejectReason" class="btn-default" x-show="!showRejectReason">
+          <i class="fa-solid fa-rotate-left"></i> 退回
+        </button>
+        <button @click="submitReject()" class="btn-danger" x-show="showRejectReason">
+          确认退回
+        </button>
+        <button @click="submitApprove()" class="btn-primary" x-show="!showRejectReason">
+          <i class="fa-solid fa-check"></i> 通过
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- SECTION END: 审批弹窗 -->
+
+  <!-- SECTION START: 删除确认弹窗 -->
+  <div id="feature-delete-confirm" class="modal-overlay" x-show="showDeleteConfirm" @click.self="showDeleteConfirm=false">
+    <div class="modal-box" style="width:400px;">
+      <div class="modal-header">
+        <span>确认删除</span>
+        <button @click="showDeleteConfirm=false" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="flex items-start gap-3">
+          <i class="fa-solid fa-triangle-exclamation text-yellow-500 text-xl mt-0.5"></i>
+          <div>
+            <div class="font-medium text-gray-800">确认删除此记录吗？</div>
+            <div class="text-sm text-gray-500 mt-1">药品：<span x-text="deleteTarget?.drugName" class="font-medium"></span></div>
+            <div class="text-sm text-gray-500 mt-1">使用日期：<span x-text="deleteTarget?.useDate"></span></div>
+            <div class="text-sm text-red-500 mt-2">删除后无法恢复，请谨慎操作。</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button @click="showDeleteConfirm=false" class="btn-default">取消</button>
+        <button @click="confirmDelete()" class="btn-danger">确认删除</button>
+      </div>
+    </div>
+  </div>
+  <!-- SECTION END: 删除确认弹窗 -->
+
+  <!-- Toast消息 -->
+  <div x-show="toast.show" class="toast" :class="'toast-'+toast.type" x-transition>
+    <i :class="toast.type==='success'?'fa-solid fa-circle-check':'fa-solid fa-circle-xmark'"></i>
+    <span x-text="toast.msg"></span>
+  </div>
+
+</div>
+
+<script>
+const MOCK_DATA = {
+  currentUsers: {
+    ent_admin:       { id: 1, name: '李志强', role: 'ent_admin',       roleName: '企业管理员',   entId: 101, entName: '蓬溪县鑫源生猪养殖有限公司' },
+    ent_reporter:    { id: 2, name: '王芳',   role: 'ent_reporter',    roleName: '企业填报员',   entId: 101, entName: '蓬溪县鑫源生猪养殖有限公司' },
+    town_vet_station:{ id: 3, name: '赵建国', role: 'town_vet_station', roleName: '乡镇畜牧兽医站', entId: null },
+    town_gov_staff:  { id: 4, name: '陈秀英', role: 'town_gov_staff',  roleName: '乡镇政府审核员', entId: null },
+    county_staff:    { id: 5, name: '张明华', role: 'county_staff',    roleName: '县级终审员',   entId: null },
+    county_admin:    { id: 6, name: '刘建平', role: 'county_admin',    roleName: '县级管理员',   entId: null },
+  },
+  pens: ['A栋1号圈', 'A栋2号圈', 'B栋1号圈', 'B栋2号圈', 'C栋母猪舍', 'D栋仔猪舍'],
+  records: [
+    { id: 1,  entName: '蓬溪县鑫源生猪养殖有限公司', region: '蓬南镇', pen: 'A栋1号圈', useDate: '2026-02-10', drugName: '阿莫西林注射液', spec: '10ml:1g', approvalNo: '兽药字(2020)180010001', qty: 5, unit: '瓶', purpose: '治疗', animalQty: 30, animalType: '育肥猪', diagnosis: '细菌性肺炎', vetName: '李德明', withdrawDate: '2026-02-25', remark: '按说明书用量使用', reporter: '王芳', createdAt: '2026-02-10 09:15', status: 4, rejectReason: '' },
+    { id: 2,  entName: '蓬溪县鑫源生猪养殖有限公司', region: '蓬南镇', pen: 'B栋1号圈', useDate: '2026-02-18', drugName: '恩诺沙星注射液', spec: '100ml:5g', approvalNo: '兽药字(2021)180010023', qty: 3, unit: '瓶', purpose: '治疗', animalQty: 15, animalType: '育肥猪', diagnosis: '消化道感染', vetName: '李德明', withdrawDate: '2026-03-05', remark: '', reporter: '王芳', createdAt: '2026-02-18 10:30', status: 3, rejectReason: '' },
+    { id: 3,  entName: '常乐镇腾飞农业发展有限公司', region: '常乐镇', pen: 'B栋2号圈', useDate: '2026-02-20', drugName: '伊维菌素注射液', spec: '500ml:5g', approvalNo: '兽药字(2019)180030012', qty: 2, unit: '瓶', purpose: '预防', animalQty: 80, animalType: '全群', diagnosis: '', vetName: '吴兴华', withdrawDate: '2026-03-06', remark: '驱虫预防用药', reporter: '周小红', createdAt: '2026-02-20 14:20', status: 2, rejectReason: '' },
+    { id: 4,  entName: '吉祥镇永兴畜禽养殖场',     region: '吉祥镇', pen: 'A栋2号圈', useDate: '2026-02-22', drugName: '头孢噻呋注射液',  spec: '100ml:4g', approvalNo: '兽药字(2022)180010056', qty: 4, unit: '支', purpose: '治疗', animalQty: 20, animalType: '仔猪', diagnosis: '链球菌感染', vetName: '郑春梅', withdrawDate: '2026-03-08', remark: '', reporter: '何建军', createdAt: '2026-02-22 08:45', status: 1, rejectReason: '' },
+    { id: 5,  entName: '蓬溪县鑫源生猪养殖有限公司', region: '蓬南镇', pen: 'C栋母猪舍', useDate: '2026-02-25', drugName: '替米考星口服液',  spec: '100ml:10g', approvalNo: '兽药字(2020)180020034', qty: 10, unit: '瓶', purpose: '预防', animalQty: 50, animalType: '母猪', diagnosis: '', vetName: '李德明', withdrawDate: '2026-03-15', remark: '定期保健预防', reporter: '王芳', createdAt: '2026-02-25 11:00', status: 6, rejectReason: '用药记录中批准文号格式不符合规定，请核实后重新提交' },
+    { id: 6,  entName: '明月镇天顺猪场',           region: '明月镇', pen: 'D栋仔猪舍', useDate: '2026-02-28', drugName: '氟苯尼考注射液',  spec: '100ml:30g', approvalNo: '兽药字(2021)180010089', qty: 2, unit: '瓶', purpose: '治疗', animalQty: 25, animalType: '仔猪', diagnosis: '副猪嗜血杆菌病', vetName: '谢文静', withdrawDate: '2026-03-20', remark: '', reporter: '刘伟', createdAt: '2026-02-28 15:30', status: 5, rejectReason: '请补充完整的诊断结果和用药依据' },
+    { id: 7,  entName: '天福镇兴旺养猪专业合作社',   region: '天福镇', pen: 'A栋1号圈', useDate: '2026-03-01', drugName: '黄芪多糖注射液',  spec: '10ml:2g', approvalNo: '兽药字(2019)180050045', qty: 20, unit: '支', purpose: '保健', animalQty: 120, animalType: '全群', diagnosis: '', vetName: '杨志远', withdrawDate: '', remark: '季节性保健用药', reporter: '马丽华', createdAt: '2026-03-01 09:20', status: 0, rejectReason: '' },
+    { id: 8,  entName: '蓬溪县鑫源生猪养殖有限公司', region: '蓬南镇', pen: 'B栋1号圈', useDate: '2026-03-05', drugName: '磺胺嘧啶钠注射液', spec: '10ml:1g', approvalNo: '兽药字(2020)180010067', qty: 6, unit: '支', purpose: '治疗', animalQty: 12, animalType: '育肥猪', diagnosis: '弓形虫病', vetName: '李德明', withdrawDate: '2026-03-26', remark: '联合用药注意事项已告知', reporter: '王芳', createdAt: '2026-03-05 10:45', status: 7, rejectReason: '磺胺类药物使用需附兽医处方，请补充相关材料' },
+  ]
+};
+
+function app() {
+  return {
+    currentRole: 'ent_admin',
+    currentUser: MOCK_DATA.currentUsers['ent_admin'],
+    records: [...MOCK_DATA.records],
+    filters: { entName: '', region: '', drugName: '', purpose: '', status: '', dateStart: '', dateEnd: '' },
+    currentPage: 1,
+    pageSize: 10,
+    today: new Date().toISOString().split('T')[0],
+
+    // 弹窗状态
+    showFormModal: false,
+    showDetailModal: false,
+    showApproveModal: false,
+    showDeleteConfirm: false,
+    formMode: 'add',
+    form: {},
+    formErrors: {},
+    detailRow: null,
+    approveRow: null,
+    approveType: '',
+    approveTitle: '',
+    approveOpinion: '',
+    showRejectReason: false,
+    rejectReason: '',
+    approveErrors: {},
+    deleteTarget: null,
+    toast: { show: false, msg: '', type: 'success' },
+
+    onRoleChange() {
+      this.currentUser = MOCK_DATA.currentUsers[this.currentRole];
+    },
+
+    isEntRole() {
+      return ['ent_admin', 'ent_reporter'].includes(this.currentRole);
+    },
+
+    statusLabel(s) {
+      const map = {0:'草稿',1:'待核实',2:'待审核',3:'待终审',4:'已入库',5:'核实退回',6:'审核退回',7:'终审退回'};
+      return map[s] || '未知';
+    },
+
+    get filteredList() {
+      let list = this.records;
+      if (this.isEntRole()) {
+        list = list.filter(r => r.entName === this.currentUser.entName);
+      }
+      if (this.filters.entName) list = list.filter(r => r.entName.includes(this.filters.entName));
+      if (this.filters.region) list = list.filter(r => r.region === this.filters.region);
+      if (this.filters.drugName) list = list.filter(r => r.drugName.includes(this.filters.drugName));
+      if (this.filters.purpose) list = list.filter(r => r.purpose === this.filters.purpose);
+      if (this.filters.status !== '') list = list.filter(r => r.status == this.filters.status);
+      if (this.filters.dateStart) list = list.filter(r => r.useDate >= this.filters.dateStart);
+      if (this.filters.dateEnd) list = list.filter(r => r.useDate <= this.filters.dateEnd);
+      return list;
+    },
+
+    get totalPages() {
+      return Math.max(1, Math.ceil(this.filteredList.length / this.pageSize));
+    },
+
+    get pagedList() {
+      const start = (this.currentPage - 1) * this.pageSize;
+      return this.filteredList.slice(start, start + this.pageSize);
+    },
+
+    doSearch() { this.currentPage = 1; },
+    resetFilters() {
+      this.filters = { entName: '', region: '', drugName: '', purpose: '', status: '', dateStart: '', dateEnd: '' };
+      this.currentPage = 1;
+    },
+    prevPage() { if (this.currentPage > 1) this.currentPage--; },
+    nextPage() { if (this.currentPage < this.totalPages) this.currentPage++; },
+
+    // 权限控制
+    canAdd() { return ['ent_admin','ent_reporter','county_admin'].includes(this.currentRole); },
+    canEdit(row) {
+      if (this.currentRole === 'county_admin') return true;
+      if (['ent_admin','ent_reporter'].includes(this.currentRole)) return [0,5,6,7].includes(row.status);
+      return false;
+    },
+    canSubmit(row) {
+      return ['ent_admin','ent_reporter'].includes(this.currentRole) && [0,5,6,7].includes(row.status);
+    },
+    canWithdraw(row) {
+      return ['ent_admin','ent_reporter'].includes(this.currentRole) && row.status === 1;
+    },
+    canVerify(row) { return this.currentRole === 'town_vet_station' && row.status === 1; },
+    canAudit(row) { return this.currentRole === 'town_gov_staff' && row.status === 2; },
+    canFinalAudit(row) { return this.currentRole === 'county_staff' && row.status === 3; },
+    canDirectStore(row) { return this.currentRole === 'county_admin' && row.status !== 4; },
+    canDelete(row) {
+      if (this.currentRole === 'county_admin') return true;
+      return ['ent_admin','ent_reporter'].includes(this.currentRole) && row.status === 0;
+    },
+
+    openAddModal() {
+      this.formMode = 'add';
+      this.form = { pen:'', useDate:'', drugName:'', spec:'', approvalNo:'', qty:'', unit:'', purpose:'', animalQty:'', animalType:'', diagnosis:'', vetName:'', withdrawDate:'', remark:'' };
+      this.formErrors = {};
+      this.showFormModal = true;
+    },
+
+    openEditModal(row) {
+      this.formMode = 'edit';
+      this.form = { ...row };
+      this.formErrors = {};
+      this.showFormModal = true;
+    },
+
+    validateForm() {
+      const e = {};
+      if (!this.form.pen) e.pen = '圈舍不能为空';
+      if (!this.form.useDate) e.useDate = '使用日期不能为空';
+      else if (this.form.useDate > this.today) e.useDate = '使用日期不能超过今天';
+      if (!this.form.drugName) e.drugName = '药品名称不能为空';
+      if (!this.form.qty || this.form.qty <= 0) e.qty = '使用数量必须大于0';
+      if (!this.form.unit) e.unit = '计量单位不能为空';
+      if (!this.form.purpose) e.purpose = '使用目的不能为空';
+      if (!this.form.animalQty || this.form.animalQty < 1 || this.form.animalQty > 9999) e.animalQty = '用药动物数量需在1-9999之间';
+      if (!this.form.vetName) e.vetName = '兽医姓名不能为空';
+      if (this.form.withdrawDate && this.form.useDate && this.form.withdrawDate <= this.form.useDate) e.withdrawDate = '停药日期须晚于使用日期';
+      this.formErrors = e;
+      return Object.keys(e).length === 0;
+    },
+
+    saveForm() {
+      if (!this.validateForm()) return;
+      if (this.formMode === 'add') {
+        const newRec = {
+          ...this.form,
+          id: Date.now(),
+          entName: this.currentUser.entName || '蓬溪县鑫源生猪养殖有限公司',
+          region: '蓬南镇',
+          reporter: this.currentUser.name,
+          createdAt: new Date().toLocaleString('zh-CN',{hour12:false}).replace(/\//g,'-'),
+          status: 0,
+          rejectReason: ''
+        };
+        this.records.unshift(newRec);
+        this.showToast('新增成功', 'success');
+      } else {
+        const idx = this.records.findIndex(r => r.id === this.form.id);
+        if (idx !== -1) this.records[idx] = { ...this.records[idx], ...this.form };
+        this.showToast('保存成功', 'success');
+      }
+      this.showFormModal = false;
+    },
+
+    openDetail(row) {
+      this.detailRow = row;
+      this.showDetailModal = true;
+    },
+
+    getSteps(row) {
+      if (!row) return [];
+      const s = row.status;
+      const steps = [
+        { label: '企业填报', sub: row.reporter },
+        { label: '乡镇兽医站核实', sub: '' },
+        { label: '乡镇政府审核', sub: '' },
+        { label: '县级终审入库', sub: '' },
+      ];
+      if ([0,5,6,7].includes(s)) {
+        steps[0].state = s===0?'current':'failed';
+      } else if (s===1) {
+        steps[0].state='done'; steps[1].state='current';
+      } else if (s===2) {
+        steps[0].state='done'; steps[1].state='done'; steps[2].state='current';
+      } else if (s===3) {
+        steps[0].state='done'; steps[1].state='done'; steps[2].state='done'; steps[3].state='current';
+      } else if (s===4) {
+        steps.forEach(st=>st.state='done');
+      }
+      if (s===5) { steps[0].state='failed'; steps[1].state='failed'; }
+      if (s===6) { steps[0].state='failed'; steps[2].state='failed'; }
+      if (s===7) { steps[0].state='failed'; steps[3].state='failed'; }
+      return steps;
+    },
+
+    submitRecord(row) {
+      const idx = this.records.findIndex(r => r.id === row.id);
+      if (idx !== -1) { this.records[idx].status = 1; this.records[idx].rejectReason = ''; }
+      this.showToast('提交成功，等待乡镇兽医站核实', 'success');
+    },
+
+    withdrawRecord(row) {
+      const idx = this.records.findIndex(r => r.id === row.id);
+      if (idx !== -1) this.records[idx].status = 0;
+      this.showToast('已撤回', 'success');
+    },
+
+    openApproveModal(row, type) {
+      this.approveRow = row;
+      this.approveType = type;
+      this.approveOpinion = '';
+      this.rejectReason = '';
+      this.showRejectReason = false;
+      this.approveErrors = {};
+      const titles = { verify:'核实 - 乡镇兽医站', audit:'审核 - 乡镇政府', final:'终审 - 县级' };
+      this.approveTitle = titles[type] || '审批';
+      this.showApproveModal = true;
+    },
+
+    submitApprove() {
+      const idx = this.records.findIndex(r => r.id === this.approveRow.id);
+      if (idx === -1) return;
+      if (this.approveType === 'verify') this.records[idx].status = 2;
+      else if (this.approveType === 'audit') this.records[idx].status = 3;
+      else if (this.approveType === 'final') this.records[idx].status = 4;
+      this.showApproveModal = false;
+      this.showToast('审批通过', 'success');
+    },
+
+    submitReject() {
+      if (!this.rejectReason.trim()) { this.approveErrors.rejectReason = '退回原因不能为空'; return; }
+      const idx = this.records.findIndex(r => r.id === this.approveRow.id);
+      if (idx === -1) return;
+      const statusMap = { verify:5, audit:6, final:7 };
+      this.records[idx].status = statusMap[this.approveType];
+      this.records[idx].rejectReason = this.rejectReason;
+      this.showApproveModal = false;
+      this.showToast('已退回', 'success');
+    },
+
+    directStore(row) {
+      const idx = this.records.findIndex(r => r.id === row.id);
+      if (idx !== -1) { this.records[idx].status = 4; this.records[idx].rejectReason = ''; }
+      this.showToast('已直接入库（操作留痕）', 'success');
+    },
+
+    deleteRecord(row) {
+      this.deleteTarget = row;
+      this.showDeleteConfirm = true;
+    },
+
+    confirmDelete() {
+      this.records = this.records.filter(r => r.id !== this.deleteTarget.id);
+      this.showDeleteConfirm = false;
+      this.showToast('删除成功', 'success');
+    },
+
+    showToast(msg, type='success') {
+      this.toast = { show: true, msg, type };
+      setTimeout(() => this.toast.show = false, 3000);
+    }
+  };
+}
+</script>
+</body>
+</html>

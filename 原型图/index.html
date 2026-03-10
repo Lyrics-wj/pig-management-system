@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2024年蓬溪县生猪数字化管理平台 · 原型导航</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    /* SHARED STYLES */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue:    #1677ff;
+      --green:   #52c41a;
+      --orange:  #fa8c16;
+      --purple:  #722ed1;
+      --cyan:    #13c2c2;
+      --red:     #f5222d;
+      --gold:    #faad14;
+      --pink:    #eb2f96;
+      --bg:      #f0f2f5;
+      --card-bg: #ffffff;
+      --border:  #e8e8e8;
+      --text-1:  #1a1a1a;
+      --text-2:  #595959;
+      --text-3:  #8c8c8c;
+      --text-4:  #bfbfbf;
+      --radius:  10px;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: var(--bg);
+      color: var(--text-1);
+      min-height: 100vh;
+    }
+
+    /* ===== TOP HEADER ===== */
+    .top-header {
+      background: linear-gradient(135deg, #001a3e 0%, #003580 60%, #0050b3 100%);
+      padding: 0 40px;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+    }
+    .top-header-inner {
+      max-width: 1280px; margin: 0 auto;
+      height: 56px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .header-brand { display: flex; align-items: center; gap: 12px; }
+    .header-brand .logo {
+      width: 34px; height: 34px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .header-brand .logo i { font-size: 16px; color: #fff; }
+    .header-brand h1 { font-size: 15px; font-weight: 600; color: #fff; }
+    .header-brand p { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 1px; }
+    .header-nav { display: flex; align-items: center; gap: 6px; }
+    .header-nav a {
+      font-size: 13px; color: rgba(255,255,255,0.65);
+      text-decoration: none; padding: 6px 14px; border-radius: 6px;
+      transition: all 0.15s;
+    }
+    .header-nav a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .header-nav a.active { background: rgba(255,255,255,0.15); color: #fff; }
+    .header-nav .btn-system {
+      background: var(--blue); color: #fff;
+      padding: 6px 16px; border-radius: 6px; font-size: 13px;
+      text-decoration: none; display: flex; align-items: center; gap: 6px;
+      transition: all 0.15s;
+    }
+    .header-nav .btn-system:hover { background: #0958d9; transform: translateY(-1px); }
+
+    /* ===== HERO ===== */
+    .hero {
+      background: linear-gradient(135deg, #001a3e 0%, #003580 60%, #0050b3 100%);
+      padding: 48px 40px 56px;
+    }
+    .hero-inner { max-width: 1280px; margin: 0 auto; }
+    .hero-title { font-size: 28px; font-weight: 700; color: #fff; margin-bottom: 10px; }
+    .hero-sub { font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 28px; }
+    .hero-stats {
+      display: flex; gap: 24px; flex-wrap: wrap;
+    }
+    .stat-item {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      padding: 12px 20px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .stat-num { font-size: 24px; font-weight: 700; color: #fff; }
+    .stat-label { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+
+    /* ===== STICKY NAV BAR ===== */
+    .sticky-nav {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 56px; z-index: 90;
+    }
+    .sticky-nav-inner {
+      max-width: 1280px; margin: 0 auto;
+      display: flex; align-items: center; gap: 4px;
+      padding: 0 16px;
+      overflow-x: auto;
+    }
+    .sticky-nav-inner::-webkit-scrollbar { height: 0; }
+    .nav-anchor {
+      white-space: nowrap;
+      font-size: 13px;
+      padding: 12px 14px;
+      color: var(--text-2);
+      text-decoration: none;
+      border-bottom: 2px solid transparent;
+      display: flex; align-items: center; gap: 6px;
+      transition: all 0.15s;
+    }
+    .nav-anchor:hover { color: var(--blue); }
+    .nav-anchor.active { color: var(--blue); border-bottom-color: var(--blue); }
+    .nav-anchor i { font-size: 12px; }
+
+    /* ===== MAIN CONTENT ===== */
+    .main { max-width: 1280px; margin: 0 auto; padding: 32px 40px 60px; }
+
+    /* ===== SECTION ===== */
+    .section { margin-bottom: 48px; }
+    .section-header {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid var(--border);
+    }
+    .section-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .section-icon i { font-size: 18px; color: #fff; }
+    .section-title { font-size: 18px; font-weight: 700; color: var(--text-1); }
+    .section-desc { font-size: 13px; color: var(--text-3); margin-top: 3px; }
+    .section-badge {
+      margin-left: auto;
+      font-size: 12px; color: var(--text-3);
+      background: #f5f5f5; border: 1px solid var(--border);
+      border-radius: 20px; padding: 3px 12px;
+    }
+
+    /* ===== MODULE GROUP ===== */
+    .module-group { margin-bottom: 24px; }
+    .module-group-title {
+      font-size: 12px; font-weight: 600; color: var(--text-3);
+      letter-spacing: 1px; text-transform: uppercase;
+      margin-bottom: 10px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .module-group-title::after {
+      content: '';  flex: 1; height: 1px; background: var(--border);
+    }
+
+    /* ===== CARD GRID ===== */
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+    .card-grid-dense { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+
+    /* ===== PROTO CARD ===== */
+    .proto-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: flex; flex-direction: column; gap: 10px;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .proto-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 3px; background: var(--card-accent, #e8e8e8);
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+    .proto-card:hover { border-color: var(--blue); box-shadow: 0 4px 20px rgba(22,119,255,0.1); transform: translateY(-2px); }
+    .proto-card.todo { opacity: 0.65; cursor: default; }
+    .proto-card.todo:hover { transform: none; box-shadow: none; border-color: var(--border); }
+
+    .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .card-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .card-icon i { font-size: 14px; color: #fff; }
+    .card-title {
+      flex: 1; font-size: 14px; font-weight: 600; color: var(--text-1); line-height: 1.4;
+    }
+    .card-desc { font-size: 12px; color: var(--text-3); line-height: 1.6; }
+    .card-meta {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      margin-top: 2px;
+    }
+    .card-meta-item { font-size: 11px; color: var(--text-4); display: flex; align-items: center; gap: 3px; }
+
+    .card-actions { display: flex; gap: 8px; align-items: center; margin-top: 2px; }
+    .btn-view {
+      flex: 1; background: var(--blue); color: #fff;
+      border: none; border-radius: 6px; padding: 7px 0;
+      font-size: 12px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+      text-decoration: none; transition: all 0.15s;
+    }
+    .btn-view:hover { background: #0958d9; }
+    .btn-view.btn-new-tab { background: #f0f7ff; color: var(--blue); border: 1px solid #91caff; }
+    .btn-view.btn-new-tab:hover { background: #e6f4ff; }
+    .btn-view.todo-btn { background: #f5f5f5; color: var(--text-4); cursor: not-allowed; border: 1px solid var(--border); }
+
+    /* Status tags */
+    .tag {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 11px; border-radius: 4px; padding: 2px 7px;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .tag-done  { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; }
+    .tag-todo  { background: #f5f5f5; color: var(--text-3); border: 1px solid #d9d9d9; }
+
+    /* ===== SIDE NOTE card (PRD only) ===== */
+    .prd-only {
+      background: #fffbe6;
+      border: 1px dashed #ffe58f;
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      font-size: 12px; color: #874d00;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .prd-only i { color: #faad14; flex-shrink: 0; }
+
+    /* ===== FOOTER ===== */
+    .footer {
+      background: #001a3e;
+      padding: 24px 40px;
+      text-align: center;
+    }
+    .footer p { font-size: 12px; color: rgba(255,255,255,0.35); line-height: 2; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .top-header, .hero, .main { padding-left: 16px; padding-right: 16px; }
+      .card-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== TOP HEADER ===== -->
+<header class="top-header">
+  <div class="top-header-inner">
+    <div class="header-brand">
+      <div class="logo"><i class="fa-solid fa-piggy-bank"></i></div>
+      <div>
+        <h1>2024年蓬溪县生猪数字化管理平台</h1>
+        <p>原型导航 · 按PRD功能规划顺序整理</p>
+      </div>
+    </div>
+    <nav class="header-nav">
+      <a href="#section-supervisor" class="nav-anchor">监管端</a>
+      <a href="#section-enterprise" class="nav-anchor">企业端</a>
+      <a href="#section-knowledge" class="nav-anchor">知识讲堂</a>
+      <a href="system.html" class="btn-system" target="_blank">
+        <i class="fa-solid fa-desktop"></i> 进入系统演示
+      </a>
+    </nav>
+  </div>
+</header>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="hero-inner">
+    <h2 class="hero-title">原型图功能导航</h2>
+    <p class="hero-sub">按 PRD 功能规划顺序排列，点击"查看原型"在新标签页打开，或通过"系统演示"体验完整交互流程</p>
+    <div class="hero-stats">
+      <div class="stat-item">
+        <div>
+          <div class="stat-num">57</div>
+          <div class="stat-label">已完成原型</div>
+        </div>
+      </div>
+      <div class="stat-item">
+        <div>
+          <div class="stat-num">2</div>
+          <div class="stat-label">待制作原型</div>
+        </div>
+      </div>
+      <div class="stat-item">
+        <div>
+          <div class="stat-num">3</div>
+          <div class="stat-label">端（监管/企业/知识）</div>
+        </div>
+      </div>
+      <div class="stat-item">
+        <div>
+          <div class="stat-num">6</div>
+          <div class="stat-label">涉及角色</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== STICKY NAV ===== -->
+<div class="sticky-nav">
+  <div class="sticky-nav-inner">
+    <a href="#section-supervisor" class="nav-anchor"><i class="fa-solid fa-shield-halved"></i> 监管端</a>
+    <a href="#grp-smart" class="nav-anchor">智慧监管</a>
+    <a href="#grp-video" class="nav-anchor">视频监管</a>
+    <a href="#grp-analysis" class="nav-anchor">决策分析</a>
+    <a href="#grp-cab" class="nav-anchor">产业驾驶舱</a>
+    <a href="#grp-policy-sup" class="nav-anchor">政策资讯</a>
+    <span style="color:#e8e8e8;padding:0 4px;">|</span>
+    <a href="#section-enterprise" class="nav-anchor"><i class="fa-solid fa-building"></i> 企业端</a>
+    <a href="#grp-entbase" class="nav-anchor">企业信息管理</a>
+    <a href="#grp-breed" class="nav-anchor">养殖信息管理</a>
+    <a href="#grp-entproj" class="nav-anchor">项目信息管理</a>
+    <a href="#grp-policy-ent" class="nav-anchor">政策资讯</a>
+    <span style="color:#e8e8e8;padding:0 4px;">|</span>
+    <a href="#section-knowledge" class="nav-anchor"><i class="fa-solid fa-book-open"></i> 知识讲堂</a>
+  </div>
+</div>
+
+<!-- ===== MAIN ===== -->
+<main class="main">
+
+
+<!-- ============================================================ -->
+<!-- SECTION: 监管端 -->
+<!-- ============================================================ -->
+<section class="section" id="section-supervisor">
+  <div class="section-header">
+    <div class="section-icon" style="background:linear-gradient(135deg,#1677ff,#69b1ff);">
+      <i class="fa-solid fa-shield-halved"></i>
+    </div>
+    <div>
+      <div class="section-title">监管端（WEB）</div>
+      <div class="section-desc">面向县级管理员、县级业务人员、乡镇兽医站、乡镇政府业务人员</div>
+    </div>
+    <div class="section-badge">共 22 个已完成</div>
+  </div>
+
+  <!-- 智慧监管 -->
+  <!-- SECTION: 智慧监管 -->
+  <div class="module-group" id="grp-smart">
+    <div class="module-group-title"><i class="fa-solid fa-shield-halved" style="color:#722ed1;"></i> 智慧监管</div>
+
+    <div style="margin-bottom:14px;">
+      <div style="font-size:11px;color:var(--text-3);margin-bottom:8px;font-weight:600;">— 养殖企业管理</div>
+      <div class="card-grid">
+
+        <div class="proto-card" style="--card-accent:#722ed1;">
+          <div class="card-top">
+            <div class="card-icon" style="background:linear-gradient(135deg,#722ed1,#b37feb);"><i class="fa-solid fa-building-user"></i></div>
+            <div class="card-title">01. 养殖企业信息管理</div>
+            <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+          </div>
+          <div class="card-desc">全县养殖企业/散户档案列表，支持按规模、区域、状态筛选；企业详情查看；企业资质证件管理。</div>
+          <div class="card-meta">
+            <span class="card-meta-item"><i class="fa-solid fa-tag"></i> 监管端 · 智慧监管</span>
+          </div>
+          <div class="card-actions">
+            <a class="btn-view" href="监管端/智慧监管/养殖企业管理/WEB监管端-养殖企业信息管理.html" target="_blank">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+            </a>
+          </div>
+        </div>
+
+        <div class="proto-card" style="--card-accent:#722ed1;">
+          <div class="card-top">
+            <div class="card-icon" style="background:linear-gradient(135deg,#722ed1,#b37feb);"><i class="fa-solid fa-folder-open"></i></div>
+            <div class="card-title">02. 养殖档案监管</div>
+            <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+          </div>
+          <div class="card-desc">监管端查看各企业提交的养殖档案记录，支持按企业、时间、记录类型多维筛选，及档案异常标记。</div>
+          <div class="card-meta">
+            <span class="card-meta-item"><i class="fa-solid fa-tag"></i> 监管端 · 智慧监管</span>
+          </div>
+          <div class="card-actions">
+            <a class="btn-view" href="监管端/智慧监管/养殖企业管理/WEB监管端-养殖档案监管.html" target="_blank">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div style="margin-bottom:14px;">
+      <div style="font-size:11px;color:var(--text-3);margin-bottom:8px;font-weight:600;">— 电子档案管理</div>
+      <div class="card-grid">
+
+        <div class="proto-card" style="--card-accent:#722ed1;">
+          <div class="card-top">
+            <div class="card-icon" style="background:linear-gradient(135deg,#722ed1,#b37feb);"><i class="fa-solid fa-table-list"></i></div>
+            <div class="card-title">03. 档案台账总览</div>
+            <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+          </div>
+          <div class="card-desc">以台账视图展示所有档案填报情况，按企业/时间/类型多维汇总，直观展示填报完整率及待审核数量。</div>
+          <div class="card-meta">
+            <span class="card-meta-item"><i class="fa-solid fa-tag"></i> 监管端 · 电子档案管理</span>
+          </div>
+          <div class="card-actions">
+            <a class="btn-view" href="监管端/智慧监管/电子档案管理/WEB监管端-档案台账总览.html" target="_blank">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+            </a>
+          </div>
+        </div>
+
+        <div class="proto-card" style="--card-accent:#722ed1;">
+          <div class="card-top">
+            <div class="card-icon" style="background:linear-gradient(135deg,#722ed1,#b37feb);"><i class="fa-solid fa-magnifying-glass"></i></div>
+            <div class="card-title">04. 档案分类检索</div>
+            <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+          </div>
+          <div class="card-desc">按档案分类（生产、防疫、检疫、兽药、饲料等）精准检索，支持全文搜索和高级筛选条件组合。</div>
+          <div class="card-meta">
+            <span class="card-meta-item"><i class="fa-solid fa-tag"></i> 监管端 · 电子档案管理</span>
+          </div>
+          <div class="card-actions">
+            <a class="btn-view" href="监管端/智慧监管/电子档案管理/WEB监管端-档案分类检索.html" target="_blank">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+            </a>
+          </div>
+        </div>
+
+        <div class="proto-card" style="--card-accent:#722ed1;">
+          <div class="card-top">
+            <div class="card-icon" style="background:linear-gradient(135deg,#722ed1,#b37feb);"><i class="fa-solid fa-chart-column"></i></div>
+            <div class="card-title">05. 档案统计分析</div>
+            <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+          </div>
+          <div class="card-desc">档案填报完整性、及时性统计；各类档案数量趋势图；企业填报排名及异常率分析。</div>
+          <div class="card-meta">
+            <span class="card-meta-item"><i class="fa-solid fa-tag"></i> 监管端 · 电子档案管理</span>
+          </div>
+          <div class="card-actions">
+            <a class="btn-view" href="监管端/智慧监管/电子档案管理/WEB监管端-档案统计分析.html" target="_blank">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div style="margin-bottom:14px;">
+      <div style="font-size:11px;color:var(--text-3);margin-bottom:8px;font-weight:600;">— 工作通知管理</div>
+      <div class="card-grid">
+
+        <div class="proto-card" style="--card-accent:#13c2c2;">
+          <div class="card-top">
+            <div class="card-icon" style="background:linear-gradient(135deg,#13c2c2,#5cdbd3);"><i class="fa-solid fa-bullhorn"></i></div>
+            <div class="card-title">06. 通知公告管理</div>
+            <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+          </div>
+          <div class="card-desc">发布/管理面向企业端的通知公告，支持定向推送（按区域/规模/类型），查看已读状态和阅读统计。</div>
+          <div class="card-meta">
+            <span class="card-meta-item"><i class="fa-solid fa-tag"></i> 监管端 · 工作通知</span>
+          </div>
+          <div class="card-actions">
+            <a class="btn-view" href="监管端/智慧监管/工作通知管理/WEB监管端-通知公告管理.html" target="_blank">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+            </a>
+          </div>
+        </div>
+
+        <div class="proto-card" style="--card-accent:#13c2c2;">
+          <div class="card-top">
+            <div class="card-icon" style="background:linear-gradient(135deg,#13c2c2,#5cdbd3);"><i class="fa-solid fa-list-check"></i></div>
+            <div class="card-title">07. 工作任务管理</div>
+            <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+          </div>
+          <div class="card-desc">创建并下发工作任务（防疫检查、档案核查、现场督导等），追踪各级任务执行进度和完成情况。</div>
+          <div class="card-meta">
+            <span class="card-meta-item"><i class="fa-solid fa-tag"></i> 监管端 · 工作通知</span>
+          </div>
+          <div class="card-actions">
+            <a class="btn-view" href="监管端/智慧监管/工作通知管理/WEB监管端-工作任务管理.html" target="_blank">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+            </a>
+          </div>
+        </div>
+
+        <div class="proto-card" style="--card-accent:#13c2c2;">
+          <div class="card-top">
+            <div class="card-icon" style="background:linear-gradient(135deg,#13c2c2,#5cdbd3);"><i class="fa-solid fa-inbox"></i></div>
+            <div class="card-title">08. 信息收集管理</div>
+            <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+          </div>
+          <div class="card-desc">向企业下发信息收集表单，汇总各企业填报的专项信息（如防灾备案、生产数据上报等）。</div>
+          <div class="card-meta">
+            <span class="card-meta-item"><i class="fa-solid fa-tag"></i> 监管端 · 工作通知</span>
+          </div>
+          <div class="card-actions">
+            <a class="btn-view" href="监管端/智慧监管/工作通知管理/WEB监管端-信息收集管理.html" target="_blank">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+            </a>
+          </div>
+        </div>
+
+        <div class="proto-card" style="--card-accent:#13c2c2;">
+          <div class="card-top">
+            <div class="card-icon" style="background:linear-gradient(135deg,#13c2c2,#5cdbd3);"><i class="fa-solid fa-gauge-high"></i></div>
+            <div class="card-title">09. 情况总结看板</div>
+            <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+          </div>
+          <div class="card-desc">工作任务完成情况、通知送达率、信息收集完整率等工作效能数据的综合看板。</div>
+          <div class="card-meta">
+            <span class="card-meta-item"><i class="fa-solid fa-tag"></i> 监管端 · 工作通知</span>
+          </div>
+          <div class="card-actions">
+            <a class="btn-view" href="监管端/智慧监管/工作通知管理/WEB监管端-情况总结看板.html" target="_blank">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div style="margin-bottom:14px;">
+      <div style="font-size:11px;color:var(--text-3);margin-bottom:8px;font-weight:600;">— 项目信息管理</div>
+      <div class="card-grid">
+
+        <div class="proto-card" style="--card-accent:#fa8c16;">
+          <div class="card-top">
+            <div class="card-icon" style="background:linear-gradient(135deg,#fa8c16,#ffc069);"><i class="fa-solid fa-file-circle-check"></i></div>
+            <div class="card-title">10. 畜牧项目建设申报审核</div>
+            <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+          </div>
+          <div class="card-desc">对企业端提交的畜牧项目建设申报进行审核，支持审核通过/退回/批注，查看申报材料和历史审核记录。</div>
+          <div class="card-meta">
+            <span class="card-meta-item"><i class="fa-solid fa-tag"></i> 监管端 · 项目管理</span>
+            <span class="card-meta-item"><i class="fa-solid fa-user"></i> 县级管理员/业务人员</span>
+          </div>
+          <div class="card-actions">
+            <a class="btn-view" href="监管端/智慧监管/项目信息管理/项目申报审核/WEB管理端-项目管理-畜牧项目建设申报.html" target="_blank">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+            </a>
+          </div>
+        </div>
+
+        <div class="proto-card" style="--card-accent:#fa8c16;">
+          <div class="card-top">
+            <div class="card-icon" style="background:linear-gradient(135deg,#fa8c16,#ffc069);"><i class="fa-solid fa-clipboard-check"></i></div>
+            <div class="card-title">11. 项目竣工验收审核</div>
+            <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+          </div>
+          <div class="card-desc">对企业端提交的项目竣工投产前验收申请进行审核，含验收材料查看、现场核查结论填写、审批意见留存。</div>
+          <div class="card-meta">
+            <span class="card-meta-item"><i class="fa-solid fa-tag"></i> 监管端 · 项目管理</span>
+          </div>
+          <div class="card-actions">
+            <a class="btn-view" href="监管端/智慧监管/项目信息管理/项目验收审核/WEB监管端-项目管理-项目竣工投产前验收审核.html" target="_blank">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /智慧监管 -->
+
+  <!-- 视频监管 -->
+  <!-- SECTION: 视频监管 -->
+  <div class="module-group" id="grp-video">
+    <div class="module-group-title"><i class="fa-solid fa-video" style="color:#eb2f96;"></i> 视频监管</div>
+    <div class="card-grid card-grid-dense">
+
+      <div class="proto-card" style="--card-accent:#eb2f96;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#eb2f96,#ff85c0);"><i class="fa-solid fa-gauge"></i></div>
+          <div class="card-title">12. 视频监管驾驶舱</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">全县摄像头在线状态总览、告警统计、设备分布地图、最新异常抓帧展示。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="监管端/视频监管/WEB监管端-视频监管驾驶舱.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#eb2f96;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#eb2f96,#ff85c0);"><i class="fa-solid fa-camera"></i></div>
+          <div class="card-title">13. 视频设备信息管理</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">摄像头设备台账管理，含设备编号、安装位置、所属企业、状态、通道号等信息的增删改查。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="监管端/视频监管/WEB监管端-视频设备信息管理.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#eb2f96;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#eb2f96,#ff85c0);"><i class="fa-solid fa-circle-play"></i></div>
+          <div class="card-title">14. 视频监控实时查看</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">多画面实时视频流播放，支持1/4/9/16宫格切换，单画面放大，截图功能。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="监管端/视频监管/WEB监管端-视频监控实时查看.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#eb2f96;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#eb2f96,#ff85c0);"><i class="fa-solid fa-triangle-exclamation"></i></div>
+          <div class="card-title">15. 视频监控告警管理</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">AI识别告警记录列表（非法入侵、异常行为等），支持告警确认/忽略/转工单，查看告警截图。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="监管端/视频监管/WEB监管端-视频监控告警管理.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#eb2f96;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#eb2f96,#ff85c0);"><i class="fa-solid fa-clock-rotate-left"></i></div>
+          <div class="card-title">16. 视频监控历史回放</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">按设备、时间段查询历史录像，支持时间轴拖拽回放、倍速播放、片段下载。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="监管端/视频监管/WEB监管端-视频监控历史回放.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#eb2f96;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#eb2f96,#ff85c0);"><i class="fa-solid fa-cloud"></i></div>
+          <div class="card-title">17. 云存储管理</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">视频云存储空间用量监控、存储策略配置（保存时长/录制规则）、存储资源分配管理。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="监管端/视频监管/WEB监管端-云存储管理.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /视频监管 -->
+
+  <!-- 决策分析 -->
+  <!-- SECTION: 决策分析 -->
+  <div class="module-group" id="grp-analysis">
+    <div class="module-group-title"><i class="fa-solid fa-chart-line" style="color:#52c41a;"></i> 决策分析</div>
+    <div class="card-grid">
+
+      <div class="proto-card" style="--card-accent:#52c41a;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#52c41a,#95de64);"><i class="fa-solid fa-chart-area"></i></div>
+          <div class="card-title">18. 养殖分析</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">全县养殖规模、存栏出栏趋势、品种结构、企业分布等养殖维度的多图表分析看板。</div>
+        <div class="card-meta">
+          <span class="card-meta-item"><i class="fa-solid fa-tag"></i> 监管端 · 决策分析</span>
+        </div>
+        <div class="card-actions">
+          <a class="btn-view" href="监管端/决策分析/养殖分析/WEB监管端-养殖分析.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#52c41a;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#52c41a,#95de64);"><i class="fa-solid fa-store"></i></div>
+          <div class="card-title">19. 市场贸易分析</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">生猪及猪肉产品价格走势、销售量统计、市场流通方向、主要交易主体等市场维度分析。</div>
+        <div class="card-meta">
+          <span class="card-meta-item"><i class="fa-solid fa-tag"></i> 监管端 · 决策分析</span>
+        </div>
+        <div class="card-actions">
+          <a class="btn-view" href="监管端/决策分析/市场贸易分析/WEB监管端-市场贸易分析.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#52c41a;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#52c41a,#95de64);"><i class="fa-solid fa-flask"></i></div>
+          <div class="card-title">20. 检验检疫无害化分析</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">检疫合格率、无害化处理量、疫病监测结果分布等检验检疫维度的数据统计分析看板。</div>
+        <div class="card-meta">
+          <span class="card-meta-item"><i class="fa-solid fa-tag"></i> 监管端 · 决策分析</span>
+        </div>
+        <div class="card-actions">
+          <a class="btn-view" href="监管端/决策分析/检验检疫无害化分析/WEB监管端-检验检疫无害化分析.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /决策分析 -->
+
+  <!-- 产业驾驶舱 -->
+  <!-- SECTION: 产业驾驶舱 -->
+  <div class="module-group" id="grp-cab">
+    <div class="module-group-title"><i class="fa-solid fa-chart-pie" style="color:#1677ff;"></i> 产业驾驶舱</div>
+    <div class="card-grid">
+
+      <div class="proto-card" style="--card-accent:#1677ff;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#1677ff,#69b1ff);"><i class="fa-solid fa-tv"></i></div>
+          <div class="card-title">21. 产业总览大屏</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">全县生猪产业核心数据可视化大屏，包含存栏量、出栏量、规模分布、疫病态势、市场价格等多维度数据看板。</div>
+        <div class="card-meta">
+          <span class="card-meta-item"><i class="fa-solid fa-tag"></i> 监管端</span>
+          <span class="card-meta-item"><i class="fa-solid fa-user"></i> 县级管理员/业务人员</span>
+        </div>
+        <div class="card-actions">
+          <a class="btn-view" href="监管端/产业驾驶舱/产业总览/WEB监管端-产业总览大屏.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+          <a class="btn-view btn-new-tab" href="system.html" target="_blank" title="在系统中打开">
+            <i class="fa-solid fa-desktop"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#1677ff;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#1677ff,#69b1ff);"><i class="fa-solid fa-sliders"></i></div>
+          <div class="card-title">22. 大屏配置</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">大屏展示内容配置管理，支持模块显示/隐藏、数据源绑定、刷新频率等参数自定义设置。</div>
+        <div class="card-meta">
+          <span class="card-meta-item"><i class="fa-solid fa-tag"></i> 监管端</span>
+          <span class="card-meta-item"><i class="fa-solid fa-user"></i> 县级管理员</span>
+        </div>
+        <div class="card-actions">
+          <a class="btn-view" href="监管端/产业驾驶舱/大屏配置/WEB监管端-大屏配置.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /产业驾驶舱 -->
+
+  <!-- 政策资讯（监管端） -->
+  <!-- SECTION: 政策资讯管理 -->
+  <div class="module-group" id="grp-policy-sup">
+    <div class="module-group-title"><i class="fa-solid fa-newspaper" style="color:#faad14;"></i> 政策资讯管理</div>
+    <div class="prd-only">
+      <i class="fa-solid fa-circle-info"></i>
+      PRD已规划：政策资讯管理（WEB管理端-政策资讯管理.prd.md）— 原型待制作
+    </div>
+  </div>
+
+</section><!-- /监管端 -->
+
+
+<!-- ============================================================ -->
+<!-- SECTION: 企业端 -->
+<!-- ============================================================ -->
+<section class="section" id="section-enterprise">
+  <div class="section-header">
+    <div class="section-icon" style="background:linear-gradient(135deg,#fa8c16,#ffc069);">
+      <i class="fa-solid fa-building"></i>
+    </div>
+    <div>
+      <div class="section-title">企业端（WEB）</div>
+      <div class="section-desc">面向企业管理员、企业填报员；部分功能需县级/乡镇审核人员配合</div>
+    </div>
+    <div class="section-badge">共 30 个已完成</div>
+  </div>
+
+  <!-- 企业信息管理 -->
+  <!-- SECTION: 企业信息管理 -->
+  <div class="module-group" id="grp-entbase">
+    <div class="module-group-title"><i class="fa-solid fa-building" style="color:#fa8c16;"></i> 企业信息管理</div>
+
+    <div style="margin-bottom:14px;">
+      <div style="font-size:11px;color:var(--text-3);margin-bottom:8px;font-weight:600;">— 基础信息</div>
+      <div class="card-grid">
+
+        <div class="proto-card" style="--card-accent:#fa8c16;">
+          <div class="card-top">
+            <div class="card-icon" style="background:linear-gradient(135deg,#fa8c16,#ffc069);"><i class="fa-solid fa-id-card"></i></div>
+            <div class="card-title">01. 企业基础信息 + 圈舍管理</div>
+            <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+          </div>
+          <div class="card-desc">企业名称/社会信用代码/法人/联系方式/地址/养殖规模等信息查看与编辑；圈舍增删改查，存栏联动校验。</div>
+          <div class="card-meta">
+            <span class="card-meta-item"><i class="fa-solid fa-user"></i> 企业管理员/填报员（权限差异）</span>
+          </div>
+          <div class="card-actions">
+            <a class="btn-view" href="企业端/企业信息管理/基础信息/WEB企业端-企业信息管理-基础信息.html" target="_blank">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+            </a>
+          </div>
+        </div>
+
+        <div class="proto-card" style="--card-accent:#fa8c16;">
+          <div class="card-top">
+            <div class="card-icon" style="background:linear-gradient(135deg,#fa8c16,#ffc069);"><i class="fa-solid fa-users"></i></div>
+            <div class="card-title">02. 员工信息管理</div>
+            <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+          </div>
+          <div class="card-desc">员工档案增删改查，含姓名/性别/职位/联系方式/入职日期/状态；停用/启用切换；在职禁止删除校验。</div>
+          <div class="card-meta">
+            <span class="card-meta-item"><i class="fa-solid fa-user"></i> 企业管理员/填报员（权限差异）</span>
+          </div>
+          <div class="card-actions">
+            <a class="btn-view" href="企业端/企业信息管理/基础信息/WEB企业端-企业信息管理-员工信息.html" target="_blank">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div style="margin-bottom:14px;">
+      <div style="font-size:11px;color:var(--text-3);margin-bottom:8px;font-weight:600;">— 实时监测</div>
+      <div class="card-grid">
+        <div class="proto-card" style="--card-accent:#13c2c2;">
+          <div class="card-top">
+            <div class="card-icon" style="background:linear-gradient(135deg,#13c2c2,#5cdbd3);"><i class="fa-solid fa-wave-square"></i></div>
+            <div class="card-title">03. 实时监测</div>
+            <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+          </div>
+          <div class="card-desc">圈舍环境传感器数据实时展示（温度/湿度/氨气/二氧化碳），历史趋势曲线，超阈值预警提示。</div>
+          <div class="card-meta">
+            <span class="card-meta-item"><i class="fa-solid fa-tag"></i> 企业端 · 实时监测</span>
+          </div>
+          <div class="card-actions">
+            <a class="btn-view" href="企业端/企业信息管理/实时监测/WEB企业端-企业信息管理-实时监测.html" target="_blank">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /企业信息管理 -->
+
+  <!-- 养殖信息管理 -->
+  <!-- SECTION: 养殖信息管理 -->
+  <div class="module-group" id="grp-breed">
+    <div class="module-group-title"><i class="fa-solid fa-database" style="color:#52c41a;"></i> 养殖信息管理（4级审批流）</div>
+    <div class="card-grid card-grid-dense">
+
+      <div class="proto-card" style="--card-accent:#52c41a;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#52c41a,#95de64);"><i class="fa-solid fa-piggy-bank"></i></div>
+          <div class="card-title">04. 养殖信息</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">圈舍存栏量定期填报，含育肥猪/母猪/仔猪分类数量；4级审批流；6角色权限控制。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-养殖信息.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#52c41a;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#52c41a,#95de64);"><i class="fa-solid fa-clipboard-list"></i></div>
+          <div class="card-title">05. 生产记录</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">日常生产情况记录（饲料耗用、圈舍清洁、死亡数量等）；4级审批流。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-生产记录.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#52c41a;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#52c41a,#95de64);"><i class="fa-solid fa-dna"></i></div>
+          <div class="card-title">06. 繁育信息</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">母猪耳标、配种/分娩/断奶日期；预计分娩日期自动计算（+114天）；产仔总数业务校验。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-繁育信息.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#52c41a;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#52c41a,#95de64);"><i class="fa-solid fa-arrow-right-to-bracket"></i></div>
+          <div class="card-title">07. 猪只入栏信息</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">猪只来源（自繁/外购/赠与）；外购时供应商名称动态必填；检疫证明编号。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-猪只入栏信息.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#52c41a;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#52c41a,#95de64);"><i class="fa-solid fa-arrow-right-from-bracket"></i></div>
+          <div class="card-title">08. 猪只出栏信息</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">出栏类型（销售/死亡淘汰/转群）；出栏数量≤圈舍存栏量校验；检疫证明。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-猪只出栏信息.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#52c41a;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#52c41a,#95de64);"><i class="fa-solid fa-heart"></i></div>
+          <div class="card-title">09. 猪只断奶信息</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">断奶日龄自动计算；异常日龄（&lt;21或&gt;28天）警示且备注必填。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-猪只断奶信息.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#52c41a;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#52c41a,#95de64);"><i class="fa-solid fa-shuffle"></i></div>
+          <div class="card-title">10. 猪只转栏信息</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">圈舍间猪只转移记录；源圈舍自动回显存栏量；目标圈舍即时校验不重复；转栏数量≤存栏上限；转栏原因5种；4级审批流。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-猪只转栏信息.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#52c41a;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#52c41a,#95de64);"><i class="fa-solid fa-pills"></i></div>
+          <div class="card-title">11. 兽药购进记录</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">化药/中药/生物制品分类；购进金额自动计算；供应商信息；4级审批流。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-兽药购进记录.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#52c41a;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#52c41a,#95de64);"><i class="fa-solid fa-syringe"></i></div>
+          <div class="card-title">12. 兽药使用记录</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">用药目的/用药剂量/疗程/休药期；批次关联；超量预警；4级审批流。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-兽药使用记录.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#52c41a;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#52c41a,#95de64);"><i class="fa-solid fa-stethoscope"></i></div>
+          <div class="card-title">13. 畜禽疾病诊疗记录</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">发病症状/诊断结论/治疗方案/预后情况；4级审批流。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-畜禽疾病诊疗记录.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#52c41a;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#52c41a,#95de64);"><i class="fa-solid fa-shield-virus"></i></div>
+          <div class="card-title">14. 畜禽免疫记录</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">疫苗名称/批号/免疫数量/免疫方式/下次免疫时间；4级审批流。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-畜禽免疫记录.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#52c41a;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#52c41a,#95de64);"><i class="fa-solid fa-microscope"></i></div>
+          <div class="card-title">15. 防疫监测记录</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">采样数量/监测项目/检测结果/阳性率；结果异常自动触发预警；4级审批流。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-防疫监测记录.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#52c41a;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#52c41a,#95de64);"><i class="fa-solid fa-spray-can-sparkles"></i></div>
+          <div class="card-title">16. 消毒记录</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">消毒区域/消毒药品/使用浓度/消毒方式/操作人；4级审批流。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-消毒记录.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#52c41a;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#52c41a,#95de64);"><i class="fa-solid fa-skull-crossbones"></i></div>
+          <div class="card-title">17. 病死畜禽无害化处理记录</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">死亡原因/死亡数量/处理方式（焚烧/深埋/生物降解）/处理单位；凭证照片上传。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-病死畜禽无害化处理记录.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#52c41a;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#52c41a,#95de64);"><i class="fa-solid fa-leaf"></i></div>
+          <div class="card-title">18. 粪便及污物无害化处理记录</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">粪污来源、处理方式（堆肥/沼气/还田等）；环保达标情况跟踪；4级审批流。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-粪便及污物无害化处理记录.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#52c41a;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#52c41a,#95de64);"><i class="fa-solid fa-wheat-awn"></i></div>
+          <div class="card-title">19. 配合饲料使用记录</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">产品类型5种；批准文号按产品类型动态显示/必填；4级审批流。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-配合饲料使用记录.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#52c41a;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#52c41a,#95de64);"><i class="fa-solid fa-bags-shopping"></i></div>
+          <div class="card-title">20. 饲料和饲料添加剂购进记录</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">批准文号动态必填；购进金额自动计算；供应商信息；4级审批流。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-饲料和饲料添加剂购进记录.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#52c41a;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#52c41a,#95de64);"><i class="fa-solid fa-store"></i></div>
+          <div class="card-title">21. 畜禽及其产品销售记录</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">活猪/猪肉/仔猪/种猪等销售类型；销售金额自动计算；检疫证明编号；4级审批流。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-畜禽及其产品销售记录.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /养殖信息管理 -->
+
+  <!-- 项目信息管理（企业端） -->
+  <!-- SECTION: 项目信息管理 -->
+  <div class="module-group" id="grp-entproj">
+    <div class="module-group-title"><i class="fa-solid fa-file-invoice" style="color:#fa8c16;"></i> 项目信息管理</div>
+    <div class="card-grid">
+
+      <div class="proto-card" style="--card-accent:#fa8c16;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#fa8c16,#ffc069);"><i class="fa-solid fa-file-plus"></i></div>
+          <div class="card-title">22. 畜牧项目建设申报</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">企业填写畜牧项目建设申报表，含项目基本信息、建设内容、资金预算、材料附件上传，提交后进入审核流程。</div>
+        <div class="card-meta">
+          <span class="card-meta-item"><i class="fa-solid fa-user"></i> 企业管理员</span>
+        </div>
+        <div class="card-actions">
+          <a class="btn-view" href="企业端/项目信息管理/项目申报/WEB企业端-项目申报-畜牧项目建设申报.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#fa8c16;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#fa8c16,#ffc069);"><i class="fa-solid fa-building-circle-check"></i></div>
+          <div class="card-title">23. 项目竣工投产前验收申请</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">项目竣工后提交验收申请，含竣工情况说明、现场照片、竣工报告等材料，提交后触发监管端验收审核流程。</div>
+        <div class="card-meta">
+          <span class="card-meta-item"><i class="fa-solid fa-user"></i> 企业管理员</span>
+        </div>
+        <div class="card-actions">
+          <a class="btn-view" href="企业端/项目信息管理/竣工验收申请/WEB企业端-项目管理-项目竣工投产前验收申请.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /项目信息管理 -->
+
+  <!-- 政策资讯（企业端） -->
+  <!-- SECTION: 政策资讯查看 -->
+  <div class="module-group" id="grp-policy-ent">
+    <div class="module-group-title"><i class="fa-solid fa-newspaper" style="color:#faad14;"></i> 政策资讯</div>
+    <div class="prd-only">
+      <i class="fa-solid fa-circle-info"></i>
+      PRD已规划：政策资讯查看（WEB企业端-政策资讯.prd.md）— 原型待制作（由监管端政策资讯管理发布，企业端只读查看）
+    </div>
+  </div>
+
+</section><!-- /企业端 -->
+
+
+<!-- ============================================================ -->
+<!-- SECTION: 生猪知识讲堂 -->
+<!-- ============================================================ -->
+<section class="section" id="section-knowledge">
+  <div class="section-header">
+    <div class="section-icon" style="background:linear-gradient(135deg,#1677ff,#69b1ff);">
+      <i class="fa-solid fa-book-open"></i>
+    </div>
+    <div>
+      <div class="section-title">生猪知识讲堂</div>
+      <div class="section-desc">面向养殖从业者的在线学习平台，含前台网站 + 后台内容管理</div>
+    </div>
+    <div class="section-badge">共 7 个已完成</div>
+  </div>
+
+  <div class="module-group">
+    <div class="module-group-title"><i class="fa-solid fa-globe" style="color:#1677ff;"></i> 前台网站</div>
+    <div class="card-grid">
+      <div class="proto-card" style="--card-accent:#1677ff;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#1677ff,#69b1ff);"><i class="fa-solid fa-graduation-cap"></i></div>
+          <div class="card-title">01. 知识讲堂网站</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">面向养殖从业者的学习平台前台，含课程浏览/学习、培训活动报名、在线交流社区等功能。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="WEB/生猪知识讲堂/网站/WEB-生猪知识讲堂网站.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="module-group">
+    <div class="module-group-title"><i class="fa-solid fa-gear" style="color:#1677ff;"></i> 后台管理</div>
+    <div class="card-grid card-grid-dense">
+
+      <div class="proto-card" style="--card-accent:#1677ff;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#1677ff,#69b1ff);"><i class="fa-solid fa-book"></i></div>
+          <div class="card-title">02. 课程管理</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">课程新建/编辑/上下架，章节管理，视频/文档资源上传，课程分类标签维护。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="WEB/生猪知识讲堂/后台管理/WEB-生猪知识讲堂后台管理-课程管理.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#1677ff;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#1677ff,#69b1ff);"><i class="fa-solid fa-file-lines"></i></div>
+          <div class="card-title">03. 内容管理</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">文章/图文资讯的发布与管理，富文本编辑，内容分类，定时发布，阅读量统计。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="WEB/生猪知识讲堂/后台管理/WEB-生猪知识讲堂后台管理-内容管理.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#1677ff;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#1677ff,#69b1ff);"><i class="fa-solid fa-calendar-days"></i></div>
+          <div class="card-title">04. 培训活动管理</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">线上/线下培训活动创建，报名人员管理，签到记录，活动总结归档。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="WEB/生猪知识讲堂/后台管理/WEB-生猪知识讲堂后台管理-培训活动管理.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#1677ff;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#1677ff,#69b1ff);"><i class="fa-solid fa-comments"></i></div>
+          <div class="card-title">05. 在线交流管理</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">社区帖子/评论管理，违规内容审核，话题标签维护，互动数据统计。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="WEB/生猪知识讲堂/后台管理/WEB-生猪知识讲堂后台管理-在线交流管理.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#1677ff;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#1677ff,#69b1ff);"><i class="fa-solid fa-user-gear"></i></div>
+          <div class="card-title">06. 用户管理</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">学习用户列表，学习进度/课程完成率查看，用户状态启用/禁用，账号信息维护。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="WEB/生猪知识讲堂/后台管理/WEB-生猪知识讲堂后台管理-用户管理.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+      <div class="proto-card" style="--card-accent:#1677ff;">
+        <div class="card-top">
+          <div class="card-icon" style="background:linear-gradient(135deg,#1677ff,#69b1ff);"><i class="fa-solid fa-chart-bar"></i></div>
+          <div class="card-title">07. 数据分析</div>
+          <span class="tag tag-done"><i class="fa-solid fa-check"></i> 已完成</span>
+        </div>
+        <div class="card-desc">学习人数/课时完成量趋势、热门课程排行、地区分布、活跃度分析等运营数据看板。</div>
+        <div class="card-actions">
+          <a class="btn-view" href="WEB/生猪知识讲堂/后台管理/WEB-生猪知识讲堂后台管理-数据分析.html" target="_blank">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看原型
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</section><!-- /知识讲堂 -->
+
+
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+  <p>2024年蓬溪县生猪数字化管理平台 · 原型导航</p>
+  <p>共 58 个已完成 / 1 个待制作 · 最后更新：2026-03-10</p>
+  <p>
+    <a href="system.html" target="_blank" style="color:rgba(255,255,255,0.4);text-decoration:none;">
+      <i class="fa-solid fa-desktop"></i> 进入系统演示模式
+    </a>
+  </p>
+</footer>
+
+<script>
+  // Sticky nav active state on scroll
+  const sections = document.querySelectorAll('section[id], div[id^="grp-"]');
+  const navLinks = document.querySelectorAll('.sticky-nav-inner .nav-anchor');
+
+  function updateActive() {
+    let current = '';
+    sections.forEach(s => {
+      const top = s.getBoundingClientRect().top;
+      if (top <= 120) current = s.id;
+    });
+    navLinks.forEach(a => {
+      a.classList.remove('active');
+      if (a.getAttribute('href') === '#' + current) a.classList.add('active');
+    });
+  }
+  window.addEventListener('scroll', updateActive, { passive: true });
+  updateActive();
+</script>
+</body>
+</html>

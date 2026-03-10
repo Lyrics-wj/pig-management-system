@@ -1,0 +1,1044 @@
+<!--
+  功能名称：企业信息管理 - 实时监测（猪舍温湿度 + 料仓物位）
+  对应PRD：doc_prd/WEB/企业端/企业信息管理/实时监测/WEB企业端-企业信息管理-实时监测.prd.md
+  所属端口：WEB企业端
+  所属模块：企业信息管理 / 实时监测
+  制作日期：2026-03-09
+  最后更新：2026-03-09
+  角色说明：企业管理员（ent_admin）、企业填报员（ent_reporter）
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>实时监测 - 2024年蓬溪县生猪数字化管理平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* SHARED STYLES */
+    :root {
+      --primary: #1677ff;
+      --bg: #f0f2f5;
+      --card-bg: #ffffff;
+      --border: #e8e8e8;
+      --text-main: #262626;
+      --text-sub: #595959;
+      --text-hint: #8c8c8c;
+      --success: #52c41a;
+      --warning: #faad14;
+      --error: #ff4d4f;
+      --disabled: #bfbfbf;
+    }
+    body { background: var(--bg); color: var(--text-main); font-size: 14px; }
+    .sidebar { width: 240px; min-width: 240px; }
+    .sidebar.collapsed { width: 60px; min-width: 60px; }
+    .main-content { flex: 1; min-width: 0; }
+    .menu-item { transition: background 0.2s; }
+    .menu-item:hover { background: #e6f4ff; }
+    .menu-item.active { background: #e6f4ff; color: var(--primary); font-weight: 600; }
+    .menu-sub-item { padding-left: 48px; }
+    .menu-sub-item.active { background: #e6f4ff; color: var(--primary); }
+    /* 设备状态 Tag */
+    .tag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+    .tag-online { background: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
+    .tag-offline { background: #f5f5f5; color: #8c8c8c; border: 1px solid #d9d9d9; }
+    .tag-error { background: #fff2f0; color: #ff4d4f; border: 1px solid #ffccc7; }
+    /* 圈舍监测卡片 */
+    .monitor-card { background: #fff; border-radius: 8px; border: 1px solid var(--border); border-left: 4px solid var(--border); cursor: pointer; transition: box-shadow 0.2s, border-left-color 0.2s; }
+    .monitor-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .monitor-card.alarm-temp { border-left-color: #ff4d4f; }
+    .monitor-card.alarm-humi { border-left-color: #fa8c16; }
+    .monitor-card.alarm-both { border-left-color: #ff4d4f; }
+    .monitor-card.offline { opacity: 0.7; background: #fafafa; }
+    .monitor-card.selected { box-shadow: 0 0 0 2px var(--primary); }
+    /* 进度条 */
+    .progress-bar-wrap { background: #f0f0f0; border-radius: 4px; height: 8px; overflow: hidden; }
+    .progress-bar { height: 100%; border-radius: 4px; transition: width 0.4s; }
+    .progress-green { background: #67C23A; }
+    .progress-orange { background: #E6A23C; }
+    .progress-red { background: #F56C6C; }
+    /* Tab 样式 */
+    .tab-btn { padding: 8px 20px; border-bottom: 2px solid transparent; cursor: pointer; color: var(--text-sub); transition: all 0.2s; font-size: 14px; }
+    .tab-btn:hover { color: var(--primary); }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+    .chart-time-tab { padding: 4px 12px; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; font-size: 12px; color: var(--text-sub); background: #fff; transition: all 0.2s; }
+    .chart-time-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    /* 骨架屏 */
+    .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    /* 告警标记 */
+    .alarm-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+    .alarm-badge-temp { background: #fff2f0; color: #ff4d4f; }
+    .alarm-badge-humi { background: #fff7e6; color: #fa8c16; }
+    .alarm-badge-low { background: #fff2f0; color: #ff4d4f; }
+    /* 空状态 */
+    .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; color: var(--text-hint); }
+    /* 顶部通知条 */
+    .toast { position: fixed; top: 72px; right: 24px; z-index: 9999; background: #fff; border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); padding: 12px 20px; display: flex; align-items: center; gap: 10px; animation: slideIn 0.3s ease; max-width: 320px; }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  </style>
+</head>
+<body x-data="appData()" x-init="init()">
+
+<!-- Toast 通知 -->
+<div x-show="toast.show" class="toast" x-transition>
+  <i :class="'fa ' + toast.icon" :style="'color:' + toast.color"></i>
+  <span x-text="toast.msg"></span>
+</div>
+
+<!-- SECTION START: 顶部导航栏 -->
+<header id="feature-topnav" class="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4" style="height:60px;background:#001529;color:#fff;">
+  <div class="flex items-center gap-3">
+    <button @click="sidebarCollapsed = !sidebarCollapsed" class="text-gray-300 hover:text-white transition p-1">
+      <i class="fa fa-bars"></i>
+    </button>
+    <div class="flex items-center gap-2">
+      <i class="fa fa-piggy-bank text-blue-400 text-lg"></i>
+      <span class="font-semibold text-base">2024年蓬溪县生猪数字化管理平台</span>
+      <span class="text-gray-400 text-sm ml-2">WEB企业端</span>
+    </div>
+  </div>
+  <div class="flex items-center gap-4">
+    <!-- 角色切换 -->
+    <div class="relative" x-data="{open:false}">
+      <button @click="open=!open" class="flex items-center gap-2 text-gray-300 hover:text-white text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded transition">
+        <i class="fa fa-exchange-alt"></i>
+        <span>切换角色</span>
+      </button>
+      <div x-show="open" @click.away="open=false" class="absolute right-0 top-full mt-1 w-48 bg-white rounded shadow-lg border z-50 overflow-hidden" style="color:#262626;">
+        <template x-for="u in MOCK_DATA.users" :key="u.id">
+          <div @click="switchRole(u); open=false" class="px-4 py-2.5 hover:bg-blue-50 cursor-pointer flex items-center justify-between text-sm">
+            <div>
+              <div x-text="u.roleName" class="font-medium"></div>
+              <div x-text="u.username" class="text-gray-400 text-xs"></div>
+            </div>
+            <i x-show="currentUser.id === u.id" class="fa fa-check text-blue-500"></i>
+          </div>
+        </template>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 text-sm">
+      <div class="w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold text-xs" x-text="currentUser.name.charAt(0)"></div>
+      <span x-text="currentUser.name"></span>
+      <span class="text-gray-400 text-xs" x-text="'(' + currentUser.roleName + ')'"></span>
+    </div>
+    <button @click="logout()" class="text-gray-300 hover:text-white text-sm flex items-center gap-1 transition">
+      <i class="fa fa-sign-out-alt"></i>
+      <span>退出</span>
+    </button>
+  </div>
+</header>
+<!-- SECTION END: 顶部导航栏 -->
+
+<div class="flex" style="padding-top:60px;min-height:100vh;">
+
+  <!-- SECTION START: 侧边菜单 -->
+  <aside id="feature-sidebar" :class="sidebarCollapsed ? 'sidebar collapsed' : 'sidebar'" class="fixed left-0 bottom-0 z-40 overflow-y-auto" style="top:60px;background:#001529;color:#c8d0dd;transition:width 0.2s;">
+    <nav class="py-2">
+      <template x-for="group in menuItems" :key="group.title">
+        <div>
+          <div class="px-4 py-2 text-xs text-gray-500 uppercase tracking-wider truncate" x-show="!sidebarCollapsed" x-text="group.title"></div>
+          <template x-for="item in group.children" :key="item.name">
+            <div>
+              <div @click="item.expanded = !item.expanded" :class="{'menu-item':true, 'active': item.active}" class="flex items-center px-4 py-2.5 cursor-pointer text-gray-300 hover:text-white rounded mx-1 gap-3">
+                <i :class="'fa ' + item.icon + ' w-4 text-center'"></i>
+                <span class="truncate flex-1" x-show="!sidebarCollapsed" x-text="item.name"></span>
+                <i x-show="item.children && !sidebarCollapsed" :class="item.expanded ? 'fa fa-chevron-down' : 'fa fa-chevron-right'" class="text-xs text-gray-500"></i>
+              </div>
+              <template x-if="item.children && item.expanded && !sidebarCollapsed">
+                <div>
+                  <template x-for="sub in item.children" :key="sub.name">
+                    <div @click="activateMenu(sub)" :class="{'menu-sub-item':true, 'active': sub.active}" class="flex items-center py-2 cursor-pointer text-gray-400 hover:text-white rounded mx-1 gap-2 px-3">
+                      <i class="fa fa-circle text-xs opacity-50"></i>
+                      <span class="truncate text-sm" x-text="sub.name"></span>
+                    </div>
+                  </template>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+      </template>
+    </nav>
+  </aside>
+  <!-- SECTION END: 侧边菜单 -->
+
+  <!-- 主内容区 -->
+  <main :style="sidebarCollapsed ? 'margin-left:60px;' : 'margin-left:240px;'" class="main-content flex flex-col" style="min-height:calc(100vh - 60px);transition:margin-left 0.2s;">
+    <div class="flex-1 p-6">
+
+      <!-- 面包屑 -->
+      <div class="flex items-center gap-2 text-sm text-gray-500 mb-4">
+        <span>企业信息管理</span>
+        <i class="fa fa-chevron-right text-xs"></i>
+        <span class="text-blue-600 font-medium">实时监测</span>
+      </div>
+
+      <!-- 页面标题 -->
+      <div class="flex items-center justify-between mb-4">
+        <h1 class="text-xl font-semibold text-gray-800">实时监测</h1>
+        <div class="flex items-center gap-2 text-sm text-gray-500">
+          <i class="fa fa-sync-alt text-blue-400" :class="{'animate-spin': autoRefreshing}"></i>
+          <span x-text="'自动刷新中' + (activeMainTab === 'temp' ? '（30秒/次）' : '（60秒/次）')"></span>
+          <span class="text-gray-300">|</span>
+          <span x-text="'上次刷新：' + lastRefreshTime"></span>
+        </div>
+      </div>
+
+      <!-- 主 Tab 切换 -->
+      <div class="bg-white rounded-t-lg border border-b-0 border-gray-200 flex">
+        <button @click="switchMainTab('temp')" :class="{'tab-btn':true, 'active': activeMainTab === 'temp'}">
+          <i class="fa fa-thermometer-half mr-2"></i>猪舍温湿度实时监测
+        </button>
+        <button @click="switchMainTab('bin')" :class="{'tab-btn':true, 'active': activeMainTab === 'bin'}">
+          <i class="fa fa-database mr-2"></i>料仓物位实时监测
+        </button>
+      </div>
+
+      <!-- ======================== TAB 1: 猪舍温湿度 ======================== -->
+      <!-- SECTION START: 猪舍温湿度实时监测 -->
+      <div id="feature-temp-humidity" x-show="activeMainTab === 'temp'" class="bg-white rounded-b-lg rounded-tr-lg border border-gray-200 p-5">
+
+        <!-- 筛选区 -->
+        <!-- SECTION START: 温湿度筛选 -->
+        <div id="feature-temp-filter" class="bg-gray-50 rounded-lg p-4 mb-5 border border-gray-100">
+          <div class="flex flex-wrap items-end gap-3">
+            <div>
+              <label class="block text-xs text-gray-500 mb-1">圈舍类型</label>
+              <select x-model="tempFilter.pigstyType" @change="filterTempCards()" class="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-blue-400" style="min-width:130px;">
+                <option value="">全部类型</option>
+                <template x-for="opt in MOCK_DATA.dict.pigstyType" :key="opt.value">
+                  <option :value="opt.value" x-text="opt.label"></option>
+                </template>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 mb-1">圈舍名称</label>
+              <input x-model="tempFilter.pigstyName" type="text" placeholder="输入圈舍名称" maxlength="30" class="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-blue-400" style="width:180px;">
+              <div x-show="tempFilter.nameError" class="text-red-500 text-xs mt-0.5" x-text="tempFilter.nameError"></div>
+            </div>
+            <div class="flex gap-2">
+              <button @click="searchTempCards()" class="px-4 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition flex items-center gap-1">
+                <i class="fa fa-search"></i> 查询
+              </button>
+              <button @click="resetTempFilter()" class="px-4 py-1.5 border border-gray-300 bg-white text-gray-600 rounded text-sm hover:bg-gray-50 transition flex items-center gap-1">
+                <i class="fa fa-undo"></i> 重置
+              </button>
+            </div>
+            <!-- 汇总统计 -->
+            <div class="ml-auto flex items-center gap-4 text-sm">
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-green-400 inline-block"></span> 在线 <strong x-text="getTempStat('online')"></strong></span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-gray-400 inline-block"></span> 离线 <strong x-text="getTempStat('offline')"></strong></span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-red-400 inline-block"></span> 异常 <strong x-text="getTempStat('error')"></strong></span>
+              <span class="flex items-center gap-1 text-red-500"><i class="fa fa-exclamation-triangle"></i> 告警 <strong x-text="getTempAlarmCount()"></strong></span>
+            </div>
+          </div>
+        </div>
+        <!-- SECTION END: 温湿度筛选 -->
+
+        <!-- 骨架屏（初次加载） -->
+        <div x-show="tempLoading" class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
+          <template x-for="i in 6" :key="i">
+            <div class="bg-white rounded-lg border p-4">
+              <div class="skeleton h-5 w-2/3 mb-3"></div>
+              <div class="skeleton h-4 w-1/3 mb-4"></div>
+              <div class="flex gap-4 mb-3">
+                <div class="skeleton h-8 w-20"></div>
+                <div class="skeleton h-8 w-20"></div>
+              </div>
+              <div class="skeleton h-3 w-1/2"></div>
+            </div>
+          </template>
+        </div>
+
+        <!-- 空状态 -->
+        <div x-show="!tempLoading && filteredTempCards.length === 0" class="empty-state">
+          <i class="fa fa-wifi text-5xl text-gray-200 mb-4"></i>
+          <div class="text-base text-gray-400" x-text="MOCK_DATA.pigstyCards.length === 0 ? '暂无监测设备，请联系平台运维人员安装传感器' : '未找到符合条件的圈舍'"></div>
+        </div>
+
+        <!-- 卡片网格 -->
+        <!-- SECTION START: 温湿度卡片列表 -->
+        <div x-show="!tempLoading && filteredTempCards.length > 0" id="feature-temp-cards" class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
+          <template x-for="card in filteredTempCards" :key="card.pigstyId">
+            <div @click="selectTempCard(card)"
+              :class="{
+                'monitor-card p-4': true,
+                'alarm-both': card.is_temp_alarm==='1' && card.is_humi_alarm==='1',
+                'alarm-temp': card.is_temp_alarm==='1' && card.is_humi_alarm!=='1',
+                'alarm-humi': card.is_humi_alarm==='1' && card.is_temp_alarm!=='1',
+                'offline': card.device_status !== '0',
+                'selected': selectedTempCard && selectedTempCard.pigstyId === card.pigstyId
+              }">
+              <!-- 卡片头部 -->
+              <div class="flex items-start justify-between mb-3">
+                <div>
+                  <div class="font-semibold text-gray-800 text-base" x-text="card.pigstyName"></div>
+                  <div class="text-xs text-gray-400 mt-0.5" x-text="getPigstyTypeName(card.pigstyType)"></div>
+                </div>
+                <div>
+                  <span :class="{
+                    'tag': true,
+                    'tag-online': card.device_status === '0',
+                    'tag-offline': card.device_status === '1',
+                    'tag-error': card.device_status === '2'
+                  }">
+                    <i :class="{
+                      'fa fa-circle mr-1': true,
+                      'text-green-400': card.device_status === '0',
+                      'text-gray-400': card.device_status === '1',
+                      'text-red-400': card.device_status === '2'
+                    }" style="font-size:8px;"></i>
+                    <span x-text="card.device_status === '0' ? '在线' : card.device_status === '1' ? '离线' : '异常'"></span>
+                  </span>
+                </div>
+              </div>
+
+              <!-- 温湿度数值 -->
+              <div class="grid grid-cols-2 gap-3 mb-3">
+                <div class="bg-blue-50 rounded-lg p-3 text-center">
+                  <div class="text-xs text-gray-500 mb-1"><i class="fa fa-thermometer-half text-red-400 mr-1"></i>温度</div>
+                  <div class="text-2xl font-bold" :class="card.is_temp_alarm==='1' ? 'text-red-500' : 'text-gray-800'">
+                    <span x-text="card.device_status !== '0' ? '--.--' : card.temperature.toFixed(1)"></span>
+                    <span class="text-sm font-normal text-gray-400">°C</span>
+                  </div>
+                </div>
+                <div class="bg-cyan-50 rounded-lg p-3 text-center">
+                  <div class="text-xs text-gray-500 mb-1"><i class="fa fa-tint text-blue-400 mr-1"></i>湿度</div>
+                  <div class="text-2xl font-bold" :class="card.is_humi_alarm==='1' ? 'text-orange-500' : 'text-gray-800'">
+                    <span x-text="card.device_status !== '0' ? '--.--' : card.humidity.toFixed(1)"></span>
+                    <span class="text-sm font-normal text-gray-400">%RH</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 告警状态 -->
+              <div class="flex flex-wrap gap-1 mb-2">
+                <span x-show="card.is_temp_alarm==='1'" class="alarm-badge alarm-badge-temp">
+                  <i class="fa fa-exclamation-triangle text-xs"></i> 温度告警
+                </span>
+                <span x-show="card.is_humi_alarm==='1'" class="alarm-badge alarm-badge-humi">
+                  <i class="fa fa-exclamation-triangle text-xs"></i> 湿度告警
+                </span>
+                <span x-show="card.is_temp_alarm!=='1' && card.is_humi_alarm!=='1'" class="text-xs text-green-500 flex items-center gap-1">
+                  <i class="fa fa-check-circle"></i> 正常
+                </span>
+              </div>
+
+              <!-- 更新时间 -->
+              <div class="text-xs text-gray-400 flex items-center gap-1">
+                <i class="fa fa-clock"></i>
+                <span x-text="'更新：' + card.report_time"></span>
+              </div>
+
+              <!-- 点击提示 -->
+              <div class="mt-2 text-xs text-blue-400 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+                <i class="fa fa-chart-line"></i> 点击查看历史趋势
+              </div>
+            </div>
+          </template>
+        </div>
+        <!-- SECTION END: 温湿度卡片列表 -->
+
+        <!-- SECTION START: 温湿度历史趋势图 -->
+        <div x-show="selectedTempCard" id="feature-temp-chart" class="mt-6 bg-white rounded-lg border border-blue-100 p-5 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-semibold text-base text-gray-800">
+                <i class="fa fa-chart-line text-blue-500 mr-2"></i>
+                <span x-text="selectedTempCard ? selectedTempCard.pigstyName + ' - 历史趋势' : ''"></span>
+              </h3>
+              <div class="text-xs text-gray-400 mt-0.5">温度阈值：10.0°C ~ 35.0°C　湿度阈值：40.0%RH ~ 85.0%RH</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="flex gap-1">
+                <template x-for="tab in tempTimeRangeTabs" :key="tab.value">
+                  <button @click="switchTempTimeRange(tab.value)" :class="{'chart-time-tab':true, 'active': tempTimeRange === tab.value}" x-text="tab.label"></button>
+                </template>
+              </div>
+              <button @click="selectedTempCard = null" class="text-gray-400 hover:text-gray-600 ml-2">
+                <i class="fa fa-times"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- 图表加载状态 -->
+          <div x-show="tempChartLoading" class="flex items-center justify-center" style="height:300px;">
+            <div class="flex flex-col items-center gap-3 text-gray-400">
+              <i class="fa fa-spinner fa-spin text-3xl text-blue-400"></i>
+              <span class="text-sm">加载中...</span>
+            </div>
+          </div>
+
+          <div x-show="!tempChartLoading" style="height:320px;position:relative;">
+            <canvas id="tempHumiChart"></canvas>
+          </div>
+          <div class="flex items-center gap-4 mt-3 text-xs text-gray-500 justify-center">
+            <span class="flex items-center gap-1"><span class="w-5 h-0.5 inline-block bg-red-400"></span> 温度（°C）</span>
+            <span class="flex items-center gap-1"><span class="w-5 h-0.5 inline-block bg-blue-400"></span> 湿度（%RH）</span>
+            <span class="flex items-center gap-1"><span class="w-5 h-0.5 inline-block bg-red-300" style="border-top:1px dashed #ff7875;"></span> 温度阈值线</span>
+            <span class="flex items-center gap-1"><span class="w-5 h-0.5 inline-block bg-orange-300" style="border-top:1px dashed #ffa940;"></span> 湿度阈值线</span>
+          </div>
+        </div>
+        <!-- SECTION END: 温湿度历史趋势图 -->
+
+      </div>
+      <!-- SECTION END: 猪舍温湿度实时监测 -->
+
+
+      <!-- ======================== TAB 2: 料仓物位 ======================== -->
+      <!-- SECTION START: 料仓物位实时监测 -->
+      <div id="feature-bin-level" x-show="activeMainTab === 'bin'" class="bg-white rounded-b-lg rounded-tr-lg border border-gray-200 p-5">
+
+        <!-- 筛选区 -->
+        <!-- SECTION START: 料仓筛选 -->
+        <div id="feature-bin-filter" class="bg-gray-50 rounded-lg p-4 mb-5 border border-gray-100">
+          <div class="flex flex-wrap items-end gap-3">
+            <div>
+              <label class="block text-xs text-gray-500 mb-1">料仓名称</label>
+              <input x-model="binFilter.binName" type="text" placeholder="输入料仓名称" maxlength="100" class="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-blue-400" style="width:200px;">
+              <div x-show="binFilter.nameError" class="text-red-500 text-xs mt-0.5" x-text="binFilter.nameError"></div>
+            </div>
+            <div class="flex gap-2">
+              <button @click="searchBinCards()" class="px-4 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition flex items-center gap-1">
+                <i class="fa fa-search"></i> 查询
+              </button>
+              <button @click="resetBinFilter()" class="px-4 py-1.5 border border-gray-300 bg-white text-gray-600 rounded text-sm hover:bg-gray-50 transition flex items-center gap-1">
+                <i class="fa fa-undo"></i> 重置
+              </button>
+            </div>
+            <!-- 汇总统计 -->
+            <div class="ml-auto flex items-center gap-4 text-sm">
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-green-400 inline-block"></span> 在线 <strong x-text="getBinStat('online')"></strong></span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-gray-400 inline-block"></span> 离线 <strong x-text="getBinStat('offline')"></strong></span>
+              <span class="flex items-center gap-1 text-red-500"><i class="fa fa-exclamation-triangle"></i> 低料位告警 <strong x-text="getBinAlarmCount()"></strong></span>
+            </div>
+          </div>
+        </div>
+        <!-- SECTION END: 料仓筛选 -->
+
+        <!-- 空状态 -->
+        <div x-show="!binLoading && filteredBinCards.length === 0" class="empty-state">
+          <i class="fa fa-box-open text-5xl text-gray-200 mb-4"></i>
+          <div class="text-base text-gray-400" x-text="MOCK_DATA.binCards.length === 0 ? '暂无监测设备，请联系平台运维人员安装传感器' : '未找到符合条件的料仓'"></div>
+        </div>
+
+        <!-- 卡片网格 -->
+        <!-- SECTION START: 料仓卡片列表 -->
+        <div x-show="!binLoading && filteredBinCards.length > 0" id="feature-bin-cards" class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
+          <template x-for="card in filteredBinCards" :key="card.binId">
+            <div @click="selectBinCard(card)"
+              :class="{
+                'monitor-card p-4': true,
+                'alarm-temp': card.is_low_alarm === '1',
+                'offline': card.device_status !== '0',
+                'selected': selectedBinCard && selectedBinCard.binId === card.binId
+              }">
+              <!-- 卡片头部 -->
+              <div class="flex items-start justify-between mb-3">
+                <div>
+                  <div class="font-semibold text-gray-800 text-base" x-text="card.binName"></div>
+                  <div class="text-xs text-gray-400 mt-0.5" x-text="card.binCode ? '编号：' + card.binCode : '编号：-'"></div>
+                </div>
+                <div>
+                  <span :class="{
+                    'tag': true,
+                    'tag-online': card.device_status === '0',
+                    'tag-offline': card.device_status === '1',
+                    'tag-error': card.device_status === '2'
+                  }">
+                    <i :class="{
+                      'fa fa-circle mr-1': true,
+                      'text-green-400': card.device_status === '0',
+                      'text-gray-400': card.device_status === '1',
+                      'text-red-400': card.device_status === '2'
+                    }" style="font-size:8px;"></i>
+                    <span x-text="card.device_status === '0' ? '在线' : card.device_status === '1' ? '离线' : '异常'"></span>
+                  </span>
+                </div>
+              </div>
+
+              <!-- 物位进度条 -->
+              <div class="mb-3">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs text-gray-500">物位</span>
+                  <span class="text-sm font-bold" :class="getBinLevelColorClass(card)" x-text="card.device_status !== '0' ? '--.--%' : card.bin_level.toFixed(1) + '%'"></span>
+                </div>
+                <div class="progress-bar-wrap">
+                  <div class="progress-bar" :class="getBinProgressClass(card)" :style="card.device_status !== '0' ? 'width:0%' : 'width:' + Math.min(100, card.bin_level) + '%'"></div>
+                </div>
+              </div>
+
+              <!-- 剩余量 -->
+              <div class="grid grid-cols-2 gap-2 mb-3">
+                <div class="bg-orange-50 rounded p-2 text-center">
+                  <div class="text-xs text-gray-400 mb-0.5">剩余饲料量</div>
+                  <div class="font-bold text-gray-800">
+                    <span x-text="getRemaining(card)"></span>
+                    <span class="text-xs text-gray-400" x-show="card.device_status === '0' && card.design_capacity"> kg</span>
+                  </div>
+                </div>
+                <div class="bg-gray-50 rounded p-2 text-center">
+                  <div class="text-xs text-gray-400 mb-0.5">设计容量</div>
+                  <div class="font-bold text-gray-600" x-text="card.design_capacity ? card.design_capacity.toLocaleString() + ' kg' : '未配置'"></div>
+                </div>
+              </div>
+
+              <!-- 告警状态 -->
+              <div class="flex flex-wrap gap-1 mb-2">
+                <span x-show="card.is_low_alarm === '1'" class="alarm-badge alarm-badge-low">
+                  <i class="fa fa-exclamation-triangle text-xs"></i> 低料位告警
+                </span>
+                <span x-show="card.is_low_alarm !== '1'" class="text-xs text-green-500 flex items-center gap-1">
+                  <i class="fa fa-check-circle"></i> 正常
+                </span>
+              </div>
+
+              <!-- 更新时间 -->
+              <div class="text-xs text-gray-400 flex items-center gap-1">
+                <i class="fa fa-clock"></i>
+                <span x-text="'更新：' + card.report_time"></span>
+              </div>
+            </div>
+          </template>
+        </div>
+        <!-- SECTION END: 料仓卡片列表 -->
+
+        <!-- SECTION START: 料仓历史趋势图 -->
+        <div x-show="selectedBinCard" id="feature-bin-chart" class="mt-6 bg-white rounded-lg border border-orange-100 p-5 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-semibold text-base text-gray-800">
+                <i class="fa fa-chart-line text-orange-500 mr-2"></i>
+                <span x-text="selectedBinCard ? selectedBinCard.binName + ' - 物位历史趋势' : ''"></span>
+              </h3>
+              <div class="text-xs text-gray-400 mt-0.5">低料位告警阈值：20%</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="flex gap-1">
+                <template x-for="tab in binTimeRangeTabs" :key="tab.value">
+                  <button @click="switchBinTimeRange(tab.value)" :class="{'chart-time-tab':true, 'active': binTimeRange === tab.value}" x-text="tab.label"></button>
+                </template>
+              </div>
+              <button @click="selectedBinCard = null" class="text-gray-400 hover:text-gray-600 ml-2">
+                <i class="fa fa-times"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- 图表加载状态 -->
+          <div x-show="binChartLoading" class="flex items-center justify-center" style="height:280px;">
+            <div class="flex flex-col items-center gap-3 text-gray-400">
+              <i class="fa fa-spinner fa-spin text-3xl text-orange-400"></i>
+              <span class="text-sm">加载中...</span>
+            </div>
+          </div>
+
+          <div x-show="!binChartLoading" style="height:300px;position:relative;">
+            <canvas id="binLevelChart"></canvas>
+          </div>
+          <div class="flex items-center gap-4 mt-3 text-xs text-gray-500 justify-center">
+            <span class="flex items-center gap-1"><span class="w-5 h-0.5 inline-block bg-orange-400"></span> 物位（%）</span>
+            <span class="flex items-center gap-1"><span class="w-5 h-0.5 inline-block" style="border-top:1px dashed #ff4d4f;"></span> 低料位告警阈值（20%）</span>
+          </div>
+        </div>
+        <!-- SECTION END: 料仓历史趋势图 -->
+
+      </div>
+      <!-- SECTION END: 料仓物位实时监测 -->
+
+    </div>
+  </main>
+</div>
+
+<script>
+const MOCK_DATA = {
+  // 当前登录用户
+  currentUser: {
+    id: 1, name: '李建国', role: 'ent_admin', roleName: '企业管理员',
+    farmId: 101, farmName: '蓬溪县鑫源养殖场',
+    permissions: ['farm:monitor:temperature-humidity:list', 'farm:monitor:bin-level:list']
+  },
+  // 多角色预设账号
+  users: [
+    { id: 1, username: 'ent_admin001', password: '123456', role: 'ent_admin', roleName: '企业管理员', name: '李建国', farmId: 101, farmName: '蓬溪县鑫源养殖场' },
+    { id: 2, username: 'ent_reporter001', password: '123456', role: 'ent_reporter', roleName: '企业填报员', name: '王小明', farmId: 101, farmName: '蓬溪县鑫源养殖场' },
+  ],
+  // 圈舍类型字典
+  dict: {
+    pigstyType: [
+      { value: '01', label: '妊娠舍' },
+      { value: '02', label: '分娩舍' },
+      { value: '03', label: '保育舍' },
+      { value: '04', label: '育肥舍' },
+      { value: '05', label: '公猪舍' },
+    ],
+    deviceStatus: [
+      { value: '0', label: '在线' },
+      { value: '1', label: '离线' },
+      { value: '2', label: '异常' },
+    ]
+  },
+  // 圈舍温湿度卡片数据（至少8条，覆盖全部状态）
+  pigstyCards: [
+    { pigstyId: 1, pigstyName: '1号妊娠舍', pigstyType: '01', device_status: '0', temperature: 22.5, humidity: 62.0, is_temp_alarm: '0', is_humi_alarm: '0', report_time: '03-09 10:32:45' },
+    { pigstyId: 2, pigstyName: '2号分娩舍', pigstyType: '02', device_status: '0', temperature: 37.2, humidity: 71.5, is_temp_alarm: '1', is_humi_alarm: '0', report_time: '03-09 10:32:38' },
+    { pigstyId: 3, pigstyName: '3号保育舍', pigstyType: '03', device_status: '0', temperature: 28.8, humidity: 88.3, is_temp_alarm: '0', is_humi_alarm: '1', report_time: '03-09 10:32:21' },
+    { pigstyId: 4, pigstyName: '4号育肥舍A', pigstyType: '04', device_status: '0', temperature: 38.5, humidity: 90.1, is_temp_alarm: '1', is_humi_alarm: '1', report_time: '03-09 10:31:55' },
+    { pigstyId: 5, pigstyName: '5号育肥舍B', pigstyType: '04', device_status: '0', temperature: 25.3, humidity: 55.0, is_temp_alarm: '0', is_humi_alarm: '0', report_time: '03-09 10:32:10' },
+    { pigstyId: 6, pigstyName: '6号公猪舍', pigstyType: '05', device_status: '1', temperature: 0, humidity: 0, is_temp_alarm: '0', is_humi_alarm: '0', report_time: '03-09 06:15:30' },
+    { pigstyId: 7, pigstyName: '7号保育舍B', pigstyType: '03', device_status: '0', temperature: 7.8, humidity: 45.5, is_temp_alarm: '1', is_humi_alarm: '0', report_time: '03-09 10:32:50' },
+    { pigstyId: 8, pigstyName: '8号育肥舍C', pigstyType: '04', device_status: '2', temperature: 0, humidity: 0, is_temp_alarm: '0', is_humi_alarm: '0', report_time: '03-07 08:22:10' },
+    { pigstyId: 9, pigstyName: '9号妊娠舍B', pigstyType: '01', device_status: '0', temperature: 21.0, humidity: 38.5, is_temp_alarm: '0', is_humi_alarm: '1', report_time: '03-09 10:32:05' },
+  ],
+  // 料仓物位卡片数据（至少8条）
+  binCards: [
+    { binId: 1, binName: '1号大型料仓', binCode: 'BIN-001', device_status: '0', bin_level: 72.5, is_low_alarm: '0', design_capacity: 10000, report_time: '03-09 10:30:20' },
+    { binId: 2, binName: '2号料仓', binCode: 'BIN-002', device_status: '0', bin_level: 35.2, is_low_alarm: '0', design_capacity: 5000, report_time: '03-09 10:30:15' },
+    { binId: 3, binName: '3号料仓（保育）', binCode: 'BIN-003', device_status: '0', bin_level: 15.8, is_low_alarm: '1', design_capacity: 3000, report_time: '03-09 10:30:10' },
+    { binId: 4, binName: '4号料仓（育肥A）', binCode: 'BIN-004', device_status: '0', bin_level: 8.3, is_low_alarm: '1', design_capacity: 8000, report_time: '03-09 10:30:05' },
+    { binId: 5, binName: '5号料仓（育肥B）', binCode: 'BIN-005', device_status: '1', bin_level: 0, is_low_alarm: '0', design_capacity: 8000, report_time: '03-08 18:45:30' },
+    { binId: 6, binName: '6号小型料仓', binCode: null, device_status: '0', bin_level: 55.0, is_low_alarm: '0', design_capacity: null, report_time: '03-09 10:29:50' },
+    { binId: 7, binName: '7号料仓（妊娠）', binCode: 'BIN-007', device_status: '0', bin_level: 48.7, is_low_alarm: '0', design_capacity: 4000, report_time: '03-09 10:29:40' },
+    { binId: 8, binName: '8号料仓（分娩）', binCode: 'BIN-008', device_status: '2', bin_level: 0, is_low_alarm: '0', design_capacity: 2000, report_time: '03-07 09:10:00' },
+  ],
+  // 温湿度历史数据生成模板（按时间范围生成）
+  genTempHistory(range) {
+    const now = new Date();
+    const data = [];
+    let points, intervalMinutes;
+    if (range === '1h') { points = 12; intervalMinutes = 5; }
+    else if (range === '24h') { points = 24; intervalMinutes = 60; }
+    else { points = 7; intervalMinutes = 60 * 24; }
+    for (let i = points - 1; i >= 0; i--) {
+      const d = new Date(now - i * intervalMinutes * 60000);
+      const label = range === '7d' ? `${d.getMonth()+1}-${String(d.getDate()).padStart(2,'0')}` : `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+      data.push({ label, temperature: (20 + Math.random() * 20 - 5 + (i%3===0?5:0)).toFixed(1)*1, humidity: (55 + Math.random() * 25 + (i%4===0?15:0)).toFixed(1)*1 });
+    }
+    return data;
+  },
+  // 料仓物位历史数据生成模板
+  genBinHistory(range) {
+    const now = new Date();
+    const data = [];
+    let points, intervalMinutes;
+    if (range === '1h') { points = 12; intervalMinutes = 5; }
+    else if (range === '24h') { points = 24; intervalMinutes = 60; }
+    else { points = 7; intervalMinutes = 60 * 24; }
+    let level = 60;
+    for (let i = 0; i < points; i++) {
+      const d = new Date(now - (points - 1 - i) * intervalMinutes * 60000);
+      const label = range === '7d' ? `${d.getMonth()+1}-${String(d.getDate()).padStart(2,'0')}` : `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+      level = Math.max(5, level - Math.random() * 6);
+      data.push({ label, bin_level: parseFloat(level.toFixed(1)) });
+    }
+    return data;
+  }
+};
+
+function appData() {
+  return {
+    // 全局状态
+    currentUser: { ...MOCK_DATA.currentUser },
+    sidebarCollapsed: false,
+    activeMainTab: 'temp',
+    autoRefreshing: false,
+    lastRefreshTime: '',
+    toast: { show: false, msg: '', icon: 'fa-check-circle', color: '#52c41a' },
+    tempTimer: null,
+    binTimer: null,
+
+    // 温湿度状态
+    tempLoading: true,
+    tempFilter: { pigstyType: '', pigstyName: '', nameError: '' },
+    filteredTempCards: [],
+    selectedTempCard: null,
+    tempTimeRange: '24h',
+    tempTimeRangeTabs: [{ label: '近1小时', value: '1h' }, { label: '近24小时', value: '24h' }, { label: '近7天', value: '7d' }],
+    tempChartLoading: false,
+    tempChart: null,
+
+    // 料仓物位状态
+    binLoading: false,
+    binFilter: { binName: '', nameError: '' },
+    filteredBinCards: [],
+    selectedBinCard: null,
+    binTimeRange: '24h',
+    binTimeRangeTabs: [{ label: '近1小时', value: '1h' }, { label: '近24小时', value: '24h' }, { label: '近7天', value: '7d' }],
+    binChartLoading: false,
+    binChart: null,
+
+    // 菜单
+    menuItems: [
+      {
+        title: '企业信息管理', children: [
+          { name: '基础信息', icon: 'fa-building', active: false, expanded: false, children: [
+            { name: '企业信息', active: false }, { name: '圈舍管理', active: false }
+          ]},
+          { name: '养殖信息管理', icon: 'fa-paw', active: false, expanded: false, children: [
+            { name: '存栏管理', active: false }, { name: '防疫记录', active: false }
+          ]},
+          { name: '实时监测', icon: 'fa-wifi', active: true, expanded: true, children: [
+            { name: '猪舍温湿度监测', active: true },
+            { name: '料仓物位监测', active: false }
+          ]},
+        ]
+      },
+      {
+        title: '项目信息管理', children: [
+          { name: '项目申报', icon: 'fa-file-alt', active: false, expanded: false, children: [] },
+          { name: '竣工验收', icon: 'fa-check-circle', active: false, expanded: false, children: [] },
+        ]
+      },
+      {
+        title: '政策信息', children: [
+          { name: '政策资讯', icon: 'fa-newspaper', active: false, expanded: false, children: [] },
+        ]
+      }
+    ],
+
+    init() {
+      this.lastRefreshTime = this.getNow();
+      setTimeout(() => {
+        this.tempLoading = false;
+        this.filteredTempCards = [...MOCK_DATA.pigstyCards];
+        this.filteredBinCards = [...MOCK_DATA.binCards];
+        this.startTempTimer();
+        this.startBinTimer();
+      }, 800);
+    },
+
+    getNow() {
+      const d = new Date();
+      return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+    },
+
+    showToast(msg, type = 'success') {
+      const config = { success: { icon: 'fa-check-circle', color: '#52c41a' }, error: { icon: 'fa-times-circle', color: '#ff4d4f' }, info: { icon: 'fa-info-circle', color: '#1677ff' } };
+      this.toast = { show: true, msg, ...config[type] };
+      setTimeout(() => { this.toast.show = false; }, 2500);
+    },
+
+    switchRole(user) {
+      this.currentUser = { ...user, permissions: ['farm:monitor:temperature-humidity:list', 'farm:monitor:bin-level:list'] };
+      this.showToast(`已切换角色：${user.roleName}（${user.name}）`);
+    },
+
+    logout() {
+      if (confirm('确认退出登录吗？')) {
+        this.showToast('退出成功', 'info');
+        setTimeout(() => { alert('返回登录页（原型模拟）'); }, 1000);
+      }
+    },
+
+    activateMenu(sub) {
+      this.menuItems.forEach(g => g.children.forEach(item => {
+        item.active = false;
+        if (item.children) item.children.forEach(s => { s.active = false; });
+      }));
+      sub.active = true;
+    },
+
+    switchMainTab(tab) {
+      this.activeMainTab = tab;
+      this.selectedTempCard = null;
+      this.selectedBinCard = null;
+    },
+
+    // ========== 温湿度功能 ==========
+    searchTempCards() {
+      const name = this.tempFilter.pigstyName.trim();
+      if (name.length > 30) { this.tempFilter.nameError = '圈舍名称不超过30个字符'; return; }
+      if (/^\s+$/.test(name) && name.length > 0) { this.tempFilter.nameError = '圈舍名称不允许纯空格'; return; }
+      this.tempFilter.nameError = '';
+      this.filterTempCards();
+    },
+
+    filterTempCards() {
+      let cards = [...MOCK_DATA.pigstyCards];
+      if (this.tempFilter.pigstyType) cards = cards.filter(c => c.pigstyType === this.tempFilter.pigstyType);
+      if (this.tempFilter.pigstyName.trim()) {
+        const kw = this.tempFilter.pigstyName.trim().toLowerCase();
+        cards = cards.filter(c => c.pigstyName.toLowerCase().includes(kw));
+      }
+      this.filteredTempCards = cards;
+    },
+
+    resetTempFilter() {
+      this.tempFilter = { pigstyType: '', pigstyName: '', nameError: '' };
+      this.filteredTempCards = [...MOCK_DATA.pigstyCards];
+    },
+
+    getTempStat(status) {
+      const map = { online: '0', offline: '1', error: '2' };
+      return MOCK_DATA.pigstyCards.filter(c => c.device_status === map[status]).length;
+    },
+
+    getTempAlarmCount() {
+      return MOCK_DATA.pigstyCards.filter(c => c.is_temp_alarm === '1' || c.is_humi_alarm === '1').length;
+    },
+
+    getPigstyTypeName(type) {
+      const item = MOCK_DATA.dict.pigstyType.find(d => d.value === type);
+      return item ? item.label : type;
+    },
+
+    selectTempCard(card) {
+      if (card.device_status !== '0') {
+        this.showToast('设备离线，暂无历史数据', 'info');
+        return;
+      }
+      this.selectedTempCard = card;
+      this.$nextTick(() => { this.renderTempChart(); });
+    },
+
+    switchTempTimeRange(range) {
+      this.tempTimeRange = range;
+      this.tempChartLoading = true;
+      setTimeout(() => {
+        this.tempChartLoading = false;
+        this.$nextTick(() => { this.renderTempChart(); });
+      }, 600);
+    },
+
+    renderTempChart() {
+      const data = MOCK_DATA.genTempHistory(this.tempTimeRange);
+      const labels = data.map(d => d.label);
+      const temps = data.map(d => d.temperature);
+      const humis = data.map(d => d.humidity);
+      const ctx = document.getElementById('tempHumiChart');
+      if (!ctx) return;
+      if (this.tempChart) { this.tempChart.destroy(); }
+      this.tempChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: '温度(°C)', data: temps, borderColor: '#ff7875', backgroundColor: 'rgba(255,120,117,0.08)',
+              yAxisID: 'y', tension: 0.4, pointRadius: 3, pointHoverRadius: 5, borderWidth: 2,
+            },
+            {
+              label: '湿度(%RH)', data: humis, borderColor: '#4096ff', backgroundColor: 'rgba(64,150,255,0.08)',
+              yAxisID: 'y1', tension: 0.4, pointRadius: 3, pointHoverRadius: 5, borderWidth: 2,
+            }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label(ctx) {
+                  if (ctx.datasetIndex === 0) return `温度：${ctx.parsed.y.toFixed(1)}°C`;
+                  return `湿度：${ctx.parsed.y.toFixed(1)}%RH`;
+                }
+              }
+            },
+            annotation: {}
+          },
+          scales: {
+            x: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 }, color: '#8c8c8c' } },
+            y: {
+              position: 'left', title: { display: true, text: '温度 (°C)', color: '#ff7875', font: { size: 11 } },
+              min: 0, max: 45, grid: { color: '#f5f5f5' }, ticks: { font: { size: 11 }, color: '#8c8c8c' },
+            },
+            y1: {
+              position: 'right', title: { display: true, text: '湿度 (%RH)', color: '#4096ff', font: { size: 11 } },
+              min: 0, max: 100, grid: { drawOnChartArea: false }, ticks: { font: { size: 11 }, color: '#8c8c8c' },
+            }
+          }
+        },
+        plugins: [{
+          id: 'thresholdLines',
+          afterDatasetsDraw(chart) {
+            const { ctx, scales: { x, y, y1 } } = chart;
+            if (!x || !y || !y1) return;
+            const drawLine = (yScale, yVal, color) => {
+              const yPx = yScale.getPixelForValue(yVal);
+              ctx.save();
+              ctx.setLineDash([5, 4]);
+              ctx.strokeStyle = color;
+              ctx.lineWidth = 1.2;
+              ctx.beginPath();
+              ctx.moveTo(x.left, yPx);
+              ctx.lineTo(x.right, yPx);
+              ctx.stroke();
+              ctx.setLineDash([]);
+              ctx.fillStyle = color;
+              ctx.font = '10px sans-serif';
+              ctx.fillText(yVal + (yScale === y ? '°C' : '%'), x.right + 4, yPx + 4);
+              ctx.restore();
+            };
+            drawLine(y, 35, '#ff4d4f');
+            drawLine(y, 10, '#ff7875');
+            drawLine(y1, 85, '#fa8c16');
+            drawLine(y1, 40, '#ffd591');
+          }
+        }]
+      });
+    },
+
+    startTempTimer() {
+      if (this.tempTimer) clearInterval(this.tempTimer);
+      this.tempTimer = setInterval(() => {
+        this.autoRefreshing = true;
+        this.lastRefreshTime = this.getNow();
+        setTimeout(() => { this.autoRefreshing = false; }, 800);
+      }, 30000);
+    },
+
+    // ========== 料仓物位功能 ==========
+    searchBinCards() {
+      const name = this.binFilter.binName.trim();
+      if (name.length > 100) { this.binFilter.nameError = '料仓名称不超过100个字符'; return; }
+      if (/^\s+$/.test(name) && name.length > 0) { this.binFilter.nameError = '料仓名称不允许纯空格'; return; }
+      this.binFilter.nameError = '';
+      this.filterBinCards();
+    },
+
+    filterBinCards() {
+      let cards = [...MOCK_DATA.binCards];
+      if (this.binFilter.binName.trim()) {
+        const kw = this.binFilter.binName.trim().toLowerCase();
+        cards = cards.filter(c => c.binName.toLowerCase().includes(kw));
+      }
+      this.filteredBinCards = cards;
+    },
+
+    resetBinFilter() {
+      this.binFilter = { binName: '', nameError: '' };
+      this.filteredBinCards = [...MOCK_DATA.binCards];
+    },
+
+    getBinStat(status) {
+      const map = { online: '0', offline: '1', error: '2' };
+      return MOCK_DATA.binCards.filter(c => c.device_status === map[status]).length;
+    },
+
+    getBinAlarmCount() {
+      return MOCK_DATA.binCards.filter(c => c.is_low_alarm === '1').length;
+    },
+
+    getBinProgressClass(card) {
+      if (card.device_status !== '0') return 'progress-green';
+      if (card.bin_level > 50) return 'progress-green';
+      if (card.bin_level >= 20) return 'progress-orange';
+      return 'progress-red';
+    },
+
+    getBinLevelColorClass(card) {
+      if (card.device_status !== '0') return 'text-gray-400';
+      if (card.bin_level > 50) return 'text-green-600';
+      if (card.bin_level >= 20) return 'text-orange-500';
+      return 'text-red-500';
+    },
+
+    getRemaining(card) {
+      if (card.device_status !== '0') return '-- kg';
+      if (!card.design_capacity) return '未配置';
+      return Math.floor(card.design_capacity * card.bin_level / 100).toLocaleString();
+    },
+
+    selectBinCard(card) {
+      if (card.device_status !== '0') {
+        this.showToast('设备离线/异常，暂无历史数据', 'info');
+        return;
+      }
+      this.selectedBinCard = card;
+      this.$nextTick(() => { this.renderBinChart(); });
+    },
+
+    switchBinTimeRange(range) {
+      this.binTimeRange = range;
+      this.binChartLoading = true;
+      setTimeout(() => {
+        this.binChartLoading = false;
+        this.$nextTick(() => { this.renderBinChart(); });
+      }, 600);
+    },
+
+    renderBinChart() {
+      const data = MOCK_DATA.genBinHistory(this.binTimeRange);
+      const labels = data.map(d => d.label);
+      const levels = data.map(d => d.bin_level);
+      const capacity = this.selectedBinCard ? this.selectedBinCard.design_capacity : null;
+      const ctx = document.getElementById('binLevelChart');
+      if (!ctx) return;
+      if (this.binChart) { this.binChart.destroy(); }
+      this.binChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: '物位(%)', data: levels, borderColor: '#E6A23C', backgroundColor: 'rgba(230,162,60,0.12)',
+              tension: 0.4, pointRadius: 3, pointHoverRadius: 5, borderWidth: 2, fill: true,
+            }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label(ctx) {
+                  const lv = ctx.parsed.y.toFixed(1);
+                  if (capacity) {
+                    const rem = Math.floor(capacity * ctx.parsed.y / 100);
+                    return [`物位：${lv}%`, `剩余量：${rem.toLocaleString()} kg`];
+                  }
+                  return `物位：${lv}%`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 }, color: '#8c8c8c' } },
+            y: { min: 0, max: 100, title: { display: true, text: '物位 (%)', color: '#E6A23C', font: { size: 11 } }, grid: { color: '#f5f5f5' }, ticks: { font: { size: 11 }, color: '#8c8c8c' } }
+          }
+        },
+        plugins: [{
+          id: 'alarmLine',
+          afterDatasetsDraw(chart) {
+            const { ctx, scales: { x, y } } = chart;
+            if (!x || !y) return;
+            const yPx = y.getPixelForValue(20);
+            ctx.save();
+            ctx.setLineDash([5, 4]);
+            ctx.strokeStyle = '#ff4d4f';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(x.left, yPx);
+            ctx.lineTo(x.right, yPx);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = '#ff4d4f';
+            ctx.font = 'bold 11px sans-serif';
+            ctx.fillText('20% 告警阈值', x.right - 80, yPx - 4);
+            ctx.restore();
+          }
+        }]
+      });
+    },
+
+    startBinTimer() {
+      if (this.binTimer) clearInterval(this.binTimer);
+      this.binTimer = setInterval(() => {
+        if (this.activeMainTab === 'bin') {
+          this.autoRefreshing = true;
+          this.lastRefreshTime = this.getNow();
+          setTimeout(() => { this.autoRefreshing = false; }, 800);
+        }
+      }, 60000);
+    },
+  };
+}
+</script>
+</body>
+</html>

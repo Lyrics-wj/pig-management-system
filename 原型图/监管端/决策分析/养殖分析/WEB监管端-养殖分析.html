@@ -1,0 +1,1476 @@
+<!--
+  功能名称：养殖分析
+  对应PRD：doc_prd/WEB/监管端/决策分析/养殖分析/WEB监管端-养殖分析.prd.md
+  所属端口：WEB监管端
+  所属模块：决策分析
+  制作日期：2026-03-10
+  最后更新：2026-03-10
+  角色说明：县级管理员(county_admin)、县级业务人员(county_staff)、乡镇政府业务人员(town_gov_staff)、乡镇畜牧兽医站(town_vet_station)
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>养殖分析 - 蓬溪县生猪数字化管理平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <style>
+    /* SHARED STYLES */
+    :root {
+      --primary: #1677ff;
+      --bg: #f0f2f5;
+      --card-bg: #ffffff;
+      --border: #e8e8e8;
+      --text-main: #262626;
+      --text-sub: #595959;
+      --text-muted: #8c8c8c;
+      --success: #52c41a;
+      --warning: #faad14;
+      --error: #ff4d4f;
+      --disabled: #bfbfbf;
+    }
+    body { background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; color: var(--text-main); }
+    .sidebar { width: 240px; min-height: calc(100vh - 60px); background: #001529; position: fixed; top: 60px; left: 0; overflow-y: auto; z-index: 100; transition: width 0.2s; }
+    .sidebar.collapsed { width: 60px; }
+    .sidebar-item { display: flex; align-items: center; padding: 12px 20px; color: rgba(255,255,255,0.65); cursor: pointer; transition: all 0.2s; white-space: nowrap; overflow: hidden; font-size: 14px; }
+    .sidebar-item:hover { color: #fff; background: rgba(255,255,255,0.1); }
+    .sidebar-item.active { color: #fff; background: #1677ff; }
+    .sidebar-item i { width: 20px; text-align: center; flex-shrink: 0; }
+    .sidebar-item span { margin-left: 12px; transition: opacity 0.2s; }
+    .sidebar.collapsed .sidebar-item span { opacity: 0; }
+    .sidebar-group-title { padding: 12px 20px 4px; color: rgba(255,255,255,0.35); font-size: 12px; white-space: nowrap; overflow: hidden; }
+    .sidebar.collapsed .sidebar-group-title { opacity: 0; }
+    .main-content { margin-left: 240px; margin-top: 60px; padding: 16px; min-height: calc(100vh - 60px); transition: margin-left 0.2s; }
+    .main-content.expanded { margin-left: 60px; }
+    .topbar { height: 60px; background: #fff; border-bottom: 1px solid var(--border); position: fixed; top: 0; left: 0; right: 0; z-index: 200; display: flex; align-items: center; padding: 0 16px; }
+    .card { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border); padding: 16px; }
+    .card-title { font-size: 15px; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .stat-card { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; }
+    .stat-label { font-size: 13px; color: var(--text-sub); margin-bottom: 8px; }
+    .stat-value { font-size: 28px; font-weight: 700; color: var(--text-main); line-height: 1; }
+    .stat-unit { font-size: 14px; font-weight: 400; color: var(--text-sub); }
+    .stat-change { font-size: 12px; margin-top: 8px; }
+    .stat-change.up { color: var(--success); }
+    .stat-change.down { color: var(--error); }
+    .stat-change.neutral { color: var(--text-muted); }
+    .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 500; }
+    .badge-error { background: #fff1f0; color: #ff4d4f; border: 1px solid #ffccc7; }
+    .badge-warning { background: #fff7e6; color: #d46b08; border: 1px solid #ffd591; }
+    .badge-success { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; }
+    .badge-info { background: #e6f4ff; color: #0958d9; border: 1px solid #91caff; }
+    .badge-purple { background: #f9f0ff; color: #531dab; border: 1px solid #d3adf7; }
+    .badge-orange { background: #fff2e8; color: #d4380d; border: 1px solid #ffbb96; }
+    .badge-gray { background: #fafafa; color: #595959; border: 1px solid #d9d9d9; }
+    .btn-primary { background: #1677ff; color: #fff; border: none; padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
+    .btn-primary:hover { background: #4096ff; }
+    .btn-default { background: #fff; color: var(--text-main); border: 1px solid var(--border); padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
+    .btn-default:hover { color: #1677ff; border-color: #1677ff; }
+    .btn-danger { background: #fff; color: #ff4d4f; border: 1px solid #ff4d4f; padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+    .btn-link { background: none; border: none; color: #1677ff; cursor: pointer; font-size: 13px; padding: 2px 6px; }
+    .btn-sm { padding: 3px 10px; font-size: 12px; border-radius: 4px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #fafafa; border-bottom: 1px solid var(--border); padding: 10px 12px; text-align: left; font-weight: 500; color: var(--text-sub); font-size: 13px; white-space: nowrap; }
+    td { border-bottom: 1px solid #f0f0f0; padding: 10px 12px; color: var(--text-main); font-size: 13px; }
+    tr:nth-child(even) td { background: #fafafa; }
+    tr:hover td { background: #e6f4ff; }
+    .sticky-col { position: sticky; right: 0; background: #fff; z-index: 2; box-shadow: -2px 0 4px rgba(0,0,0,0.06); }
+    tr:nth-child(even) .sticky-col { background: #fafafa; }
+    tr:hover .sticky-col { background: #e6f4ff; }
+    th.sticky-col { background: #fafafa; z-index: 3; }
+    .form-label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--text-main); }
+    .form-label .req { color: #ff4d4f; margin-right: 2px; }
+    .form-input { width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 7px 11px; font-size: 14px; color: var(--text-main); outline: none; transition: border-color 0.2s; }
+    .form-input:focus { border-color: #1677ff; box-shadow: 0 0 0 2px rgba(22,119,255,0.1); }
+    .form-error { color: #ff4d4f; font-size: 12px; margin-top: 4px; }
+    select.form-input { cursor: pointer; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+    .modal { background: #fff; border-radius: 8px; box-shadow: 0 6px 24px rgba(0,0,0,0.12); width: 520px; max-width: calc(100vw - 32px); max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--border); }
+    .modal-title { font-size: 16px; font-weight: 600; }
+    .modal-body { padding: 24px; }
+    .modal-footer { padding: 12px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+    .toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.75); color: #fff; padding: 10px 20px; border-radius: 6px; font-size: 14px; z-index: 9999; animation: fadeInOut 2.5s forwards; }
+    @keyframes fadeInOut { 0%{opacity:0;transform:translateX(-50%) translateY(-8px)} 15%{opacity:1;transform:translateX(-50%) translateY(0)} 75%{opacity:1} 100%{opacity:0} }
+    .filter-bar { background: #fff; border-radius: 8px; border: 1px solid var(--border); padding: 14px 16px; display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; position: sticky; top: 60px; z-index: 50; }
+    .filter-item { display: flex; align-items: center; gap: 6px; }
+    .filter-label { font-size: 13px; color: var(--text-sub); white-space: nowrap; }
+    .quick-btn { padding: 4px 12px; border-radius: 4px; border: 1px solid var(--border); background: #fff; font-size: 13px; cursor: pointer; color: var(--text-sub); transition: all 0.2s; }
+    .quick-btn.active { border-color: #1677ff; color: #1677ff; background: #e6f4ff; }
+    .quick-btn:hover { border-color: #1677ff; color: #1677ff; }
+    .chart-container { min-height: 300px; width: 100%; }
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .section-title { font-size: 15px; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
+    .collapse-btn { background: none; border: none; color: var(--text-sub); cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 4px; }
+    .collapse-btn:hover { background: #f5f5f5; }
+    .warning-row-unhandled td { background: #fff1f0 !important; }
+    .warning-row-unhandled .sticky-col { background: #fff1f0 !important; }
+    .pagination { display: flex; align-items: center; justify-content: space-between; padding: 12px 0 0; }
+    .pagination-info { font-size: 13px; color: var(--text-sub); }
+    .page-btns { display: flex; gap: 4px; align-items: center; }
+    .page-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; font-size: 13px; background: #fff; color: var(--text-main); transition: all 0.2s; }
+    .page-btn:hover { border-color: #1677ff; color: #1677ff; }
+    .page-btn.active { background: #1677ff; color: #fff; border-color: #1677ff; }
+    .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
+    .breadcrumb a { color: var(--text-muted); cursor: pointer; } .breadcrumb a:hover { color: #1677ff; }
+    .breadcrumb .sep { color: #d9d9d9; }
+    .breadcrumb .current { color: var(--text-main); }
+    .rank-badge { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; font-size: 12px; font-weight: 700; }
+    .rank-1 { background: #ff4d4f; color: #fff; }
+    .rank-2 { background: #faad14; color: #fff; }
+    .rank-3 { background: #52c41a; color: #fff; }
+    .rank-other { background: #f0f0f0; color: #595959; }
+    .info-text { color: var(--text-muted); font-size: 12px; margin-bottom: 8px; font-style: italic; }
+    .capacity-normal { color: var(--text-main); }
+    .capacity-warning { color: #faad14; font-weight: 500; }
+    .capacity-danger { color: #f5222d; font-weight: 500; }
+    .donut-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
+    .chart-relative { position: relative; }
+    .granularity-btn-group { display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+    .granularity-btn { padding: 4px 14px; background: #fff; border: none; cursor: pointer; font-size: 13px; color: var(--text-sub); transition: all 0.2s; }
+    .granularity-btn.active { background: #1677ff; color: #fff; }
+    .role-tag { padding: 3px 10px; border-radius: 4px; font-size: 12px; display: inline-block; }
+    .loading-state { display: flex; align-items: center; justify-content: center; min-height: 200px; flex-direction: column; gap: 8px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+<script>
+const MOCK_DATA = {
+  // 当前登录用户（可切换）
+  currentUser: {
+    id: 1, name: '李志远', username: 'admin001', role: 'county_admin', roleName: '县级管理员',
+    deptId: 510923, deptName: '蓬溪县农业农村局',
+    permissions: ['admin:analysis:breeding', 'admin:analysis:breeding:warning:handle', 'admin:analysis:breeding:export']
+  },
+  users: [
+    { id: 1, username: 'admin001', password: '123456', role: 'county_admin', roleName: '县级管理员', deptName: '蓬溪县农业农村局', permissions: ['admin:analysis:breeding', 'admin:analysis:breeding:warning:handle', 'admin:analysis:breeding:export'] },
+    { id: 2, username: 'staff001', password: '123456', role: 'county_staff', roleName: '县级业务人员', deptName: '蓬溪县农业农村局', permissions: ['admin:analysis:breeding', 'admin:analysis:breeding:warning:handle', 'admin:analysis:breeding:export'] },
+    { id: 3, username: 'town001', password: '123456', role: 'town_gov_staff', roleName: '乡镇政府业务人员', deptName: '蓬溪镇政府', permissions: ['admin:analysis:breeding'] },
+    { id: 4, username: 'vet001', password: '123456', role: 'town_vet_station', roleName: '乡镇畜牧兽医站', deptName: '蓬溪镇畜牧兽医站', permissions: ['admin:analysis:breeding'] }
+  ],
+
+  // 全局筛选状态
+  filter: {
+    startTime: '2025-03-10',
+    endTime: '2026-03-10',
+    areaCode: '',
+    enterpriseType: '',
+    quickMode: 'year',
+    granularity: 'month'
+  },
+
+  // 乡镇列表
+  towns: [
+    { value: '', label: '全县' },
+    { value: '510923001', label: '蓬溪镇' },
+    { value: '510923002', label: '文井镇' },
+    { value: '510923003', label: '明月镇' },
+    { value: '510923004', label: '赤城镇' },
+    { value: '510923005', label: '罗戈乡' },
+    { value: '510923006', label: '任隆镇' },
+    { value: '510923007', label: '新会镇' },
+    { value: '510923008', label: '槐花镇' },
+  ],
+  enterpriseTypes: [
+    { value: '', label: '全部' },
+    { value: '1', label: '规模养殖场' },
+    { value: '2', label: '家庭农场' },
+    { value: '3', label: '散养户' },
+    { value: '4', label: '合作社' }
+  ],
+
+  // 卡片一：养殖结构概览
+  overview: {
+    enterpriseCount: 375, enterpriseChange: 3.2,
+    stockTotal: 128650, stockChange: 8.5,
+    sowTotal: 6120, sowChange: 5.1,
+    exitTotal: 95380, exitChange: -2.3
+  },
+
+  // 卡片二：养殖结构分布
+  structureData: [
+    { enterpriseType: '1', enterpriseTypeName: '规模养殖场', enterpriseCount: 48, enterpriseRatio: 12.8, stockQuantity: 89600, stockRatio: 69.6, exitQuantity: 68200, exitRatio: 71.5 },
+    { enterpriseType: '2', enterpriseTypeName: '家庭农场', enterpriseCount: 112, enterpriseRatio: 29.9, stockQuantity: 25300, stockRatio: 19.7, exitQuantity: 18500, exitRatio: 19.4 },
+    { enterpriseType: '3', enterpriseTypeName: '散养户', enterpriseCount: 187, enterpriseRatio: 49.9, stockQuantity: 11200, stockRatio: 8.7, exitQuantity: 7480, exitRatio: 7.8 },
+    { enterpriseType: '4', enterpriseTypeName: '合作社', enterpriseCount: 28, enterpriseRatio: 7.4, stockQuantity: 2550, stockRatio: 2.0, exitQuantity: 1200, exitRatio: 1.3 },
+  ],
+
+  // 卡片三：存栏出栏趋势（月度）
+  stockTrendMonth: [
+    { period: '2025-03', stockQuantity: 118200, exitQuantity: 7200 },
+    { period: '2025-04', stockQuantity: 119800, exitQuantity: 8100 },
+    { period: '2025-05', stockQuantity: 122300, exitQuantity: 9200 },
+    { period: '2025-06', stockQuantity: 120500, exitQuantity: 10500 },
+    { period: '2025-07', stockQuantity: 123800, exitQuantity: 8800 },
+    { period: '2025-08', stockQuantity: 125600, exitQuantity: 9600 },
+    { period: '2025-09', stockQuantity: 124200, exitQuantity: 10200 },
+    { period: '2025-10', stockQuantity: 127000, exitQuantity: 9800 },
+    { period: '2025-11', stockQuantity: 126500, exitQuantity: 8500 },
+    { period: '2025-12', stockQuantity: 128000, exitQuantity: 11200 },
+    { period: '2026-01', stockQuantity: 128200, exitQuantity: 7500 },
+    { period: '2026-02', stockQuantity: 128650, exitQuantity: 5000 },
+  ],
+  stockTrendQuarter: [
+    { period: '2025-Q1', stockQuantity: 116000, exitQuantity: 21000 },
+    { period: '2025-Q2', stockQuantity: 122000, exitQuantity: 27800 },
+    { period: '2025-Q3', stockQuantity: 124500, exitQuantity: 28600 },
+    { period: '2025-Q4', stockQuantity: 128000, exitQuantity: 29500 },
+    { period: '2026-Q1', stockQuantity: 128650, exitQuantity: 12500 },
+  ],
+  stockTrendYear: [
+    { period: '2023', stockQuantity: 108000, exitQuantity: 82000 },
+    { period: '2024', stockQuantity: 118500, exitQuantity: 89000 },
+    { period: '2025', stockQuantity: 128650, exitQuantity: 95380 },
+  ],
+
+  // 卡片四：能繁母猪存栏占比
+  sowRatio: {
+    sowTotal: 6120, stockTotal: 128650, ratio: 4.76,
+    yoyChange: 0.3, referenceMin: 4.0, referenceMax: 5.0
+  },
+
+  // 卡片五：PSY排行榜
+  psyRanking: {
+    avgPsy: 18.6,
+    items: [
+      { rank: 1, enterpriseId: 101, enterpriseName: '蓬溪县鑫源生猪养殖有限公司', townName: '蓬溪镇', sowCount: 520, weaningCount: 12480, psy: 24.0, psyChange: 1.2 },
+      { rank: 2, enterpriseId: 102, enterpriseName: '文井镇福瑞养殖场', townName: '文井镇', sowCount: 380, weaningCount: 8740, psy: 23.0, psyChange: -0.5 },
+      { rank: 3, enterpriseId: 103, enterpriseName: '明月镇绿源家庭农场', townName: '明月镇', sowCount: 210, weaningCount: 4620, psy: 22.0, psyChange: 2.1 },
+      { rank: 4, enterpriseId: 104, enterpriseName: '赤城镇恒兴养殖合作社', townName: '赤城镇', sowCount: 145, weaningCount: 2900, psy: 20.0, psyChange: 0.0 },
+      { rank: 5, enterpriseId: 105, enterpriseName: '罗戈乡大农生猪养殖场', townName: '罗戈乡', sowCount: 95, weaningCount: 1862, psy: 19.6, psyChange: -1.0 },
+      { rank: 6, enterpriseId: 106, enterpriseName: '任隆镇天源农牧有限公司', townName: '任隆镇', sowCount: 180, weaningCount: 3492, psy: 19.4, psyChange: 0.8 },
+      { rank: 7, enterpriseId: 107, enterpriseName: '新会镇聚发养殖场', townName: '新会镇', sowCount: 72, weaningCount: 1368, psy: 19.0, psyChange: 1.5 },
+      { rank: 8, enterpriseId: 108, enterpriseName: '槐花镇丰收家庭农场', townName: '槐花镇', sowCount: 58, weaningCount: 1073, psy: 18.5, psyChange: -0.3 },
+      { rank: 9, enterpriseId: 109, enterpriseName: '蓬溪镇振兴合作社', townName: '蓬溪镇', sowCount: 40, weaningCount: 720, psy: 18.0, psyChange: 0.2 },
+      { rank: 10, enterpriseId: 110, enterpriseName: '文井镇顺德养殖场', townName: '文井镇', sowCount: 35, weaningCount: 602, psy: 17.2, psyChange: -0.8 },
+    ],
+    total: 38
+  },
+
+  // 卡片六：养殖规模排行榜
+  scaleRanking: {
+    items: [
+      { rank: 1, enterpriseId: 101, enterpriseName: '蓬溪县鑫源生猪养殖有限公司', townName: '蓬溪镇', enterpriseTypeName: '规模养殖场', designScale: 8000, currentStock: 7200, capacityRate: 90.0 },
+      { rank: 2, enterpriseId: 104, enterpriseName: '赤城镇恒兴养殖合作社', townName: '赤城镇', enterpriseTypeName: '合作社', designScale: 6000, currentStock: 5100, capacityRate: 85.0 },
+      { rank: 3, enterpriseId: 102, enterpriseName: '文井镇福瑞养殖场', townName: '文井镇', enterpriseTypeName: '规模养殖场', designScale: 5000, currentStock: 4350, capacityRate: 87.0 },
+      { rank: 4, enterpriseId: 106, enterpriseName: '任隆镇天源农牧有限公司', townName: '任隆镇', enterpriseTypeName: '规模养殖场', designScale: 4500, currentStock: 3820, capacityRate: 84.9 },
+      { rank: 5, enterpriseId: 111, enterpriseName: '蓬溪镇现代农业养殖场', townName: '蓬溪镇', enterpriseTypeName: '规模养殖场', designScale: 4000, currentStock: 1600, capacityRate: 40.0 },
+      { rank: 6, enterpriseId: 103, enterpriseName: '明月镇绿源家庭农场', townName: '明月镇', enterpriseTypeName: '家庭农场', designScale: 3000, currentStock: 2680, capacityRate: 89.3 },
+      { rank: 7, enterpriseId: 112, enterpriseName: '槐花镇腾飞养殖场', townName: '槐花镇', enterpriseTypeName: '规模养殖场', designScale: 3000, currentStock: 780, capacityRate: 26.0 },
+      { rank: 8, enterpriseId: 113, enterpriseName: '新会镇农兴合作社', townName: '新会镇', enterpriseTypeName: '合作社', designScale: 2500, currentStock: 2100, capacityRate: 84.0 },
+      { rank: 9, enterpriseId: 105, enterpriseName: '罗戈乡大农生猪养殖场', townName: '罗戈乡', enterpriseTypeName: '规模养殖场', designScale: 2000, currentStock: 1720, capacityRate: 86.0 },
+      { rank: 10, enterpriseId: 107, enterpriseName: '新会镇聚发养殖场', townName: '新会镇', enterpriseTypeName: '家庭农场', designScale: 1500, currentStock: 1380, capacityRate: 92.0 },
+    ],
+    total: 48
+  },
+
+  // 卡片七：投入品成本排行
+  costRanking: {
+    items: [
+      { rank: 1, enterpriseId: 107, enterpriseName: '新会镇聚发养殖场', townName: '新会镇', feedCost: 182500.00, drugCost: 8200.00, totalCost: 190700.00, exitCount: 1350, unitCost: 141.26 },
+      { rank: 2, enterpriseId: 108, enterpriseName: '槐花镇丰收家庭农场', townName: '槐花镇', feedCost: 215600.00, drugCost: 9800.00, totalCost: 225400.00, exitCount: 1580, unitCost: 142.66 },
+      { rank: 3, enterpriseId: 103, enterpriseName: '明月镇绿源家庭农场', townName: '明月镇', feedCost: 386000.00, drugCost: 15200.00, totalCost: 401200.00, exitCount: 2750, unitCost: 145.89 },
+      { rank: 4, enterpriseId: 109, enterpriseName: '蓬溪镇振兴合作社', townName: '蓬溪镇', feedCost: 125800.00, drugCost: 6800.00, totalCost: 132600.00, exitCount: 890, unitCost: 148.99 },
+      { rank: 5, enterpriseId: 102, enterpriseName: '文井镇福瑞养殖场', townName: '文井镇', feedCost: 662000.00, drugCost: 28500.00, totalCost: 690500.00, exitCount: 4580, unitCost: 150.76 },
+      { rank: 6, enterpriseId: 106, enterpriseName: '任隆镇天源农牧有限公司', townName: '任隆镇', feedCost: 598000.00, drugCost: 25200.00, totalCost: 623200.00, exitCount: 4100, unitCost: 151.99 },
+      { rank: 7, enterpriseId: 104, enterpriseName: '赤城镇恒兴养殖合作社', townName: '赤城镇', feedCost: 785000.00, drugCost: 32500.00, totalCost: 817500.00, exitCount: 5350, unitCost: 152.80 },
+      { rank: 8, enterpriseId: 101, enterpriseName: '蓬溪县鑫源生猪养殖有限公司', townName: '蓬溪镇', feedCost: 1128000.00, drugCost: 45600.00, totalCost: 1173600.00, exitCount: 7500, unitCost: 156.48 },
+      { rank: 9, enterpriseId: 111, enterpriseName: '蓬溪镇现代农业养殖场', townName: '蓬溪镇', feedCost: 186000.00, drugCost: 9200.00, totalCost: 195200.00, exitCount: 1200, unitCost: 162.67 },
+      { rank: 10, enterpriseId: 112, enterpriseName: '槐花镇腾飞养殖场', townName: '槐花镇', feedCost: 95800.00, drugCost: 5800.00, totalCost: 101600.00, exitCount: 580, unitCost: 175.17 },
+    ],
+    total: 38
+  },
+
+  // 卡片八：养殖企业淘汰率
+  eliminationRate: {
+    currentRate: 3.2, eliminatedCount: 12, baseCount: 375,
+    monthlyTrend: [
+      { month: '2025-03', rate: 0.3, eliminatedCount: 1 },
+      { month: '2025-04', rate: 0.5, eliminatedCount: 2 },
+      { month: '2025-05', rate: 0.3, eliminatedCount: 1 },
+      { month: '2025-06', rate: 0.0, eliminatedCount: 0 },
+      { month: '2025-07', rate: 0.5, eliminatedCount: 2 },
+      { month: '2025-08', rate: 0.3, eliminatedCount: 1 },
+      { month: '2025-09', rate: 0.3, eliminatedCount: 1 },
+      { month: '2025-10', rate: 0.0, eliminatedCount: 0 },
+      { month: '2025-11', rate: 0.3, eliminatedCount: 1 },
+      { month: '2025-12', rate: 0.5, eliminatedCount: 2 },
+      { month: '2026-01', rate: 0.3, eliminatedCount: 1 },
+      { month: '2026-02', rate: 0.0, eliminatedCount: 0 },
+    ],
+    eliminatedList: [
+      { enterpriseName: '蓬溪镇旭阳养殖场', enterpriseTypeName: '规模养殖场', townName: '蓬溪镇', eliminatedDate: '2025-04-12' },
+      { enterpriseName: '文井镇汇丰散养户', enterpriseTypeName: '散养户', townName: '文井镇', eliminatedDate: '2025-04-28' },
+      { enterpriseName: '明月镇正大养殖场', enterpriseTypeName: '家庭农场', townName: '明月镇', eliminatedDate: '2025-05-15' },
+      { enterpriseName: '赤城镇金鑫散养户', enterpriseTypeName: '散养户', townName: '赤城镇', eliminatedDate: '2025-07-03' },
+      { enterpriseName: '罗戈乡惠农养殖场', enterpriseTypeName: '家庭农场', townName: '罗戈乡', eliminatedDate: '2025-07-20' },
+      { enterpriseName: '任隆镇顺发散养户', enterpriseTypeName: '散养户', townName: '任隆镇', eliminatedDate: '2025-08-11' },
+      { enterpriseName: '新会镇福源农场', enterpriseTypeName: '家庭农场', townName: '新会镇', eliminatedDate: '2025-09-05' },
+      { enterpriseName: '槐花镇金满楼养殖场', enterpriseTypeName: '规模养殖场', townName: '槐花镇', eliminatedDate: '2025-11-18' },
+      { enterpriseName: '蓬溪镇昌盛合作社', enterpriseTypeName: '合作社', townName: '蓬溪镇', eliminatedDate: '2025-12-02' },
+      { enterpriseName: '文井镇广兴散养户', enterpriseTypeName: '散养户', townName: '文井镇', eliminatedDate: '2025-12-21' },
+      { enterpriseName: '明月镇银丰养殖场', enterpriseTypeName: '家庭农场', townName: '明月镇', eliminatedDate: '2026-01-14' },
+      { enterpriseName: '赤城镇启明散养户', enterpriseTypeName: '散养户', townName: '赤城镇', eliminatedDate: '2026-03-01' },
+    ]
+  },
+
+  // 卡片九：养殖预警事件统计
+  warningStats: [
+    { warningType: '1', warningTypeName: '疫病预警', totalCount: 8, unhandledCount: 3 },
+    { warningType: '2', warningTypeName: '死亡预警', totalCount: 15, unhandledCount: 7 },
+    { warningType: '3', warningTypeName: '视频告警', totalCount: 42, unhandledCount: 18 },
+    { warningType: '4', warningTypeName: '产能预警', totalCount: 6, unhandledCount: 2 },
+    { warningType: '5', warningTypeName: '超期预警', totalCount: 23, unhandledCount: 12 },
+  ],
+  warningList: [
+    { warningId: 1001, warningType: '3', warningTypeName: '视频告警', warningContent: '蓬溪县鑫源生猪养殖有限公司 摄像头001 检测到疑似人员入侵事件，请及时核查。', enterpriseId: 101, enterpriseName: '蓬溪县鑫源生猪养殖有限公司', townName: '蓬溪镇', handleStatus: '0', handleStatusName: '未处理', handleBy: null, handleTime: null, handleRemark: null, refId: 3001, refType: 'pig_video_alarm', createTime: '2026-03-10 08:23' },
+    { warningId: 1002, warningType: '2', warningTypeName: '死亡预警', warningContent: '文井镇福瑞养殖场 2026年02月病死率达到6.2%，超过预警阈值5%，请关注。', enterpriseId: 102, enterpriseName: '文井镇福瑞养殖场', townName: '文井镇', handleStatus: '0', handleStatusName: '未处理', handleBy: null, handleTime: null, handleRemark: null, refId: 2001, refType: 'pig_dead_animal_record', createTime: '2026-03-01 06:00' },
+    { warningId: 1003, warningType: '1', warningTypeName: '疫病预警', warningContent: '明月镇绿源家庭农场 新增疾病诊疗记录包含"蓝耳病"关键词，请立即排查，防止疫情扩散。', enterpriseId: 103, enterpriseName: '明月镇绿源家庭农场', townName: '明月镇', handleStatus: '0', handleStatusName: '未处理', handleBy: null, handleTime: null, handleRemark: null, refId: 1001, refType: 'pig_disease_treatment_record', createTime: '2026-03-08 10:15' },
+    { warningId: 1004, warningType: '5', warningTypeName: '超期预警', warningContent: '赤城镇恒兴养殖合作社 3月份养殖信息填报已超期7天，请督促尽快填报。', enterpriseId: 104, enterpriseName: '赤城镇恒兴养殖合作社', townName: '赤城镇', handleStatus: '0', handleStatusName: '未处理', handleBy: null, handleTime: null, handleRemark: null, refId: 5001, refType: 'pig_work_task_feedback', createTime: '2026-03-07 06:00' },
+    { warningId: 1005, warningType: '4', warningTypeName: '产能预警', warningContent: '槐花镇腾飞养殖场 2026年02月存栏量较上月环比下降35%，超过预警阈值30%，请关注。', enterpriseId: 112, enterpriseName: '槐花镇腾飞养殖场', townName: '槐花镇', handleStatus: '1', handleStatusName: '已处理', handleBy: '李志远', handleTime: '2026-03-05 14:30', handleRemark: '已联系企业，了解到因饲料供应临时中断导致存栏减少，情况正在恢复中。', refId: 4001, refType: 'pig_breeding_info', createTime: '2026-03-01 06:00' },
+    { warningId: 1006, warningType: '3', warningTypeName: '视频告警', warningContent: '任隆镇天源农牧有限公司 摄像头003 检测到疑似人员入侵事件，请及时核查。', enterpriseId: 106, enterpriseName: '任隆镇天源农牧有限公司', townName: '任隆镇', handleStatus: '2', handleStatusName: '已忽略', handleBy: '王建国', handleTime: '2026-03-04 09:00', handleRemark: '核查为工作人员正常作业，误触发告警。', refId: 3002, refType: 'pig_video_alarm', createTime: '2026-03-03 22:47' },
+    { warningId: 1007, warningType: '2', warningTypeName: '死亡预警', warningContent: '罗戈乡大农生猪养殖场 2026年02月病死率达到5.8%，超过预警阈值5%，请关注。', enterpriseId: 105, enterpriseName: '罗戈乡大农生猪养殖场', townName: '罗戈乡', handleStatus: '0', handleStatusName: '未处理', handleBy: null, handleTime: null, handleRemark: null, refId: 2002, refType: 'pig_dead_animal_record', createTime: '2026-03-01 06:00' },
+    { warningId: 1008, warningType: '5', warningTypeName: '超期预警', warningContent: '新会镇聚发养殖场 2月份出栏信息填报超期14天，请督促尽快完成填报。', enterpriseId: 107, enterpriseName: '新会镇聚发养殖场', townName: '新会镇', handleStatus: '0', handleStatusName: '未处理', handleBy: null, handleTime: null, handleRemark: null, refId: 5002, refType: 'pig_work_collect_data', createTime: '2026-03-01 06:00' },
+    { warningId: 1009, warningType: '1', warningTypeName: '疫病预警', warningContent: '蓬溪镇振兴合作社 新增疾病诊疗记录包含"口蹄疫"关键词，请立即排查。', enterpriseId: 109, enterpriseName: '蓬溪镇振兴合作社', townName: '蓬溪镇', handleStatus: '1', handleStatusName: '已处理', handleBy: '赵敏', handleTime: '2026-02-28 16:00', handleRemark: '现场核查为疑似症状，已要求企业隔离观察并上报兽医站。', refId: 1002, refType: 'pig_disease_treatment_record', createTime: '2026-02-27 11:30' },
+    { warningId: 1010, warningType: '3', warningTypeName: '视频告警', warningContent: '槐花镇丰收家庭农场 摄像头002 检测到疑似人员入侵，请核查。', enterpriseId: 108, enterpriseName: '槐花镇丰收家庭农场', townName: '槐花镇', handleStatus: '0', handleStatusName: '未处理', handleBy: null, handleTime: null, handleRemark: null, refId: 3003, refType: 'pig_video_alarm', createTime: '2026-03-09 03:15' },
+  ],
+
+  // 卡片十：视频监控概况
+  videoOverview: {
+    totalDevices: 186, onlineCount: 158, offlineCount: 22, faultCount: 6,
+    todayAlarmCount: 4, alarmEnterpriseCount: 3,
+    statusDistribution: [
+      { status: '0', statusName: '在线', count: 158, ratio: 84.9 },
+      { status: '1', statusName: '离线', count: 22, ratio: 11.8 },
+      { status: '2', statusName: '故障', count: 6, ratio: 3.3 },
+    ]
+  }
+};
+
+// 应用状态
+const STATE = {
+  sidebarCollapsed: false,
+  currentRole: MOCK_DATA.currentUser.role,
+  trendTableExpanded: false,
+  eliminationTableExpanded: false,
+  psyExpanded: false,
+  scaleExpanded: false,
+  costExpanded: false,
+  warningPage: 1,
+  warningFilterType: '',
+  warningFilterStatus: '',
+  warningList: [...MOCK_DATA.warningList],
+  granularity: 'month',
+  processingWarningId: null,
+};
+
+function hasPermission(perm) {
+  return MOCK_DATA.currentUser.permissions.includes(perm);
+}
+
+function isCountyRole() {
+  return ['county_admin', 'county_staff'].includes(MOCK_DATA.currentUser.role);
+}
+
+function toast(msg, type = 'success') {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<i class="fa ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}" style="margin-right:6px"></i>${msg}`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2600);
+}
+
+function confirm2(msg) {
+  return window.confirm(msg);
+}
+
+// 快捷时间设置
+function setQuickTime(mode) {
+  const now = new Date();
+  let start = new Date();
+  STATE.granularity = 'month';
+  if (mode === 'month') start.setMonth(now.getMonth() - 1);
+  else if (mode === 'quarter') start.setMonth(now.getMonth() - 3);
+  else if (mode === 'halfyear') start.setMonth(now.getMonth() - 6);
+  else if (mode === 'year') start.setFullYear(now.getFullYear() - 1);
+  document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('quick-' + mode).classList.add('active');
+  document.getElementById('filter-start').value = start.toISOString().slice(0,10);
+  document.getElementById('filter-end').value = now.toISOString().slice(0,10);
+  refreshAllCards();
+}
+
+function refreshAllCards() {
+  toast('筛选条件已更新，各分析卡片刷新中...', 'success');
+  // 模拟各卡片独立刷新（图表重绘）
+  setTimeout(() => {
+    renderStockTrendChart();
+  }, 100);
+}
+</script>
+
+<!-- SECTION START: 顶部导航栏 -->
+<div class="topbar" id="feature-topbar">
+  <button onclick="toggleSidebar()" style="background:none;border:none;color:#595959;font-size:18px;cursor:pointer;padding:8px;margin-right:12px;">
+    <i class="fa fa-bars"></i>
+  </button>
+  <div style="display:flex;align-items:center;gap:10px;flex:1;">
+    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI2IiBmaWxsPSIjMTY3N2ZmIi8+PHRleHQgeD0iNiIgeT0iMjMiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IndoaXRlIj7wn5OTPC90ZXh0Pjwvc3ZnPg==" style="width:32px;height:32px;" alt="logo">
+    <span style="font-size:16px;font-weight:700;color:#262626;">蓬溪县生猪数字化管理平台</span>
+    <span style="padding:2px 8px;background:#f0f2f5;border-radius:4px;font-size:12px;color:#8c8c8c;">监管端</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <!-- 角色切换 -->
+    <div style="position:relative;" id="role-dropdown-wrap">
+      <button onclick="toggleRoleMenu()" style="background:#f0f2f5;border:none;border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px;color:#595959;">
+        <i class="fa fa-user-circle"></i>
+        <span id="current-role-label"></span>
+        <i class="fa fa-chevron-down" style="font-size:10px;"></i>
+      </button>
+      <div id="role-menu" style="display:none;position:absolute;right:0;top:36px;background:#fff;border:1px solid #e8e8e8;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.12);z-index:500;min-width:200px;padding:8px 0;">
+        <div style="padding:6px 16px;font-size:12px;color:#8c8c8c;border-bottom:1px solid #f0f0f0;margin-bottom:4px;">切换角色</div>
+        <script>
+          document.addEventListener('DOMContentLoaded', () => {
+            MOCK_DATA.users.forEach(u => {
+              const el = document.createElement('div');
+              el.style.cssText = 'padding:8px 16px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:8px;';
+              el.onmouseover = () => el.style.background = '#f5f5f5';
+              el.onmouseout = () => el.style.background = '';
+              el.innerHTML = `<i class="fa fa-user" style="color:#1677ff;width:16px;"></i><div><div>${u.roleName}</div><div style="font-size:11px;color:#8c8c8c;">${u.username} | ${u.deptName}</div></div>`;
+              el.onclick = () => switchRole(u);
+              document.getElementById('role-menu').appendChild(el);
+            });
+            updateRoleLabel();
+          });
+        </script>
+      </div>
+    </div>
+    <div style="width:1px;height:24px;background:#e8e8e8;"></div>
+    <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#595959;">
+      <i class="fa fa-user-circle" style="font-size:24px;color:#1677ff;"></i>
+      <div>
+        <div id="topbar-username" style="font-weight:500;color:#262626;"></div>
+        <div id="topbar-dept" style="font-size:11px;color:#8c8c8c;"></div>
+      </div>
+    </div>
+    <button onclick="toast('已退出登录')" class="btn-default btn-sm"><i class="fa fa-sign-out-alt"></i> 退出</button>
+  </div>
+</div>
+<!-- SECTION END: 顶部导航栏 -->
+
+<!-- SECTION START: 侧边菜单 -->
+<div class="sidebar" id="feature-sidebar">
+  <div class="sidebar-group-title">智慧监管</div>
+  <div class="sidebar-item" onclick="toast('跳转：养殖企业管理')"><i class="fa fa-building"></i><span>养殖企业管理</span></div>
+  <div class="sidebar-item" onclick="toast('跳转：电子档案管理')"><i class="fa fa-folder-open"></i><span>电子档案管理</span></div>
+  <div class="sidebar-item" onclick="toast('跳转：视频监管')"><i class="fa fa-video"></i><span>视频监管</span></div>
+  <div class="sidebar-group-title">决策分析</div>
+  <div class="sidebar-item active"><i class="fa fa-chart-bar"></i><span>养殖分析</span></div>
+  <div class="sidebar-item" onclick="toast('跳转：档案统计分析')"><i class="fa fa-chart-pie"></i><span>档案统计分析</span></div>
+  <div class="sidebar-item" onclick="toast('跳转：产业总览大屏')"><i class="fa fa-desktop"></i><span>产业总览大屏</span></div>
+  <div class="sidebar-group-title">工作管理</div>
+  <div class="sidebar-item" onclick="toast('跳转：工作通知管理')"><i class="fa fa-bell"></i><span>工作通知管理</span></div>
+  <div class="sidebar-item" onclick="toast('跳转：系统管理')"><i class="fa fa-cog"></i><span>系统管理</span></div>
+</div>
+<!-- SECTION END: 侧边菜单 -->
+
+<!-- 主内容区 -->
+<div class="main-content" id="main-content">
+
+  <!-- 面包屑 -->
+  <div class="breadcrumb">
+    <a onclick="toast('首页')"><i class="fa fa-home"></i> 首页</a>
+    <span class="sep">›</span>
+    <a>决策分析</a>
+    <span class="sep">›</span>
+    <span class="current">养殖分析</span>
+  </div>
+
+  <!-- SECTION START: 全局筛选栏 -->
+  <div class="filter-bar" id="feature-filter">
+    <div class="filter-item">
+      <span class="filter-label">时间范围：</span>
+      <div style="display:flex;gap:4px;align-items:center;">
+        <button class="quick-btn" id="quick-month" onclick="setQuickTime('month')">近一月</button>
+        <button class="quick-btn" id="quick-quarter" onclick="setQuickTime('quarter')">近一季</button>
+        <button class="quick-btn" id="quick-halfyear" onclick="setQuickTime('halfyear')">近半年</button>
+        <button class="quick-btn active" id="quick-year" onclick="setQuickTime('year')">近一年</button>
+      </div>
+      <input type="date" id="filter-start" value="2025-03-10" class="form-input" style="width:140px;" onchange="onFilterChange()">
+      <span style="color:#8c8c8c;padding:0 4px;">至</span>
+      <input type="date" id="filter-end" value="2026-03-10" class="form-input" style="width:140px;" onchange="onFilterChange()">
+    </div>
+    <div class="filter-item" id="area-filter-wrap">
+      <span class="filter-label">所属乡镇：</span>
+      <select class="form-input" style="width:120px;" id="filter-area" onchange="onFilterChange()">
+        <script>document.addEventListener('DOMContentLoaded', () => {
+          MOCK_DATA.towns.forEach(t => {
+            document.getElementById('filter-area').insertAdjacentHTML('beforeend', `<option value="${t.value}">${t.label}</option>`);
+          });
+        });</script>
+      </select>
+    </div>
+    <div class="filter-item">
+      <span class="filter-label">企业类型：</span>
+      <select class="form-input" style="width:120px;" id="filter-type" onchange="onFilterChange()">
+        <script>document.addEventListener('DOMContentLoaded', () => {
+          MOCK_DATA.enterpriseTypes.forEach(t => {
+            document.getElementById('filter-type').insertAdjacentHTML('beforeend', `<option value="${t.value}">${t.label}</option>`);
+          });
+        });</script>
+      </select>
+    </div>
+    <div style="margin-left:auto;" id="export-btn-wrap">
+      <button class="btn-primary" onclick="doExport()"><i class="fa fa-download"></i> 导出分析报告</button>
+    </div>
+  </div>
+  <!-- SECTION END: 全局筛选栏 -->
+
+  <!-- SECTION START: 卡片一 - 养殖结构概览 -->
+  <div id="feature-overview" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+    <div class="stat-card">
+      <div class="stat-label"><i class="fa fa-building" style="color:#1677ff;margin-right:6px;"></i>养殖企业总数</div>
+      <div style="display:flex;align-items:baseline;gap:6px;">
+        <span class="stat-value" id="ov-enterprise">375</span>
+        <span class="stat-unit">家</span>
+      </div>
+      <div class="stat-change up" id="ov-enterprise-change">↑ 较上期 +3.2%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label"><i class="fa fa-piggy-bank" style="color:#52c41a;margin-right:6px;"></i>生猪存栏总量</div>
+      <div style="display:flex;align-items:baseline;gap:6px;">
+        <span class="stat-value" id="ov-stock">128,650</span>
+        <span class="stat-unit">头</span>
+      </div>
+      <div class="stat-change up" id="ov-stock-change">↑ 较上期 +8.5%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label"><i class="fa fa-female" style="color:#faad14;margin-right:6px;"></i>能繁母猪存栏量</div>
+      <div style="display:flex;align-items:baseline;gap:6px;">
+        <span class="stat-value" id="ov-sow">6,120</span>
+        <span class="stat-unit">头</span>
+      </div>
+      <div class="stat-change up" id="ov-sow-change">↑ 较上期 +5.1%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label"><i class="fa fa-truck" style="color:#ff4d4f;margin-right:6px;"></i>本期出栏总量</div>
+      <div style="display:flex;align-items:baseline;gap:6px;">
+        <span class="stat-value" id="ov-exit">95,380</span>
+        <span class="stat-unit">头</span>
+      </div>
+      <div class="stat-change down" id="ov-exit-change">↓ 较上期 -2.3%</div>
+    </div>
+  </div>
+  <!-- SECTION END: 卡片一 -->
+
+  <!-- 第二行：养殖结构分布 + 能繁母猪存栏占比 -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+
+    <!-- SECTION START: 卡片二 - 养殖结构分布 -->
+    <div class="card" id="feature-structure">
+      <div class="card-title"><i class="fa fa-chart-pie" style="color:#1677ff;"></i> 养殖结构分布</div>
+      <div style="display:flex;gap:12px;align-items:flex-start;">
+        <div style="flex:0 0 45%;">
+          <div id="chart-structure" class="chart-container" style="min-height:220px;"></div>
+        </div>
+        <div style="flex:1;overflow-x:auto;">
+          <table style="font-size:12px;">
+            <thead>
+              <tr>
+                <th>企业类型</th>
+                <th>企业数</th>
+                <th>占比</th>
+                <th>存栏(头)</th>
+                <th>出栏(头)</th>
+              </tr>
+            </thead>
+            <tbody id="structure-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- SECTION END: 卡片二 -->
+
+    <!-- SECTION START: 卡片四 - 能繁母猪存栏占比 -->
+    <div class="card" id="feature-sow-ratio">
+      <div class="card-title"><i class="fa fa-circle-notch" style="color:#ff4d4f;"></i> 能繁母猪存栏占比</div>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div style="flex:0 0 55%;position:relative;">
+          <div id="chart-sow" class="chart-container" style="min-height:220px;"></div>
+        </div>
+        <div style="flex:1;">
+          <div style="background:#fff7e6;border:1px solid #ffd591;border-radius:8px;padding:12px;margin-bottom:12px;">
+            <div style="font-size:12px;color:#d46b08;margin-bottom:4px;"><i class="fa fa-info-circle"></i> 行业参考区间</div>
+            <div style="font-size:14px;font-weight:600;color:#d46b08;">4.0% ～ 5.0%</div>
+          </div>
+          <div style="background:#f6ffed;border:1px solid #b7eb8f;border-radius:8px;padding:12px;">
+            <div style="font-size:12px;color:#389e0d;margin-bottom:6px;"><i class="fa fa-check-circle"></i> 当前状态：处于合理区间</div>
+            <div style="font-size:13px;color:#595959;">能繁母猪：<strong style="color:#262626;">6,120 头</strong></div>
+            <div style="font-size:13px;color:#595959;">生猪总量：<strong style="color:#262626;">128,650 头</strong></div>
+            <div style="font-size:13px;color:#595959;margin-top:6px;">同比变化：<span style="color:#52c41a;font-weight:600;">↑ 0.3%</span> <span style="color:#8c8c8c;font-size:11px;">(较去年同期)</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- SECTION END: 卡片四 -->
+  </div>
+
+  <!-- SECTION START: 卡片三 - 生猪存栏出栏量趋势 -->
+  <div class="card" id="feature-stock-trend" style="margin-bottom:16px;">
+    <div class="section-header">
+      <div class="section-title"><i class="fa fa-chart-line" style="color:#1677ff;"></i> 生猪存栏出栏量趋势</div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="granularity-btn-group">
+          <button class="granularity-btn active" id="gran-month" onclick="switchGranularity('month')">按月</button>
+          <button class="granularity-btn" id="gran-quarter" onclick="switchGranularity('quarter')">按季</button>
+          <button class="granularity-btn" id="gran-year" onclick="switchGranularity('year')">按年</button>
+        </div>
+        <button class="collapse-btn" onclick="toggleTrendTable()">
+          <i class="fa fa-table"></i> <span id="trend-table-btn-label">展开数据</span>
+        </button>
+      </div>
+    </div>
+    <div id="chart-stock-trend" class="chart-container" style="min-height:300px;"></div>
+    <div id="trend-table-wrap" style="display:none;margin-top:12px;">
+      <table>
+        <thead><tr><th>时间周期</th><th>存栏量（头）</th><th>出栏量（头）</th></tr></thead>
+        <tbody id="trend-table-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+  <!-- SECTION END: 卡片三 -->
+
+  <!-- 第四行：PSY排行榜 + 养殖规模排行榜 -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+
+    <!-- SECTION START: 卡片五 - PSY排行榜 -->
+    <div class="card" id="feature-psy-ranking">
+      <div class="section-header">
+        <div class="section-title"><i class="fa fa-trophy" style="color:#faad14;"></i> PSY 排行榜</div>
+        <button class="collapse-btn" onclick="togglePsy()"><i class="fa fa-expand-alt"></i> <span id="psy-expand-label">查看全部</span></button>
+      </div>
+      <div id="chart-psy" style="height:220px;width:100%;"></div>
+      <div class="table-wrap" style="max-height:220px;overflow-y:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>排名</th><th>企业名称</th><th>乡镇</th><th>能繁母猪</th><th>断奶仔猪</th><th>PSY</th><th>较上期</th>
+            </tr>
+          </thead>
+          <tbody id="psy-tbody"></tbody>
+        </table>
+      </div>
+      <div id="psy-pagination" style="display:none;" class="pagination">
+        <span class="pagination-info">共 <strong>38</strong> 家企业参与排行</span>
+        <div class="page-btns">
+          <div class="page-btn active">1</div>
+          <div class="page-btn">2</div>
+          <div class="page-btn">3</div>
+          <div class="page-btn"><i class="fa fa-angle-right"></i></div>
+        </div>
+      </div>
+    </div>
+    <!-- SECTION END: 卡片五 -->
+
+    <!-- SECTION START: 卡片六 - 养殖规模排行榜 -->
+    <div class="card" id="feature-scale-ranking">
+      <div class="section-header">
+        <div class="section-title"><i class="fa fa-sort-amount-down" style="color:#52c41a;"></i> 养殖规模排行榜</div>
+        <button class="collapse-btn" onclick="toggleScale()"><i class="fa fa-expand-alt"></i> <span id="scale-expand-label">查看全部</span></button>
+      </div>
+      <div id="chart-scale" style="height:220px;width:100%;"></div>
+      <div class="table-wrap" style="max-height:220px;overflow-y:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>排名</th><th>企业名称</th><th>乡镇</th><th>类型</th><th>设计规模</th><th>当前存栏</th><th>产能利用率</th>
+            </tr>
+          </thead>
+          <tbody id="scale-tbody"></tbody>
+        </table>
+      </div>
+      <div id="scale-pagination" style="display:none;" class="pagination">
+        <span class="pagination-info">共 <strong>48</strong> 家企业</span>
+        <div class="page-btns">
+          <div class="page-btn active">1</div>
+          <div class="page-btn">2</div>
+          <div class="page-btn">3</div>
+          <div class="page-btn"><i class="fa fa-angle-right"></i></div>
+        </div>
+      </div>
+    </div>
+    <!-- SECTION END: 卡片六 -->
+  </div>
+
+  <!-- 第五行：投入品成本排行 + 养殖企业淘汰率 -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+
+    <!-- SECTION START: 卡片七 - 投入品成本排行 -->
+    <div class="card" id="feature-cost-ranking">
+      <div class="section-header">
+        <div class="section-title"><i class="fa fa-dollar-sign" style="color:#faad14;"></i> 投入品成本排行</div>
+        <button class="collapse-btn" onclick="toggleCost()"><i class="fa fa-expand-alt"></i> <span id="cost-expand-label">查看全部</span></button>
+      </div>
+      <div class="info-text">仅统计饲料和兽药采购成本，不含人工、水电等其他成本</div>
+      <div class="table-wrap" style="max-height:360px;overflow-y:auto;">
+        <table>
+          <thead>
+            <tr><th>排名</th><th>企业名称</th><th>乡镇</th><th>饲料采购(元)</th><th>兽药采购(元)</th><th>合计(元)</th><th>出栏(头)</th><th>头均成本(元/头)</th></tr>
+          </thead>
+          <tbody id="cost-tbody"></tbody>
+        </table>
+      </div>
+      <div id="cost-pagination" style="display:none;" class="pagination">
+        <span class="pagination-info">共 <strong>38</strong> 家企业</span>
+        <div class="page-btns">
+          <div class="page-btn active">1</div>
+          <div class="page-btn">2</div>
+          <div class="page-btn"><i class="fa fa-angle-right"></i></div>
+        </div>
+      </div>
+    </div>
+    <!-- SECTION END: 卡片七 -->
+
+    <!-- SECTION START: 卡片八 - 养殖企业淘汰率 -->
+    <div class="card" id="feature-elimination">
+      <div class="section-header">
+        <div class="section-title"><i class="fa fa-exclamation-triangle" style="color:#ff4d4f;"></i> 养殖企业淘汰率</div>
+        <button class="collapse-btn" onclick="toggleEliminationTable()"><i class="fa fa-list"></i> <span id="elim-expand-label">展开明细</span></button>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start;">
+        <div style="flex:0 0 30%;">
+          <div style="text-align:center;padding:16px;background:#fff1f0;border-radius:8px;margin-bottom:10px;">
+            <div style="font-size:36px;font-weight:700;color:#52c41a;" id="elim-rate">3.2%</div>
+            <div style="font-size:12px;color:#595959;margin-top:4px;">当期淘汰率</div>
+          </div>
+          <div style="text-align:center;padding:10px;background:#fafafa;border-radius:8px;">
+            <div style="font-size:18px;font-weight:600;color:#262626;">12 / 375 家</div>
+            <div style="font-size:12px;color:#8c8c8c;margin-top:2px;">淘汰企业数 / 期初企业数</div>
+          </div>
+        </div>
+        <div style="flex:1;">
+          <div id="chart-elimination" style="height:200px;width:100%;"></div>
+        </div>
+      </div>
+      <div id="elimination-table-wrap" style="display:none;margin-top:12px;">
+        <div style="font-size:13px;font-weight:500;color:#262626;margin-bottom:8px;">淘汰企业明细（共12家）</div>
+        <table>
+          <thead><tr><th>企业名称</th><th>企业类型</th><th>所属乡镇</th><th>停用时间</th></tr></thead>
+          <tbody id="elimination-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <!-- SECTION END: 卡片八 -->
+  </div>
+
+  <!-- SECTION START: 卡片九 - 养殖预警事件统计 -->
+  <div class="card" id="feature-warning" style="margin-bottom:16px;">
+    <div class="card-title"><i class="fa fa-bell" style="color:#ff4d4f;"></i> 养殖预警事件统计</div>
+    <div id="chart-warning" style="height:200px;width:100%;margin-bottom:16px;"></div>
+
+    <!-- 事件列表筛选 -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #f0f0f0;flex-wrap:wrap;">
+      <div class="filter-item">
+        <span class="filter-label">预警类别：</span>
+        <select class="form-input" style="width:120px;" id="warn-filter-type" onchange="filterWarningList()">
+          <option value="">全部</option>
+          <option value="1">疫病预警</option>
+          <option value="2">死亡预警</option>
+          <option value="3">视频告警</option>
+          <option value="4">产能预警</option>
+          <option value="5">超期预警</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <span class="filter-label">处理状态：</span>
+        <select class="form-input" style="width:110px;" id="warn-filter-status" onchange="filterWarningList()">
+          <option value="">全部</option>
+          <option value="0">未处理</option>
+          <option value="1">已处理</option>
+          <option value="2">已忽略</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <span class="filter-label">时间范围：</span>
+        <input type="date" value="2025-03-10" class="form-input" style="width:140px;">
+        <span style="color:#8c8c8c;padding:0 4px;">至</span>
+        <input type="date" value="2026-03-10" class="form-input" style="width:140px;">
+      </div>
+    </div>
+
+    <!-- 预警列表 -->
+    <div class="table-wrap" style="max-height:340px;overflow-y:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>预警时间</th>
+            <th>预警类别</th>
+            <th style="min-width:280px;">预警内容摘要</th>
+            <th>涉及企业</th>
+            <th>所属乡镇</th>
+            <th>处理状态</th>
+            <th class="sticky-col">操作</th>
+          </tr>
+        </thead>
+        <tbody id="warning-tbody"></tbody>
+      </table>
+    </div>
+    <div class="pagination" style="margin-top:8px;">
+      <span class="pagination-info" id="warning-pagination-info">共 10 条记录</span>
+      <div class="page-btns" id="warning-page-btns">
+        <div class="page-btn active" onclick="warningPage(1)">1</div>
+        <div class="page-btn" onclick="warningPage(2)">2</div>
+        <div class="page-btn"><i class="fa fa-angle-right"></i></div>
+      </div>
+    </div>
+  </div>
+  <!-- SECTION END: 卡片九 -->
+
+  <!-- SECTION START: 卡片十 - 视频监控概况 -->
+  <div class="card" id="feature-video-overview" style="margin-bottom:16px;">
+    <div class="card-title"><i class="fa fa-video" style="color:#1677ff;"></i> 规模猪场视频监控概况</div>
+    <div style="display:flex;gap:16px;align-items:flex-start;">
+      <div style="flex:0 0 38%;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div style="background:#f0f9ff;border-radius:8px;padding:14px;text-align:center;">
+            <div style="font-size:11px;color:#8c8c8c;margin-bottom:4px;">接入摄像头总数</div>
+            <div style="font-size:24px;font-weight:700;color:#262626;">186</div>
+            <div style="font-size:11px;color:#8c8c8c;">台</div>
+          </div>
+          <div style="background:#f6ffed;border-radius:8px;padding:14px;text-align:center;">
+            <div style="font-size:11px;color:#8c8c8c;margin-bottom:4px;">当前在线</div>
+            <div style="font-size:24px;font-weight:700;color:#52c41a;">158</div>
+            <div style="font-size:11px;color:#8c8c8c;">台</div>
+          </div>
+          <div style="background:#fafafa;border-radius:8px;padding:14px;text-align:center;">
+            <div style="font-size:11px;color:#8c8c8c;margin-bottom:4px;">当前离线</div>
+            <div style="font-size:24px;font-weight:700;color:#8c8c8c;">22</div>
+            <div style="font-size:11px;color:#8c8c8c;">台</div>
+          </div>
+          <div style="background:#fff1f0;border-radius:8px;padding:14px;text-align:center;">
+            <div style="font-size:11px;color:#8c8c8c;margin-bottom:4px;">今日告警</div>
+            <div style="font-size:24px;font-weight:700;color:#ff4d4f;">4</div>
+            <div style="font-size:11px;color:#8c8c8c;">次</div>
+          </div>
+          <div style="background:#f9f0ff;border-radius:8px;padding:14px;text-align:center;grid-column:1/-1;">
+            <div style="font-size:11px;color:#8c8c8c;margin-bottom:4px;">告警覆盖企业</div>
+            <div style="font-size:24px;font-weight:700;color:#722ed1;">3</div>
+            <div style="font-size:11px;color:#8c8c8c;">家企业</div>
+          </div>
+        </div>
+      </div>
+      <div style="flex:1;">
+        <div id="chart-video" style="height:250px;width:100%;"></div>
+      </div>
+    </div>
+  </div>
+  <!-- SECTION END: 卡片十 -->
+
+</div>
+
+<!-- SECTION START: 预警处理弹窗 -->
+<div class="modal-overlay" id="feature-warning-modal" style="display:none;">
+  <div class="modal" style="width:560px;">
+    <div class="modal-header">
+      <span class="modal-title">处理预警</span>
+      <button onclick="closeWarningModal()" style="background:none;border:none;cursor:pointer;font-size:18px;color:#8c8c8c;"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom:16px;">
+        <div class="form-label">预警内容</div>
+        <div id="modal-warning-content" style="background:#fafafa;border:1px solid #e8e8e8;border-radius:6px;padding:12px;font-size:13px;color:#595959;line-height:1.6;"></div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <div class="form-label"><span class="req">*</span>处理方式</div>
+        <div style="display:flex;gap:16px;">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;">
+            <input type="radio" name="handle-status" value="1" id="radio-handled"> 已处理
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;">
+            <input type="radio" name="handle-status" value="2" id="radio-ignored"> 已忽略
+          </label>
+        </div>
+        <div class="form-error" id="modal-handle-error" style="display:none;">请选择处理方式</div>
+      </div>
+      <div>
+        <div class="form-label">处理说明 <span style="color:#8c8c8c;font-size:11px;">（最多500字符，选填）</span></div>
+        <textarea id="modal-remark" class="form-input" rows="4" maxlength="500" placeholder="请输入处理说明..." style="resize:vertical;"></textarea>
+        <div style="text-align:right;font-size:11px;color:#8c8c8c;margin-top:2px;"><span id="modal-remark-count">0</span>/500</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-default" onclick="closeWarningModal()">取消</button>
+      <button class="btn-primary" onclick="submitWarningHandle()"><i class="fa fa-check"></i> 确认</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 预警处理弹窗 -->
+
+<!-- SECTION START: 预警详情弹窗 -->
+<div class="modal-overlay" id="feature-warning-detail-modal" style="display:none;">
+  <div class="modal" style="width:600px;">
+    <div class="modal-header">
+      <span class="modal-title">预警详情</span>
+      <button onclick="document.getElementById('feature-warning-detail-modal').style.display='none'" style="background:none;border:none;cursor:pointer;font-size:18px;color:#8c8c8c;"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="warning-detail-body"></div>
+    <div class="modal-footer">
+      <button class="btn-default" onclick="document.getElementById('feature-warning-detail-modal').style.display='none'">关闭</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 预警详情弹窗 -->
+
+<script>
+// ======= 初始化 =======
+document.addEventListener('DOMContentLoaded', () => {
+  updateRoleLabel();
+  renderOverview();
+  renderStructureTable();
+  renderStructureChart();
+  renderSowChart();
+  renderStockTrendChart();
+  renderPsyChart();
+  renderPsyTable();
+  renderScaleChart();
+  renderScaleTable();
+  renderCostTable();
+  renderEliminationChart();
+  renderEliminationTable();
+  renderWarningChart();
+  renderWarningList();
+  renderVideoChart();
+  applyRolePermissions();
+});
+
+// ======= 角色管理 =======
+function updateRoleLabel() {
+  document.getElementById('current-role-label').textContent = MOCK_DATA.currentUser.roleName;
+  document.getElementById('topbar-username').textContent = MOCK_DATA.currentUser.name;
+  document.getElementById('topbar-dept').textContent = MOCK_DATA.currentUser.deptName;
+}
+
+function toggleRoleMenu() {
+  const m = document.getElementById('role-menu');
+  m.style.display = m.style.display === 'none' ? 'block' : 'none';
+}
+
+document.addEventListener('click', e => {
+  if (!document.getElementById('role-dropdown-wrap').contains(e.target)) {
+    document.getElementById('role-menu').style.display = 'none';
+  }
+});
+
+function switchRole(user) {
+  MOCK_DATA.currentUser = { ...user, id: user.id, name: user.roleName === '县级管理员' ? '李志远' : user.roleName === '县级业务人员' ? '王建国' : user.roleName === '乡镇政府业务人员' ? '赵敏' : '张福贵' };
+  document.getElementById('role-menu').style.display = 'none';
+  updateRoleLabel();
+  applyRolePermissions();
+  toast(`已切换到【${user.roleName}】角色`);
+  renderWarningList();
+}
+
+function applyRolePermissions() {
+  const isTown = !isCountyRole();
+  // 乡镇角色隐藏乡镇筛选项
+  document.getElementById('area-filter-wrap').style.display = isTown ? 'none' : '';
+  // 乡镇角色隐藏导出按钮
+  document.getElementById('export-btn-wrap').style.display = isTown ? 'none' : '';
+}
+
+// ======= 侧边栏折叠 =======
+function toggleSidebar() {
+  const sb = document.getElementById('feature-sidebar');
+  const mc = document.getElementById('main-content');
+  STATE.sidebarCollapsed = !STATE.sidebarCollapsed;
+  sb.classList.toggle('collapsed');
+  mc.classList.toggle('expanded');
+}
+
+// ======= 筛选 =======
+function onFilterChange() {
+  const s = document.getElementById('filter-start').value;
+  const e = document.getElementById('filter-end').value;
+  if (s && e && s > e) {
+    toast('开始时间不能晚于结束时间', 'error');
+    return;
+  }
+  document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('active'));
+  refreshAllCards();
+}
+
+function doExport() {
+  const s = document.getElementById('filter-start').value;
+  const e = document.getElementById('filter-end').value;
+  const now = new Date();
+  const ts = now.toISOString().replace(/[-:T]/g,'').slice(0,15).replace('.','-').replace(/-/g,'');
+  const filename = `养殖分析_${s}至${e}_${ts.slice(0,8)}_${ts.slice(8,14)}.xlsx`;
+  toast(`正在导出：${filename}，请稍候...`);
+  setTimeout(() => toast(`导出成功！文件已下载：${filename}`), 1500);
+}
+
+// ======= 卡片一：概览 =======
+function renderOverview() {
+  const d = MOCK_DATA.overview;
+  document.getElementById('ov-enterprise').textContent = d.enterpriseCount.toLocaleString();
+  document.getElementById('ov-stock').textContent = d.stockTotal.toLocaleString();
+  document.getElementById('ov-sow').textContent = d.sowTotal.toLocaleString();
+  document.getElementById('ov-exit').textContent = d.exitTotal.toLocaleString();
+}
+
+// ======= 卡片二：养殖结构分布 =======
+function renderStructureTable() {
+  const items = MOCK_DATA.structureData;
+  const totalEnt = items.reduce((s,i)=>s+i.enterpriseCount,0);
+  const totalStock = items.reduce((s,i)=>s+i.stockQuantity,0);
+  const totalExit = items.reduce((s,i)=>s+i.exitQuantity,0);
+  let html = items.map(r => `<tr>
+    <td>${r.enterpriseTypeName}</td>
+    <td>${r.enterpriseCount}</td>
+    <td>${r.enterpriseRatio}%</td>
+    <td>${r.stockQuantity.toLocaleString()}</td>
+    <td>${r.exitQuantity.toLocaleString()}</td>
+  </tr>`).join('');
+  html += `<tr style="font-weight:600;background:#f5f5f5;">
+    <td>合计</td><td>${totalEnt}</td><td>100%</td><td>${totalStock.toLocaleString()}</td><td>${totalExit.toLocaleString()}</td>
+  </tr>`;
+  document.getElementById('structure-tbody').innerHTML = html;
+}
+
+function renderStructureChart() {
+  const chart = echarts.init(document.getElementById('chart-structure'));
+  const colors = ['#1890ff', '#52c41a', '#faad14', '#722ed1'];
+  chart.setOption({
+    tooltip: { trigger: 'item', formatter: '{b}: {c}家 ({d}%)' },
+    legend: { orient: 'vertical', right: 0, top: 'center', textStyle: { fontSize: 11 } },
+    series: [{
+      type: 'pie', radius: ['0%', '65%'], center: ['40%', '50%'],
+      data: MOCK_DATA.structureData.map((d, i) => ({ name: d.enterpriseTypeName, value: d.enterpriseCount, itemStyle: { color: colors[i] } })),
+      label: { show: true, fontSize: 11, formatter: '{d}%' },
+      emphasis: { itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.3)' } }
+    }]
+  });
+  window.addEventListener('resize', () => chart.resize());
+}
+
+// ======= 卡片四：能繁母猪占比 =======
+function renderSowChart() {
+  const chart = echarts.init(document.getElementById('chart-sow'));
+  const d = MOCK_DATA.sowRatio;
+  chart.setOption({
+    tooltip: { trigger: 'item', formatter: '{b}: {d}%' },
+    series: [{
+      type: 'pie', radius: ['55%', '75%'], center: ['50%', '50%'],
+      data: [
+        { name: '能繁母猪', value: d.sowTotal, itemStyle: { color: '#ff4d4f' } },
+        { name: '其他生猪', value: d.stockTotal - d.sowTotal, itemStyle: { color: '#f0f0f0' } }
+      ],
+      label: {
+        show: true, position: 'center',
+        formatter: () => `${d.ratio}%`,
+        fontSize: 24, fontWeight: 'bold', color: '#ff4d4f'
+      },
+      emphasis: { disabled: true }
+    }]
+  });
+  window.addEventListener('resize', () => chart.resize());
+}
+
+// ======= 卡片三：存栏出栏趋势 =======
+function renderStockTrendChart() {
+  const gran = STATE.granularity;
+  let data;
+  if (gran === 'month') data = MOCK_DATA.stockTrendMonth;
+  else if (gran === 'quarter') data = MOCK_DATA.stockTrendQuarter;
+  else data = MOCK_DATA.stockTrendYear;
+  const periods = data.map(d => d.period);
+  const stocks = data.map(d => d.stockQuantity);
+  const exits = data.map(d => d.exitQuantity);
+
+  // 渲染表格
+  let tHtml = data.map(d => `<tr><td>${d.period}</td><td>${d.stockQuantity.toLocaleString()}</td><td>${d.exitQuantity.toLocaleString()}</td></tr>`).join('');
+  document.getElementById('trend-table-tbody').innerHTML = tHtml;
+
+  const chart = echarts.getInstanceByDom(document.getElementById('chart-stock-trend')) || echarts.init(document.getElementById('chart-stock-trend'));
+  chart.setOption({
+    tooltip: {
+      trigger: 'axis',
+      formatter: params => {
+        let s = `${params[0].name}<br/>`;
+        params.forEach(p => s += `${p.marker}${p.seriesName}: ${p.value.toLocaleString()} 头<br/>`);
+        return s;
+      }
+    },
+    legend: { data: ['存栏量', '出栏量'], top: 0, right: 0 },
+    grid: { left: 60, right: 60, top: 36, bottom: 36 },
+    xAxis: { type: 'category', data: periods, axisLabel: { fontSize: 11, rotate: gran === 'month' ? 30 : 0 } },
+    yAxis: [
+      { type: 'value', name: '存栏量(头)', position: 'left', axisLabel: { fontSize: 11 } },
+      { type: 'value', name: '出栏量(头)', position: 'right', axisLabel: { fontSize: 11 } }
+    ],
+    series: [
+      { name: '存栏量', type: 'line', yAxisIndex: 0, data: stocks, itemStyle: { color: '#1890ff' }, smooth: true, symbol: 'circle', symbolSize: 5 },
+      { name: '出栏量', type: 'line', yAxisIndex: 1, data: exits, itemStyle: { color: '#52c41a' }, smooth: true, symbol: 'circle', symbolSize: 5 }
+    ]
+  });
+  window.addEventListener('resize', () => chart.resize());
+}
+
+function switchGranularity(gran) {
+  STATE.granularity = gran;
+  document.querySelectorAll('.granularity-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('gran-' + gran).classList.add('active');
+  renderStockTrendChart();
+}
+
+function toggleTrendTable() {
+  STATE.trendTableExpanded = !STATE.trendTableExpanded;
+  document.getElementById('trend-table-wrap').style.display = STATE.trendTableExpanded ? 'block' : 'none';
+  document.getElementById('trend-table-btn-label').textContent = STATE.trendTableExpanded ? '收起数据' : '展开数据';
+}
+
+// ======= 卡片五：PSY排行榜 =======
+function renderPsyChart() {
+  const chart = echarts.init(document.getElementById('chart-psy'));
+  const items = MOCK_DATA.psyRanking.items.slice().reverse();
+  const avgPsy = MOCK_DATA.psyRanking.avgPsy;
+  chart.setOption({
+    tooltip: { trigger: 'axis', formatter: params => `${params[0].name}<br/>PSY: ${params[0].value}` },
+    grid: { left: 180, right: 40, top: 10, bottom: 10 },
+    xAxis: { type: 'value', min: 0, max: 30, axisLabel: { fontSize: 11 } },
+    yAxis: { type: 'category', data: items.map(d => d.enterpriseName.length > 12 ? d.enterpriseName.slice(0,12)+'...' : d.enterpriseName), axisLabel: { fontSize: 10 } },
+    series: [{
+      type: 'bar', data: items.map(d => d.psy),
+      itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: '#69c0ff' }, { offset: 1, color: '#1890ff' }]) },
+      markLine: {
+        data: [{ xAxis: avgPsy }],
+        lineStyle: { color: '#ff4d4f', type: 'dashed' },
+        label: { formatter: `全县平均: ${avgPsy}`, position: 'end', color: '#ff4d4f', fontSize: 10 }
+      }
+    }]
+  });
+  window.addEventListener('resize', () => chart.resize());
+}
+
+function renderPsyTable(expanded) {
+  const items = expanded ? MOCK_DATA.psyRanking.items : MOCK_DATA.psyRanking.items.slice(0, 10);
+  const html = items.map(r => `<tr>
+    <td><span class="rank-badge ${r.rank<=3?'rank-'+r.rank:'rank-other'}">${r.rank}</span></td>
+    <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r.enterpriseName}">${r.enterpriseName}</td>
+    <td>${r.townName}</td>
+    <td>${r.sowCount}</td>
+    <td>${r.weaningCount}</td>
+    <td style="font-weight:600;">${r.psy}</td>
+    <td>${r.psyChange > 0 ? `<span style="color:#52c41a;">↑ +${r.psyChange}</span>` : r.psyChange < 0 ? `<span style="color:#ff4d4f;">↓ ${r.psyChange}</span>` : '<span style="color:#8c8c8c;">—</span>'}</td>
+  </tr>`).join('');
+  document.getElementById('psy-tbody').innerHTML = html;
+}
+
+function togglePsy() {
+  STATE.psyExpanded = !STATE.psyExpanded;
+  document.getElementById('psy-expand-label').textContent = STATE.psyExpanded ? '收起' : '查看全部';
+  document.getElementById('psy-pagination').style.display = STATE.psyExpanded ? 'flex' : 'none';
+  renderPsyTable(STATE.psyExpanded);
+}
+
+// ======= 卡片六：养殖规模排行榜 =======
+function renderScaleChart() {
+  const chart = echarts.init(document.getElementById('chart-scale'));
+  const items = MOCK_DATA.scaleRanking.items.slice().reverse();
+  chart.setOption({
+    tooltip: { trigger: 'axis', formatter: params => `${params[0].name}<br/>存栏量: ${params[0].value} 头` },
+    grid: { left: 180, right: 40, top: 10, bottom: 10 },
+    xAxis: { type: 'value', axisLabel: { fontSize: 11 } },
+    yAxis: { type: 'category', data: items.map(d => d.enterpriseName.length > 12 ? d.enterpriseName.slice(0,12)+'...' : d.enterpriseName), axisLabel: { fontSize: 10 } },
+    series: [{ type: 'bar', data: items.map(d => d.currentStock), itemStyle: { color: '#52c41a' } }]
+  });
+  window.addEventListener('resize', () => chart.resize());
+}
+
+function renderScaleTable(expanded) {
+  const items = expanded ? MOCK_DATA.scaleRanking.items : MOCK_DATA.scaleRanking.items.slice(0, 10);
+  const html = items.map(r => {
+    let capClass = 'capacity-normal', capText = `${r.capacityRate}%`;
+    if (r.designScale === 0) { capText = '—'; capClass = 'capacity-normal'; }
+    else if (r.capacityRate < 30) capClass = 'capacity-danger';
+    else if (r.capacityRate < 50) capClass = 'capacity-warning';
+    return `<tr>
+      <td><span class="rank-badge ${r.rank<=3?'rank-'+r.rank:'rank-other'}">${r.rank}</span></td>
+      <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r.enterpriseName}">${r.enterpriseName}</td>
+      <td>${r.townName}</td>
+      <td>${r.enterpriseTypeName}</td>
+      <td>${r.designScale.toLocaleString()}</td>
+      <td>${r.currentStock.toLocaleString()}</td>
+      <td class="${capClass}">${capText}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('scale-tbody').innerHTML = html;
+}
+
+function toggleScale() {
+  STATE.scaleExpanded = !STATE.scaleExpanded;
+  document.getElementById('scale-expand-label').textContent = STATE.scaleExpanded ? '收起' : '查看全部';
+  document.getElementById('scale-pagination').style.display = STATE.scaleExpanded ? 'flex' : 'none';
+  renderScaleTable(STATE.scaleExpanded);
+}
+
+// ======= 卡片七：投入品成本排行 =======
+function renderCostTable(expanded) {
+  const items = expanded ? MOCK_DATA.costRanking.items : MOCK_DATA.costRanking.items.slice(0, 10);
+  const html = items.map(r => `<tr>
+    <td><span class="rank-badge ${r.rank<=3?'rank-'+r.rank:'rank-other'}">${r.rank}</span></td>
+    <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r.enterpriseName}">${r.enterpriseName}</td>
+    <td>${r.townName}</td>
+    <td>${r.feedCost.toLocaleString('zh-CN', {minimumFractionDigits:2})}</td>
+    <td>${r.drugCost.toLocaleString('zh-CN', {minimumFractionDigits:2})}</td>
+    <td style="font-weight:600;">${r.totalCost.toLocaleString('zh-CN', {minimumFractionDigits:2})}</td>
+    <td>${r.exitCount.toLocaleString()}</td>
+    <td style="font-weight:600;color:#1677ff;">${r.unitCost !== null ? r.unitCost.toFixed(2) : '—'}</td>
+  </tr>`).join('');
+  document.getElementById('cost-tbody').innerHTML = html;
+}
+
+function toggleCost() {
+  STATE.costExpanded = !STATE.costExpanded;
+  document.getElementById('cost-expand-label').textContent = STATE.costExpanded ? '收起' : '查看全部';
+  document.getElementById('cost-pagination').style.display = STATE.costExpanded ? 'flex' : 'none';
+  renderCostTable(STATE.costExpanded);
+}
+
+// ======= 卡片八：养殖企业淘汰率 =======
+function renderEliminationChart() {
+  const chart = echarts.init(document.getElementById('chart-elimination'));
+  const d = MOCK_DATA.eliminationRate;
+  chart.setOption({
+    tooltip: {
+      trigger: 'axis',
+      formatter: params => `${params[0].name}<br/>淘汰率: ${params[0].value}%<br/>淘汰企业数: ${d.monthlyTrend[params[0].dataIndex]?.eliminatedCount} 家`
+    },
+    grid: { left: 40, right: 16, top: 16, bottom: 32 },
+    xAxis: { type: 'category', data: d.monthlyTrend.map(t=>t.month), axisLabel: { fontSize: 10, rotate: 30 } },
+    yAxis: { type: 'value', name: '%', axisLabel: { fontSize: 11 }, min: 0 },
+    series: [{
+      type: 'line', data: d.monthlyTrend.map(t=>t.rate),
+      itemStyle: { color: '#ff4d4f' }, smooth: true, symbol: 'circle', symbolSize: 5,
+      areaStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(255,77,79,0.2)'},{offset:1,color:'rgba(255,77,79,0)'}]) }
+    }]
+  });
+  window.addEventListener('resize', () => chart.resize());
+}
+
+function renderEliminationTable() {
+  const html = MOCK_DATA.eliminationRate.eliminatedList.map(r => `<tr>
+    <td>${r.enterpriseName}</td><td>${r.enterpriseTypeName}</td><td>${r.townName}</td><td>${r.eliminatedDate}</td>
+  </tr>`).join('');
+  document.getElementById('elimination-tbody').innerHTML = html;
+}
+
+function toggleEliminationTable() {
+  STATE.eliminationTableExpanded = !STATE.eliminationTableExpanded;
+  document.getElementById('elimination-table-wrap').style.display = STATE.eliminationTableExpanded ? 'block' : 'none';
+  document.getElementById('elim-expand-label').textContent = STATE.eliminationTableExpanded ? '收起明细' : '展开明细';
+}
+
+// ======= 卡片九：预警事件统计 =======
+const WARN_COLORS = { '1': '#f5222d', '2': '#fa541c', '3': '#faad14', '4': '#1890ff', '5': '#722ed1' };
+const WARN_NAMES = { '1': '疫病预警', '2': '死亡预警', '3': '视频告警', '4': '产能预警', '5': '超期预警' };
+
+function renderWarningChart() {
+  const chart = echarts.init(document.getElementById('chart-warning'));
+  const d = MOCK_DATA.warningStats;
+  chart.setOption({
+    tooltip: {
+      trigger: 'axis',
+      formatter: params => {
+        const item = d.find(x=>x.warningTypeName===params[0].name);
+        return `${params[0].name}<br/>事件数: ${params[0].value} 件<br/>其中未处理: ${item?.unhandledCount} 件`;
+      }
+    },
+    grid: { left: 40, right: 20, top: 16, bottom: 32 },
+    xAxis: { type: 'category', data: d.map(i=>i.warningTypeName), axisLabel: { fontSize: 12 } },
+    yAxis: { type: 'value', axisLabel: { fontSize: 11 } },
+    series: [{
+      type: 'bar', data: d.map(i => ({ value: i.totalCount, itemStyle: { color: WARN_COLORS[i.warningType] } })),
+      barWidth: '50%', label: { show: true, position: 'top', fontSize: 12, formatter: params => params.value }
+    }]
+  });
+  window.addEventListener('resize', () => chart.resize());
+}
+
+function getWarnTypeBadge(type) {
+  const colors = {
+    '1': 'badge-error', '2': 'badge-orange', '3': 'badge-warning', '4': 'badge-info', '5': 'badge-purple'
+  };
+  return `<span class="badge ${colors[type] || 'badge-gray'}">${WARN_NAMES[type] || type}</span>`;
+}
+
+function filterWarningList() {
+  const typeFilter = document.getElementById('warn-filter-type').value;
+  const statusFilter = document.getElementById('warn-filter-status').value;
+  STATE.warningList = MOCK_DATA.warningList.filter(w =>
+    (!typeFilter || w.warningType === typeFilter) &&
+    (!statusFilter || w.handleStatus === statusFilter)
+  );
+  STATE.warningPage = 1;
+  renderWarningList();
+}
+
+function renderWarningList() {
+  const canHandle = hasPermission('admin:analysis:breeding:warning:handle');
+  const list = STATE.warningList;
+  const pageSize = 5;
+  const start = (STATE.warningPage - 1) * pageSize;
+  const pageData = list.slice(start, start + pageSize);
+  const html = pageData.length === 0
+    ? `<tr><td colspan="7" style="text-align:center;padding:32px;color:#8c8c8c;">暂无预警事件</td></tr>`
+    : pageData.map(r => {
+      const isUnhandled = r.handleStatus === '0';
+      let statusEl = '';
+      if (r.handleStatus === '0') statusEl = `<span style="color:#ff4d4f;font-weight:500;">未处理</span>`;
+      else if (r.handleStatus === '1') statusEl = `<span style="color:#52c41a;">已处理</span>`;
+      else statusEl = `<span style="color:#8c8c8c;">已忽略</span>`;
+      const content = r.warningContent.length > 80 ? r.warningContent.slice(0, 80) + '...' : r.warningContent;
+      const handleBtn = (isUnhandled && canHandle)
+        ? `<button class="btn-primary btn-sm" onclick="openWarningModal(${r.warningId})">处理</button>`
+        : '';
+      return `<tr class="${isUnhandled ? 'warning-row-unhandled' : ''}">
+        <td style="white-space:nowrap;">${r.createTime}</td>
+        <td>${getWarnTypeBadge(r.warningType)}</td>
+        <td style="max-width:280px;" title="${r.warningContent}">${content}</td>
+        <td style="white-space:nowrap;">${r.enterpriseName || '—'}</td>
+        <td>${r.townName}</td>
+        <td>${statusEl}</td>
+        <td class="sticky-col" style="white-space:nowrap;display:flex;gap:4px;">
+          <button class="btn-link btn-sm" onclick="openWarningDetail(${r.warningId})">查看详情</button>
+          ${handleBtn}
+        </td>
+      </tr>`;
+    }).join('');
+  document.getElementById('warning-tbody').innerHTML = html;
+  document.getElementById('warning-pagination-info').textContent = `共 ${list.length} 条记录`;
+  // 渲染分页
+  const totalPages = Math.ceil(list.length / pageSize) || 1;
+  let pgHtml = '';
+  if (STATE.warningPage > 1) pgHtml += `<div class="page-btn" onclick="warningPage(${STATE.warningPage-1})"><i class="fa fa-angle-left"></i></div>`;
+  for (let i=1;i<=totalPages;i++) {
+    pgHtml += `<div class="page-btn ${i===STATE.warningPage?'active':''}" onclick="warningPage(${i})">${i}</div>`;
+  }
+  if (STATE.warningPage < totalPages) pgHtml += `<div class="page-btn" onclick="warningPage(${STATE.warningPage+1})"><i class="fa fa-angle-right"></i></div>`;
+  document.getElementById('warning-page-btns').innerHTML = pgHtml;
+}
+
+function warningPage(p) {
+  STATE.warningPage = p;
+  renderWarningList();
+}
+
+function openWarningModal(warningId) {
+  const w = MOCK_DATA.warningList.find(x => x.warningId === warningId);
+  if (!w) return;
+  STATE.processingWarningId = warningId;
+  document.getElementById('modal-warning-content').textContent = w.warningContent;
+  document.getElementById('modal-remark').value = '';
+  document.getElementById('modal-remark-count').textContent = '0';
+  document.getElementById('modal-handle-error').style.display = 'none';
+  document.querySelectorAll('input[name="handle-status"]').forEach(r => r.checked = false);
+  document.getElementById('feature-warning-modal').style.display = 'flex';
+}
+
+function closeWarningModal() {
+  document.getElementById('feature-warning-modal').style.display = 'none';
+  STATE.processingWarningId = null;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('modal-remark').addEventListener('input', function() {
+    document.getElementById('modal-remark-count').textContent = this.value.length;
+  });
+});
+
+function submitWarningHandle() {
+  const selected = document.querySelector('input[name="handle-status"]:checked');
+  if (!selected) {
+    document.getElementById('modal-handle-error').style.display = 'block';
+    return;
+  }
+  document.getElementById('modal-handle-error').style.display = 'none';
+  const remark = document.getElementById('modal-remark').value;
+  if (remark.length > 500) {
+    toast('处理说明不能超过500个字符', 'error');
+    return;
+  }
+  const handleStatus = selected.value;
+  const w = MOCK_DATA.warningList.find(x => x.warningId === STATE.processingWarningId);
+  if (w) {
+    w.handleStatus = handleStatus;
+    w.handleStatusName = handleStatus === '1' ? '已处理' : '已忽略';
+    w.handleBy = MOCK_DATA.currentUser.name;
+    w.handleTime = new Date().toISOString().slice(0,16).replace('T',' ');
+    w.handleRemark = remark;
+  }
+  // 同步到 STATE.warningList
+  const sw = STATE.warningList.find(x => x.warningId === STATE.processingWarningId);
+  if (sw) {
+    sw.handleStatus = handleStatus;
+    sw.handleStatusName = w.handleStatusName;
+    sw.handleBy = w.handleBy;
+    sw.handleTime = w.handleTime;
+    sw.handleRemark = w.handleRemark;
+  }
+  closeWarningModal();
+  toast(`预警已${handleStatus === '1' ? '处理' : '忽略'}，列表已刷新`);
+  renderWarningList();
+}
+
+function openWarningDetail(warningId) {
+  const w = MOCK_DATA.warningList.find(x => x.warningId === warningId);
+  if (!w) return;
+  const statusText = { '0': '<span style="color:#ff4d4f;">未处理</span>', '1': '<span style="color:#52c41a;">已处理</span>', '2': '<span style="color:#8c8c8c;">已忽略</span>' }[w.handleStatus];
+  document.getElementById('warning-detail-body').innerHTML = `
+    <table style="width:100%;border-collapse:collapse;">
+      ${[
+        ['预警ID', w.warningId],
+        ['预警类别', `${getWarnTypeBadge(w.warningType)}`],
+        ['预警时间', w.createTime],
+        ['预警内容', `<div style="background:#fafafa;padding:10px;border-radius:6px;font-size:13px;color:#595959;">${w.warningContent}</div>`],
+        ['涉及企业', w.enterpriseName || '—'],
+        ['所属乡镇', w.townName],
+        ['处理状态', statusText],
+        ['处理人', w.handleBy || '—'],
+        ['处理时间', w.handleTime || '—'],
+        ['处理说明', w.handleRemark || '—'],
+        ['关联业务类型', w.refType || '—'],
+      ].map(([label, val]) => `<tr style="border-bottom:1px solid #f0f0f0;">
+        <td style="padding:10px 12px;color:#8c8c8c;font-size:13px;width:110px;white-space:nowrap;">${label}</td>
+        <td style="padding:10px 12px;font-size:13px;color:#262626;">${val}</td>
+      </tr>`).join('')}
+    </table>
+  `;
+  document.getElementById('feature-warning-detail-modal').style.display = 'flex';
+}
+
+// ======= 卡片十：视频监控概况 =======
+function renderVideoChart() {
+  const chart = echarts.init(document.getElementById('chart-video'));
+  const d = MOCK_DATA.videoOverview.statusDistribution;
+  const colors = { '0': '#52c41a', '1': '#bfbfbf', '2': '#f5222d' };
+  chart.setOption({
+    title: { text: '设备状态分布', left: 'center', top: 8, textStyle: { fontSize: 13, fontWeight: '500' } },
+    tooltip: { trigger: 'item', formatter: '{b}: {c}台 ({d}%)' },
+    legend: { orient: 'vertical', right: 10, top: 'center', textStyle: { fontSize: 12 } },
+    series: [{
+      type: 'pie', radius: ['45%', '70%'], center: ['42%', '55%'],
+      data: d.map(item => ({ name: item.statusName, value: item.count, itemStyle: { color: colors[item.status] } })),
+      label: { formatter: '{b}\n{d}%', fontSize: 12 },
+      emphasis: { itemStyle: { shadowBlur: 10 } }
+    }]
+  });
+  window.addEventListener('resize', () => chart.resize());
+}
+</script>
+
+</body>
+</html>

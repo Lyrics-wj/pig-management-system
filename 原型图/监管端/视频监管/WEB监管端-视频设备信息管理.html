@@ -1,0 +1,598 @@
+<!--
+  功能名称：视频设备信息管理
+  对应PRD：doc_prd/WEB/监管端/视频监管/WEB监管端-视频设备信息管理.prd.md
+  所属端口：WEB监管端
+  所属模块：视频监管
+  制作日期：2026-03-10
+  最后更新：2026-03-10
+  角色说明：县级管理员(county_admin)可新增/编辑/删除/导入，其他角色仅查看
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>视频设备信息管理 - 蓬溪县生猪数字化管理平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    /* SHARED STYLES */
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; }
+    .sidebar { width: 240px; min-width: 240px; background: #001529; }
+    .menu-item { padding: 10px 20px; cursor: pointer; color: rgba(255,255,255,0.65); font-size: 14px; transition: all 0.2s; }
+    .menu-item:hover { background: rgba(255,255,255,0.1); color: white; }
+    .menu-item.active { background: #1677ff; color: white; }
+    .status-badge { padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 500; }
+    .tag-online { background: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
+    .tag-offline { background: #fafafa; color: #8c8c8c; border: 1px solid #d9d9d9; }
+    .tag-fault { background: #fff2f0; color: #ff4d4f; border: 1px solid #ffccc7; }
+    .tag-alarm { background: #e6f4ff; color: #1677ff; border: 1px solid #91caff; }
+    .tag-no-alarm { background: #fafafa; color: #8c8c8c; border: 1px solid #d9d9d9; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+    .modal { background: white; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+    .form-label { font-size: 14px; color: #262626; text-align: right; font-weight: 500; }
+    .required::before { content: '*'; color: #ff4d4f; margin-right: 4px; }
+    .form-input { border: 1px solid #d9d9d9; border-radius: 4px; padding: 6px 10px; width: 100%; font-size: 14px; outline: none; transition: border-color 0.2s; }
+    .form-input:focus { border-color: #1677ff; box-shadow: 0 0 0 2px rgba(22,119,255,0.1); }
+    .form-input.error { border-color: #ff4d4f; }
+    .error-msg { color: #ff4d4f; font-size: 12px; margin-top: 2px; }
+    .form-input:disabled { background: #f5f5f5; color: #8c8c8c; }
+    table { border-collapse: collapse; width: 100%; }
+    th { background: #fafafa; font-weight: 600; font-size: 13px; color: #595959; border-bottom: 1px solid #e8e8e8; padding: 12px 8px; text-align: left; white-space: nowrap; }
+    td { padding: 10px 8px; font-size: 13px; color: #262626; border-bottom: 1px solid #f0f0f0; white-space: nowrap; }
+    tr:nth-child(even) { background: #fafafa; }
+    tr:hover { background: #e6f4ff; }
+    .op-btn { color: #1677ff; cursor: pointer; font-size: 13px; padding: 2px 6px; border-radius: 3px; }
+    .op-btn:hover { background: #e6f4ff; }
+    .op-btn.danger { color: #ff4d4f; }
+    .op-btn.danger:hover { background: #fff2f0; }
+    .btn-primary { background: #1677ff; color: white; border: none; border-radius: 4px; padding: 6px 16px; font-size: 14px; cursor: pointer; }
+    .btn-primary:hover { background: #4096ff; }
+    .btn-default { background: white; color: #262626; border: 1px solid #d9d9d9; border-radius: 4px; padding: 6px 16px; font-size: 14px; cursor: pointer; }
+    .btn-default:hover { border-color: #1677ff; color: #1677ff; }
+    .btn-danger { background: #ff4d4f; color: white; border: none; border-radius: 4px; padding: 6px 16px; font-size: 14px; cursor: pointer; }
+    .btn-danger:hover { background: #ff7875; }
+    .sticky-op { position: sticky; right: 0; background: white; }
+    tr:hover .sticky-op { background: #e6f4ff; }
+    tr:nth-child(even) .sticky-op { background: #fafafa; }
+    tr:nth-child(even):hover .sticky-op { background: #e6f4ff; }
+    .pagination-btn { border: 1px solid #d9d9d9; background: white; padding: 4px 10px; border-radius: 4px; font-size: 13px; cursor: pointer; }
+    .pagination-btn:hover, .pagination-btn.active { border-color: #1677ff; color: #1677ff; }
+    .pagination-btn:disabled { color: #d9d9d9; cursor: not-allowed; }
+    .success-toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); background: #f6ffed; border: 1px solid #b7eb8f; color: #52c41a; padding: 10px 24px; border-radius: 6px; font-size: 14px; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  </style>
+</head>
+<body x-data="deviceApp()" x-init="init()">
+
+<div class="flex h-screen overflow-hidden">
+
+  <!-- SECTION START: 侧边菜单 -->
+  <aside class="sidebar flex flex-col flex-shrink-0">
+    <div class="p-4 border-b" style="border-color: rgba(255,255,255,0.08);">
+      <div class="flex items-center space-x-2">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: #1677ff;">
+          <i class="fas fa-video text-white text-sm"></i>
+        </div>
+        <div>
+          <div class="text-white font-bold text-sm">蓬溪县生猪数字化</div>
+          <div class="text-xs text-gray-400">管理平台 · 监管端</div>
+        </div>
+      </div>
+    </div>
+    <nav class="flex-1 py-3">
+      <div class="px-4 mb-2 text-xs text-gray-500">视频监管</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-视频监管驾驶舱.html'"><i class="fas fa-tachometer-alt mr-2"></i>视频监管驾驶舱</div>
+      <div class="menu-item active"><i class="fas fa-camera mr-2"></i>视频设备信息管理</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-视频监控实时查看.html'"><i class="fas fa-desktop mr-2"></i>视频监控实时查看</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-视频监控告警管理.html'"><i class="fas fa-bell mr-2"></i>视频监控告警管理</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-视频监控历史回放.html'"><i class="fas fa-history mr-2"></i>视频监控历史回放</div>
+      <div class="menu-item" onclick="window.location.href='WEB监管端-云存储管理.html'"><i class="fas fa-cloud mr-2"></i>云存储管理</div>
+    </nav>
+    <div class="p-3 border-t" style="border-color: rgba(255,255,255,0.08);">
+      <select x-model="currentRole" @change="switchRole()" class="w-full text-sm px-2 py-1 rounded text-white" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
+        <option value="county_admin" style="background:#001529">县级管理员</option>
+        <option value="county_staff" style="background:#001529">县级业务人员</option>
+        <option value="town_gov_staff" style="background:#001529">乡镇政府业务人员</option>
+        <option value="ent_admin" style="background:#001529">企业管理员</option>
+      </select>
+    </div>
+  </aside>
+  <!-- SECTION END: 侧边菜单 -->
+
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <!-- 顶部导航 -->
+    <header class="bg-white border-b px-6 flex items-center justify-between flex-shrink-0" style="height: 56px; border-color: #e8e8e8;">
+      <div>
+        <span class="text-gray-400 text-sm">视频监管</span>
+        <span class="text-gray-400 text-sm mx-2">/</span>
+        <span class="text-gray-700 text-sm font-medium">视频设备信息管理</span>
+      </div>
+      <div class="flex items-center space-x-3">
+        <div class="relative">
+          <i class="fas fa-bell text-gray-500 cursor-pointer text-lg"></i>
+          <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">3</span>
+        </div>
+        <div class="flex items-center space-x-2">
+          <div class="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-bold">张</div>
+          <span class="text-sm text-gray-600" x-text="currentRoleName">县级管理员</span>
+          <i class="fas fa-sign-out-alt text-gray-400 cursor-pointer"></i>
+        </div>
+      </div>
+    </header>
+
+    <div class="flex-1 overflow-y-auto p-5">
+
+      <!-- SECTION START: 筛选条件区 -->
+      <div class="bg-white rounded-lg p-4 mb-4 shadow-sm">
+        <div class="grid grid-cols-5 gap-3">
+          <div>
+            <label class="text-sm text-gray-600 mb-1 block">设备名称</label>
+            <input x-model="filter.deviceName" type="text" placeholder="请输入设备名称" class="form-input">
+          </div>
+          <div>
+            <label class="text-sm text-gray-600 mb-1 block">使用单位</label>
+            <input x-model="filter.enterpriseName" type="text" placeholder="请输入使用单位" class="form-input">
+          </div>
+          <div x-show="currentRole !== 'town_gov_staff' && currentRole !== 'ent_admin'">
+            <label class="text-sm text-gray-600 mb-1 block">所属乡镇</label>
+            <select x-model="filter.town" class="form-input">
+              <option value="">全部</option>
+              <option>蓬南镇</option><option>天福镇</option><option>赤城镇</option>
+              <option>新会镇</option><option>荷叶镇</option><option>金桥乡</option>
+              <option>宝梵镇</option><option>蓬溪镇</option><option>明月镇</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm text-gray-600 mb-1 block">设备状态</label>
+            <select x-model="filter.deviceStatus" class="form-input">
+              <option value="">全部</option>
+              <option value="0">在线</option><option value="1">离线</option><option value="2">故障</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm text-gray-600 mb-1 block">是否告警区域</label>
+            <select x-model="filter.isAlarmZone" class="form-input">
+              <option value="">全部</option><option value="1">是</option><option value="0">否</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex mt-3 space-x-2">
+          <button @click="doSearch()" class="btn-primary"><i class="fas fa-search mr-1"></i>查询</button>
+          <button @click="resetFilter()" class="btn-default"><i class="fas fa-redo mr-1"></i>重置</button>
+        </div>
+      </div>
+      <!-- SECTION END: 筛选条件区 -->
+
+      <!-- SECTION START: 工具栏 + 数据表格 -->
+      <div class="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col" style="max-height: calc(100vh - 280px);">
+        <!-- 工具栏 -->
+        <div class="flex items-center justify-between px-4 py-3 border-b" style="border-color: #f0f0f0; flex-shrink: 0;">
+          <div class="flex items-center space-x-2">
+            <span class="text-sm font-medium text-gray-700">设备列表</span>
+            <span class="text-xs text-gray-400" x-text="`共 ${filteredData.length} 台`"></span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <template x-if="currentRole === 'county_admin'">
+              <div class="flex space-x-2">
+                <button @click="openAddModal()" class="btn-primary text-sm py-1.5"><i class="fas fa-plus mr-1"></i>新增</button>
+                <button @click="batchDelete()" class="btn-danger text-sm py-1.5" :disabled="selectedIds.length === 0"><i class="fas fa-trash mr-1"></i>批量删除</button>
+                <button @click="openImportModal()" class="btn-default text-sm py-1.5"><i class="fas fa-upload mr-1"></i>批量导入</button>
+                <button @click="downloadTemplate()" class="btn-default text-sm py-1.5"><i class="fas fa-file-excel mr-1"></i>导入模板</button>
+              </div>
+            </template>
+            <button @click="exportData()" class="btn-default text-sm py-1.5"><i class="fas fa-download mr-1"></i>导出</button>
+          </div>
+        </div>
+        <!-- 表格 -->
+        <div class="overflow-auto flex-1">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:50px" x-show="currentRole === 'county_admin'"><input type="checkbox" @change="toggleAll($event)" :checked="isAllSelected"></th>
+                <th style="width:60px">序号</th>
+                <th style="width:120px">设备编号</th>
+                <th style="width:180px">设备名称</th>
+                <th style="width:180px">使用单位</th>
+                <th style="width:100px">所属乡镇</th>
+                <th style="width:180px">安装位置</th>
+                <th style="width:130px">IP地址</th>
+                <th style="width:150px">设备品牌/型号</th>
+                <th style="width:120px">接入通道号</th>
+                <th style="width:80px">设备状态</th>
+                <th style="width:100px">是否告警区域</th>
+                <th style="width:160px">创建时间</th>
+                <th style="width:120px; position:sticky; right:0;" class="sticky-op">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="(row, idx) in pagedData" :key="row.deviceId">
+                <tr>
+                  <td x-show="currentRole === 'county_admin'"><input type="checkbox" :value="row.deviceId" x-model="selectedIds"></td>
+                  <td x-text="(currentPage-1)*pageSize + idx + 1"></td>
+                  <td x-text="row.deviceCode"></td>
+                  <td class="max-w-0 truncate" style="max-width:180px" :title="row.deviceName" x-text="row.deviceName"></td>
+                  <td class="max-w-0 truncate" style="max-width:180px" :title="row.enterpriseName" x-text="row.enterpriseName"></td>
+                  <td x-text="row.areaName"></td>
+                  <td class="max-w-0 truncate" style="max-width:180px" :title="row.installLocation" x-text="row.installLocation"></td>
+                  <td x-text="row.ipAddress"></td>
+                  <td x-text="(row.deviceBrand && row.deviceModel) ? row.deviceBrand+'/'+row.deviceModel : (row.deviceBrand || row.deviceModel || '—')"></td>
+                  <td x-text="row.channelNo"></td>
+                  <td>
+                    <span class="status-badge" :class="row.deviceStatus==='0' ? 'tag-online' : row.deviceStatus==='1' ? 'tag-offline' : 'tag-fault'" x-text="row.deviceStatus==='0'?'在线':row.deviceStatus==='1'?'离线':'故障'"></span>
+                  </td>
+                  <td>
+                    <span class="status-badge" :class="row.isAlarmZone==='1'?'tag-alarm':'tag-no-alarm'" x-text="row.isAlarmZone==='1'?'是':'否'"></span>
+                  </td>
+                  <td x-text="row.createTime"></td>
+                  <td class="sticky-op" style="position:sticky; right:0;">
+                    <template x-if="currentRole === 'county_admin'">
+                      <div class="flex space-x-1">
+                        <span class="op-btn" @click="openEditModal(row)">编辑</span>
+                        <span class="op-btn danger" @click="deleteRow(row)">删除</span>
+                      </div>
+                    </template>
+                    <template x-if="currentRole !== 'county_admin'">
+                      <span class="text-gray-400 text-sm">—</span>
+                    </template>
+                  </td>
+                </tr>
+              </template>
+              <template x-if="filteredData.length === 0">
+                <tr><td colspan="14" class="text-center py-12 text-gray-400"><i class="fas fa-inbox text-4xl mb-2 block"></i>暂无设备数据</td></tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+        <!-- 分页 -->
+        <div class="flex items-center justify-between px-4 py-3 border-t flex-shrink-0" style="border-color: #f0f0f0;">
+          <span class="text-sm text-gray-500">共 <span x-text="filteredData.length"></span> 条记录</span>
+          <div class="flex items-center space-x-1">
+            <button class="pagination-btn" @click="currentPage=Math.max(1,currentPage-1)" :disabled="currentPage===1">&#8249;</button>
+            <template x-for="p in totalPages" :key="p">
+              <button class="pagination-btn" :class="p===currentPage?'active':''" @click="currentPage=p" x-text="p"></button>
+            </template>
+            <button class="pagination-btn" @click="currentPage=Math.min(totalPages,currentPage+1)" :disabled="currentPage===totalPages">&#8250;</button>
+            <span class="text-sm text-gray-500 ml-2">每页 <span x-text="pageSize"></span> 条</span>
+          </div>
+        </div>
+      </div>
+      <!-- SECTION END: 工具栏 + 数据表格 -->
+    </div>
+  </div>
+</div>
+
+<!-- SECTION START: 新增/编辑弹窗 -->
+<div class="modal-overlay" x-show="showModal" x-transition @click.self="showModal=false">
+  <div class="modal" style="width: 600px; max-height: 90vh; overflow-y: auto;">
+    <div class="flex items-center justify-between px-6 py-4 border-b">
+      <h3 class="font-semibold text-gray-800" x-text="modalMode==='add'?'新增设备':'编辑设备'"></h3>
+      <i class="fas fa-times cursor-pointer text-gray-400 hover:text-gray-600" @click="showModal=false"></i>
+    </div>
+    <div class="px-6 py-4">
+      <div class="grid grid-cols-2 gap-x-6 gap-y-4">
+        <!-- 设备编号 -->
+        <div>
+          <label class="form-label block mb-1"><span class="required"></span>设备编号</label>
+          <input x-model="form.deviceCode" :disabled="modalMode==='edit'" type="text" placeholder="如 CAM-0001" class="form-input" :class="errors.deviceCode?'error':''">
+          <p class="error-msg" x-show="errors.deviceCode" x-text="errors.deviceCode"></p>
+        </div>
+        <!-- 设备名称 -->
+        <div>
+          <label class="form-label block mb-1"><span class="required"></span>设备名称</label>
+          <input x-model="form.deviceName" type="text" placeholder="请输入设备名称" class="form-input" :class="errors.deviceName?'error':''">
+          <p class="error-msg" x-show="errors.deviceName" x-text="errors.deviceName"></p>
+        </div>
+        <!-- 使用单位 -->
+        <div>
+          <label class="form-label block mb-1"><span class="required"></span>使用单位</label>
+          <select x-model="form.enterpriseId" class="form-input" :class="errors.enterpriseId?'error':''">
+            <option value="">请选择使用单位</option>
+            <option value="1">蓬溪县鸿鹄畜牧有限公司</option>
+            <option value="2">蓬溪县金源牧业有限公司</option>
+            <option value="3">蓬溪县天府农场</option>
+            <option value="4">蓬溪县裕丰猪场</option>
+            <option value="5">蓬溪县绿源牧业有限公司</option>
+            <option value="6">蓬溪县华兴养殖基地</option>
+          </select>
+          <p class="error-msg" x-show="errors.enterpriseId" x-text="errors.enterpriseId"></p>
+        </div>
+        <!-- 安装位置 -->
+        <div>
+          <label class="form-label block mb-1"><span class="required"></span>安装位置</label>
+          <input x-model="form.installLocation" type="text" placeholder="请输入安装位置" class="form-input" :class="errors.installLocation?'error':''">
+          <p class="error-msg" x-show="errors.installLocation" x-text="errors.installLocation"></p>
+        </div>
+        <!-- IP地址 -->
+        <div>
+          <label class="form-label block mb-1"><span class="required"></span>IP地址</label>
+          <input x-model="form.ipAddress" type="text" placeholder="如 192.168.1.100" class="form-input" :class="errors.ipAddress?'error':''">
+          <p class="error-msg" x-show="errors.ipAddress" x-text="errors.ipAddress"></p>
+        </div>
+        <!-- 接入通道号 -->
+        <div>
+          <label class="form-label block mb-1"><span class="required"></span>接入通道号</label>
+          <input x-model="form.channelNo" type="text" placeholder="请输入接入通道号" class="form-input" :class="errors.channelNo?'error':''">
+          <p class="error-msg" x-show="errors.channelNo" x-text="errors.channelNo"></p>
+        </div>
+        <!-- 设备品牌 -->
+        <div>
+          <label class="form-label block mb-1">设备品牌</label>
+          <input x-model="form.deviceBrand" type="text" placeholder="如 海康威视" class="form-input">
+        </div>
+        <!-- 设备型号 -->
+        <div>
+          <label class="form-label block mb-1">设备型号</label>
+          <input x-model="form.deviceModel" type="text" placeholder="如 DS-2CD2T47G2-L" class="form-input">
+        </div>
+        <!-- 是否告警区域 -->
+        <div class="flex items-center space-x-3 col-span-2">
+          <label class="form-label">是否告警区域</label>
+          <div class="flex items-center space-x-2">
+            <div @click="form.isAlarmZone = form.isAlarmZone === '1' ? '0' : '1'" class="relative cursor-pointer" style="width: 44px; height: 22px;">
+              <div class="w-full h-full rounded-full transition-colors duration-200" :style="form.isAlarmZone==='1' ? 'background:#1677ff' : 'background:#d9d9d9'"></div>
+              <div class="absolute top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 shadow" :style="form.isAlarmZone==='1' ? 'transform:translateX(24px)' : 'transform:translateX(2px)'"></div>
+            </div>
+            <span class="text-sm text-gray-600" x-text="form.isAlarmZone==='1'?'是':'否'"></span>
+          </div>
+        </div>
+        <!-- 备注 -->
+        <div class="col-span-2">
+          <label class="form-label block mb-1">备注</label>
+          <textarea x-model="form.remark" rows="3" placeholder="请输入备注信息" class="form-input" style="resize: vertical;"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="flex justify-end space-x-3 px-6 py-4 border-t bg-gray-50">
+      <button @click="showModal=false" class="btn-default">取消</button>
+      <button @click="submitForm()" class="btn-primary">确定</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 新增/编辑弹窗 -->
+
+<!-- SECTION START: 批量导入弹窗 -->
+<div class="modal-overlay" x-show="showImportModal" x-transition @click.self="showImportModal=false">
+  <div class="modal" style="width: 500px;">
+    <div class="flex items-center justify-between px-6 py-4 border-b">
+      <h3 class="font-semibold text-gray-800">批量导入设备</h3>
+      <i class="fas fa-times cursor-pointer text-gray-400" @click="showImportModal=false"></i>
+    </div>
+    <div class="px-6 py-6">
+      <div class="border-2 border-dashed border-blue-300 rounded-lg p-8 text-center" style="background: #f0f7ff;">
+        <i class="fas fa-file-excel text-4xl text-green-500 mb-3"></i>
+        <p class="text-gray-600 mb-2">点击上传或将文件拖拽到此区域</p>
+        <p class="text-sm text-gray-400">仅支持 .xlsx 格式，文件大小不超过 10MB</p>
+        <input type="file" accept=".xlsx" class="hidden" id="importFile" @change="handleImport($event)">
+        <button @click="document.getElementById('importFile').click()" class="mt-3 btn-primary"><i class="fas fa-upload mr-1"></i>选择文件</button>
+      </div>
+      <div class="mt-3 flex items-center justify-center">
+        <a @click.prevent="downloadTemplate()" class="text-blue-500 text-sm cursor-pointer hover:underline"><i class="fas fa-download mr-1"></i>下载导入模板</a>
+      </div>
+      <!-- 导入结果 -->
+      <div x-show="importResult" class="mt-4 p-3 rounded" :class="importResult && importResult.success ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'">
+        <p class="text-sm" :class="importResult && importResult.success ? 'text-green-700' : 'text-yellow-700'" x-text="importResult && importResult.message"></p>
+      </div>
+    </div>
+    <div class="flex justify-end px-6 py-4 border-t bg-gray-50">
+      <button @click="showImportModal=false" class="btn-default">关闭</button>
+    </div>
+  </div>
+</div>
+<!-- SECTION END: 批量导入弹窗 -->
+
+<!-- 删除确认弹窗 -->
+<div class="modal-overlay" x-show="showDeleteModal" x-transition>
+  <div class="modal" style="width: 420px;">
+    <div class="px-6 py-5">
+      <div class="flex items-start space-x-3">
+        <i class="fas fa-exclamation-circle text-red-400 text-xl mt-0.5"></i>
+        <div>
+          <h4 class="font-semibold text-gray-800 mb-2">确认删除</h4>
+          <p class="text-sm text-gray-600" x-text="deleteMsg"></p>
+        </div>
+      </div>
+    </div>
+    <div class="flex justify-end space-x-3 px-6 py-4 border-t bg-gray-50">
+      <button @click="showDeleteModal=false" class="btn-default">取消</button>
+      <button @click="confirmDelete()" class="btn-danger">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- 成功提示 -->
+<div class="success-toast" x-show="showToast" x-transition><i class="fas fa-check-circle mr-2"></i><span x-text="toastMsg"></span></div>
+
+<script>
+const MOCK_DATA = {
+  currentRole: 'county_admin',
+  devices: [
+    { deviceId: 1, deviceCode: 'CAM-0001', deviceName: '鸿鹄养殖场-大门入口', enterpriseId: '1', enterpriseName: '蓬溪县鸿鹄畜牧有限公司', areaName: '蓬南镇', installLocation: '大门入口上方2.5米处', ipAddress: '192.168.10.101', deviceBrand: '海康威视', deviceModel: 'DS-2CD2T47G2-L', channelNo: 'CH001', deviceStatus: '0', isAlarmZone: '1', createTime: '2026-01-10 09:30', remark: '' },
+    { deviceId: 2, deviceCode: 'CAM-0002', deviceName: '鸿鹄养殖场-猪舍A区', enterpriseId: '1', enterpriseName: '蓬溪县鸿鹄畜牧有限公司', areaName: '蓬南镇', installLocation: '猪舍A区北墙顶部', ipAddress: '192.168.10.102', deviceBrand: '海康威视', deviceModel: 'DS-2CD2T47G2-L', channelNo: 'CH002', deviceStatus: '0', isAlarmZone: '0', createTime: '2026-01-10 09:32', remark: '' },
+    { deviceId: 3, deviceCode: 'CAM-0003', deviceName: '金源牧业-猪舍B区', enterpriseId: '2', enterpriseName: '蓬溪县金源牧业有限公司', areaName: '天福镇', installLocation: '猪舍B区东侧角落', ipAddress: '192.168.11.101', deviceBrand: '大华', deviceModel: 'DH-IPC-HFW2849S', channelNo: 'CH003', deviceStatus: '0', isAlarmZone: '1', createTime: '2026-01-11 10:15', remark: '' },
+    { deviceId: 4, deviceCode: 'CAM-0004', deviceName: '天府农场-围栏监控', enterpriseId: '3', enterpriseName: '蓬溪县天府农场', areaName: '赤城镇', installLocation: '围栏西侧路灯杆上', ipAddress: '192.168.12.100', deviceBrand: '宇视', deviceModel: 'IPC3614SB-ADF28KM-I0', channelNo: 'CH004', deviceStatus: '1', isAlarmZone: '0', createTime: '2026-01-12 14:20', remark: '已报修' },
+    { deviceId: 5, deviceCode: 'CAM-0005', deviceName: '裕丰猪场-生产区入口', enterpriseId: '4', enterpriseName: '蓬溪县裕丰猪场', areaName: '新会镇', installLocation: '生产区铁门上方3米', ipAddress: '192.168.13.105', deviceBrand: '海康威视', deviceModel: 'DS-2CD2T85FWD-I8', channelNo: 'CH005', deviceStatus: '2', isAlarmZone: '1', createTime: '2026-01-15 08:45', remark: '' },
+    { deviceId: 6, deviceCode: 'CAM-0006', deviceName: '绿源牧业-东门', enterpriseId: '5', enterpriseName: '蓬溪县绿源牧业有限公司', areaName: '荷叶镇', installLocation: '东门门卫室顶部', ipAddress: '192.168.14.200', deviceBrand: '大华', deviceModel: 'DH-IPC-HFW1439S1-LED', channelNo: 'CH006', deviceStatus: '0', isAlarmZone: '1', createTime: '2026-01-16 11:00', remark: '' },
+    { deviceId: 7, deviceCode: 'CAM-0007', deviceName: '华兴养殖-仓库区', enterpriseId: '6', enterpriseName: '蓬溪县华兴养殖基地', areaName: '金桥乡', installLocation: '仓库正门上方', ipAddress: '192.168.15.50', deviceBrand: '海康威视', deviceModel: 'DS-2CD3T47G2-L', channelNo: 'CH007', deviceStatus: '0', isAlarmZone: '0', createTime: '2026-01-18 09:00', remark: '' },
+    { deviceId: 8, deviceCode: 'CAM-0008', deviceName: '鸿鹄养殖场-饲料仓库', enterpriseId: '1', enterpriseName: '蓬溪县鸿鹄畜牧有限公司', areaName: '蓬南镇', installLocation: '饲料仓库东南角', ipAddress: '192.168.10.103', deviceBrand: '海康威视', deviceModel: 'DS-2CD2T47G2-L', channelNo: 'CH008', deviceStatus: '0', isAlarmZone: '0', createTime: '2026-01-20 16:30', remark: '' },
+    { deviceId: 9, deviceCode: 'CAM-0009', deviceName: '金源牧业-大门入口', enterpriseId: '2', enterpriseName: '蓬溪县金源牧业有限公司', areaName: '天福镇', installLocation: '主大门左侧', ipAddress: '192.168.11.102', deviceBrand: '大华', deviceModel: 'DH-IPC-HDW2439T-AS-PV', channelNo: 'CH009', deviceStatus: '1', isAlarmZone: '1', createTime: '2026-01-22 10:20', remark: '' },
+    { deviceId: 10, deviceCode: 'CAM-0010', deviceName: '天府农场-猪舍C区', enterpriseId: '3', enterpriseName: '蓬溪县天府农场', areaName: '赤城镇', installLocation: '猪舍C区走廊中段', ipAddress: '192.168.12.101', deviceBrand: '宇视', deviceModel: 'IPC3614SB-ADF40KM-I0', channelNo: 'CH010', deviceStatus: '0', isAlarmZone: '0', createTime: '2026-01-25 14:00', remark: '' },
+    { deviceId: 11, deviceCode: 'CAM-0011', deviceName: '裕丰猪场-消毒间', enterpriseId: '4', enterpriseName: '蓬溪县裕丰猪场', areaName: '新会镇', installLocation: '消毒间入口顶部', ipAddress: '192.168.13.106', deviceBrand: '海康威视', deviceModel: 'DS-2CD3T47G2-L', channelNo: 'CH011', deviceStatus: '0', isAlarmZone: '1', createTime: '2026-02-01 09:30', remark: '' },
+    { deviceId: 12, deviceCode: 'CAM-0012', deviceName: '绿源牧业-猪舍A区', enterpriseId: '5', enterpriseName: '蓬溪县绿源牧业有限公司', areaName: '荷叶镇', installLocation: '猪舍A区外围走道', ipAddress: '192.168.14.201', deviceBrand: '大华', deviceModel: 'DH-IPC-HFW2849S-S-IL', channelNo: 'CH012', deviceStatus: '0', isAlarmZone: '0', createTime: '2026-02-05 11:15', remark: '' },
+  ],
+  enterprises: [
+    { id: '1', name: '蓬溪县鸿鹄畜牧有限公司' },
+    { id: '2', name: '蓬溪县金源牧业有限公司' },
+    { id: '3', name: '蓬溪县天府农场' },
+    { id: '4', name: '蓬溪县裕丰猪场' },
+    { id: '5', name: '蓬溪县绿源牧业有限公司' },
+    { id: '6', name: '蓬溪县华兴养殖基地' },
+  ]
+};
+
+function deviceApp() {
+  return {
+    currentRole: 'county_admin',
+    currentRoleName: '县级管理员',
+    filter: { deviceName: '', enterpriseName: '', town: '', deviceStatus: '', isAlarmZone: '' },
+    allData: [...MOCK_DATA.devices],
+    filteredData: [...MOCK_DATA.devices],
+    selectedIds: [],
+    currentPage: 1,
+    pageSize: 10,
+    showModal: false,
+    modalMode: 'add',
+    form: {},
+    errors: {},
+    showDeleteModal: false,
+    deleteMsg: '',
+    deleteTarget: null,
+    showImportModal: false,
+    importResult: null,
+    showToast: false,
+    toastMsg: '',
+
+    get pagedData() {
+      const start = (this.currentPage - 1) * this.pageSize;
+      return this.filteredData.slice(start, start + this.pageSize);
+    },
+    get totalPages() {
+      return Math.max(1, Math.ceil(this.filteredData.length / this.pageSize));
+    },
+    get isAllSelected() {
+      return this.pagedData.length > 0 && this.pagedData.every(r => this.selectedIds.includes(r.deviceId));
+    },
+
+    init() { this.filteredData = [...this.allData]; },
+
+    switchRole() {
+      const map = { county_admin: '县级管理员', county_staff: '县级业务人员', town_gov_staff: '乡镇政府业务人员', ent_admin: '企业管理员' };
+      this.currentRoleName = map[this.currentRole];
+      this.doSearch();
+    },
+
+    doSearch() {
+      this.filteredData = this.allData.filter(r => {
+        if (this.filter.deviceName && !r.deviceName.includes(this.filter.deviceName)) return false;
+        if (this.filter.enterpriseName && !r.enterpriseName.includes(this.filter.enterpriseName)) return false;
+        if (this.filter.town && r.areaName !== this.filter.town) return false;
+        if (this.filter.deviceStatus && r.deviceStatus !== this.filter.deviceStatus) return false;
+        if (this.filter.isAlarmZone && r.isAlarmZone !== this.filter.isAlarmZone) return false;
+        return true;
+      });
+      this.currentPage = 1;
+    },
+
+    resetFilter() {
+      this.filter = { deviceName: '', enterpriseName: '', town: '', deviceStatus: '', isAlarmZone: '' };
+      this.filteredData = [...this.allData];
+      this.currentPage = 1;
+    },
+
+    toggleAll(e) {
+      if (e.target.checked) {
+        this.selectedIds = this.pagedData.map(r => r.deviceId);
+      } else {
+        this.selectedIds = [];
+      }
+    },
+
+    openAddModal() {
+      this.modalMode = 'add';
+      const nextCode = 'CAM-' + String(this.allData.length + 1).padStart(4, '0');
+      this.form = { deviceCode: nextCode, deviceName: '', enterpriseId: '', installLocation: '', ipAddress: '', deviceBrand: '', deviceModel: '', channelNo: '', isAlarmZone: '0', remark: '' };
+      this.errors = {};
+      this.showModal = true;
+    },
+
+    openEditModal(row) {
+      this.modalMode = 'edit';
+      this.form = { ...row };
+      this.errors = {};
+      this.showModal = true;
+    },
+
+    validateForm() {
+      this.errors = {};
+      if (!this.form.deviceCode) this.errors.deviceCode = '设备编号不能为空';
+      else if (!/^CAM-\d{4}$/.test(this.form.deviceCode)) this.errors.deviceCode = '设备编号格式不正确，应为 CAM-0001 格式';
+      if (!this.form.deviceName) this.errors.deviceName = '设备名称不能为空';
+      if (!this.form.enterpriseId) this.errors.enterpriseId = '请选择使用单位';
+      if (!this.form.installLocation) this.errors.installLocation = '安装位置不能为空';
+      if (!this.form.ipAddress) this.errors.ipAddress = 'IP地址不能为空';
+      else if (!/^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$/.test(this.form.ipAddress)) this.errors.ipAddress = 'IP地址格式不正确';
+      if (!this.form.channelNo) this.errors.channelNo = '接入通道号不能为空';
+      return Object.keys(this.errors).length === 0;
+    },
+
+    submitForm() {
+      if (!this.validateForm()) return;
+      const ent = MOCK_DATA.enterprises.find(e => e.id === this.form.enterpriseId);
+      if (this.modalMode === 'add') {
+        const newRow = { ...this.form, deviceId: Date.now(), enterpriseName: ent ? ent.name : '', areaName: '蓬南镇', deviceStatus: '0', createTime: '2026-03-10 10:00', del_flag: '0' };
+        this.allData.unshift(newRow);
+      } else {
+        const idx = this.allData.findIndex(r => r.deviceId === this.form.deviceId);
+        if (idx >= 0) this.allData[idx] = { ...this.allData[idx], ...this.form, enterpriseName: ent ? ent.name : this.allData[idx].enterpriseName };
+      }
+      this.doSearch();
+      this.showModal = false;
+      this.showSuccessToast(this.modalMode === 'add' ? '设备新增成功！' : '设备信息已更新！');
+    },
+
+    deleteRow(row) {
+      this.deleteTarget = row;
+      this.deleteMsg = `确定要删除设备「${row.deviceName}」吗？删除后不可恢复。`;
+      this.showDeleteModal = true;
+    },
+
+    batchDelete() {
+      if (this.selectedIds.length === 0) return alert('请先选择要删除的设备');
+      this.deleteTarget = null;
+      this.deleteMsg = `确定要删除已选中的 ${this.selectedIds.length} 台设备吗？删除后不可恢复。`;
+      this.showDeleteModal = true;
+    },
+
+    confirmDelete() {
+      if (this.deleteTarget) {
+        this.allData = this.allData.filter(r => r.deviceId !== this.deleteTarget.deviceId);
+      } else {
+        this.allData = this.allData.filter(r => !this.selectedIds.includes(r.deviceId));
+        this.selectedIds = [];
+      }
+      this.doSearch();
+      this.showDeleteModal = false;
+      this.showSuccessToast('删除成功！');
+    },
+
+    openImportModal() {
+      this.importResult = null;
+      this.showImportModal = true;
+    },
+
+    handleImport(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      setTimeout(() => {
+        this.importResult = { success: true, message: `导入成功！共 3 条记录` };
+      }, 1500);
+    },
+
+    downloadTemplate() {
+      this.showSuccessToast('导入模板下载成功！');
+    },
+
+    exportData() {
+      this.showSuccessToast(`导出成功！文件名：视频设备信息_${new Date().toISOString().slice(0,10).replace(/-/g,'')}_103000.xlsx`);
+    },
+
+    showSuccessToast(msg) {
+      this.toastMsg = msg;
+      this.showToast = true;
+      setTimeout(() => { this.showToast = false; }, 2500);
+    }
+  };
+}
+</script>
+</body>
+</html>

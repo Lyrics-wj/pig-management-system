@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2024年蓬溪县生猪数字化管理平台 · 原型系统</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --sidebar-width: 240px;
+      --sidebar-bg: #001428;
+      --sidebar-hover: #0d2440;
+      --sidebar-active: #1677ff;
+      --sidebar-text: rgba(255,255,255,0.65);
+      --sidebar-text-active: #fff;
+      --header-h: 48px;
+      --accent: #1677ff;
+    }
+    body { display: flex; height: 100vh; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f2f5; }
+
+    /* ===== SIDEBAR ===== */
+    #sidebar {
+      width: var(--sidebar-width);
+      background: var(--sidebar-bg);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      flex-shrink: 0;
+      transition: width 0.2s;
+      overflow: hidden;
+      z-index: 100;
+    }
+    #sidebar.collapsed { width: 56px; }
+
+    /* Logo */
+    .sidebar-logo {
+      height: var(--header-h);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      flex-shrink: 0;
+    }
+    .sidebar-logo .logo-icon {
+      width: 28px; height: 28px;
+      background: var(--accent);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .sidebar-logo .logo-text {
+      font-size: 13px; font-weight: 600; color: #fff;
+      white-space: nowrap; overflow: hidden;
+      line-height: 1.3;
+    }
+    .sidebar-logo .logo-text small { display: block; font-size: 10px; font-weight: 400; color: rgba(255,255,255,0.4); margin-top: 1px; }
+
+    /* Role switcher */
+    .role-switcher {
+      margin: 10px 10px 4px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 6px;
+      padding: 8px 10px;
+      flex-shrink: 0;
+    }
+    .role-switcher label { font-size: 10px; color: rgba(255,255,255,0.35); display: block; margin-bottom: 4px; }
+    .role-switcher select {
+      width: 100%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.8); border-radius: 4px; padding: 4px 6px; font-size: 12px; cursor: pointer;
+      outline: none;
+    }
+    .role-switcher select option { background: #1a2e45; color: #fff; }
+
+    /* Nav */
+    .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 4px 0 12px;
+    }
+    .sidebar-nav::-webkit-scrollbar { width: 4px; }
+    .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+    /* Group */
+    .nav-group-label {
+      font-size: 10px; color: rgba(255,255,255,0.25);
+      padding: 12px 16px 4px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    #sidebar.collapsed .nav-group-label { padding: 12px 0 4px; text-align: center; font-size: 8px; }
+
+    /* Menu item */
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 0 14px;
+      height: 36px;
+      cursor: pointer;
+      color: var(--sidebar-text);
+      font-size: 13px;
+      transition: all 0.15s;
+      white-space: nowrap;
+      position: relative;
+      border-radius: 0;
+      user-select: none;
+    }
+    .nav-item:hover { background: var(--sidebar-hover); color: #fff; }
+    .nav-item.active { background: var(--accent); color: var(--sidebar-text-active); }
+    .nav-item .nav-icon { width: 16px; text-align: center; flex-shrink: 0; font-size: 13px; }
+    .nav-item .nav-label { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+    .nav-item .nav-arrow { font-size: 10px; transition: transform 0.2s; flex-shrink: 0; }
+    .nav-item.open .nav-arrow { transform: rotate(90deg); }
+    #sidebar.collapsed .nav-label,
+    #sidebar.collapsed .nav-arrow,
+    #sidebar.collapsed .nav-group-label { display: none; }
+    #sidebar.collapsed .nav-item { padding: 0; justify-content: center; }
+
+    /* Submenu */
+    .nav-submenu { overflow: hidden; max-height: 0; transition: max-height 0.25s ease; }
+    .nav-submenu.open { max-height: 600px; }
+    .nav-sub-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 0 14px 0 38px;
+      height: 33px;
+      cursor: pointer;
+      color: rgba(255,255,255,0.5);
+      font-size: 12px;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .nav-sub-item:hover { background: var(--sidebar-hover); color: rgba(255,255,255,0.85); }
+    .nav-sub-item.active { color: #40a9ff; background: rgba(22,119,255,0.12); }
+    .nav-sub-item .sub-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: currentColor; opacity: 0.5; flex-shrink: 0;
+    }
+    .nav-sub-item.active .sub-dot { opacity: 1; }
+    #sidebar.collapsed .nav-submenu { display: none; }
+
+    /* Collapse toggle */
+    .sidebar-footer {
+      padding: 10px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      flex-shrink: 0;
+    }
+    .collapse-btn {
+      width: 100%; height: 32px; border-radius: 6px;
+      background: rgba(255,255,255,0.06); border: none;
+      color: rgba(255,255,255,0.4); cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      font-size: 12px; transition: all 0.15s;
+      white-space: nowrap; overflow: hidden;
+    }
+    .collapse-btn:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); }
+    #sidebar.collapsed .collapse-btn-text { display: none; }
+    #sidebar.collapsed .role-switcher { display: none; }
+
+    /* Header toggle btn */
+    .header-toggle-btn {
+      width: 32px; height: 32px; border-radius: 6px;
+      background: transparent; border: none;
+      color: #8c8c8c; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; transition: all 0.15s; flex-shrink: 0;
+    }
+    .header-toggle-btn:hover { background: #f5f5f5; color: #262626; }
+
+    /* ===== MAIN AREA ===== */
+    #main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    /* Header */
+    #header {
+      height: var(--header-h);
+      background: #fff;
+      border-bottom: 1px solid #e8e8e8;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 16px;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .breadcrumb {
+      flex: 1;
+      font-size: 13px;
+      color: #8c8c8c;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .breadcrumb .sep { color: #d9d9d9; }
+    .breadcrumb .current { color: #262626; font-weight: 500; }
+    .header-actions {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .header-role-badge {
+      background: #e6f4ff; color: var(--accent);
+      border: 1px solid #91caff;
+      border-radius: 4px; padding: 2px 10px; font-size: 12px;
+    }
+    .header-user {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 13px; color: #595959;
+    }
+    .header-user .avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--accent); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 600;
+    }
+
+    /* Tab bar */
+    #tabbar {
+      background: #fff;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      align-items: center;
+      padding: 0 0 0 16px;
+      flex-shrink: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      height: 38px;
+    }
+    #tabbar::-webkit-scrollbar { height: 0; }
+    .tab {
+      display: flex; align-items: center; gap: 6px;
+      padding: 0 12px;
+      height: 38px;
+      font-size: 12px;
+      color: #8c8c8c;
+      cursor: pointer;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .tab:hover { color: var(--accent); }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); background: #f0f7ff; }
+    .tab .tab-close {
+      width: 14px; height: 14px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; color: #bfbfbf;
+      transition: all 0.15s;
+    }
+    .tab .tab-close:hover { background: rgba(0,0,0,0.1); color: #666; }
+
+    /* Content area */
+    #content {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+    .content-pane {
+      position: absolute;
+      inset: 0;
+      display: none;
+    }
+    .content-pane.active { display: flex; flex-direction: column; }
+    .content-pane iframe {
+      flex: 1;
+      border: none;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Welcome screen */
+    #welcome {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #f5f7fa;
+      gap: 20px;
+    }
+    .welcome-icon {
+      width: 80px; height: 80px;
+      background: linear-gradient(135deg, #1677ff, #69b1ff);
+      border-radius: 20px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 8px 24px rgba(22,119,255,0.3);
+    }
+    .welcome-icon i { font-size: 36px; color: #fff; }
+    .welcome-title { font-size: 22px; font-weight: 600; color: #1a2e45; }
+    .welcome-sub { font-size: 14px; color: #8c8c8c; }
+    .welcome-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 160px);
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .welcome-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      border: 1px solid #e8e8e8;
+      transition: all 0.2s;
+    }
+    .welcome-card:hover { border-color: var(--accent); box-shadow: 0 4px 16px rgba(22,119,255,0.12); transform: translateY(-2px); }
+    .welcome-card i { font-size: 24px; margin-bottom: 8px; display: block; }
+    .welcome-card span { font-size: 12px; color: #595959; }
+
+    /* Loading overlay */
+    .iframe-loading {
+      position: absolute;
+      inset: 0;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 14px;
+      color: #8c8c8c;
+      z-index: 5;
+    }
+    .spin { animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<!-- ===== SIDEBAR ===== -->
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon"><i class="fa-solid fa-piggy-bank" style="font-size:14px;color:#fff;"></i></div>
+    <div class="logo-text">蓬溪县生猪平台<small>原型演示系统 v1.0</small></div>
+  </div>
+
+  <div class="role-switcher" id="roleSwitcher">
+    <label>当前角色</label>
+    <select id="roleSelect" onchange="switchRole(this.value)">
+      <optgroup label="监管端">
+        <option value="supervisor_admin">县级管理员</option>
+        <option value="supervisor_biz">县级业务人员</option>
+        <option value="town_vet">乡镇兽医站</option>
+        <option value="town_gov">乡镇政府业务人员</option>
+      </optgroup>
+      <optgroup label="企业端">
+        <option value="ent_admin">企业管理员</option>
+        <option value="ent_reporter">企业填报员</option>
+      </optgroup>
+    </select>
+  </div>
+
+  <div class="sidebar-nav" id="sidebarNav">
+
+    <!-- 监管端 -->
+    <div class="nav-group-label">监管端</div>
+
+    <!-- 产业驾驶舱 -->
+    <div class="nav-item" onclick="toggleMenu(this)" data-key="cab">
+      <span class="nav-icon"><i class="fa-solid fa-chart-pie"></i></span>
+      <span class="nav-label">产业驾驶舱</span>
+      <i class="fa-solid fa-chevron-right nav-arrow"></i>
+    </div>
+    <div class="nav-submenu" id="sub-cab">
+      <div class="nav-sub-item" onclick="openPage('监管端/产业驾驶舱/产业总览/WEB监管端-产业总览大屏.html','产业总览大屏','cab')">
+        <span class="sub-dot"></span>产业总览大屏
+      </div>
+      <div class="nav-sub-item" onclick="openPage('监管端/产业驾驶舱/大屏配置/WEB监管端-大屏配置.html','大屏配置','cab')">
+        <span class="sub-dot"></span>大屏配置
+      </div>
+    </div>
+
+    <!-- 决策分析 -->
+    <div class="nav-item" onclick="toggleMenu(this)" data-key="analysis">
+      <span class="nav-icon"><i class="fa-solid fa-chart-line"></i></span>
+      <span class="nav-label">决策分析</span>
+      <i class="fa-solid fa-chevron-right nav-arrow"></i>
+    </div>
+    <div class="nav-submenu" id="sub-analysis">
+      <div class="nav-sub-item" onclick="openPage('监管端/决策分析/养殖分析/WEB监管端-养殖分析.html','养殖分析','analysis')">
+        <span class="sub-dot"></span>养殖分析
+      </div>
+      <div class="nav-sub-item" onclick="openPage('监管端/决策分析/市场贸易分析/WEB监管端-市场贸易分析.html','市场贸易分析','analysis')">
+        <span class="sub-dot"></span>市场贸易分析
+      </div>
+      <div class="nav-sub-item" onclick="openPage('监管端/决策分析/检验检疫无害化分析/WEB监管端-检验检疫无害化分析.html','检验检疫无害化分析','analysis')">
+        <span class="sub-dot"></span>检验检疫无害化分析
+      </div>
+    </div>
+
+    <!-- 智慧监管 -->
+    <div class="nav-item" onclick="toggleMenu(this)" data-key="smart">
+      <span class="nav-icon"><i class="fa-solid fa-shield-halved"></i></span>
+      <span class="nav-label">智慧监管</span>
+      <i class="fa-solid fa-chevron-right nav-arrow"></i>
+    </div>
+    <div class="nav-submenu" id="sub-smart">
+      <!-- 养殖企业管理 -->
+      <div class="nav-sub-item" onclick="openPage('监管端/智慧监管/养殖企业管理/WEB监管端-养殖企业信息管理.html','养殖企业信息管理','smart')">
+        <span class="sub-dot"></span>养殖企业信息管理
+      </div>
+      <div class="nav-sub-item" onclick="openPage('监管端/智慧监管/养殖企业管理/WEB监管端-养殖档案监管.html','养殖档案监管','smart')">
+        <span class="sub-dot"></span>养殖档案监管
+      </div>
+      <!-- 电子档案管理 -->
+      <div class="nav-sub-item" onclick="openPage('监管端/智慧监管/电子档案管理/WEB监管端-档案台账总览.html','档案台账总览','smart')">
+        <span class="sub-dot"></span>档案台账总览
+      </div>
+      <div class="nav-sub-item" onclick="openPage('监管端/智慧监管/电子档案管理/WEB监管端-档案分类检索.html','档案分类检索','smart')">
+        <span class="sub-dot"></span>档案分类检索
+      </div>
+      <div class="nav-sub-item" onclick="openPage('监管端/智慧监管/电子档案管理/WEB监管端-档案统计分析.html','档案统计分析','smart')">
+        <span class="sub-dot"></span>档案统计分析
+      </div>
+      <!-- 工作通知管理 -->
+      <div class="nav-sub-item" onclick="openPage('监管端/智慧监管/工作通知管理/WEB监管端-通知公告管理.html','通知公告管理','smart')">
+        <span class="sub-dot"></span>通知公告管理
+      </div>
+      <div class="nav-sub-item" onclick="openPage('监管端/智慧监管/工作通知管理/WEB监管端-工作任务管理.html','工作任务管理','smart')">
+        <span class="sub-dot"></span>工作任务管理
+      </div>
+      <div class="nav-sub-item" onclick="openPage('监管端/智慧监管/工作通知管理/WEB监管端-信息收集管理.html','信息收集管理','smart')">
+        <span class="sub-dot"></span>信息收集管理
+      </div>
+      <div class="nav-sub-item" onclick="openPage('监管端/智慧监管/工作通知管理/WEB监管端-情况总结看板.html','情况总结看板','smart')">
+        <span class="sub-dot"></span>情况总结看板
+      </div>
+      <!-- 项目信息管理 -->
+      <div class="nav-sub-item" onclick="openPage('监管端/智慧监管/项目信息管理/项目申报审核/WEB管理端-项目管理-畜牧项目建设申报.html','畜牧项目建设申报审核','smart')">
+        <span class="sub-dot"></span>畜牧项目建设申报审核
+      </div>
+      <div class="nav-sub-item" onclick="openPage('监管端/智慧监管/项目信息管理/项目验收审核/WEB监管端-项目管理-项目竣工投产前验收审核.html','项目竣工验收审核','smart')">
+        <span class="sub-dot"></span>项目竣工验收审核
+      </div>
+    </div>
+
+    <!-- 视频监管 -->
+    <div class="nav-item" onclick="toggleMenu(this)" data-key="video">
+      <span class="nav-icon"><i class="fa-solid fa-video"></i></span>
+      <span class="nav-label">视频监管</span>
+      <i class="fa-solid fa-chevron-right nav-arrow"></i>
+    </div>
+    <div class="nav-submenu" id="sub-video">
+      <div class="nav-sub-item" onclick="openPage('监管端/视频监管/WEB监管端-视频监管驾驶舱.html','视频监管驾驶舱','video')">
+        <span class="sub-dot"></span>视频监管驾驶舱
+      </div>
+      <div class="nav-sub-item" onclick="openPage('监管端/视频监管/WEB监管端-视频设备信息管理.html','视频设备信息管理','video')">
+        <span class="sub-dot"></span>视频设备信息管理
+      </div>
+      <div class="nav-sub-item" onclick="openPage('监管端/视频监管/WEB监管端-视频监控实时查看.html','视频监控实时查看','video')">
+        <span class="sub-dot"></span>视频监控实时查看
+      </div>
+      <div class="nav-sub-item" onclick="openPage('监管端/视频监管/WEB监管端-视频监控告警管理.html','视频监控告警管理','video')">
+        <span class="sub-dot"></span>视频监控告警管理
+      </div>
+      <div class="nav-sub-item" onclick="openPage('监管端/视频监管/WEB监管端-视频监控历史回放.html','视频监控历史回放','video')">
+        <span class="sub-dot"></span>视频监控历史回放
+      </div>
+      <div class="nav-sub-item" onclick="openPage('监管端/视频监管/WEB监管端-云存储管理.html','云存储管理','video')">
+        <span class="sub-dot"></span>云存储管理
+      </div>
+    </div>
+
+    <!-- 企业端 -->
+    <div class="nav-group-label">企业端</div>
+
+    <!-- 企业信息管理 -->
+    <div class="nav-item" onclick="toggleMenu(this)" data-key="entinfo">
+      <span class="nav-icon"><i class="fa-solid fa-building"></i></span>
+      <span class="nav-label">企业信息管理</span>
+      <i class="fa-solid fa-chevron-right nav-arrow"></i>
+    </div>
+    <div class="nav-submenu" id="sub-entinfo">
+      <div class="nav-sub-item" onclick="openPage('企业端/企业信息管理/基础信息/WEB企业端-企业信息管理-基础信息.html','企业基础信息','entinfo')">
+        <span class="sub-dot"></span>企业基础信息 + 圈舍管理
+      </div>
+      <div class="nav-sub-item" onclick="openPage('企业端/企业信息管理/基础信息/WEB企业端-企业信息管理-员工信息.html','员工信息管理','entinfo')">
+        <span class="sub-dot"></span>员工信息管理
+      </div>
+      <div class="nav-sub-item" onclick="openPage('企业端/企业信息管理/实时监测/WEB企业端-企业信息管理-实时监测.html','实时监测','entinfo')">
+        <span class="sub-dot"></span>实时监测
+      </div>
+    </div>
+
+    <!-- 养殖信息管理 -->
+    <div class="nav-item" onclick="toggleMenu(this)" data-key="breed">
+      <span class="nav-icon"><i class="fa-solid fa-database"></i></span>
+      <span class="nav-label">养殖信息管理</span>
+      <i class="fa-solid fa-chevron-right nav-arrow"></i>
+    </div>
+    <div class="nav-submenu" id="sub-breed">
+      <div class="nav-sub-item" onclick="openPage('企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-养殖信息.html','养殖信息','breed')">
+        <span class="sub-dot"></span>养殖信息
+      </div>
+      <div class="nav-sub-item" onclick="openPage('企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-生产记录.html','生产记录','breed')">
+        <span class="sub-dot"></span>生产记录
+      </div>
+      <div class="nav-sub-item" onclick="openPage('企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-繁育信息.html','繁育信息','breed')">
+        <span class="sub-dot"></span>繁育信息
+      </div>
+      <div class="nav-sub-item" onclick="openPage('企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-猪只入栏信息.html','猪只入栏信息','breed')">
+        <span class="sub-dot"></span>猪只入栏信息
+      </div>
+      <div class="nav-sub-item" onclick="openPage('企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-猪只出栏信息.html','猪只出栏信息','breed')">
+        <span class="sub-dot"></span>猪只出栏信息
+      </div>
+      <div class="nav-sub-item" onclick="openPage('企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-猪只断奶信息.html','猪只断奶信息','breed')">
+        <span class="sub-dot"></span>猪只断奶信息
+      </div>
+      <div class="nav-sub-item" onclick="openPage('企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-兽药购进记录.html','兽药购进记录','breed')">
+        <span class="sub-dot"></span>兽药购进记录
+      </div>
+      <div class="nav-sub-item" onclick="openPage('企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-兽药使用记录.html','兽药使用记录','breed')">
+        <span class="sub-dot"></span>兽药使用记录
+      </div>
+      <div class="nav-sub-item" onclick="openPage('企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-畜禽疾病诊疗记录.html','畜禽疾病诊疗记录','breed')">
+        <span class="sub-dot"></span>畜禽疾病诊疗记录
+      </div>
+      <div class="nav-sub-item" onclick="openPage('企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-畜禽免疫记录.html','畜禽免疫记录','breed')">
+        <span class="sub-dot"></span>畜禽免疫记录
+      </div>
+      <div class="nav-sub-item" onclick="openPage('企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-防疫监测记录.html','防疫监测记录','breed')">
+        <span class="sub-dot"></span>防疫监测记录
+      </div>
+      <div class="nav-sub-item" onclick="openPage('企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-消毒记录.html','消毒记录','breed')">
+        <span class="sub-dot"></span>消毒记录
+      </div>
+      <div class="nav-sub-item" onclick="openPage('企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-病死畜禽无害化处理记录.html','病死畜禽无害化处理记录','breed')">
+        <span class="sub-dot"></span>病死畜禽无害化处理记录
+      </div>
+      <div class="nav-sub-item" onclick="openPage('企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-粪便及污物无害化处理记录.html','粪便及污物无害化处理','breed')">
+        <span class="sub-dot"></span>粪便及污物无害化处理记录
+      </div>
+      <div class="nav-sub-item" onclick="openPage('企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-配合饲料使用记录.html','配合饲料使用记录','breed')">
+        <span class="sub-dot"></span>配合饲料使用记录
+      </div>
+      <div class="nav-sub-item" onclick="openPage('企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-饲料和饲料添加剂购进记录.html','饲料添加剂购进记录','breed')">
+        <span class="sub-dot"></span>饲料和饲料添加剂购进记录
+      </div>
+      <div class="nav-sub-item" onclick="openPage('企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-畜禽及其产品销售记录.html','畜禽及其产品销售记录','breed')">
+        <span class="sub-dot"></span>畜禽及其产品销售记录
+      </div>
+    </div>
+
+    <!-- 项目信息管理（企业端） -->
+    <div class="nav-item" onclick="toggleMenu(this)" data-key="entproj">
+      <span class="nav-icon"><i class="fa-solid fa-file-invoice"></i></span>
+      <span class="nav-label">项目信息管理</span>
+      <i class="fa-solid fa-chevron-right nav-arrow"></i>
+    </div>
+    <div class="nav-submenu" id="sub-entproj">
+      <div class="nav-sub-item" onclick="openPage('企业端/项目信息管理/项目申报/WEB企业端-项目申报-畜牧项目建设申报.html','畜牧项目建设申报','entproj')">
+        <span class="sub-dot"></span>畜牧项目建设申报
+      </div>
+      <div class="nav-sub-item" onclick="openPage('企业端/项目信息管理/竣工验收申请/WEB企业端-项目管理-项目竣工投产前验收申请.html','项目竣工验收申请','entproj')">
+        <span class="sub-dot"></span>项目竣工验收申请
+      </div>
+    </div>
+
+    <!-- 知识讲堂 -->
+    <div class="nav-group-label">知识服务</div>
+
+    <div class="nav-item" onclick="toggleMenu(this)" data-key="edu">
+      <span class="nav-icon"><i class="fa-solid fa-book-open"></i></span>
+      <span class="nav-label">生猪知识讲堂</span>
+      <i class="fa-solid fa-chevron-right nav-arrow"></i>
+    </div>
+    <div class="nav-submenu" id="sub-edu">
+      <div class="nav-sub-item" onclick="openPage('WEB/生猪知识讲堂/网站/WEB-生猪知识讲堂网站.html','知识讲堂网站','edu')">
+        <span class="sub-dot"></span>知识讲堂网站
+      </div>
+      <div class="nav-sub-item" onclick="openPage('WEB/生猪知识讲堂/后台管理/WEB-生猪知识讲堂后台管理-课程管理.html','课程管理','edu')">
+        <span class="sub-dot"></span>课程管理
+      </div>
+      <div class="nav-sub-item" onclick="openPage('WEB/生猪知识讲堂/后台管理/WEB-生猪知识讲堂后台管理-内容管理.html','内容管理','edu')">
+        <span class="sub-dot"></span>内容管理
+      </div>
+      <div class="nav-sub-item" onclick="openPage('WEB/生猪知识讲堂/后台管理/WEB-生猪知识讲堂后台管理-培训活动管理.html','培训活动管理','edu')">
+        <span class="sub-dot"></span>培训活动管理
+      </div>
+      <div class="nav-sub-item" onclick="openPage('WEB/生猪知识讲堂/后台管理/WEB-生猪知识讲堂后台管理-在线交流管理.html','在线交流管理','edu')">
+        <span class="sub-dot"></span>在线交流管理
+      </div>
+      <div class="nav-sub-item" onclick="openPage('WEB/生猪知识讲堂/后台管理/WEB-生猪知识讲堂后台管理-用户管理.html','用户管理','edu')">
+        <span class="sub-dot"></span>用户管理
+      </div>
+      <div class="nav-sub-item" onclick="openPage('WEB/生猪知识讲堂/后台管理/WEB-生猪知识讲堂后台管理-数据分析.html','数据分析','edu')">
+        <span class="sub-dot"></span>数据分析
+      </div>
+    </div>
+
+  </div><!-- /sidebar-nav -->
+
+  <div class="sidebar-footer">
+    <button class="collapse-btn" onclick="toggleSidebar()">
+      <i class="fa-solid fa-angles-left" id="collapseIcon"></i>
+      <span id="collapseText" class="collapse-btn-text">收起菜单</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ===== MAIN ===== -->
+<div id="main">
+
+  <!-- Header -->
+  <div id="header">
+    <button class="header-toggle-btn" onclick="toggleSidebar()" title="收起/展开菜单">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+    <div class="breadcrumb" id="breadcrumb">
+      <i class="fa-solid fa-house" style="color:#bfbfbf;font-size:12px;"></i>
+      <span class="sep">/</span>
+      <span class="current">欢迎使用原型演示系统</span>
+    </div>
+    <div class="header-actions">
+      <div class="header-role-badge" id="roleBadge">县级管理员</div>
+      <div class="header-user">
+        <div class="avatar" id="userAvatar">管</div>
+        <span id="userName">管理员账号</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab bar -->
+  <div id="tabbar"></div>
+
+  <!-- Content -->
+  <div id="content">
+    <!-- Welcome -->
+    <div id="welcome" class="content-pane active">
+      <div class="welcome-icon"><i class="fa-solid fa-piggy-bank"></i></div>
+      <div class="welcome-title">2024年蓬溪县生猪数字化管理平台</div>
+      <div class="welcome-sub">请从左侧菜单选择功能模块，或点击下方快捷入口</div>
+      <div class="welcome-grid">
+        <div class="welcome-card" onclick="openPage('监管端/产业驾驶舱/产业总览/WEB监管端-产业总览大屏.html','产业总览大屏','cab')">
+          <i class="fa-solid fa-chart-pie" style="color:#1677ff;"></i>
+          <span>产业总览大屏</span>
+        </div>
+        <div class="welcome-card" onclick="openPage('监管端/决策分析/养殖分析/WEB监管端-养殖分析.html','养殖分析','analysis')">
+          <i class="fa-solid fa-chart-line" style="color:#52c41a;"></i>
+          <span>养殖分析</span>
+        </div>
+        <div class="welcome-card" onclick="openPage('监管端/视频监管/WEB监管端-视频监管驾驶舱.html','视频监管驾驶舱','video')">
+          <i class="fa-solid fa-video" style="color:#722ed1;"></i>
+          <span>视频监管驾驶舱</span>
+        </div>
+        <div class="welcome-card" onclick="openPage('企业端/企业信息管理/基础信息/WEB企业端-企业信息管理-基础信息.html','企业基础信息','entinfo')">
+          <i class="fa-solid fa-building" style="color:#fa8c16;"></i>
+          <span>企业基础信息</span>
+        </div>
+        <div class="welcome-card" onclick="openPage('监管端/智慧监管/养殖企业管理/WEB监管端-养殖企业信息管理.html','养殖企业信息管理','smart')">
+          <i class="fa-solid fa-shield-halved" style="color:#13c2c2;"></i>
+          <span>养殖企业管理</span>
+        </div>
+        <div class="welcome-card" onclick="openPage('监管端/智慧监管/电子档案管理/WEB监管端-档案台账总览.html','档案台账总览','smart')">
+          <i class="fa-solid fa-folder-open" style="color:#eb2f96;"></i>
+          <span>电子档案管理</span>
+        </div>
+        <div class="welcome-card" onclick="openPage('企业端/企业信息管理/养殖信息管理/WEB企业端-养殖信息管理-养殖信息.html','养殖信息','breed')">
+          <i class="fa-solid fa-database" style="color:#faad14;"></i>
+          <span>养殖信息管理</span>
+        </div>
+        <div class="welcome-card" onclick="openPage('WEB/生猪知识讲堂/网站/WEB-生猪知识讲堂网站.html','知识讲堂网站','edu')">
+          <i class="fa-solid fa-book-open" style="color:#1677ff;"></i>
+          <span>生猪知识讲堂</span>
+        </div>
+      </div>
+    </div>
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+  // ===== State =====
+  const tabs = [];        // { id, label, url, menuKey }
+  let activeTabId = null;
+
+  const ROLE_MAP = {
+    supervisor_admin: { name: '县级管理员', avatar: '管' },
+    supervisor_biz:   { name: '县级业务人员', avatar: '业' },
+    town_vet:         { name: '乡镇兽医站', avatar: '兽' },
+    town_gov:         { name: '乡镇政府业务人员', avatar: '政' },
+    ent_admin:        { name: '企业管理员', avatar: '企' },
+    ent_reporter:     { name: '企业填报员', avatar: '报' },
+  };
+
+  // ===== Role switch =====
+  function switchRole(val) {
+    const r = ROLE_MAP[val] || ROLE_MAP.supervisor_admin;
+    document.getElementById('roleBadge').textContent = r.name;
+    document.getElementById('userName').textContent = r.name + '账号';
+    document.getElementById('userAvatar').textContent = r.avatar;
+  }
+
+  // ===== Sidebar toggle =====
+  let sidebarCollapsed = false;
+  function toggleSidebar() {
+    sidebarCollapsed = !sidebarCollapsed;
+    document.getElementById('sidebar').classList.toggle('collapsed', sidebarCollapsed);
+    document.getElementById('collapseIcon').className = sidebarCollapsed
+      ? 'fa-solid fa-angles-right'
+      : 'fa-solid fa-angles-left';
+    document.getElementById('collapseText').textContent = sidebarCollapsed ? '展开菜单' : '收起菜单';
+  }
+
+  // ===== Menu toggle =====
+  function toggleMenu(el) {
+    const key = el.dataset.key;
+    const sub = document.getElementById('sub-' + key);
+    const isOpen = el.classList.contains('open');
+    // close all
+    document.querySelectorAll('.nav-item.open').forEach(i => {
+      i.classList.remove('open');
+      const s = document.getElementById('sub-' + i.dataset.key);
+      if (s) s.classList.remove('open');
+    });
+    if (!isOpen) {
+      el.classList.add('open');
+      if (sub) sub.classList.add('open');
+    }
+  }
+
+  // ===== Open page =====
+  function openPage(url, label, menuKey) {
+    // Expand corresponding menu
+    const menuItem = document.querySelector(`.nav-item[data-key="${menuKey}"]`);
+    if (menuItem && !menuItem.classList.contains('open')) {
+      toggleMenu(menuItem);
+    }
+    // Mark sub-item active
+    document.querySelectorAll('.nav-sub-item').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-sub-item').forEach(el => {
+      if (el.getAttribute('onclick') && el.getAttribute('onclick').includes(url)) {
+        el.classList.add('active');
+      }
+    });
+
+    // Check if tab exists
+    const existing = tabs.find(t => t.url === url);
+    if (existing) {
+      activateTab(existing.id);
+      return;
+    }
+
+    // Create new tab
+    const id = 'tab_' + Date.now();
+    tabs.push({ id, label, url, menuKey });
+    renderTabBar();
+    activateTab(id);
+  }
+
+  // ===== Render tab bar =====
+  function renderTabBar() {
+    const bar = document.getElementById('tabbar');
+    bar.innerHTML = '';
+    tabs.forEach(t => {
+      const div = document.createElement('div');
+      div.className = 'tab' + (t.id === activeTabId ? ' active' : '');
+      div.id = 'tab_btn_' + t.id;
+      div.innerHTML = `<span onclick="activateTab('${t.id}')">${t.label}</span>`
+        + `<span class="tab-close" onclick="closeTab(event,'${t.id}')"><i class="fa-solid fa-xmark"></i></span>`;
+      bar.appendChild(div);
+    });
+  }
+
+  // ===== Activate tab =====
+  function activateTab(id) {
+    activeTabId = id;
+    const tab = tabs.find(t => t.id === id);
+
+    // Update tab bar
+    document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+    const btn = document.getElementById('tab_btn_' + id);
+    if (btn) btn.classList.add('active');
+
+    // Hide welcome
+    document.getElementById('welcome').classList.remove('active');
+
+    // Show or create pane
+    document.querySelectorAll('.content-pane').forEach(el => {
+      if (el.id !== 'welcome') el.classList.remove('active');
+    });
+    let pane = document.getElementById('pane_' + id);
+    if (!pane) {
+      pane = document.createElement('div');
+      pane.className = 'content-pane';
+      pane.id = 'pane_' + id;
+      pane.innerHTML = `
+        <div class="iframe-loading" id="loading_${id}">
+          <i class="fa-solid fa-circle-notch spin" style="color:#1677ff;"></i> 正在加载页面...
+        </div>
+        <iframe src="${tab.url}" onload="hideLoading('${id}')" allowfullscreen></iframe>
+      `;
+      document.getElementById('content').appendChild(pane);
+    }
+    pane.classList.add('active');
+
+    // Update breadcrumb
+    updateBreadcrumb(tab);
+  }
+
+  function hideLoading(id) {
+    const el = document.getElementById('loading_' + id);
+    if (el) el.style.display = 'none';
+  }
+
+  // ===== Close tab =====
+  function closeTab(e, id) {
+    e.stopPropagation();
+    const idx = tabs.findIndex(t => t.id === id);
+    tabs.splice(idx, 1);
+    const pane = document.getElementById('pane_' + id);
+    if (pane) pane.remove();
+
+    if (activeTabId === id) {
+      if (tabs.length > 0) {
+        const nextIdx = Math.min(idx, tabs.length - 1);
+        activeTabId = null;
+        activateTab(tabs[nextIdx].id);
+      } else {
+        activeTabId = null;
+        document.getElementById('welcome').classList.add('active');
+        document.getElementById('breadcrumb').innerHTML = `
+          <i class="fa-solid fa-house" style="color:#bfbfbf;font-size:12px;"></i>
+          <span class="sep">/</span>
+          <span class="current">欢迎使用原型演示系统</span>`;
+      }
+    }
+    renderTabBar();
+  }
+
+  // ===== Breadcrumb =====
+  const MENU_LABELS = {
+    cab: '产业驾驶舱', analysis: '决策分析', smart: '智慧监管',
+    video: '视频监管', entinfo: '企业信息管理', breed: '养殖信息管理',
+    entproj: '项目信息管理', edu: '生猪知识讲堂',
+  };
+  const MENU_PARENT = {
+    cab: '监管端', analysis: '监管端', smart: '监管端', video: '监管端',
+    entinfo: '企业端', breed: '企业端', entproj: '企业端', edu: '知识服务',
+  };
+
+  function updateBreadcrumb(tab) {
+    const parent = MENU_PARENT[tab.menuKey] || '';
+    const menu = MENU_LABELS[tab.menuKey] || '';
+    document.getElementById('breadcrumb').innerHTML = `
+      <i class="fa-solid fa-house" style="color:#bfbfbf;font-size:12px;"></i>
+      <span class="sep">/</span><span>${parent}</span>
+      <span class="sep">/</span><span>${menu}</span>
+      <span class="sep">/</span><span class="current">${tab.label}</span>`;
+  }
+</script>
+</body>
+</html>
